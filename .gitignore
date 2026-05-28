@@ -12,6 +12,7 @@ out/
 uploads/*
 !uploads/.gitkeep
 .DS_Store
+*.tsbuildinfo
 coverage/
 .idea/
 .vscode/
