@@ -1,0 +1,448 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  RESTAURANT_OWNER
+  RESTAURANT_STAFF
+  MANAGER
+  COURIER
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  COURIER_ASSIGNED
+  PICKED_UP
+  DELIVERING
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  ONLINE
+}
+
+enum NotificationType {
+  ORDER_UPDATE
+  COURIER_ASSIGN
+  SYSTEM
+  SMS_READY
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String?   @unique
+  phone        String?   @unique
+  passwordHash String?   @map("password_hash")
+  fullName     String?   @map("full_name")
+  role         UserRole
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  restaurantStaff RestaurantStaff[]
+  managerProfile  Manager?
+  courierProfile  Courier?
+  notifications   Notification[]
+
+  @@index([role])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Restaurant {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String
+  slug            String    @unique
+  description     String?
+  logoUrl         String?   @map("logo_url")
+  coverUrl        String?   @map("cover_url")
+  phone           String?
+  email           String?
+  commissionRate  Decimal   @default(10) @map("commission_rate") @db.Decimal(5, 2)
+  isActive        Boolean   @default(true) @map("is_active")
+  minOrderAmount  Decimal?  @map("min_order_amount") @db.Decimal(10, 2)
+  avgPrepMinutes  Int       @default(30) @map("avg_prep_minutes")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  branches   RestaurantBranch[]
+  categories Category[]
+  products   Product[]
+  staff      RestaurantStaff[]
+  orders     Order[]
+  banners    Banner[]
+
+  @@index([isActive, deletedAt])
+  @@map("restaurants")
+}
+
+model RestaurantBranch {
+  id           String    @id @default(uuid()) @db.Uuid
+  restaurantId String    @map("restaurant_id") @db.Uuid
+  name         String
+  address      String
+  latitude     Decimal   @db.Decimal(10, 7)
+  longitude    Decimal   @db.Decimal(10, 7)
+  phone        String?
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  orders     Order[]
+
+  @@index([restaurantId])
+  @@map("restaurant_branches")
+}
+
+model RestaurantStaff {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  restaurantId String    @map("restaurant_id") @db.Uuid
+  position     String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  user       User       @relation(fields: [userId], references: [id])
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([userId, restaurantId])
+  @@index([restaurantId])
+  @@map("restaurant_staff")
+}
+
+model Manager {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @unique @map("user_id") @db.Uuid
+  zone      String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("managers")
+}
+
+model Courier {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @map("user_id") @db.Uuid
+  vehicleType     String?   @map("vehicle_type")
+  isOnline        Boolean   @default(false) @map("is_online")
+  currentLat      Decimal?  @map("current_lat") @db.Decimal(10, 7)
+  currentLng      Decimal?  @map("current_lng") @db.Decimal(10, 7)
+  totalDeliveries Int       @default(0) @map("total_deliveries")
+  totalEarnings   Decimal   @default(0) @map("total_earnings") @db.Decimal(12, 2)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  user        User                 @relation(fields: [userId], references: [id])
+  assignments CourierAssignment[]
+  orders      Order[]
+
+  @@index([isOnline, deletedAt])
+  @@map("couriers")
+}
+
+model Category {
+  id           String    @id @default(uuid()) @db.Uuid
+  restaurantId String    @map("restaurant_id") @db.Uuid
+  name         String
+  slug         String
+  sortOrder    Int       @default(0) @map("sort_order")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  products   Product[]
+
+  @@unique([restaurantId, slug])
+  @@index([restaurantId, isActive])
+  @@map("categories")
+}
+
+model Product {
+  id           String    @id @default(uuid()) @db.Uuid
+  restaurantId String    @map("restaurant_id") @db.Uuid
+  categoryId   String?   @map("category_id") @db.Uuid
+  name         String
+  slug         String
+  description  String?
+  price        Decimal   @db.Decimal(10, 2)
+  comparePrice Decimal?  @map("compare_price") @db.Decimal(10, 2)
+  isAvailable  Boolean   @default(true) @map("is_available")
+  sortOrder    Int       @default(0) @map("sort_order")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  restaurant Restaurant     @relation(fields: [restaurantId], references: [id])
+  category   Category?      @relation(fields: [categoryId], references: [id])
+  images     ProductImage[]
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  @@unique([restaurantId, slug])
+  @@index([restaurantId, isAvailable])
+  @@index([categoryId])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  url       String
+  sortOrder Int      @default(0) @map("sort_order")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model Banner {
+  id           String    @id @default(uuid()) @db.Uuid
+  restaurantId String?   @map("restaurant_id") @db.Uuid
+  title        String
+  imageUrl     String    @map("image_url")
+  linkUrl      String?   @map("link_url")
+  sortOrder    Int       @default(0) @map("sort_order")
+  isActive     Boolean   @default(true) @map("is_active")
+  startsAt     DateTime? @map("starts_at")
+  endsAt       DateTime? @map("ends_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  restaurant Restaurant? @relation(fields: [restaurantId], references: [id])
+
+  @@index([isActive])
+  @@map("banners")
+}
+
+model Cart {
+  id        String     @id @default(uuid()) @db.Uuid
+  sessionId String     @unique @map("session_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  items     CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  cartId    String   @map("cart_id") @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+model GuestOrder {
+  id              String   @id @default(uuid()) @db.Uuid
+  phone           String
+  deliveryAddress String   @map("delivery_address")
+  latitude        Decimal  @db.Decimal(10, 7)
+  longitude       Decimal  @db.Decimal(10, 7)
+  comment         String?
+  otpVerified     Boolean  @default(false) @map("otp_verified")
+  otpCode         String?  @map("otp_code")
+  otpExpiresAt    DateTime? @map("otp_expires_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  orders Order[]
+
+  @@index([phone])
+  @@map("guest_orders")
+}
+
+model Order {
+  id               String      @id @default(uuid()) @db.Uuid
+  orderNumber      String      @unique @map("order_number")
+  trackingToken    String      @unique @map("tracking_token")
+  restaurantId     String      @map("restaurant_id") @db.Uuid
+  branchId         String?     @map("branch_id") @db.Uuid
+  guestOrderId     String      @map("guest_order_id") @db.Uuid
+  courierId        String?     @map("courier_id") @db.Uuid
+  status           OrderStatus @default(PENDING)
+  subtotal         Decimal     @db.Decimal(10, 2)
+  deliveryFee      Decimal     @map("delivery_fee") @db.Decimal(10, 2)
+  commissionAmount Decimal     @default(0) @map("commission_amount") @db.Decimal(10, 2)
+  total            Decimal     @db.Decimal(10, 2)
+  distanceKm       Decimal?    @map("distance_km") @db.Decimal(8, 2)
+  cancelReason     String?     @map("cancel_reason")
+  estimatedMinutes Int?        @map("estimated_minutes")
+  acceptedAt       DateTime?   @map("accepted_at")
+  deliveredAt      DateTime?   @map("delivered_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  deletedAt        DateTime?   @map("deleted_at")
+
+  restaurant  Restaurant        @relation(fields: [restaurantId], references: [id])
+  branch      RestaurantBranch? @relation(fields: [branchId], references: [id])
+  guestOrder  GuestOrder        @relation(fields: [guestOrderId], references: [id])
+  courier     Courier?          @relation(fields: [courierId], references: [id])
+  items       OrderItem[]
+  payment     Payment?
+  assignment  CourierAssignment?
+  address     Address?
+  transactions Transaction[]
+
+  @@index([restaurantId, status])
+  @@index([status, createdAt])
+  @@index([courierId])
+  @@index([trackingToken])
+  @@index([orderNumber])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  orderId   String  @map("order_id") @db.Uuid
+  productId String  @map("product_id") @db.Uuid
+  name      String
+  price     Decimal @db.Decimal(10, 2)
+  quantity  Int
+  subtotal  Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Address {
+  id        String  @id @default(uuid()) @db.Uuid
+  orderId   String  @unique @map("order_id") @db.Uuid
+  line1     String
+  line2     String?
+  city      String?
+  latitude  Decimal @db.Decimal(10, 7)
+  longitude Decimal @db.Decimal(10, 7)
+  notes     String?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+model CourierAssignment {
+  id          String    @id @default(uuid()) @db.Uuid
+  orderId     String    @unique @map("order_id") @db.Uuid
+  courierId   String    @map("courier_id") @db.Uuid
+  assignedBy  String?   @map("assigned_by") @db.Uuid
+  assignedAt  DateTime  @default(now()) @map("assigned_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  pickedUpAt  DateTime? @map("picked_up_at")
+  deliveredAt DateTime? @map("delivered_at")
+  courierFee  Decimal   @map("courier_fee") @db.Decimal(10, 2)
+  distanceKm  Decimal   @map("distance_km") @db.Decimal(8, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  courier Courier @relation(fields: [courierId], references: [id])
+
+  @@index([courierId])
+  @@map("courier_assignments")
+}
+
+model Payment {
+  id        String        @id @default(uuid()) @db.Uuid
+  orderId   String        @unique @map("order_id") @db.Uuid
+  amount    Decimal       @db.Decimal(10, 2)
+  method    PaymentMethod @default(CASH)
+  status    PaymentStatus @default(PENDING)
+  paidAt    DateTime?     @map("paid_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
+}
+
+model Transaction {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @map("order_id") @db.Uuid
+  type        String
+  amount      Decimal  @db.Decimal(10, 2)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@map("transactions")
+}
+
+model DeliveryZone {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  polygon       Json
+  baseFee       Decimal  @map("base_fee") @db.Decimal(10, 2)
+  pricePerKm    Decimal  @map("price_per_km") @db.Decimal(10, 2)
+  minDeliveryFee Decimal @map("min_delivery_fee") @db.Decimal(10, 2)
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("delivery_zones")
+}
+
+model Setting {
+  id        String   @id @default(uuid()) @db.Uuid
+  key       String   @unique
+  value     Json
+  group     String   @default("general")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@map("settings")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String?          @map("user_id") @db.Uuid
+  orderId   String?          @map("order_id") @db.Uuid
+  type      NotificationType
+  title     String
+  body      String
+  isRead    Boolean          @default(false) @map("is_read")
+  metadata  Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
