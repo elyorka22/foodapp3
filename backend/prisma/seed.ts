@@ -8,9 +8,10 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@foodapp.local' },
-    update: {},
+    update: { passwordHash, role: UserRole.SUPER_ADMIN, isActive: true, deletedAt: null },
     create: {
       email: 'admin@foodapp.local',
+      phone: '+998900000001',
       fullName: 'Super Admin',
       role: UserRole.SUPER_ADMIN,
       passwordHash,
@@ -19,9 +20,10 @@ async function main() {
 
   const manager = await prisma.user.upsert({
     where: { email: 'manager@foodapp.local' },
-    update: {},
+    update: { passwordHash, isActive: true, deletedAt: null },
     create: {
       email: 'manager@foodapp.local',
+      phone: '+998900000002',
       fullName: 'Operations Manager',
       role: UserRole.MANAGER,
       passwordHash,
@@ -63,9 +65,10 @@ async function main() {
 
   const owner = await prisma.user.upsert({
     where: { email: 'owner@foodapp.local' },
-    update: {},
+    update: { passwordHash, isActive: true, deletedAt: null },
     create: {
       email: 'owner@foodapp.local',
+      phone: '+998900000003',
       fullName: 'Restaurant Owner',
       role: UserRole.RESTAURANT_OWNER,
       passwordHash,
@@ -80,7 +83,7 @@ async function main() {
 
   const courierUser = await prisma.user.upsert({
     where: { email: 'courier@foodapp.local' },
-    update: {},
+    update: { passwordHash, isActive: true, deletedAt: null },
     create: {
       email: 'courier@foodapp.local',
       fullName: 'Demo Courier',
@@ -144,7 +147,12 @@ async function main() {
     skipDuplicates: true,
   });
 
-  console.log('Seed complete:', { admin: admin.email, branch: branch.name });
+  console.log('Seed complete. Staff logins (password: Admin123!):');
+  console.log('  Super Admin — email: admin@foodapp.local | phone: +998900000001');
+  console.log('  Manager     — email: manager@foodapp.local');
+  console.log('  Owner       — email: owner@foodapp.local');
+  console.log('  Courier     — email: courier@foodapp.local');
+  console.log('  Restaurant:', branch.name);
 }
 
 main()

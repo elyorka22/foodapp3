@@ -1,9 +1,19 @@
 export type StaffUser = {
   id: string;
   email: string;
+  phone?: string;
   fullName?: string;
   role: string;
 };
+
+/** Staff login: use email (admin@...) OR phone from users table — NOT customer registration phone */
+export function buildStaffLoginBody(loginId: string, password: string) {
+  const id = loginId.trim();
+  if (id.includes('@')) {
+    return { email: id.toLowerCase(), password };
+  }
+  return { phone: id, password };
+}
 
 const TOKEN_KEY = 'foodapp_token';
 const USER_KEY = 'foodapp_user';

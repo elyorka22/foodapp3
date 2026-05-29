@@ -81,9 +81,10 @@ export default function ProfilePage() {
   if (customer) {
     return (
       <main className="mx-auto max-w-lg px-4 py-6">
-        <h1 className="text-xl font-bold">Profile</h1>
+        <h1 className="text-xl font-bold">Профиль клиента</h1>
         <div className="mt-6 rounded-xl border p-5 dark:border-white/10">
-          <p className="text-lg font-semibold">{customer.fullName}</p>
+          <p className="text-xs opacity-50">Аккаунт для заказов (customers)</p>
+          <p className="mt-2 text-lg font-semibold">{customer.fullName}</p>
           <p className="mt-1 text-sm opacity-70">{customer.phone}</p>
           {customer.email && <p className="text-sm opacity-70">{customer.email}</p>}
           <p className="mt-2 text-xs opacity-50">ID: {customer.id}</p>
@@ -102,8 +103,8 @@ export default function ProfilePage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-6">
-      <h1 className="text-xl font-bold">Profile</h1>
-      <p className="mt-1 text-sm opacity-70">Register — data will be saved to the server</p>
+      <h1 className="text-xl font-bold">Профиль клиента</h1>
+      <p className="mt-1 text-sm opacity-70">Только имя и телефон — для заказов еды</p>
 
       <div className="mt-4 flex gap-2 rounded-xl bg-black/5 p-1 dark:bg-white/10">
         <button

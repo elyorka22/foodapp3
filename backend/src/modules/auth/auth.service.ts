@@ -1,7 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
+import { normalizePhone } from '../../common/utils/phone.util';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
@@ -12,11 +13,17 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
+    if (!dto.email && !dto.phone) {
+      throw new BadRequestException('Email or phone is required');
+    }
+
     const user = await this.prisma.user.findFirst({
       where: {
-        email: dto.email,
         deletedAt: null,
         isActive: true,
+        ...(dto.email
+          ? { email: dto.email.trim().toLowerCase() }
+          : { phone: normalizePhone(dto.phone!) }),
       },
     });
 
@@ -32,12 +39,13 @@ export class AuthService {
       data: { lastLoginAt: new Date() },
     });
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { sub: user.id, email: user.email ?? '', role: user.role };
     return {
       accessToken: this.jwtService.sign(payload),
       user: {
         id: user.id,
-        email: user.email,
+        email: user.email ?? '',
+        phone: user.phone ?? undefined,
         fullName: user.fullName,
         role: user.role,
       },
