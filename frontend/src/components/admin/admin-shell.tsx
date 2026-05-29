@@ -16,7 +16,10 @@ import {
   Truck,
   Users,
   Image as ImageIcon,
+  ScrollText,
+  Server,
 } from 'lucide-react';
+import { NotificationsBell } from '@/components/admin/notifications-bell';
 import { clsx } from 'clsx';
 import { clearAuth, getToken, getUser } from '@/lib/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -33,6 +36,8 @@ const NAV: NavItem[] = [
   { href: '/admin/banners', label: 'Banners', icon: ImageIcon },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { href: '/admin/audit', label: 'Audit log', icon: ScrollText },
+  { href: '/admin/system', label: 'System', icon: Server },
   { href: '/admin/promo-codes', label: 'Promo Codes', icon: TicketPercent },
 ];
 
@@ -82,6 +87,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <p className="text-sm font-semibold">{user?.fullName ?? user?.email}</p>
               <p className="text-xs opacity-60">{user?.role}</p>
             </div>
+            <NotificationsBell />
             <ThemeToggle />
             <button
               type="button"

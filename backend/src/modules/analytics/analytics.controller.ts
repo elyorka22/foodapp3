@@ -26,8 +26,25 @@ export class AnalyticsController {
   }
 
   @Get('restaurant/:id')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.MANAGER,
+    UserRole.RESTAURANT_OWNER,
+    UserRole.RESTAURANT_STAFF,
+  )
   restaurant(@Param('id') id: string) {
     return this.analytics.getRestaurantStats(id);
+  }
+
+  @Get('top-products')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  topProducts() {
+    return this.analytics.getTopProducts();
+  }
+
+  @Get('top-restaurants')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  topRestaurants() {
+    return this.analytics.getTopRestaurants();
   }
 }

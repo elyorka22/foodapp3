@@ -3,6 +3,9 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { AdminProductsQueryDto } from './dto/admin-products-query.dto';
+import { BulkProductsDto } from './dto/bulk-products.dto';
+import { ProductImageDto } from './dto/product-image.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -12,6 +15,22 @@ import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.de
 @Controller('products')
 export class ProductsController {
   constructor(private products: ProductsService) {}
+
+  @Get('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
+  findAllAdmin(@Query() query: AdminProductsQueryDto, @CurrentUser() user: JwtPayload) {
+    return this.products.findAllAdmin(query, user);
+  }
+
+  @Post('bulk')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
+  bulk(@Body() dto: BulkProductsDto, @CurrentUser() user: JwtPayload) {
+    return this.products.bulk(dto, user);
+  }
 
   @Get()
   findByRestaurant(
@@ -27,6 +46,14 @@ export class ProductsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
   create(@Body() dto: CreateProductDto, @CurrentUser() user: JwtPayload) {
     return this.products.create(dto, user);
+  }
+
+  @Post(':id/image')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
+  addImage(@Param('id') id: string, @Body() dto: ProductImageDto, @CurrentUser() user: JwtPayload) {
+    return this.products.addImage(id, dto.url, user);
   }
 
   @Patch(':id')

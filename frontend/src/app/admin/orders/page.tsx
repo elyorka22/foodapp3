@@ -6,6 +6,7 @@ import { getToken, getUser } from '@/lib/auth';
 import { EmptyState, LoadingState, StatusBadge } from '@/components/admin/ui';
 import { SearchInput, DateRangeFilter } from '@/components/admin/filters';
 import { useAdminOrders } from '@/hooks/use-admin-orders';
+import { useAdminSocket } from '@/hooks/use-admin-socket';
 import { OrderDrawer } from '@/components/admin/order-drawer';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 import { api } from '@/lib/api';
@@ -24,7 +25,9 @@ export default function AdminOrdersPage() {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [courierId, setCourierId] = useState('');
 
-  const { list, getOne, updateStatus: mutateStatus } = useAdminOrders({
+  useAdminSocket();
+
+  const { list, getOne, getHistory, updateStatus: mutateStatus } = useAdminOrders({
     page,
     limit: 20,
     search: search || undefined,
@@ -178,6 +181,7 @@ export default function AdminOrdersPage() {
         orderId={openId}
         onClose={() => setOpenId(null)}
         load={getOne}
+        loadHistory={getHistory}
         onChangeStatus={async (id, s) => changeStatus(id, s)}
       />
 

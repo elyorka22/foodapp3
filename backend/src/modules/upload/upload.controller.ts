@@ -32,7 +32,6 @@ export class UploadController {
     }),
   )
   uploadImage(@UploadedFile() file: Express.Multer.File) {
-    if (!file) throw new BadRequestException('File is required');
     return this.upload.saveFile(file);
   }
 }

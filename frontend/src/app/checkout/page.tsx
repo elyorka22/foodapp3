@@ -17,6 +17,10 @@ export default function CheckoutPage() {
   const [comment, setComment] = useState('');
   const [lat, setLat] = useState(41.311081);
   const [lng, setLng] = useState(69.240562);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoMessage, setPromoMessage] = useState('');
+  const [validatingPromo, setValidatingPromo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -40,6 +44,39 @@ export default function CheckoutPage() {
     );
   };
 
+  const applyPromo = async () => {
+    if (!promoCode.trim() || !restaurantId) return;
+    setValidatingPromo(true);
+    setPromoMessage('');
+    try {
+      const res = await api<{
+        valid: boolean;
+        message?: string;
+        discount: number;
+      }>('/promo-codes/validate', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: promoCode.trim(),
+          restaurantId,
+          subtotal: total(),
+          customerId: getCustomer()?.id,
+        }),
+      });
+      if (res.valid) {
+        setPromoDiscount(res.discount);
+        setPromoMessage(`Discount: ${res.discount.toLocaleString()} UZS`);
+      } else {
+        setPromoDiscount(0);
+        setPromoMessage(res.message ?? 'Invalid promo code');
+      }
+    } catch (err) {
+      setPromoDiscount(0);
+      setPromoMessage(err instanceof Error ? err.message : 'Could not validate promo');
+    } finally {
+      setValidatingPromo(false);
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!restaurantId || !items.length) return;
@@ -57,6 +94,7 @@ export default function CheckoutPage() {
           latitude: lat,
           longitude: lng,
           comment: comment || undefined,
+          promoCode: promoCode.trim() || undefined,
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         }),
       });
@@ -99,7 +137,28 @@ export default function CheckoutPage() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 font-semibold">Subtotal: {total().toLocaleString()} UZS + delivery</p>
+      <p className="mt-3 font-semibold">
+        Subtotal: {total().toLocaleString()} UZS
+        {promoDiscount > 0 && (
+          <span className="ml-2 text-green-600">
+            −{promoDiscount.toLocaleString()} UZS promo
+          </span>
+        )}
+        {' '}
+        + delivery
+      </p>
+
+      <div className="mt-4 flex gap-2">
+        <Input
+          placeholder="Promo code"
+          value={promoCode}
+          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+        />
+        <Button type="button" variant="secondary" onClick={applyPromo} disabled={validatingPromo}>
+          {validatingPromo ? '...' : 'Apply'}
+        </Button>
+      </div>
+      {promoMessage && <p className="text-sm text-brand-600">{promoMessage}</p>}
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <Input

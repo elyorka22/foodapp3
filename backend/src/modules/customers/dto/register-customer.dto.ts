@@ -16,4 +16,9 @@ export class RegisterCustomerDto {
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  @ApiPropertyOptional({ description: 'Referral code from an existing customer' })
+  @IsOptional()
+  @IsString()
+  referredByCode?: string;
 }

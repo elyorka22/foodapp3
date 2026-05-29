@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
+import { SecurityModule } from './common/security/security.module';
+import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { RestaurantsModule } from './modules/restaurants/restaurants.module';
@@ -17,10 +19,15 @@ import { HealthModule } from './modules/health/health.module';
 import { BannersModule } from './modules/banners/banners.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { CustomersModule } from './modules/customers/customers.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { AdminNotificationsModule } from './modules/admin-notifications/admin-notifications.module';
+import { PromoCodesModule } from './modules/promo-codes/promo-codes.module';
+import { GrowthModule } from './modules/growth/growth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    SecurityModule,
     ThrottlerModule.forRoot([
       {
         ttl: parseInt(process.env.THROTTLE_TTL ?? '60000', 10),
@@ -42,7 +49,11 @@ import { CustomersModule } from './modules/customers/customers.module';
     BannersModule,
     AnalyticsModule,
     CustomersModule,
+    AuditModule,
+    AdminNotificationsModule,
+    PromoCodesModule,
+    GrowthModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })
 export class AppModule {}

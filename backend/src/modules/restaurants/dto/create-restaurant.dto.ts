@@ -19,6 +19,16 @@ export class CreateRestaurantDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  logoUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  coverUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   phone?: string;
 
   @ApiPropertyOptional()

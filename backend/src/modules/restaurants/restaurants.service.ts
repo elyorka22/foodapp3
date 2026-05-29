@@ -1,18 +1,29 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { Prisma, UserRole } from '@prisma/client';
+import { RestaurantScheduleService } from './restaurant-schedule.service';
+import { OrderStatus, Prisma, RestaurantApprovalStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { paginate, paginatedResponse, PaginationDto } from '../../common/dto/pagination.dto';
+import { AuditService } from '../audit/audit.service';
+import { AdminNotificationsService } from '../admin-notifications/admin-notifications.service';
+import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
+import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { AdminRestaurantsQueryDto } from './dto/admin-restaurants-query.dto';
 
 @Injectable()
 export class RestaurantsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+    private adminNotifications: AdminNotificationsService,
+    private schedule: RestaurantScheduleService,
+  ) {}
 
-  async findAllPublic(query: PaginationDto) {
+  async findAllPublic(query: { page?: number; limit?: number; search?: string }) {
     const { skip, take } = paginate(query.page, query.limit);
     const where: Prisma.RestaurantWhereInput = {
       isActive: true,
+      approvalStatus: RestaurantApprovalStatus.APPROVED,
       deletedAt: null,
       ...(query.search && {
         OR: [
@@ -38,7 +49,12 @@ export class RestaurantsService {
 
   async findBySlug(slug: string) {
     const restaurant = await this.prisma.restaurant.findFirst({
-      where: { slug, isActive: true, deletedAt: null },
+      where: {
+        slug,
+        isActive: true,
+        approvalStatus: RestaurantApprovalStatus.APPROVED,
+        deletedAt: null,
+      },
       include: {
         branches: { where: { isActive: true } },
         categories: {
@@ -53,33 +69,277 @@ export class RestaurantsService {
       },
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
+    const isOpen = await this.schedule.isOpen(restaurant.id);
+    return { ...restaurant, isOpen };
+  }
+
+  async findById(id: string, user?: JwtPayload) {
+    const restaurant = await this.prisma.restaurant.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        ...(!user && {
+          isActive: true,
+          approvalStatus: RestaurantApprovalStatus.APPROVED,
+        }),
+      },
+      include: {
+        branches: { where: { deletedAt: null, ...(!user && { isActive: true }) } },
+        _count: { select: { products: { where: { deletedAt: null } } } },
+      },
+    });
+    if (!restaurant) throw new NotFoundException('Restaurant not found');
+    if (user) this.assertRestaurantAccess(id, user);
     return restaurant;
   }
 
-  async findAllAdmin(query: PaginationDto, user: JwtPayload) {
+  async findAllAdmin(query: AdminRestaurantsQueryDto, user: JwtPayload) {
     const { skip, take } = paginate(query.page, query.limit);
-    const where: Prisma.RestaurantWhereInput = { deletedAt: null };
+    const where: Prisma.RestaurantWhereInput = {
+      deletedAt: null,
+      ...(query.isActive !== undefined && { isActive: query.isActive }),
+      ...(query.search && {
+        OR: [
+          { name: { contains: query.search, mode: 'insensitive' } },
+          { slug: { contains: query.search, mode: 'insensitive' } },
+          { description: { contains: query.search, mode: 'insensitive' } },
+        ],
+      }),
+    };
 
     if (user.role === UserRole.RESTAURANT_OWNER || user.role === UserRole.RESTAURANT_STAFF) {
       if (!user.restaurantId) throw new ForbiddenException();
       where.id = user.restaurantId;
     }
 
-    const [data, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       this.prisma.restaurant.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } }),
       this.prisma.restaurant.count({ where }),
     ]);
 
+    const ids = rows.map((r) => r.id);
+    if (!ids.length) {
+      return paginatedResponse([], total, query.page ?? 1, query.limit ?? 20);
+    }
+
+    const [orderGroups, revenueGroups, productGroups] = await Promise.all([
+      this.prisma.order.groupBy({
+        by: ['restaurantId'],
+        where: { restaurantId: { in: ids }, deletedAt: null },
+        _count: { _all: true },
+      }),
+      this.prisma.order.groupBy({
+        by: ['restaurantId'],
+        where: {
+          restaurantId: { in: ids },
+          deletedAt: null,
+          status: OrderStatus.DELIVERED,
+        },
+        _sum: { total: true },
+      }),
+      this.prisma.product.groupBy({
+        by: ['restaurantId'],
+        where: { restaurantId: { in: ids }, deletedAt: null },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const orderCountMap = new Map(orderGroups.map((g) => [g.restaurantId, g._count._all]));
+    const revenueMap = new Map(
+      revenueGroups.map((g) => [g.restaurantId, Number(g._sum.total ?? 0)]),
+    );
+    const productCountMap = new Map(productGroups.map((g) => [g.restaurantId, g._count._all]));
+
+    const data = rows.map((r) => ({
+      ...r,
+      commissionRate: Number(r.commissionRate),
+      ordersCount: orderCountMap.get(r.id) ?? 0,
+      revenue: revenueMap.get(r.id) ?? 0,
+      productsCount: productCountMap.get(r.id) ?? 0,
+    }));
+
     return paginatedResponse(data, total, query.page ?? 1, query.limit ?? 20);
   }
 
-  async create(dto: CreateRestaurantDto) {
-    return this.prisma.restaurant.create({ data: dto });
+  async getStats(id: string, user: JwtPayload) {
+    this.assertRestaurantAccess(id, user);
+    const restaurant = await this.prisma.restaurant.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!restaurant) throw new NotFoundException('Restaurant not found');
+
+    const baseWhere: Prisma.OrderWhereInput = { restaurantId: id, deletedAt: null };
+
+    const [totalOrders, completedOrders, cancelledOrders, revenueAgg, productsCount, latestOrders] =
+      await Promise.all([
+        this.prisma.order.count({ where: baseWhere }),
+        this.prisma.order.count({
+          where: { ...baseWhere, status: OrderStatus.DELIVERED },
+        }),
+        this.prisma.order.count({
+          where: { ...baseWhere, status: OrderStatus.CANCELLED },
+        }),
+        this.prisma.order.aggregate({
+          where: { ...baseWhere, status: OrderStatus.DELIVERED },
+          _sum: { total: true },
+        }),
+        this.prisma.product.count({ where: { restaurantId: id, deletedAt: null } }),
+        this.prisma.order.findMany({
+          where: baseWhere,
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          include: { guestOrder: true },
+        }),
+      ]);
+
+    const revenue = Number(revenueAgg._sum.total ?? 0);
+    const averageOrderValue = completedOrders > 0 ? revenue / completedOrders : 0;
+
+    return {
+      totalOrders,
+      completedOrders,
+      cancelledOrders,
+      revenue,
+      averageOrderValue,
+      productsCount,
+      latestOrders,
+    };
   }
 
-  async update(id: string, dto: Partial<CreateRestaurantDto>, user: JwtPayload) {
+  async create(dto: CreateRestaurantDto, userId?: string) {
+    const restaurant = await this.prisma.restaurant.create({
+      data: {
+        ...dto,
+        approvalStatus: RestaurantApprovalStatus.PENDING,
+        isActive: dto.isActive ?? false,
+      },
+    });
+    await this.audit.log({
+      userId,
+      action: 'create',
+      entity: 'restaurant',
+      entityId: restaurant.id,
+      metadata: { name: restaurant.name },
+    });
+    return restaurant;
+  }
+
+  async update(id: string, dto: UpdateRestaurantDto, user: JwtPayload) {
     this.assertRestaurantAccess(id, user);
-    return this.prisma.restaurant.update({ where: { id }, data: dto });
+    const data: Prisma.RestaurantUpdateInput = { ...dto };
+    if (dto.commissionRate !== undefined) {
+      data.commissionRate = dto.commissionRate;
+    }
+    const restaurant = await this.prisma.restaurant.update({ where: { id }, data });
+    await this.audit.log({
+      userId: user.sub,
+      action: 'update',
+      entity: 'restaurant',
+      entityId: id,
+      metadata: dto,
+    });
+    return restaurant;
+  }
+
+  async updateApproval(
+    id: string,
+    status: RestaurantApprovalStatus,
+    note: string | undefined,
+    user: JwtPayload,
+  ) {
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.MANAGER) {
+      throw new ForbiddenException();
+    }
+    const restaurant = await this.prisma.restaurant.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!restaurant) throw new NotFoundException('Restaurant not found');
+
+    const isApproved = status === RestaurantApprovalStatus.APPROVED;
+    const updated = await this.prisma.restaurant.update({
+      where: { id },
+      data: {
+        approvalStatus: status,
+        approvalNote: note,
+        approvedAt: isApproved ? new Date() : null,
+        isActive: isApproved ? true : status !== RestaurantApprovalStatus.REJECTED,
+      },
+    });
+
+    await this.audit.log({
+      userId: user.sub,
+      action: 'approval_change',
+      entity: 'restaurant',
+      entityId: id,
+      metadata: { status, note },
+    });
+
+    if (status === RestaurantApprovalStatus.SUSPENDED) {
+      await this.adminNotifications.notifyRestaurantSuspended({
+        id: restaurant.id,
+        name: restaurant.name,
+      });
+    }
+
+    return updated;
+  }
+
+  async getFinance(id: string, user: JwtPayload) {
+    this.assertRestaurantAccess(id, user);
+    const restaurant = await this.prisma.restaurant.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!restaurant) throw new NotFoundException('Restaurant not found');
+
+    const delivered = await this.prisma.order.aggregate({
+      where: {
+        restaurantId: id,
+        deletedAt: null,
+        status: OrderStatus.DELIVERED,
+      },
+      _sum: { subtotal: true, commissionAmount: true, total: true },
+      _count: { _all: true },
+    });
+
+    const grossRevenue = Number(delivered._sum.subtotal ?? 0);
+    const platformCommission = Number(delivered._sum.commissionAmount ?? 0);
+    const netRestaurantRevenue = grossRevenue - platformCommission;
+
+    return {
+      restaurantId: id,
+      restaurantName: restaurant.name,
+      commissionRate: Number(restaurant.commissionRate),
+      completedOrders: delivered._count._all,
+      grossRevenue,
+      platformCommission,
+      netRestaurantRevenue,
+      totalOrderValue: Number(delivered._sum.total ?? 0),
+    };
+  }
+
+  async softDelete(id: string, user: JwtPayload) {
+    if (user.role !== UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Only super admin can delete restaurants');
+    }
+    const restaurant = await this.prisma.restaurant.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!restaurant) throw new NotFoundException('Restaurant not found');
+    const deleted = await this.prisma.restaurant.update({
+      where: { id },
+      data: { deletedAt: new Date(), isActive: false },
+    });
+    await this.audit.log({
+      userId: user.sub,
+      action: 'delete',
+      entity: 'restaurant',
+      entityId: id,
+    });
+    return deleted;
+  }
+
+  assertAccess(restaurantId: string, user: JwtPayload) {
+    this.assertRestaurantAccess(restaurantId, user);
   }
 
   private assertRestaurantAccess(restaurantId: string, user: JwtPayload) {

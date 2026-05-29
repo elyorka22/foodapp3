@@ -37,6 +37,9 @@ export function useAdminOrders(query: AdminOrdersQuery) {
   const getOne = (id: string) =>
     api<any>(`/orders/${id}`, { token: token ?? undefined });
 
+  const getHistory = (id: string) =>
+    api<any[]>(`/orders/${id}/history`, { token: token ?? undefined });
+
   const updateStatus = useMutation({
     mutationFn: ({ id, status, cancelReason, courierId }: { id: string; status: string; cancelReason?: string; courierId?: string }) =>
       api(`/orders/${id}/status`, {
@@ -47,6 +50,6 @@ export function useAdminOrders(query: AdminOrdersQuery) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
   });
 
-  return { list, getOne, updateStatus };
+  return { list, getOne, getHistory, updateStatus };
 }
 

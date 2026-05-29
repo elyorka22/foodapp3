@@ -3,6 +3,8 @@ export type CustomerProfile = {
   phone: string;
   fullName: string;
   email?: string;
+  referralCode?: string;
+  loyalty?: { points: number; level: string };
 };
 
 const PROFILE_KEY = 'foodapp_customer';

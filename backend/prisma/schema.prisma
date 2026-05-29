@@ -46,6 +46,32 @@ enum NotificationType {
   SMS_READY
 }
 
+enum RestaurantApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum AdminNotificationType {
+  NEW_ORDER
+  COURIER_OFFLINE
+  RESTAURANT_SUSPENDED
+  CUSTOMER_BLOCKED
+}
+
+enum PromoCodeType {
+  FIXED
+  PERCENTAGE
+}
+
+enum LoyaltyLevel {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
 model User {
   id           String    @id @default(uuid()) @db.Uuid
   email        String?   @unique
@@ -63,6 +89,9 @@ model User {
   managerProfile  Manager?
   courierProfile  Courier?
   notifications   Notification[]
+  orderStatusChanges OrderStatusHistory[]
+  auditLogs          AuditLog[]
+  adminNotificationReads AdminNotificationRead[]
 
   @@index([role])
   @@index([deletedAt])
@@ -78,8 +107,11 @@ model Restaurant {
   coverUrl        String?   @map("cover_url")
   phone           String?
   email           String?
-  commissionRate  Decimal   @default(10) @map("commission_rate") @db.Decimal(5, 2)
-  isActive        Boolean   @default(true) @map("is_active")
+  commissionRate  Decimal                  @default(10) @map("commission_rate") @db.Decimal(5, 2)
+  isActive        Boolean                  @default(true) @map("is_active")
+  approvalStatus  RestaurantApprovalStatus @default(APPROVED) @map("approval_status")
+  approvalNote    String?                  @map("approval_note")
+  approvedAt      DateTime?                @map("approved_at")
   minOrderAmount  Decimal?  @map("min_order_amount") @db.Decimal(10, 2)
   avgPrepMinutes  Int       @default(30) @map("avg_prep_minutes")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -90,10 +122,13 @@ model Restaurant {
   categories Category[]
   products   Product[]
   staff      RestaurantStaff[]
-  orders     Order[]
-  banners    Banner[]
+  orders        Order[]
+  banners       Banner[]
+  workingHours  RestaurantWorkingHours[]
+  holidays      RestaurantHoliday[]
 
   @@index([isActive, deletedAt])
+  @@index([approvalStatus])
   @@map("restaurants")
 }
 
@@ -274,6 +309,7 @@ model Customer {
   phone        String    @unique
   fullName     String    @map("full_name")
   email        String?
+  isActive     Boolean   @default(true) @map("is_active")
   passwordHash String?   @map("password_hash")
   otpVerified  Boolean   @default(false) @map("otp_verified")
   otpCode      String?   @map("otp_code")
@@ -282,7 +318,12 @@ model Customer {
   updatedAt    DateTime  @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
 
-  guestOrders GuestOrder[]
+  referralCode   String?  @unique @map("referral_code")
+  guestOrders    GuestOrder[]
+  loyalty        CustomerLoyalty?
+  promoUsages    PromoCodeUsage[]
+  referralsSent  Referral[] @relation("ReferralInviter")
+  referralsGot   Referral[] @relation("ReferralInvited")
 
   @@index([deletedAt])
   @@map("customers")
@@ -321,6 +362,8 @@ model Order {
   subtotal         Decimal     @db.Decimal(10, 2)
   deliveryFee      Decimal     @map("delivery_fee") @db.Decimal(10, 2)
   commissionAmount Decimal     @default(0) @map("commission_amount") @db.Decimal(10, 2)
+  discountAmount   Decimal     @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  promoCodeId      String?     @map("promo_code_id") @db.Uuid
   total            Decimal     @db.Decimal(10, 2)
   distanceKm       Decimal?    @map("distance_km") @db.Decimal(8, 2)
   cancelReason     String?     @map("cancel_reason")
@@ -339,9 +382,13 @@ model Order {
   payment     Payment?
   assignment  CourierAssignment?
   address     Address?
-  transactions Transaction[]
+  transactions   Transaction[]
+  statusHistory  OrderStatusHistory[]
+  promoCode      PromoCode?         @relation(fields: [promoCodeId], references: [id])
+  promoUsage     PromoCodeUsage?
 
   @@index([restaurantId, status])
+  @@index([promoCodeId])
   @@index([status, createdAt])
   @@index([courierId])
   @@index([trackingToken])
@@ -467,4 +514,159 @@ model Notification {
 
   @@index([userId, isRead])
   @@map("notifications")
+}
+
+model OrderStatusHistory {
+  id              String      @id @default(uuid()) @db.Uuid
+  orderId         String      @map("order_id") @db.Uuid
+  status          OrderStatus
+  changedByUserId String?     @map("changed_by_user_id") @db.Uuid
+  note            String?
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy User? @relation(fields: [changedByUserId], references: [id])
+
+  @@index([orderId, createdAt])
+  @@map("order_status_history")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model AdminNotification {
+  id        String                @id @default(uuid()) @db.Uuid
+  type      AdminNotificationType
+  title     String
+  body      String
+  metadata  Json?
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  reads AdminNotificationRead[]
+
+  @@index([createdAt])
+  @@map("admin_notifications")
+}
+
+model AdminNotificationRead {
+  id             String   @id @default(uuid()) @db.Uuid
+  notificationId String   @map("notification_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  readAt         DateTime @default(now()) @map("read_at")
+
+  notification AdminNotification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, userId])
+  @@index([userId])
+  @@map("admin_notification_reads")
+}
+
+model PromoCode {
+  id                String         @id @default(uuid()) @db.Uuid
+  code              String         @unique
+  type              PromoCodeType
+  value             Decimal        @db.Decimal(10, 2)
+  minimumOrderAmount Decimal?      @map("minimum_order_amount") @db.Decimal(10, 2)
+  maximumDiscount   Decimal?       @map("maximum_discount") @db.Decimal(10, 2)
+  usageLimit        Int?           @map("usage_limit")
+  usageCount        Int            @default(0) @map("usage_count")
+  startsAt          DateTime?      @map("starts_at")
+  expiresAt         DateTime?      @map("expires_at")
+  isActive          Boolean        @default(true) @map("is_active")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  orders  Order[]
+  usages  PromoCodeUsage[]
+
+  @@index([isActive])
+  @@map("promo_codes")
+}
+
+model PromoCodeUsage {
+  id             String   @id @default(uuid()) @db.Uuid
+  promoCodeId    String   @map("promo_code_id") @db.Uuid
+  orderId        String   @unique @map("order_id") @db.Uuid
+  customerId     String?  @map("customer_id") @db.Uuid
+  discountAmount Decimal  @map("discount_amount") @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  promoCode PromoCode @relation(fields: [promoCodeId], references: [id])
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer  Customer? @relation(fields: [customerId], references: [id])
+
+  @@index([promoCodeId])
+  @@index([customerId])
+  @@map("promo_code_usages")
+}
+
+model RestaurantWorkingHours {
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  dayOfWeek    Int      @map("day_of_week")
+  openTime     String   @map("open_time")
+  closeTime    String   @map("close_time")
+  isClosed     Boolean  @default(false) @map("is_closed")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, dayOfWeek])
+  @@map("restaurant_working_hours")
+}
+
+model RestaurantHoliday {
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  date         DateTime @db.Date
+  reason       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, date])
+  @@map("restaurant_holidays")
+}
+
+model CustomerLoyalty {
+  id         String       @id @default(uuid()) @db.Uuid
+  customerId String       @unique @map("customer_id") @db.Uuid
+  points     Int          @default(0)
+  level      LoyaltyLevel @default(BRONZE)
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("customer_loyalty")
+}
+
+model Referral {
+  id                 String   @id @default(uuid()) @db.Uuid
+  inviterCustomerId  String   @map("inviter_customer_id") @db.Uuid
+  invitedCustomerId  String   @unique @map("invited_customer_id") @db.Uuid
+  rewardPoints       Int      @default(0) @map("reward_points")
+  rewardedAt         DateTime? @map("rewarded_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  inviter Customer @relation("ReferralInviter", fields: [inviterCustomerId], references: [id])
+  invited Customer @relation("ReferralInvited", fields: [invitedCustomerId], references: [id])
+
+  @@index([inviterCustomerId])
+  @@map("referrals")
 }

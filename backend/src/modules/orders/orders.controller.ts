@@ -9,6 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import { THROTTLE } from '../../common/constants/throttle.constants';
 import { OrderStatus, UserRole } from '@prisma/client';
 import { OrdersService } from './orders.service';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
@@ -25,15 +27,32 @@ export class OrdersController {
   constructor(private ordersService: OrdersService) {}
 
   @Post('guest')
+  @Throttle({ default: THROTTLE.GUEST_ORDER })
   @ApiOperation({ summary: 'Place order without registration' })
   createGuestOrder(@Body() dto: CreateGuestOrderDto) {
     return this.ordersService.createGuestOrder(dto);
   }
 
   @Get('track/:token')
+  @Throttle({ default: THROTTLE.TRACK_ORDER })
   @ApiOperation({ summary: 'Track order by token (public)' })
   track(@Param('token') token: string) {
     return this.ordersService.findByTrackingToken(token);
+  }
+
+  @Get(':id/history')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.MANAGER,
+    UserRole.RESTAURANT_OWNER,
+    UserRole.RESTAURANT_STAFF,
+    UserRole.COURIER,
+  )
+  @ApiOperation({ summary: 'Order status change history' })
+  history(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.ordersService.getStatusHistory(id, user);
   }
 
   @Get(':id')

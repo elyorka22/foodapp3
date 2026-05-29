@@ -2,9 +2,11 @@ import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { SettingsService, DeliveryPricing } from './settings.service';
+import { AdminSettingsDto } from './dto/admin-settings.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('settings')
 @Controller('settings')
@@ -12,6 +14,18 @@ import { Roles } from '../../common/decorators/roles.decorator';
 @ApiBearerAuth()
 export class SettingsController {
   constructor(private settings: SettingsService) {}
+
+  @Get('admin')
+  @Roles(UserRole.SUPER_ADMIN)
+  getAdmin() {
+    return this.settings.getAdminSettings();
+  }
+
+  @Put('admin')
+  @Roles(UserRole.SUPER_ADMIN)
+  setAdmin(@Body() body: AdminSettingsDto, @CurrentUser() user: JwtPayload) {
+    return this.settings.setAdminSettings(body, user.sub);
+  }
 
   @Get('delivery-pricing')
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)

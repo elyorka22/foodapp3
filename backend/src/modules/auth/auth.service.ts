@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BruteForceService } from '../../common/security/brute-force.service';
 import { normalizePhone } from '../../common/utils/phone.util';
 import { LoginDto } from './dto/login.dto';
 
@@ -10,29 +11,43 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private bruteForce: BruteForceService,
   ) {}
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, clientIp: string) {
     if (!dto.email && !dto.phone) {
       throw new BadRequestException('Email or phone is required');
     }
+
+    const loginId = dto.email
+      ? dto.email.trim().toLowerCase()
+      : normalizePhone(dto.phone!);
+    const scopeKey = `${clientIp}:${loginId}`;
+
+    await this.bruteForce.assertNotBlocked('staff-login', scopeKey);
 
     const user = await this.prisma.user.findFirst({
       where: {
         deletedAt: null,
         isActive: true,
         ...(dto.email
-          ? { email: dto.email.trim().toLowerCase() }
-          : { phone: normalizePhone(dto.phone!) }),
+          ? { email: loginId }
+          : { phone: loginId }),
       },
     });
 
     if (!user?.passwordHash) {
+      await this.bruteForce.recordFailure('staff-login', scopeKey);
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
+    if (!valid) {
+      await this.bruteForce.recordFailure('staff-login', scopeKey);
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    await this.bruteForce.clearFailures('staff-login', scopeKey);
 
     await this.prisma.user.update({
       where: { id: user.id },

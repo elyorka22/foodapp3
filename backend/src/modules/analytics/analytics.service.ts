@@ -13,11 +13,14 @@ export class AnalyticsService {
 
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [todayOrders, pendingOrders, deliveredOrders, cancelledOrders] = await Promise.all([
+    const [todayOrders, pendingOrders, deliveredOrders, cancelledOrders, topProducts, topRestaurants] =
+      await Promise.all([
       this.prisma.order.count({ where: { deletedAt: null, createdAt: { gte: startOfToday } } }),
       this.prisma.order.count({ where: { deletedAt: null, status: OrderStatus.PENDING } }),
       this.prisma.order.count({ where: { deletedAt: null, status: OrderStatus.DELIVERED } }),
       this.prisma.order.count({ where: { deletedAt: null, status: OrderStatus.CANCELLED } }),
+      this.getTopProducts(5),
+      this.getTopRestaurants(5),
     ]);
 
     const [revenueTodayAgg, revenueMonthAgg, activeCouriers, activeRestaurants] = await Promise.all([
@@ -145,17 +148,162 @@ export class AnalyticsService {
   }
 
   async getRestaurantStats(restaurantId: string) {
-    const [orders, revenue] = await Promise.all([
-      this.prisma.order.count({ where: { restaurantId, deletedAt: null } }),
-      this.prisma.order.aggregate({
-        where: { restaurantId, status: OrderStatus.DELIVERED, deletedAt: null },
-        _sum: { subtotal: true },
-      }),
-    ]);
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - 6);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const baseDelivered = {
+      restaurantId,
+      deletedAt: null,
+      status: OrderStatus.DELIVERED,
+    };
+
+    const [revenueToday, revenueWeek, revenueMonth, ordersToday, ordersWeek, ordersMonth, topProducts] =
+      await Promise.all([
+        this.prisma.order.aggregate({
+          where: { ...baseDelivered, deliveredAt: { gte: startOfToday } },
+          _sum: { subtotal: true },
+          _count: { _all: true },
+        }),
+        this.prisma.order.aggregate({
+          where: { ...baseDelivered, deliveredAt: { gte: startOfWeek } },
+          _sum: { subtotal: true },
+          _count: { _all: true },
+        }),
+        this.prisma.order.aggregate({
+          where: { ...baseDelivered, deliveredAt: { gte: startOfMonth } },
+          _sum: { subtotal: true },
+          _count: { _all: true },
+        }),
+        this.prisma.order.count({
+          where: { restaurantId, deletedAt: null, createdAt: { gte: startOfToday } },
+        }),
+        this.prisma.order.count({
+          where: { restaurantId, deletedAt: null, createdAt: { gte: startOfWeek } },
+        }),
+        this.prisma.order.count({
+          where: { restaurantId, deletedAt: null, createdAt: { gte: startOfMonth } },
+        }),
+        this.prisma.orderItem.groupBy({
+          by: ['name'],
+          where: {
+            order: { restaurantId, deletedAt: null, status: OrderStatus.DELIVERED },
+          },
+          _sum: { quantity: true, subtotal: true },
+          orderBy: { _sum: { quantity: 'desc' } },
+          take: 5,
+        }),
+      ]);
+
+    const revenueTodayVal = Number(revenueToday._sum.subtotal ?? 0);
+    const deliveredToday = revenueToday._count._all;
+    const averageOrderValue =
+      deliveredToday > 0 ? revenueTodayVal / deliveredToday : 0;
+
+    const last30Start = new Date(startOfToday);
+    last30Start.setDate(last30Start.getDate() - 29);
+
+    const revenueRows = (await this.prisma.$queryRaw<
+      { day: Date; revenue: number }[]
+    >`
+      SELECT date_trunc('day', delivered_at) as day,
+             COALESCE(SUM(subtotal), 0)::float as revenue
+      FROM orders
+      WHERE deleted_at IS NULL
+        AND status = 'DELIVERED'
+        AND restaurant_id = ${restaurantId}::uuid
+        AND delivered_at >= ${last30Start}
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `) ?? [];
+
+    const ordersRows = (await this.prisma.$queryRaw<
+      { day: Date; count: number }[]
+    >`
+      SELECT date_trunc('day', created_at) as day,
+             COUNT(*)::int as count
+      FROM orders
+      WHERE deleted_at IS NULL
+        AND restaurant_id = ${restaurantId}::uuid
+        AND created_at >= ${last30Start}
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `) ?? [];
+
+    const byDayRevenue = new Map(revenueRows.map((r) => [r.day.toISOString().slice(0, 10), r.revenue]));
+    const byDayOrders = new Map(ordersRows.map((r) => [r.day.toISOString().slice(0, 10), r.count]));
+
+    const revenueChart: { date: string; value: number }[] = [];
+    const ordersChart: { date: string; value: number }[] = [];
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(last30Start);
+      d.setDate(last30Start.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      revenueChart.push({ date: key, value: Number(byDayRevenue.get(key) ?? 0) });
+      ordersChart.push({ date: key, value: Number(byDayOrders.get(key) ?? 0) });
+    }
 
     return {
-      totalOrders: orders,
-      revenue: Number(revenue._sum.subtotal ?? 0),
+      revenueToday: revenueTodayVal,
+      revenueWeek: Number(revenueWeek._sum.subtotal ?? 0),
+      revenueMonth: Number(revenueMonth._sum.subtotal ?? 0),
+      ordersToday,
+      ordersWeek,
+      ordersMonth,
+      averageOrderValue,
+      topProducts: topProducts.map((p) => ({
+        name: p.name,
+        quantity: Number(p._sum.quantity ?? 0),
+        revenue: Number(p._sum.subtotal ?? 0),
+      })),
+      revenueChart,
+      ordersChart,
+      totalOrders: ordersMonth,
+      revenue: Number(revenueMonth._sum.subtotal ?? 0),
     };
+  }
+
+  async getTopProducts(limit = 10) {
+    const rows = await this.prisma.orderItem.groupBy({
+      by: ['productId', 'name'],
+      where: { order: { deletedAt: null, status: OrderStatus.DELIVERED } },
+      _sum: { quantity: true, subtotal: true },
+      orderBy: { _sum: { quantity: 'desc' } },
+      take: limit,
+    });
+    return rows.map((r) => ({
+      productId: r.productId,
+      name: r.name,
+      quantity: Number(r._sum.quantity ?? 0),
+      revenue: Number(r._sum.subtotal ?? 0),
+    }));
+  }
+
+  async getTopRestaurants(limit = 10) {
+    const rows = await this.prisma.order.groupBy({
+      by: ['restaurantId'],
+      where: { deletedAt: null, status: OrderStatus.DELIVERED },
+      _sum: { subtotal: true, total: true },
+      _count: { _all: true },
+      orderBy: { _sum: { subtotal: 'desc' } },
+      take: limit,
+    });
+
+    const restaurants = await this.prisma.restaurant.findMany({
+      where: { id: { in: rows.map((r) => r.restaurantId) } },
+      select: { id: true, name: true, slug: true },
+    });
+    const nameById = new Map(restaurants.map((r) => [r.id, r]));
+
+    return rows.map((r) => ({
+      restaurantId: r.restaurantId,
+      name: nameById.get(r.restaurantId)?.name ?? 'Unknown',
+      slug: nameById.get(r.restaurantId)?.slug,
+      orderCount: r._count._all,
+      revenue: Number(r._sum.subtotal ?? 0),
+    }));
   }
 }

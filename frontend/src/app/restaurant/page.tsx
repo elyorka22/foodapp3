@@ -40,7 +40,11 @@ export default function RestaurantPanelPage() {
   return (
     <DashboardShell
       title={restaurants?.data?.[0]?.name ?? 'Restaurant'}
-      nav={[{ href: '/restaurant', label: 'Orders' }]}
+      nav={[
+        { href: '/restaurant/dashboard', label: 'Dashboard' },
+        { href: '/restaurant', label: 'Orders' },
+        { href: '/restaurant/schedule', label: 'Hours & holidays' },
+      ]}
     >
       <div className="mb-6 grid grid-cols-2 gap-3">
         <div className="rounded-xl border p-4 dark:border-white/10">

@@ -4,10 +4,14 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { OrderStatus, Prisma, UserRole } from '@prisma/client';
+import { OrderStatus, Prisma, RestaurantApprovalStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SettingsService } from '../settings/settings.service';
 import { OrdersGateway } from './orders.gateway';
+import { AdminNotificationsService } from '../admin-notifications/admin-notifications.service';
+import { PromoCodesService } from '../promo-codes/promo-codes.service';
+import { LoyaltyService } from '../growth/loyalty.service';
+import { RestaurantScheduleService } from '../restaurants/restaurant-schedule.service';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersQueryDto } from './dto/orders-query.dto';
@@ -37,14 +41,28 @@ export class OrdersService {
     private prisma: PrismaService,
     private settings: SettingsService,
     private gateway: OrdersGateway,
+    private adminNotifications: AdminNotificationsService,
+    private promoCodes: PromoCodesService,
+    private loyalty: LoyaltyService,
+    private schedule: RestaurantScheduleService,
   ) {}
 
   async createGuestOrder(dto: CreateGuestOrderDto) {
     const restaurant = await this.prisma.restaurant.findFirst({
-      where: { id: dto.restaurantId, isActive: true, deletedAt: null },
+      where: {
+        id: dto.restaurantId,
+        isActive: true,
+        deletedAt: null,
+        approvalStatus: RestaurantApprovalStatus.APPROVED,
+      },
       include: { branches: { where: { isActive: true }, take: 1 } },
     });
-    if (!restaurant) throw new NotFoundException('Restaurant not found');
+    if (!restaurant) throw new NotFoundException('Restaurant not found or not approved');
+
+    const isOpen = await this.schedule.isOpen(dto.restaurantId);
+    if (!isOpen) {
+      throw new BadRequestException('Restaurant is currently closed');
+    }
 
     const productIds = dto.items.map((i) => i.productId);
     const products = await this.prisma.product.findMany({
@@ -95,70 +113,110 @@ export class OrdersService {
       });
     }
 
-    const commissionRate = Number(restaurant.commissionRate) / 100;
-    const commissionAmount = subtotal * commissionRate;
-    const total = subtotal + deliveryFee;
-
     const phone = normalizePhone(dto.phone);
-    let customerId = dto.customerId;
-    if (customerId) {
-      const customer = await this.prisma.customer.findFirst({
-        where: { id: customerId, deletedAt: null },
-      });
-      if (!customer) customerId = undefined;
-    } else {
-      const customer = await this.prisma.customer.findFirst({
-        where: { phone, deletedAt: null },
-      });
-      if (customer) customerId = customer.id;
+    let customerId: string | undefined;
+    const linkedCustomer = await this.prisma.customer.findFirst({
+      where: { phone, deletedAt: null },
+    });
+    if (linkedCustomer) {
+      customerId = linkedCustomer.id;
+    }
+    if (dto.customerId && dto.customerId !== customerId) {
+      throw new BadRequestException('Customer id does not match phone number');
     }
 
-    const guestOrder = await this.prisma.guestOrder.create({
-      data: {
-        phone,
-        customerId,
-        deliveryAddress: dto.deliveryAddress,
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-        comment: dto.comment,
-      },
-    });
+    const orderNumber = generateOrderNumber();
+    const trackingToken = generateTrackingToken();
 
-    const order = await this.prisma.order.create({
-      data: {
-        orderNumber: generateOrderNumber(),
-        trackingToken: generateTrackingToken(),
-        restaurantId: dto.restaurantId,
-        branchId: branch.id,
-        guestOrderId: guestOrder.id,
-        subtotal,
-        deliveryFee,
-        commissionAmount,
-        total,
-        distanceKm: dist,
-        items: { create: orderItems },
-        payment: {
-          create: { amount: total, method: 'CASH', status: 'PENDING' },
+    const order = await this.prisma.$transaction(async (tx) => {
+      let discountAmount = 0;
+      let promoCodeId: string | undefined;
+
+      const guestOrder = await tx.guestOrder.create({
+        data: {
+          phone,
+          customerId,
+          deliveryAddress: dto.deliveryAddress,
+          latitude: dto.latitude,
+          longitude: dto.longitude,
+          comment: dto.comment,
         },
-        address: {
-          create: {
-            line1: dto.deliveryAddress,
-            latitude: dto.latitude,
-            longitude: dto.longitude,
-            notes: dto.comment,
+      });
+
+      const created = await tx.order.create({
+        data: {
+          orderNumber,
+          trackingToken,
+          restaurantId: dto.restaurantId,
+          branchId: branch.id,
+          guestOrderId: guestOrder.id,
+          subtotal,
+          deliveryFee,
+          discountAmount: 0,
+          commissionAmount: 0,
+          total: subtotal + deliveryFee,
+          distanceKm: dist,
+          items: { create: orderItems },
+          payment: {
+            create: { amount: subtotal + deliveryFee, method: 'CASH', status: 'PENDING' },
+          },
+          address: {
+            create: {
+              line1: dto.deliveryAddress,
+              latitude: dto.latitude,
+              longitude: dto.longitude,
+              notes: dto.comment,
+            },
           },
         },
-      },
-      include: {
-        items: true,
-        guestOrder: true,
-        restaurant: { select: { id: true, name: true, slug: true } },
-      },
+      });
+
+      if (dto.promoCode?.trim()) {
+        const promo = await this.promoCodes.applyInTransaction(
+          tx,
+          dto.promoCode,
+          subtotal,
+          created.id,
+          customerId,
+        );
+        discountAmount = promo.discountAmount;
+        promoCodeId = promo.promoCodeId;
+      }
+
+      const netSubtotal = subtotal - discountAmount;
+      const commissionRate = Number(restaurant.commissionRate) / 100;
+      const commissionAmount = netSubtotal * commissionRate;
+      const total = netSubtotal + deliveryFee;
+
+      return tx.order.update({
+        where: { id: created.id },
+        data: {
+          discountAmount,
+          promoCodeId,
+          commissionAmount,
+          total,
+          payment: { update: { amount: total } },
+        },
+        include: {
+          items: true,
+          guestOrder: true,
+          restaurant: { select: { id: true, name: true, slug: true } },
+        },
+      });
     });
+
+    await this.recordStatusChange(order.id, OrderStatus.PENDING, undefined, 'Order placed');
 
     const payload = this.serializeOrder(order);
     this.gateway.emitRestaurantOrder(order.restaurantId, payload);
     this.gateway.emitOrderUpdate(order.trackingToken, payload);
+
+    const notification = await this.adminNotifications.notifyNewOrder({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      restaurant: order.restaurant,
+    });
+    this.gateway.emitAdminEvent('notification', notification);
 
     return {
       order: payload,
@@ -275,7 +333,7 @@ export class OrdersService {
     });
     if (!order) throw new NotFoundException('Order not found');
 
-    this.assertCanUpdateOrder(order, user);
+    await this.assertCanUpdateOrder(order, user);
     const allowed = STATUS_FLOW[order.status];
     if (!allowed.includes(dto.status)) {
       throw new BadRequestException(`Cannot transition from ${order.status} to ${dto.status}`);
@@ -294,7 +352,20 @@ export class OrdersService {
     }
 
     if (dto.status === OrderStatus.COURIER_ASSIGNED && dto.courierId) {
-      await this.assignCourier(order.id, dto.courierId, user.sub);
+      await this.assignCourier(order.id, dto.courierId, user.sub, dto.cancelReason);
+      const refreshed = await this.prisma.order.findFirst({
+        where: { id: orderId },
+        include: {
+          items: true,
+          guestOrder: true,
+          restaurant: { select: { name: true } },
+          courier: { include: { user: { select: { fullName: true } } } },
+        },
+      });
+      const payload = this.serializeOrder(refreshed!);
+      this.gateway.emitOrderUpdate(refreshed!.trackingToken, payload);
+      this.gateway.emitAdminOrderUpdate(payload);
+      return payload;
     }
 
     const updated = await this.prisma.order.update({
@@ -308,19 +379,45 @@ export class OrdersService {
       },
     });
 
+    await this.recordStatusChange(
+      orderId,
+      dto.status,
+      user.sub,
+      dto.cancelReason ?? undefined,
+    );
+
+    if (dto.status === OrderStatus.DELIVERED) {
+      await this.loyalty.onOrderDelivered(orderId);
+    }
+
     const payload = this.serializeOrder(updated);
     this.gateway.emitOrderUpdate(updated.trackingToken, payload);
     this.gateway.emitRestaurantOrder(updated.restaurantId, payload);
+    this.gateway.emitAdminOrderUpdate(payload);
 
     return payload;
   }
 
-  async assignCourier(orderId: string, courierId: string, assignedBy?: string) {
+  async getStatusHistory(orderId: string, user: JwtPayload) {
+    await this.findOneById(orderId, user);
+    return this.prisma.orderStatusHistory.findMany({
+      where: { orderId },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        changedBy: { select: { id: true, fullName: true, role: true } },
+      },
+    });
+  }
+
+  async assignCourier(orderId: string, courierId: string, assignedBy?: string, note?: string) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId },
       include: { branch: true },
     });
     if (!order) throw new NotFoundException('Order not found');
+    if (order.courierId && order.courierId !== courierId) {
+      throw new BadRequestException('Order already assigned to another courier');
+    }
 
     const courier = await this.prisma.courier.findFirst({
       where: { id: courierId, deletedAt: null, isOnline: true },
@@ -356,13 +453,23 @@ export class OrdersService {
       }),
     ]);
 
+    await this.recordStatusChange(
+      orderId,
+      OrderStatus.COURIER_ASSIGNED,
+      assignedBy,
+      note ?? 'Courier assigned',
+    );
+
     this.gateway.emitCourierAssignment(courierId, { orderId, courierFee });
 
     const updated = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: true, guestOrder: true },
+      include: { items: true, guestOrder: true, restaurant: { select: { name: true } } },
     });
-    return this.serializeOrder(updated!);
+    const payload = this.serializeOrder(updated!);
+    this.gateway.emitOrderUpdate(updated!.trackingToken, payload);
+    this.gateway.emitAdminOrderUpdate(payload);
+    return payload;
   }
 
   async acceptOrderAsCourier(orderId: string, userId: string) {
@@ -381,8 +488,8 @@ export class OrdersService {
     return this.assignCourier(orderId, courier.id, userId);
   }
 
-  private assertCanUpdateOrder(
-    order: { restaurantId: string; courierId: string | null },
+  private async assertCanUpdateOrder(
+    order: { id: string; restaurantId: string; courierId: string | null },
     user: JwtPayload,
   ) {
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER) return;
@@ -392,8 +499,25 @@ export class OrdersService {
     ) {
       return;
     }
-    if (user.role === UserRole.COURIER) return;
+    if (user.role === UserRole.COURIER) {
+      const courier = await this.prisma.courier.findFirst({ where: { userId: user.sub } });
+      if (!courier || order.courierId !== courier.id) {
+        throw new ForbiddenException('Courier can only update assigned orders');
+      }
+      return;
+    }
     throw new ForbiddenException('Insufficient permissions');
+  }
+
+  private recordStatusChange(
+    orderId: string,
+    status: OrderStatus,
+    changedByUserId?: string,
+    note?: string,
+  ) {
+    return this.prisma.orderStatusHistory.create({
+      data: { orderId, status, changedByUserId, note },
+    });
   }
 
   private serializeOrder(order: Record<string, unknown>) {
@@ -404,6 +528,7 @@ export class OrdersService {
       status: order.status,
       subtotal: Number(order.subtotal),
       deliveryFee: Number(order.deliveryFee),
+      discountAmount: Number((order as { discountAmount?: unknown }).discountAmount ?? 0),
       total: Number(order.total),
       distanceKm: order.distanceKm ? Number(order.distanceKm) : null,
       createdAt: order.createdAt,

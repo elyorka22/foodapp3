@@ -1,7 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
+import { existsSync } from 'fs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('health')
 @Controller('health')
@@ -10,6 +15,46 @@ export class HealthController {
     private prisma: PrismaService,
     private redis: RedisService,
   ) {}
+
+  @Get('system')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN)
+  async system() {
+    let database = 'ok';
+    let redisStatus = 'ok';
+    const uploadDir = process.env.UPLOAD_DIR ?? './uploads';
+
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+    } catch {
+      database = 'error';
+    }
+
+    try {
+      await this.redis.getClient().ping();
+    } catch {
+      redisStatus = 'error';
+    }
+
+    let storage = 'ok';
+    try {
+      if (!existsSync(uploadDir)) storage = 'missing';
+    } catch {
+      storage = 'error';
+    }
+
+    return {
+      api: 'ok',
+      database,
+      redis: redisStatus,
+      storage,
+      version: process.env.APP_VERSION ?? '1.0.0',
+      environment: process.env.NODE_ENV ?? 'development',
+      build: process.env.BUILD_SHA ?? 'local',
+      timestamp: new Date().toISOString(),
+    };
+  }
 
   @Get()
   async check() {

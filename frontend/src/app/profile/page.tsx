@@ -11,7 +11,14 @@ import { StaffPanelCard } from '@/components/profile/staff-panel-card';
 type ProfileTab = 'customer' | 'staff';
 
 type CustomerResponse = {
-  customer: { id: string; phone: string; fullName: string; email?: string };
+  customer: {
+    id: string;
+    phone: string;
+    fullName: string;
+    email?: string;
+    referralCode?: string;
+    loyalty?: { points: number; level: string };
+  };
 };
 
 export default function ProfilePage() {
@@ -22,6 +29,7 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [referredByCode, setReferredByCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -37,11 +45,15 @@ export default function ProfilePage() {
           phone,
           fullName,
           email: email.trim() || undefined,
+          referredByCode: referredByCode.trim() || undefined,
         }),
       });
       setCustomer(res.customer);
       setCustomerState(res.customer);
-      setMessage('Registration saved (customers table).');
+      const refMsg = res.customer.referralCode
+        ? ` Your referral code: ${res.customer.referralCode}`
+        : '';
+      setMessage(`Registration saved.${refMsg}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -88,6 +100,16 @@ export default function ProfilePage() {
           <p className="mt-2 text-lg font-semibold">{customer.fullName}</p>
           <p className="text-sm opacity-70">{customer.phone}</p>
           {customer.email && <p className="text-sm opacity-70">{customer.email}</p>}
+          {customer.referralCode && (
+            <p className="mt-2 text-sm">
+              Referral code: <span className="font-mono font-semibold">{customer.referralCode}</span>
+            </p>
+          )}
+          {customer.loyalty && (
+            <p className="mt-1 text-sm">
+              Loyalty: {customer.loyalty.level} · {customer.loyalty.points} points
+            </p>
+          )}
           <Button type="button" variant="secondary" className="mt-4" onClick={logoutCustomer}>
             Log out (customer)
           </Button>
@@ -181,6 +203,11 @@ export default function ProfilePage() {
                 placeholder="Email (optional)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+              />
+              <Input
+                placeholder="Friend's referral code (optional)"
+                value={referredByCode}
+                onChange={(e) => setReferredByCode(e.target.value.toUpperCase())}
               />
               <Button type="submit" size="lg" disabled={loading}>
                 {loading ? 'Saving...' : 'Register'}

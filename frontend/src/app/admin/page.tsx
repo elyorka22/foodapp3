@@ -38,6 +38,8 @@ export default function AdminPage() {
         }>;
         revenueChart: Array<{ date: string; value: number }>;
         ordersChart: Array<{ date: string; value: number }>;
+        topProducts: Array<{ name: string; quantity: number; revenue: number }>;
+        topRestaurants: Array<{ name: string; orderCount: number; revenue: number }>;
       }>('/analytics/dashboard', { token: token ?? undefined }),
     enabled: !!token,
   });
@@ -103,6 +105,43 @@ export default function AdminPage() {
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+          <h2 className="mb-3 font-semibold">Top products</h2>
+          {!data.topProducts?.length ? (
+            <p className="text-sm opacity-60">No data yet.</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {data.topProducts.map((p) => (
+                <li key={p.name} className="flex justify-between">
+                  <span>
+                    {p.name} <span className="opacity-60">×{p.quantity}</span>
+                  </span>
+                  <span>{p.revenue.toLocaleString()} UZS</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+          <h2 className="mb-3 font-semibold">Top restaurants</h2>
+          {!data.topRestaurants?.length ? (
+            <p className="text-sm opacity-60">No data yet.</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {data.topRestaurants.map((r) => (
+                <li key={r.name} className="flex justify-between">
+                  <span>
+                    {r.name} <span className="opacity-60">×{r.orderCount}</span>
+                  </span>
+                  <span>{r.revenue.toLocaleString()} UZS</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">

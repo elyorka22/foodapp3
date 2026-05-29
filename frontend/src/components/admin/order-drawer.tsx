@@ -10,15 +10,18 @@ export function OrderDrawer({
   open,
   onClose,
   load,
+  loadHistory,
   onChangeStatus,
 }: {
   orderId: string | null;
   open: boolean;
   onClose: () => void;
   load: (id: string) => Promise<any>;
+  loadHistory?: (id: string) => Promise<any[]>;
   onChangeStatus: (id: string, status: string) => Promise<void> | void;
 }) {
   const [data, setData] = useState<any | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,22 +30,35 @@ export function OrderDrawer({
     setLoading(true);
     setError('');
     setData(null);
-    load(orderId)
-      .then(setData)
+    setHistory([]);
+    Promise.all([
+      load(orderId),
+      loadHistory ? loadHistory(orderId) : Promise.resolve([]),
+    ])
+      .then(([order, hist]) => {
+        setData(order);
+        setHistory(hist);
+      })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load order'))
       .finally(() => setLoading(false));
-  }, [open, orderId, load]);
+  }, [open, orderId, load, loadHistory]);
 
   const timeline = useMemo(() => {
+    if (history.length) {
+      return history.map((h) => ({
+        label: h.status,
+        at: h.createdAt,
+        note: h.note,
+        by: h.changedBy?.fullName,
+      }));
+    }
     if (!data) return [];
-    const items: Array<{ label: string; at?: string | null }> = [
-      { label: 'Created', at: data.createdAt },
-      { label: 'Accepted', at: data.acceptedAt },
-      { label: 'Delivered', at: data.deliveredAt },
-      ...(data.status === 'CANCELLED' ? [{ label: 'Cancelled', at: data.updatedAt }] : []),
+    return [
+      { label: 'PENDING', at: data.createdAt, note: 'Order placed' },
+      ...(data.acceptedAt ? [{ label: 'ACCEPTED', at: data.acceptedAt }] : []),
+      ...(data.deliveredAt ? [{ label: 'DELIVERED', at: data.deliveredAt }] : []),
     ];
-    return items.filter(Boolean);
-  }, [data]);
+  }, [data, history]);
 
   if (!open) return null;
 
@@ -115,15 +131,26 @@ export function OrderDrawer({
               </p>
             </Section>
 
-            <Section title="Timeline">
-              <ul className="space-y-2 text-sm">
-                {timeline.map((t, idx) => (
-                  <li key={idx} className="flex justify-between">
-                    <span>{t.label}</span>
-                    <span className="opacity-60">{t.at ? new Date(t.at).toLocaleString() : '—'}</span>
-                  </li>
-                ))}
-              </ul>
+            <Section title="Status history">
+              {!timeline.length ? (
+                <p className="text-sm opacity-60">No history yet.</p>
+              ) : (
+                <ul className="space-y-3 border-l-2 border-brand-500/30 pl-4">
+                  {timeline.map((t: any, idx) => (
+                    <li key={idx} className="relative text-sm">
+                      <span className="absolute -left-[1.35rem] top-1 h-2 w-2 rounded-full bg-brand-500" />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusBadge status={t.label} />
+                        <span className="text-xs opacity-60">
+                          {t.at ? new Date(t.at).toLocaleString() : '—'}
+                        </span>
+                      </div>
+                      {t.by && <p className="text-xs opacity-50">by {t.by}</p>}
+                      {t.note && <p className="text-xs opacity-70">{t.note}</p>}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Section>
 
             <Section title="Quick actions">

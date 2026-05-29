@@ -24,7 +24,9 @@ export default function RestaurantPage() {
   const { data: restaurant, isLoading } = useQuery({
     queryKey: ['restaurant', slug],
     queryFn: () =>
-      api<{ id: string; name: string; products: Product[] }>(`/restaurants/${slug}`),
+      api<{ id: string; name: string; isOpen?: boolean; products: Product[] }>(
+        `/restaurants/${slug}`,
+      ),
   });
 
   if (isLoading) return <p className="p-4">Loading...</p>;
@@ -33,6 +35,11 @@ export default function RestaurantPage() {
   return (
     <main className="mx-auto max-w-lg px-4 pt-4">
       <h1 className="text-2xl font-bold">{restaurant.name}</h1>
+      {restaurant.isOpen === false && (
+        <p className="mt-2 rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-100">
+          This restaurant is currently closed. You can browse the menu but cannot place orders.
+        </p>
+      )}
 
       <ul className="mt-6 space-y-3">
         {restaurant.products?.map((p) => (
@@ -51,7 +58,8 @@ export default function RestaurantPage() {
             </div>
             <button
               type="button"
-              className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm text-white"
+              disabled={restaurant.isOpen === false}
+              className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm text-white disabled:opacity-40"
               onClick={() =>
                 addItem({
                   productId: p.id,
