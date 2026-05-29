@@ -38,8 +38,16 @@ export class RestaurantsService {
         where,
         skip,
         take,
-        orderBy: { name: 'asc' },
-        include: { branches: { where: { isActive: true }, take: 1 } },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          branches: { where: { isActive: true }, take: 1 },
+          categories: {
+            where: { isActive: true, deletedAt: null },
+            select: { id: true, name: true, slug: true },
+            orderBy: { sortOrder: 'asc' },
+            take: 6,
+          },
+        },
       }),
       this.prisma.restaurant.count({ where }),
     ]);

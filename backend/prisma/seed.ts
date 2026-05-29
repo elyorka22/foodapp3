@@ -37,13 +37,14 @@ async function main() {
 
   const restaurant = await prisma.restaurant.upsert({
     where: { slug: 'demo-pizza' },
-    update: {},
+    update: { isActive: true, approvalStatus: 'APPROVED', deletedAt: null },
     create: {
       name: 'Demo Pizza',
       slug: 'demo-pizza',
       description: 'Best pizza in town',
       commissionRate: 10,
       isActive: true,
+      approvalStatus: 'APPROVED',
     },
   });
 

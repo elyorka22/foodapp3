@@ -1,6 +1,53 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-:root { --bg: #fafafa; --fg: #171717; }
-.dark { --bg: #0a0a0a; --fg: #fafafa; }
-body { background: var(--bg); color: var(--fg); }
+
+:root {
+  --bg: #fafafa;
+  --fg: #18181b;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.dark {
+  --bg: #09090b;
+  --fg: #fafafa;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: var(--safe-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  .shadow-card {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.04),
+      0 4px 12px rgb(0 0 0 / 0.06);
+  }
+
+  .dark .shadow-card {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.2),
+      0 4px 12px rgb(0 0 0 / 0.35);
+  }
+}

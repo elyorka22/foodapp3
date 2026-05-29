@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, LogOut } from 'lucide-react';
+import { LayoutDashboard, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { StaffLoginForm } from '@/components/auth/staff-login-form';
 import { clearAuth, dashboardPath, getToken, getUser, StaffUser } from '@/lib/auth';
 
@@ -32,44 +33,49 @@ export function StaffPanelCard() {
     const label = PANEL_LABELS[staff.role] ?? 'Staff Panel';
 
     return (
-      <div className="mt-6 rounded-xl border-2 border-brand-500/30 bg-brand-50 p-5 dark:border-brand-500/40 dark:bg-brand-950/40">
-        <p className="text-xs font-medium uppercase tracking-wide text-brand-600">Staff account</p>
-        <p className="mt-1 font-semibold">{staff.fullName ?? staff.email}</p>
-        <p className="text-xs opacity-60">{staff.role.replace(/_/g, ' ')}</p>
-        <Link href={href} className="mt-4 block">
-          <Button type="button" size="lg" className="w-full gap-2">
-            <LayoutDashboard size={20} />
-            {label}
-          </Button>
-        </Link>
-        <button
-          type="button"
-          onClick={staffLogout}
-          className="mt-3 flex w-full items-center justify-center gap-1 text-sm text-red-500"
-        >
-          <LogOut size={16} /> Staff logout
-        </button>
-      </div>
+      <Card className="mt-6 overflow-hidden border-brand-200/60 p-0 dark:border-brand-800/40">
+        <div className="bg-gradient-to-br from-brand-600 to-brand-700 px-5 py-4 text-white">
+          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">Staff account</p>
+          <p className="mt-1 text-lg font-bold">{staff.fullName ?? staff.email}</p>
+          <p className="text-sm text-white/75">{staff.role.replace(/_/g, ' ')}</p>
+        </div>
+        <div className="space-y-3 p-5">
+          <Link href={href} className="block">
+            <Button type="button" size="lg" className="w-full gap-2">
+              <LayoutDashboard size={20} />
+              {label}
+            </Button>
+          </Link>
+          <button
+            type="button"
+            onClick={staffLogout}
+            className="flex w-full min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-medium text-red-600 active:bg-red-50"
+          >
+            <LogOut size={18} />
+            Sign out of staff account
+          </button>
+        </div>
+      </Card>
     );
   }
 
   return (
-    <div className="rounded-xl border-2 border-dashed border-brand-500/40 p-5">
-      <p className="text-sm font-semibold text-brand-600">Staff / Super Admin login</p>
-      <p className="mt-2 text-xs leading-relaxed opacity-70">
-        Uses <strong>users</strong> table (email + password). Not the customer phone login above.
-      </p>
-      <div className="mt-4">
-        <StaffLoginForm
-          redirect
-          onSuccess={() => {
-            if (getToken()) setStaff(getUser());
-          }}
-        />
+    <Card className="mt-6 border-dashed border-brand-300/50 p-5 dark:border-brand-800/50">
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+          <Shield size={22} />
+        </div>
+        <div>
+          <p className="font-semibold">Staff & Super Admin</p>
+          <p className="mt-1 text-sm text-zinc-500">Sign in with work email and password.</p>
+        </div>
       </div>
-      <Link href="/login" className="mt-3 block text-center text-xs text-brand-600 underline">
-        Open full-screen staff login page
+      <div className="mt-5">
+        <StaffLoginForm redirect onSuccess={() => { if (getToken()) setStaff(getUser()); }} />
+      </div>
+      <Link href="/login" className="mt-4 block text-center text-sm font-medium text-brand-600">
+        Open full-screen login
       </Link>
-    </div>
+    </Card>
   );
 }
