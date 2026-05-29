@@ -48,8 +48,12 @@ services:
       PORT: 4000
       NODE_ENV: ${NODE_ENV:-production}
       TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
-    volumes:
-      - uploads_data:/app/uploads
+      SPACES_ENDPOINT: ${SPACES_ENDPOINT}
+      SPACES_REGION: ${SPACES_REGION}
+      SPACES_BUCKET: ${SPACES_BUCKET}
+      SPACES_ACCESS_KEY: ${SPACES_ACCESS_KEY}
+      SPACES_SECRET_KEY: ${SPACES_SECRET_KEY}
+      SPACES_CDN_URL: ${SPACES_CDN_URL}
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,11 +84,9 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - uploads_data:/var/www/uploads:ro
     depends_on:
       - api
       - web
 
 volumes:
   postgres_data:
-  uploads_data:

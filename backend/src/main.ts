@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
-import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -13,14 +12,6 @@ async function bootstrap() {
   assertProductionEnv();
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const uploadDir = process.env.UPLOAD_DIR ?? join(process.cwd(), 'uploads');
-  app.useStaticAssets(uploadDir, {
-    prefix: '/uploads',
-    setHeaders: (res) => {
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('Content-Disposition', 'inline');
-    },
-  });
 
   app.set('trust proxy', parseInt(process.env.TRUST_PROXY_HOPS ?? '1', 10));
 

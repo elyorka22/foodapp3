@@ -1,27 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { Request } from 'express';
 import { validateImageUpload } from '../../common/utils/file-upload.util';
+import { StorageFolder, StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class UploadService {
-  private uploadDir = process.env.UPLOAD_DIR ?? './uploads';
+  constructor(private storage: StorageService) {}
 
-  ensureUploadDir() {
-    if (!existsSync(this.uploadDir)) {
-      mkdirSync(this.uploadDir, { recursive: true });
-    }
+  /** Infer storage folder from admin page Referer without changing the upload API. */
+  private inferFolder(req?: Request): StorageFolder {
+    const referer = req?.headers?.referer ?? '';
+    if (referer.includes('/admin/banners')) return 'banners';
+    if (referer.includes('/admin/restaurants')) return 'restaurants';
+    return 'products';
   }
 
-  saveFile(file: Express.Multer.File): { url: string; filename: string } {
-    const ext = validateImageUpload(file);
-    this.ensureUploadDir();
-    const filename = `${uuidv4()}.${ext}`;
-    const filepath = join(this.uploadDir, filename);
-    writeFileSync(filepath, file.buffer);
-
-    const baseUrl = process.env.UPLOAD_BASE_URL ?? '/uploads';
-    return { url: `${baseUrl}/${filename}`, filename };
+  async saveFile(
+    file: Express.Multer.File,
+    req?: Request,
+  ): Promise<{ url: string; key: string; filename: string }> {
+    const mime = validateImageUpload(file);
+    const contentType = this.storage.contentTypeFromMime(mime);
+    const folder = this.inferFolder(req);
+    const result = await this.storage.upload(file.buffer, contentType, folder);
+    return { url: result.url, key: result.key, filename: result.key };
   }
 }

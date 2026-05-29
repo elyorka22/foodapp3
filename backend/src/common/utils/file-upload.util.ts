@@ -1,14 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 
-const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-const ALLOWED_EXT = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
-
-const MIME_TO_EXT: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-};
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export function validateImageUpload(file: Express.Multer.File): string {
   if (!file?.buffer?.length) {
@@ -17,18 +9,13 @@ export function validateImageUpload(file: Express.Multer.File): string {
 
   const mime = file.mimetype?.toLowerCase() ?? '';
   if (!ALLOWED_MIME.has(mime)) {
-    throw new BadRequestException('Only JPEG, PNG, WebP, and GIF images are allowed');
+    throw new BadRequestException('Only JPEG, PNG, and WebP images are allowed');
   }
 
   const rawExt = file.originalname?.split('.').pop()?.toLowerCase() ?? '';
-  if (rawExt && !ALLOWED_EXT.has(rawExt)) {
+  if (rawExt && !['jpg', 'jpeg', 'png', 'webp'].includes(rawExt)) {
     throw new BadRequestException('Invalid file extension');
   }
 
-  const ext = MIME_TO_EXT[mime];
-  if (!ext) {
-    throw new BadRequestException('Unsupported image type');
-  }
-
-  return ext;
+  return mime;
 }

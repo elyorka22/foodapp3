@@ -1,9 +1,9 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { existsSync } from 'fs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
+import { StorageService } from '../storage/storage.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -14,7 +14,14 @@ export class HealthController {
   constructor(
     private prisma: PrismaService,
     private redis: RedisService,
+    private storage: StorageService,
   ) {}
+
+  @Get('storage')
+  async storageHealth() {
+    const status = await this.storage.checkConnectivity();
+    return { status };
+  }
 
   @Get('system')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -23,7 +30,6 @@ export class HealthController {
   async system() {
     let database = 'ok';
     let redisStatus = 'ok';
-    const uploadDir = process.env.UPLOAD_DIR ?? './uploads';
 
     try {
       await this.prisma.$queryRaw`SELECT 1`;
@@ -37,12 +43,7 @@ export class HealthController {
       redisStatus = 'error';
     }
 
-    let storage = 'ok';
-    try {
-      if (!existsSync(uploadDir)) storage = 'missing';
-    } catch {
-      storage = 'error';
-    }
+    const storage = await this.storage.checkConnectivity();
 
     return {
       api: 'ok',

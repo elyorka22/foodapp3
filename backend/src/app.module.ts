@@ -14,6 +14,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { CouriersModule } from './modules/couriers/couriers.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { StorageModule } from './modules/storage/storage.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { HealthModule } from './modules/health/health.module';
 import { BannersModule } from './modules/banners/banners.module';
@@ -36,6 +37,7 @@ import { GrowthModule } from './modules/growth/growth.module';
     ]),
     PrismaModule,
     RedisModule,
+    StorageModule,
     AuthModule,
     UsersModule,
     RestaurantsModule,
