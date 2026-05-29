@@ -15,6 +15,7 @@ import {
   generateTrackingToken,
 } from '../../common/utils/order-number.util';
 import { distanceKm, calculateDeliveryFee } from '../../common/utils/geo.util';
+import { normalizePhone } from '../../common/utils/phone.util';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
@@ -98,9 +99,24 @@ export class OrdersService {
     const commissionAmount = subtotal * commissionRate;
     const total = subtotal + deliveryFee;
 
+    const phone = normalizePhone(dto.phone);
+    let customerId = dto.customerId;
+    if (customerId) {
+      const customer = await this.prisma.customer.findFirst({
+        where: { id: customerId, deletedAt: null },
+      });
+      if (!customer) customerId = undefined;
+    } else {
+      const customer = await this.prisma.customer.findFirst({
+        where: { phone, deletedAt: null },
+      });
+      if (customer) customerId = customer.id;
+    }
+
     const guestOrder = await this.prisma.guestOrder.create({
       data: {
-        phone: dto.phone,
+        phone,
+        customerId,
         deliveryAddress: dto.deliveryAddress,
         latitude: dto.latitude,
         longitude: dto.longitude,

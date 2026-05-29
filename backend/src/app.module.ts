@@ -16,6 +16,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { HealthModule } from './modules/health/health.module';
 import { BannersModule } from './modules/banners/banners.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { CustomersModule } from './modules/customers/customers.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     HealthModule,
     BannersModule,
     AnalyticsModule,
+    CustomersModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -46,11 +46,13 @@ export default function CheckoutPage() {
     setLoading(true);
     setError('');
     try {
+      const loggedIn = getCustomer();
       const res = await api<{ order: { trackingToken: string; orderNumber?: string } }>('/orders/guest', {
         method: 'POST',
         body: JSON.stringify({
           restaurantId,
-          phone,
+          phone: loggedIn?.phone ?? phone,
+          customerId: loggedIn?.id,
           deliveryAddress: address,
           latitude: lat,
           longitude: lng,

@@ -53,6 +53,11 @@ export class CreateGuestOrderDto {
   @IsString()
   comment?: string;
 
+  @ApiPropertyOptional({ description: 'Logged-in customer id from /customers/register' })
+  @IsOptional()
+  @IsUUID()
+  customerId?: string;
+
   @ApiProperty({ type: [OrderItemDto] })
   @IsArray()
   @ValidateNested({ each: true })

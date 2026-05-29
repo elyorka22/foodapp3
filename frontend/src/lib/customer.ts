@@ -1,4 +1,5 @@
 export type CustomerProfile = {
+  id: string;
   phone: string;
   fullName: string;
   email?: string;
