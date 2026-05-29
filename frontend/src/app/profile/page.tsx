@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 import { clearCustomer, getCustomer, setCustomer } from '@/lib/customer';
+import { StaffPanelCard } from '@/components/profile/staff-panel-card';
 
 type Tab = 'login' | 'register';
 
@@ -90,16 +91,11 @@ export default function ProfilePage() {
             Account saved in database
           </p>
           <Button type="button" variant="secondary" className="mt-4" onClick={logout}>
-            Log out
+            Log out (customer)
           </Button>
         </div>
 
-        <div className="mt-8 border-t pt-6 dark:border-white/10">
-          <p className="text-sm opacity-70">Restaurant staff or courier?</p>
-          <Link href="/login" className="mt-2 inline-block font-medium text-brand-600">
-            Staff login →
-          </Link>
-        </div>
+        <StaffPanelCard />
       </main>
     );
   }
@@ -170,12 +166,7 @@ export default function ProfilePage() {
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
       {message && <p className="mt-4 text-sm text-brand-600">{message}</p>}
 
-      <div className="mt-8 border-t pt-6 dark:border-white/10">
-        <p className="text-sm opacity-70">Work here?</p>
-        <Link href="/login" className="mt-2 inline-block font-medium text-brand-600">
-          Staff login →
-        </Link>
-      </div>
+      <StaffPanelCard />
     </main>
   );
 }
