@@ -1,3 +1,5 @@
+import { api } from './api';
+
 export type StaffUser = {
   id: string;
   email: string;
@@ -6,13 +8,26 @@ export type StaffUser = {
   role: string;
 };
 
-/** Staff login: use email (admin@...) OR phone from users table — NOT customer registration phone */
+export type StaffLoginResponse = {
+  accessToken: string;
+  user: StaffUser;
+};
+
+/** Staff/admin only — authenticates against `users` table via POST /auth/login */
 export function buildStaffLoginBody(loginId: string, password: string) {
   const id = loginId.trim();
   if (id.includes('@')) {
     return { email: id.toLowerCase(), password };
   }
   return { phone: id, password };
+}
+
+/** Canonical staff login endpoint (users table, JWT). Never use /customers/login for staff. */
+export async function loginStaff(loginId: string, password: string): Promise<StaffLoginResponse> {
+  return api<StaffLoginResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(buildStaffLoginBody(loginId, password)),
+  });
 }
 
 const TOKEN_KEY = 'foodapp_token';
