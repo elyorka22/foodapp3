@@ -13,6 +13,12 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class AnalyticsController {
   constructor(private analytics: AnalyticsService) {}
 
+  @Get('dashboard')
+  @Roles(UserRole.SUPER_ADMIN)
+  dashboard() {
+    return this.analytics.getAdminDashboard();
+  }
+
   @Get('global')
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   global() {

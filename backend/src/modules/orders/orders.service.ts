@@ -10,6 +10,7 @@ import { SettingsService } from '../settings/settings.service';
 import { OrdersGateway } from './orders.gateway';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { OrdersQueryDto } from './dto/orders-query.dto';
 import {
   generateOrderNumber,
   generateTrackingToken,
@@ -17,7 +18,6 @@ import {
 import { distanceKm, calculateDeliveryFee } from '../../common/utils/geo.util';
 import { normalizePhone } from '../../common/utils/phone.util';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
-import { PaginationDto } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 
 const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
@@ -182,15 +182,12 @@ export class OrdersService {
     return this.serializeOrder(order);
   }
 
-  async findAll(query: PaginationDto, user: JwtPayload, filters?: { status?: OrderStatus; restaurantId?: string }) {
-    const { skip, take } = paginate(query.page, query.limit);
-    const where: Prisma.OrderWhereInput = { deletedAt: null };
+  async findOneById(id: string, user: JwtPayload) {
+    const where: Prisma.OrderWhereInput = { id, deletedAt: null };
 
     if (user.role === UserRole.RESTAURANT_OWNER || user.role === UserRole.RESTAURANT_STAFF) {
       if (!user.restaurantId) throw new ForbiddenException();
       where.restaurantId = user.restaurantId;
-    } else if (filters?.restaurantId) {
-      where.restaurantId = filters.restaurantId;
     }
 
     if (user.role === UserRole.COURIER) {
@@ -198,7 +195,55 @@ export class OrdersService {
       if (courier) where.courierId = courier.id;
     }
 
-    if (filters?.status) where.status = filters.status;
+    const order = await this.prisma.order.findFirst({
+      where,
+      include: {
+        items: true,
+        guestOrder: { include: { customer: true } },
+        restaurant: { select: { id: true, name: true } },
+        branch: true,
+        courier: { include: { user: { select: { fullName: true, phone: true } } } },
+        assignment: true,
+        address: true,
+        payment: true,
+        transactions: true,
+      },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    return this.serializeOrder(order);
+  }
+
+  async findAll(query: OrdersQueryDto, user: JwtPayload) {
+    const { skip, take } = paginate(query.page, query.limit);
+    const where: Prisma.OrderWhereInput = { deletedAt: null };
+
+    if (user.role === UserRole.RESTAURANT_OWNER || user.role === UserRole.RESTAURANT_STAFF) {
+      if (!user.restaurantId) throw new ForbiddenException();
+      where.restaurantId = user.restaurantId;
+    } else if (query.restaurantId) {
+      where.restaurantId = query.restaurantId;
+    }
+
+    if (user.role === UserRole.COURIER) {
+      const courier = await this.prisma.courier.findFirst({ where: { userId: user.sub } });
+      if (courier) where.courierId = courier.id;
+    }
+
+    if (query.status) where.status = query.status;
+
+    const and: Prisma.OrderWhereInput[] = [];
+    if (query.dateFrom) and.push({ createdAt: { gte: new Date(query.dateFrom) } });
+    if (query.dateTo) and.push({ createdAt: { lte: new Date(query.dateTo) } });
+    if (and.length) where.AND = and;
+
+    if (query.search?.trim()) {
+      const q = query.search.trim();
+      where.OR = [
+        { orderNumber: { contains: q, mode: 'insensitive' } },
+        { guestOrder: { phone: { contains: q, mode: 'insensitive' } } },
+        { restaurant: { name: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.order.findMany({
@@ -208,7 +253,7 @@ export class OrdersService {
         orderBy: { createdAt: 'desc' },
         include: {
           items: true,
-          guestOrder: true,
+          guestOrder: { include: { customer: true } },
           restaurant: { select: { name: true } },
           courier: { include: { user: { select: { fullName: true } } } },
         },
@@ -367,6 +412,10 @@ export class OrdersService {
       guestOrder: order.guestOrder,
       restaurant: order.restaurant,
       courier: order.courier,
+      assignment: order.assignment,
+      address: order.address,
+      payment: order.payment,
+      transactions: order.transactions,
     };
   }
 }

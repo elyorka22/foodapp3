@@ -17,7 +17,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
-import { PaginationDto } from '../../common/dto/pagination.dto';
+import { OrdersQueryDto } from './dto/orders-query.dto';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -36,6 +36,21 @@ export class OrdersController {
     return this.ordersService.findByTrackingToken(token);
   }
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.MANAGER,
+    UserRole.RESTAURANT_OWNER,
+    UserRole.RESTAURANT_STAFF,
+    UserRole.COURIER,
+  )
+  @ApiOperation({ summary: 'Get order by id (role-filtered)' })
+  findOne(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.ordersService.findOneById(id, user);
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -48,12 +63,10 @@ export class OrdersController {
   )
   @ApiOperation({ summary: 'List orders (role-filtered)' })
   findAll(
-    @Query() query: PaginationDto,
-    @Query('status') status: OrderStatus,
-    @Query('restaurantId') restaurantId: string,
+    @Query() query: OrdersQueryDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.ordersService.findAll(query, user, { status, restaurantId });
+    return this.ordersService.findAll(query, user);
   }
 
   @Patch(':id/status')
