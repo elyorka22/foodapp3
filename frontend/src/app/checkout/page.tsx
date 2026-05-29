@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cart';
 import { api } from '@/lib/api';
+import { getCustomer, saveTrackingToken } from '@/lib/customer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -18,6 +19,11 @@ export default function CheckoutPage() {
   const [lng, setLng] = useState(69.240562);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const c = getCustomer();
+    if (c?.phone) setPhone(c.phone);
+  }, []);
 
   const useMyLocation = () => {
     if (!navigator.geolocation) {
@@ -40,7 +46,7 @@ export default function CheckoutPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await api<{ order: { trackingToken: string } }>('/orders/guest', {
+      const res = await api<{ order: { trackingToken: string; orderNumber?: string } }>('/orders/guest', {
         method: 'POST',
         body: JSON.stringify({
           restaurantId,
@@ -52,6 +58,7 @@ export default function CheckoutPage() {
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         }),
       });
+      saveTrackingToken(res.order.trackingToken, res.order.orderNumber);
       clear();
       router.push(`/track/${res.order.trackingToken}`);
     } catch (err) {

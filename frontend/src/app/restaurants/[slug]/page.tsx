@@ -31,11 +31,8 @@ export default function RestaurantPage() {
   if (!restaurant) return <p className="p-4">Restaurant not found</p>;
 
   return (
-    <main className="mx-auto max-w-lg px-4 pb-24 pt-4">
-      <Link href="/" className="text-sm text-brand-600">
-        ← Back
-      </Link>
-      <h1 className="mt-2 text-2xl font-bold">{restaurant.name}</h1>
+    <main className="mx-auto max-w-lg px-4 pt-4">
+      <h1 className="text-2xl font-bold">{restaurant.name}</h1>
 
       <ul className="mt-6 space-y-3">
         {restaurant.products?.map((p) => (
@@ -73,8 +70,8 @@ export default function RestaurantPage() {
       {cartCount > 0 && (
         <button
           type="button"
-          className="fixed bottom-6 left-4 right-4 mx-auto flex max-w-lg items-center justify-center gap-2 rounded-xl bg-brand-600 py-4 font-semibold text-white shadow-lg"
-          onClick={() => router.push('/checkout')}
+          className="fixed bottom-20 left-4 right-4 mx-auto flex max-w-lg items-center justify-center gap-2 rounded-xl bg-brand-600 py-4 font-semibold text-white shadow-lg"
+          onClick={() => router.push('/cart')}
         >
           <ShoppingCart size={20} /> Cart ({cartCount})
         </button>

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
-import { api } from '@/lib/api';
+import { api, getWsBase } from '@/lib/api';
+import { saveTrackingToken } from '@/lib/customer';
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: 'Waiting for restaurant',
@@ -33,11 +34,13 @@ export default function TrackPage() {
     let socket: Socket | null = null;
 
     api<Order>(`/orders/track/${token}`)
-      .then(setOrder)
+      .then((o) => {
+        setOrder(o);
+        saveTrackingToken(token, o.orderNumber);
+      })
       .catch(() => setError('Order not found'));
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? 'http://localhost:4000';
-    socket = io(`${wsUrl}/orders`, { transports: ['websocket', 'polling'] });
+    socket = io(`${getWsBase()}/orders`, { transports: ['websocket', 'polling'] });
     socket.emit('joinOrder', token);
     socket.on('orderUpdated', (payload: Order) => setOrder(payload));
 
