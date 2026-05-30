@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Star } from 'lucide-react';
 import { resolveImageUrl } from '@/lib/image-url';
+import { restaurantPublicPath } from '@/lib/restaurant-url';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
 type Props = {
@@ -19,7 +20,7 @@ export function RestaurantCard({ restaurant, variant = 'horizontal' }: Props) {
   if (variant === 'vertical') {
     return (
       <Link
-        href={`/restaurants/${restaurant.slug}`}
+        href={restaurantPublicPath(restaurant)}
         className="group flex w-[9.5rem] shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-card transition active:scale-[0.98] dark:border-zinc-800 dark:bg-zinc-900"
       >
         <div className="relative aspect-[4/3] bg-zinc-100 dark:bg-zinc-800">
@@ -52,7 +53,7 @@ export function RestaurantCard({ restaurant, variant = 'horizontal' }: Props) {
 
   return (
     <Link
-      href={`/restaurants/${restaurant.slug}`}
+      href={restaurantPublicPath(restaurant)}
       className="group flex gap-3 overflow-hidden rounded-2xl border border-zinc-100 bg-white p-3 shadow-card transition active:scale-[0.99] dark:border-zinc-800 dark:bg-zinc-900"
     >
       <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">

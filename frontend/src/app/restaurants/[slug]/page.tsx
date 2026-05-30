@@ -25,9 +25,11 @@ export default function RestaurantPage() {
   const addItem = useCartStore((s) => s.addItem);
   const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
 
-  const { data: restaurant, isLoading } = useQuery({
+  const { data: restaurant, isLoading, isError, refetch } = useQuery({
     queryKey: ['restaurant', slug],
-    queryFn: () => api<RestaurantDetail>(`/restaurants/${slug}`),
+    queryFn: () => api<RestaurantDetail>(`/restaurants/${encodeURIComponent(slug)}`),
+    enabled: Boolean(slug),
+    retry: 1,
   });
 
   if (isLoading) {
@@ -47,6 +49,15 @@ export default function RestaurantPage() {
     return (
       <main className="mx-auto max-w-lg p-4">
         <p className="text-zinc-500">{uz.restaurantNotFound}</p>
+        {isError && (
+          <button
+            type="button"
+            className="mt-3 text-sm font-semibold text-brand-600"
+            onClick={() => refetch()}
+          >
+            {uz.retry}
+          </button>
+        )}
       </main>
     );
   }

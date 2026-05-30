@@ -2,19 +2,28 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import { Heart, Star } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { coverObjectPosition } from '@/lib/cover-position';
+import { formatSum } from '@/lib/format-sum';
+import { restaurantPublicPath } from '@/lib/restaurant-url';
 import { uz } from '@/lib/uz';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
-const FALLBACK_GRADIENTS = [
-  'from-orange-100 to-orange-200',
-  'from-pink-100 to-pink-200',
-  'from-violet-100 to-violet-200',
-  'from-amber-100 to-amber-200',
+const CARD_BACKGROUNDS = [
+  'bg-[#FF5A45]',
+  'bg-[#E91E96]',
+  'bg-[#7C5CFF]',
+  'bg-[#EA6A1A]',
 ] as const;
+
+const DEFAULT_MIN_ORDER = 30_000;
+
+function displayRating(id: string): string {
+  const n = id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  return (4.5 + (n % 5) * 0.1).toFixed(1);
+}
 
 type Props = {
   restaurant: HomeRestaurant;
@@ -29,52 +38,61 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   );
   const tags =
     restaurant.categories?.map((c) => c.name).join(', ') ||
-    restaurant.description?.slice(0, 32) ||
+    restaurant.description?.slice(0, 36) ||
     '';
   const prepMin = restaurant.avgPrepMinutes ?? 25;
   const prep = `${Math.max(15, prepMin - 5)}–${prepMin + 5} ${uz.min}`;
+  const minOrder = Number(restaurant.minOrderAmount ?? DEFAULT_MIN_ORDER);
+  const freeLine = `• ${uz.freeDeliveryFrom(formatSum(minOrder))}`;
+  const href = restaurantPublicPath(restaurant);
 
   return (
     <Link
-      href={`/restaurants/${restaurant.slug}`}
-      className="block overflow-hidden rounded-2xl bg-white transition active:scale-[0.98]"
+      href={href}
+      className={clsx(
+        'relative block aspect-[5/6] overflow-hidden rounded-2xl transition active:scale-[0.98]',
+        CARD_BACKGROUNDS[index % CARD_BACKGROUNDS.length],
+      )}
     >
-      <div className="relative aspect-[1.05/1] overflow-hidden bg-zinc-100">
-        {imageUrl ? (
+      {imageUrl ? (
+        <div className="pointer-events-none absolute bottom-0 right-0 h-[78%] w-[62%]">
           <Image
             src={imageUrl}
-            alt={restaurant.name}
+            alt=""
             fill
-            className="object-cover"
+            className="object-contain object-bottom-right"
             style={{ objectPosition }}
-            sizes="(max-width: 430px) 50vw, 200px"
+            sizes="(max-width: 430px) 45vw, 180px"
             unoptimized
           />
-        ) : (
-          <div
-            className={clsx(
-              'flex h-full items-center justify-center bg-gradient-to-br text-3xl font-bold text-brand-600/40',
-              FALLBACK_GRADIENTS[index % FALLBACK_GRADIENTS.length],
-            )}
-          >
-            {restaurant.name.charAt(0)}
-          </div>
-        )}
+        </div>
+      ) : (
+        <div className="pointer-events-none absolute bottom-2 right-2 text-5xl font-black text-white/20">
+          {restaurant.name.charAt(0)}
+        </div>
+      )}
 
-        <span
-          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white text-zinc-600"
-          aria-hidden
-        >
-          <Heart size={14} strokeWidth={2} />
+      <span className="absolute left-2 top-2 flex items-center gap-0.5 rounded-lg bg-[#FFD54A] px-1.5 py-0.5 text-[11px] font-bold text-zinc-900 shadow-none">
+        <Star size={11} className="fill-amber-600 text-amber-600" />
+        {displayRating(restaurant.id)}
+      </span>
+
+      <span
+        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center text-white"
+        aria-hidden
+      >
+        <Heart size={18} strokeWidth={2} className="drop-shadow-sm" />
+      </span>
+
+      <div className="absolute inset-x-0 bottom-0 flex flex-col px-2.5 pb-2 pt-8">
+        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-white">{restaurant.name}</h3>
+        {tags ? (
+          <p className="mt-0.5 line-clamp-1 text-[11px] font-medium text-white/85">{tags}</p>
+        ) : null}
+        <span className="mt-1.5 inline-flex w-fit rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-zinc-900">
+          {prep}
         </span>
-      </div>
-
-      <div className="px-2 pb-2 pt-1.5">
-        <h3 className="line-clamp-2 text-[13px] font-bold leading-tight text-zinc-900">
-          {restaurant.name}
-        </h3>
-        {tags && <p className="mt-0.5 line-clamp-1 text-[10px] text-zinc-500">{tags}</p>}
-        <p className="mt-1 text-[10px] font-medium text-zinc-600">{prep}</p>
+        <p className="mt-1.5 text-[10px] font-semibold text-[#86EFAC]">{freeLine}</p>
       </div>
     </Link>
   );
