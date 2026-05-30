@@ -78,7 +78,12 @@ export class RestaurantsService {
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
     const isOpen = await this.schedule.isOpen(restaurant.id);
-    return { ...restaurant, isOpen };
+    const products = restaurant.products.map((p) => ({
+      ...p,
+      price: Number(p.price),
+      comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
+    }));
+    return { ...restaurant, products, isOpen };
   }
 
   async findById(id: string, user?: JwtPayload) {

@@ -30,6 +30,15 @@ export default function RestaurantPage() {
     queryFn: () => api<RestaurantDetail>(`/restaurants/${encodeURIComponent(slug)}`),
     enabled: Boolean(slug),
     retry: 1,
+    staleTime: 0,
+    refetchOnMount: 'always',
+  });
+
+  const { data: fallbackProducts } = useQuery({
+    queryKey: ['restaurant-products', restaurant?.id],
+    queryFn: () => api<MenuProduct[]>(`/products?restaurantId=${restaurant!.id}`),
+    enabled: Boolean(restaurant?.id),
+    staleTime: 0,
   });
 
   if (isLoading) {
@@ -63,7 +72,8 @@ export default function RestaurantPage() {
   }
 
   const closed = restaurant.isOpen === false;
-  const products = restaurant.products ?? [];
+  const embedded = restaurant.products ?? [];
+  const products = embedded.length > 0 ? embedded : (fallbackProducts ?? []);
 
   return (
     <div className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-3 pb-24">

@@ -37,7 +37,7 @@ export class ProductsController {
     @Query('restaurantId') restaurantId: string,
     @Query('categoryId') categoryId?: string,
   ) {
-    return this.products.findByRestaurant(restaurantId, categoryId);
+    return this.products.findByRestaurant(restaurantId, categoryId, true);
   }
 
   @Post()

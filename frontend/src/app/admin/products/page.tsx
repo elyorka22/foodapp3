@@ -86,6 +86,12 @@ export default function AdminProductsPage() {
       .catch(() => undefined);
   }, [token]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const id = new URLSearchParams(window.location.search).get('restaurantId');
+    if (id) setRestaurantId(id);
+  }, []);
+
   const rows = list.data?.data ?? [];
   const totalPages = list.data?.meta?.totalPages ?? 1;
   const selectedIds = Object.keys(rowSelection).filter((k) => rowSelection[k]);
@@ -160,7 +166,10 @@ export default function AdminProductsPage() {
         header: 'Availability',
         cell: ({ row }) => (
           <button type="button" onClick={() => toggleAvailability(row.original)}>
-            <ActiveBadge active={row.original.isAvailable} label={row.original.isAvailable ? 'Available' : 'Hidden'} />
+            <ActiveBadge
+              active={row.original.isAvailable}
+              label={row.original.isAvailable ? 'On site' : 'Hidden from site'}
+            />
           </button>
         ),
       },
@@ -215,10 +224,19 @@ export default function AdminProductsPage() {
   };
 
   const submitCreate = async () => {
+    if (!form.restaurantId) {
+      toast.error('Select a restaurant for this product');
+      return;
+    }
+    if (!form.name.trim() || !form.slug.trim()) {
+      toast.error('Name and slug are required');
+      return;
+    }
     try {
       const created: any = await create.mutateAsync({
         ...form,
         categoryId: form.categoryId || undefined,
+        isAvailable: form.isAvailable ?? true,
       });
       if (imageFile && created?.id) await saveWithImage(created.id);
       setCreateOpen(false);

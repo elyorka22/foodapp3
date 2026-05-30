@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
 import { getToken, getUser } from '@/lib/auth';
 import { toast } from 'sonner';
 import { useAdminRestaurant, useAdminRestaurants } from '@/hooks/use-admin-restaurants';
@@ -18,6 +20,12 @@ export default function AdminRestaurantDetailPage() {
   const token = getToken();
   const { detail, stats } = useAdminRestaurant(id);
   const { updateApproval } = useAdminRestaurants({ page: 1, limit: 1 });
+
+  const menuProducts = useQuery({
+    queryKey: ['admin-menu-preview', id],
+    queryFn: () => api<{ id: string; name: string; price: number; isAvailable?: boolean }[]>(`/products?restaurantId=${id}`),
+    enabled: !!token && !!id,
+  });
 
   useEffect(() => {
     if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
@@ -142,6 +150,42 @@ export default function AdminRestaurantDetailPage() {
         </Link>
       </div>
       <CategoryPanel restaurantId={id} />
+
+      <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold">Menu on site ({menuProducts.data?.length ?? 0} items)</p>
+          <div className="flex gap-2">
+            <Link href={`/admin/products?restaurantId=${id}`}>
+              <Button type="button" variant="secondary">Manage products</Button>
+            </Link>
+            {r.slug && (
+              <Link href={`/restaurants/${r.slug}`} target="_blank" rel="noopener noreferrer">
+                <Button type="button">View menu</Button>
+              </Link>
+            )}
+          </div>
+        </div>
+        {menuProducts.isLoading ? (
+          <p className="mt-3 text-sm opacity-60">Loading menu...</p>
+        ) : !menuProducts.data?.length ? (
+          <p className="mt-3 text-sm text-amber-700 dark:text-amber-400">
+            No visible dishes on the customer site. Add products in Products and ensure status is Available (not
+            Hidden).
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-1 text-sm">
+            {menuProducts.data.slice(0, 12).map((p) => (
+              <li key={p.id} className="flex justify-between gap-2 border-b border-zinc-100 py-1.5 dark:border-white/10">
+                <span>{p.name}</span>
+                <span className="opacity-60">{Number(p.price).toLocaleString()} UZS</span>
+              </li>
+            ))}
+            {menuProducts.data.length > 12 && (
+              <li className="pt-1 text-xs opacity-50">+{menuProducts.data.length - 12} more</li>
+            )}
+          </ul>
+        )}
+      </div>
 
       <div className="rounded-xl border bg-white dark:border-white/10 dark:bg-zinc-900">
         <p className="border-b px-4 py-3 text-sm font-semibold dark:border-white/10">Latest orders</p>

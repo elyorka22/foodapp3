@@ -15,16 +15,22 @@ export class ProductsService {
     private audit: AuditService,
   ) {}
 
-  async findByRestaurant(restaurantId: string, categoryId?: string) {
-    return this.prisma.product.findMany({
+  async findByRestaurant(restaurantId: string, categoryId?: string, publicMenu = false) {
+    const rows = await this.prisma.product.findMany({
       where: {
         restaurantId,
         deletedAt: null,
+        ...(publicMenu && { isAvailable: true }),
         ...(categoryId && { categoryId }),
       },
-      include: { images: true, category: true },
-      orderBy: { sortOrder: 'asc' },
+      include: { images: { orderBy: { sortOrder: 'asc' } }, category: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
+    return rows.map((p) => ({
+      ...p,
+      price: Number(p.price),
+      comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
+    }));
   }
 
   async findAllAdmin(query: AdminProductsQueryDto, user: JwtPayload) {
@@ -78,6 +84,7 @@ export class ProductsService {
       data: {
         ...dto,
         price: dto.price,
+        isAvailable: dto.isAvailable ?? true,
       },
       include: { images: true, category: true, restaurant: { select: { id: true, name: true } } },
     });
