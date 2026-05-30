@@ -141,7 +141,7 @@ export class RestaurantsController {
   @ApiBearerAuth()
   @Roles(UserRole.SUPER_ADMIN)
   create(@Body() dto: CreateRestaurantDto, @CurrentUser() user: JwtPayload) {
-    return this.restaurants.create(dto, user.sub);
+    return this.restaurants.create(dto, user);
   }
 
   @Patch(':id/approval')

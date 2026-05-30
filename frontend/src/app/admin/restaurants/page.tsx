@@ -103,8 +103,12 @@ function RestaurantFormFields({
           checked={form.isActive ?? true}
           onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
         />
-        Active
+        Active (show on customer site when approved)
       </label>
+      <p className="text-xs text-amber-700 dark:text-amber-400">
+        New restaurants are published automatically if Active is checked. Existing pending
+        restaurants need Approve in the list.
+      </p>
     </div>
   );
 }
@@ -149,10 +153,14 @@ export default function AdminRestaurantsPage() {
 
   const submitCreate = async () => {
     try {
-      await create.mutateAsync(form);
+      const created = await create.mutateAsync(form);
       setCreateOpen(false);
       setForm(emptyForm);
-      toast.success('Restaurant created');
+      if (created?.approvalStatus === 'APPROVED' && created?.isActive) {
+        toast.success('Restaurant created and visible on the homepage');
+      } else {
+        toast.success('Restaurant created — click Approve to show on the site');
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to create');
     }
@@ -269,6 +277,19 @@ export default function AdminRestaurantsPage() {
                       {r.name}
                     </Link>
                     <p className="text-xs opacity-50">{r.slug}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                        r.approvalStatus === 'APPROVED'
+                          ? 'bg-green-100 text-green-800'
+                          : r.approvalStatus === 'REJECTED'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-amber-100 text-amber-900'
+                      }`}
+                    >
+                      {r.approvalStatus ?? 'PENDING'}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
                     <ActiveBadge active={r.isActive} />

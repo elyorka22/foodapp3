@@ -44,7 +44,11 @@ export function useAdminRestaurants(query: AdminRestaurantsQuery) {
 
   const create = useMutation({
     mutationFn: (body: RestaurantForm) =>
-      api('/restaurants', { method: 'POST', token: token ?? undefined, body: JSON.stringify(body) }),
+      api<{ approvalStatus?: string; isActive?: boolean }>('/restaurants', {
+        method: 'POST',
+        token: token ?? undefined,
+        body: JSON.stringify(body),
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-restaurants'] });
     },

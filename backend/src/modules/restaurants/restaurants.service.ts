@@ -214,20 +214,34 @@ export class RestaurantsService {
     };
   }
 
-  async create(dto: CreateRestaurantDto, userId?: string) {
+  async create(dto: CreateRestaurantDto, user?: JwtPayload) {
+    const isAdmin =
+      user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.MANAGER;
+    const wantsActive = dto.isActive !== false;
+    const publishOnSite = isAdmin && wantsActive;
+
     const restaurant = await this.prisma.restaurant.create({
       data: {
-        ...dto,
-        approvalStatus: RestaurantApprovalStatus.PENDING,
-        isActive: dto.isActive ?? false,
+        name: dto.name,
+        slug: dto.slug,
+        description: dto.description,
+        logoUrl: dto.logoUrl,
+        coverUrl: dto.coverUrl,
+        phone: dto.phone,
+        commissionRate: dto.commissionRate,
+        approvalStatus: publishOnSite
+          ? RestaurantApprovalStatus.APPROVED
+          : RestaurantApprovalStatus.PENDING,
+        isActive: publishOnSite ? true : (dto.isActive ?? false),
+        approvedAt: publishOnSite ? new Date() : null,
       },
     });
     await this.audit.log({
-      userId,
+      userId: user?.sub,
       action: 'create',
       entity: 'restaurant',
       entityId: restaurant.id,
-      metadata: { name: restaurant.name },
+      metadata: { name: restaurant.name, published: publishOnSite },
     });
     return restaurant;
   }
