@@ -44,12 +44,12 @@ export default function HomePage() {
   const hasError = restaurantsQuery.isError;
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-6">
+    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
       <HomeTopBar />
       <HomeSearchBar value={search} onChange={setSearch} />
 
       {heroBanners.length > 0 || bannersQuery.isLoading ? (
-        <section className="mt-4" aria-label="Asosiy banner">
+        <section className="mt-5" aria-label="Asosiy banner">
           <BannerCarousel banners={heroBanners} isLoading={bannersQuery.isLoading} />
         </section>
       ) : null}
@@ -57,8 +57,8 @@ export default function HomePage() {
       <PromoBanner banners={promoBanners} isLoading={bannersQuery.isLoading} />
 
       <section className="mt-6" aria-label={uz.restaurants}>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-zinc-900">{uz.restaurants}</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold tracking-tight text-zinc-900">{uz.restaurants}</h2>
           {restaurants.length > 0 && (
             <Link
               href="/"
@@ -73,7 +73,7 @@ export default function HomePage() {
         {restaurantsQuery.isLoading && (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-[172px] rounded-3xl" />
+              <Skeleton key={i} className="h-[172px] rounded-2xl" />
             ))}
           </div>
         )}

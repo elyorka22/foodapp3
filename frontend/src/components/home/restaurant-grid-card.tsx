@@ -38,7 +38,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
     <Link
       href={`/restaurants/${restaurant.slug}`}
       className={clsx(
-        'relative flex min-h-[172px] flex-col overflow-hidden rounded-3xl bg-gradient-to-br p-3.5 shadow-card transition active:scale-[0.98]',
+        'relative flex min-h-[172px] flex-col overflow-hidden rounded-2xl bg-gradient-to-br p-3.5 shadow-card transition active:scale-[0.98]',
         theme,
       )}
     >

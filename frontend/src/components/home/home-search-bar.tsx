@@ -10,7 +10,7 @@ type Props = {
 
 export function HomeSearchBar({ value = '', onChange }: Props) {
   return (
-    <div className="mt-4 flex items-center gap-2 rounded-2xl bg-white px-3 py-3 shadow-card">
+    <div className="mt-5 flex items-center gap-2 rounded-2xl bg-white px-3.5 py-3.5 shadow-card">
       <Search size={20} className="shrink-0 text-zinc-400" strokeWidth={2} />
       <input
         type="search"

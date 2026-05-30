@@ -19,7 +19,7 @@ function ImageSlide({ banner, href }: { banner: HomeBanner; href?: string }) {
   if (!src) return null;
 
   const img = (
-    <div className="relative aspect-[2.15/1] w-full overflow-hidden rounded-3xl bg-zinc-100 shadow-card">
+    <div className="relative aspect-[2.15/1] w-full overflow-hidden rounded-2xl bg-zinc-100 shadow-card">
       <Image
         src={src}
         alt={banner.title?.trim() || 'Banner'}
@@ -62,7 +62,7 @@ export function BannerCarousel({ banners, isLoading }: Props) {
   }, [withImages.length]);
 
   if (isLoading) {
-    return <Skeleton className="aspect-[2.15/1] w-full rounded-3xl" />;
+    return <Skeleton className="aspect-[2.15/1] w-full rounded-2xl" />;
   }
 
   if (!withImages.length) {

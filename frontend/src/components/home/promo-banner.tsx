@@ -13,7 +13,7 @@ type Props = {
 
 export function PromoBanner({ banners, isLoading }: Props) {
   if (isLoading) {
-    return <Skeleton className="mt-4 h-28 w-full rounded-3xl" />;
+    return <Skeleton className="mt-5 h-28 w-full rounded-2xl" />;
   }
 
   const banner = banners.find((b) => resolveImageUrl(b.imageUrl));
@@ -38,7 +38,7 @@ export function PromoBanner({ banners, isLoading }: Props) {
   );
 
   const content = (
-    <div className={hasText ? 'overflow-hidden rounded-3xl bg-white shadow-card' : ''}>
+    <div className={hasText ? 'overflow-hidden rounded-2xl bg-white shadow-card' : ''}>
       {imageBlock}
       {hasText && (
         <div className="px-4 py-3">
@@ -53,11 +53,11 @@ export function PromoBanner({ banners, isLoading }: Props) {
 
   if (href) {
     return (
-      <Link href={href} className="mt-4 block active:scale-[0.99]">
+      <Link href={href} className="mt-5 block active:scale-[0.99]">
         {content}
       </Link>
     );
   }
 
-  return <div className="mt-4">{content}</div>;
+  return <div className="mt-5">{content}</div>;
 }
