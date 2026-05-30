@@ -27,7 +27,7 @@ export default function AdminCategoriesPage() {
       typeof window !== 'undefined'
         ? new URLSearchParams(window.location.search).get('restaurantId')
         : null;
-    api<{ data: { id: string; name: string }[] }>('/restaurants/admin?limit=200', { token })
+    api<{ data: { id: string; name: string }[] }>('/restaurants/admin?limit=100', { token })
       .then((res) => {
         setRestaurants(res.data);
         if (fromUrl && res.data.some((r) => r.id === fromUrl)) {
@@ -36,7 +36,9 @@ export default function AdminCategoriesPage() {
           setRestaurantId(res.data[0].id);
         }
       })
-      .catch(() => toast.error('Failed to load restaurants'));
+      .catch((err) =>
+        toast.error(err instanceof Error ? err.message : 'Failed to load restaurants'),
+      );
   }, [token]);
 
   const selected = restaurants.find((r) => r.id === restaurantId);
