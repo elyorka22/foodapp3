@@ -13,6 +13,8 @@ export type HomeRestaurant = {
   logoUrl?: string | null;
   coverUrl?: string | null;
   createdAt?: string;
+  avgPrepMinutes?: number;
+  minOrderAmount?: string | number | null;
   categories?: HomeCategory[];
   branches?: { address?: string }[];
 };
