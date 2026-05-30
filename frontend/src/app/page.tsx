@@ -73,7 +73,7 @@ export default function HomePage() {
         {restaurantsQuery.isLoading && (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="aspect-[5/6] rounded-2xl" />
+              <Skeleton key={i} className="h-[148px] rounded-2xl" />
             ))}
           </div>
         )}

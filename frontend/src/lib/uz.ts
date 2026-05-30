@@ -1,6 +1,6 @@
 /** Uzbek UI strings for customer-facing app */
 export const uz = {
-  cityName: 'TOSHKENT',
+  cityName: 'CHUST',
   citySubtitle: "Shahar bo'ylab yetkazish",
   searchPlaceholder: "Restoranlar, taomlar va mahsulotlarni qidiring...",
   searchAria: 'Qidiruv',
@@ -51,6 +51,9 @@ export const uz = {
   loading: 'Yuklanmoqda...',
   restaurantNotFound: 'Restoran topilmadi',
   restaurantClosed: 'Restoran hozir yopiq. Menyuni ko\'rishingiz mumkin, buyurtma berib bo\'lmaydi.',
+  menuEmpty: "Menyu hali yo'q",
+  menuEmptyHint: 'Tez orada taomlar shu yerda paydo bo\'ladi.',
+  backToSite: 'Saytga qaytish',
   addToCart: "Qo'shish",
   cartFab: (count: number) => `Savat (${count})`,
   profile: 'Profil',

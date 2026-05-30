@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  ExternalLink,
   Package,
   Settings,
   ShoppingBag,
@@ -83,6 +84,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-medium text-brand-700 transition hover:bg-brand-100 sm:inline-flex dark:border-brand-800 dark:bg-brand-950/50 dark:text-brand-300"
+            >
+              <ExternalLink size={16} />
+              Saytga qaytish
+            </Link>
             <div className="hidden text-right md:block">
               <p className="text-sm font-semibold">{user?.fullName ?? user?.email}</p>
               <p className="text-xs opacity-60">{user?.role}</p>
@@ -117,6 +127,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             aria-label="Close sidebar"
           />
           <div className="absolute left-0 top-0 h-full w-[82%] max-w-xs bg-white p-3 shadow-xl dark:bg-zinc-950">
+            <Link
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mb-3 flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white"
+            >
+              <ExternalLink size={16} />
+              Saytga qaytish
+            </Link>
             <Sidebar pathname={pathname} />
           </div>
         </div>

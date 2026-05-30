@@ -10,10 +10,10 @@ import { uz } from '@/lib/uz';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
 const FALLBACK_GRADIENTS = [
-  'from-orange-500 to-orange-600',
-  'from-pink-500 to-rose-500',
-  'from-violet-500 to-purple-600',
-  'from-amber-600 to-orange-700',
+  'from-orange-100 to-orange-200',
+  'from-pink-100 to-pink-200',
+  'from-violet-100 to-violet-200',
+  'from-amber-100 to-amber-200',
 ] as const;
 
 type Props = {
@@ -29,7 +29,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   );
   const tags =
     restaurant.categories?.map((c) => c.name).join(', ') ||
-    restaurant.description?.slice(0, 36) ||
+    restaurant.description?.slice(0, 32) ||
     '';
   const prepMin = restaurant.avgPrepMinutes ?? 25;
   const prep = `${Math.max(15, prepMin - 5)}–${prepMin + 5} ${uz.min}`;
@@ -37,45 +37,44 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   return (
     <Link
       href={`/restaurants/${restaurant.slug}`}
-      className="relative block aspect-[5/6] overflow-hidden rounded-2xl transition active:scale-[0.98]"
+      className="block overflow-hidden rounded-2xl bg-white transition active:scale-[0.98]"
     >
-      {imageUrl ? (
-        <Image
-          src={imageUrl}
-          alt={restaurant.name}
-          fill
-          className="object-cover"
-          style={{ objectPosition }}
-          sizes="(max-width: 430px) 50vw, 200px"
-          unoptimized
-        />
-      ) : (
-        <div
-          className={clsx(
-            'absolute inset-0 bg-gradient-to-br',
-            FALLBACK_GRADIENTS[index % FALLBACK_GRADIENTS.length],
-          )}
-        />
-      )}
-
-      {/* Light bottom fade only — keeps photo bright */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[48%] bg-gradient-to-t from-black/70 to-transparent" />
-
-      <span
-        className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/90 bg-white/25 text-white backdrop-blur-[2px]"
-        aria-hidden
-      >
-        <Heart size={14} strokeWidth={2} />
-      </span>
-
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-2.5">
-        <h3 className="line-clamp-2 text-sm font-bold leading-tight text-white">{restaurant.name}</h3>
-        {tags && (
-          <p className="mt-0.5 line-clamp-1 text-[10px] leading-snug text-white/90">{tags}</p>
+      <div className="relative aspect-[1.05/1] overflow-hidden bg-zinc-100">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={restaurant.name}
+            fill
+            className="object-cover"
+            style={{ objectPosition }}
+            sizes="(max-width: 430px) 50vw, 200px"
+            unoptimized
+          />
+        ) : (
+          <div
+            className={clsx(
+              'flex h-full items-center justify-center bg-gradient-to-br text-3xl font-bold text-brand-600/40',
+              FALLBACK_GRADIENTS[index % FALLBACK_GRADIENTS.length],
+            )}
+          >
+            {restaurant.name.charAt(0)}
+          </div>
         )}
-        <span className="mt-2 inline-block rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-zinc-800">
-          {prep}
+
+        <span
+          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white text-zinc-600"
+          aria-hidden
+        >
+          <Heart size={14} strokeWidth={2} />
         </span>
+      </div>
+
+      <div className="px-2 pb-2 pt-1.5">
+        <h3 className="line-clamp-2 text-[13px] font-bold leading-tight text-zinc-900">
+          {restaurant.name}
+        </h3>
+        {tags && <p className="mt-0.5 line-clamp-1 text-[10px] text-zinc-500">{tags}</p>}
+        <p className="mt-1 text-[10px] font-medium text-zinc-600">{prep}</p>
       </div>
     </Link>
   );

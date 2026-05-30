@@ -10,7 +10,8 @@ const HIDE_HEADER_PATHS = ['/', '/products', '/favorites', '/notifications'];
 export function CustomerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isStaff = STAFF_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-  const hideHeader = HIDE_HEADER_PATHS.includes(pathname);
+  const hideHeader =
+    HIDE_HEADER_PATHS.includes(pathname) || pathname.startsWith('/restaurants/');
 
   if (isStaff) {
     return <>{children}</>;
