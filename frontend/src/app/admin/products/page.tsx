@@ -14,7 +14,9 @@ import { getToken, getUser } from '@/lib/auth';
 import { uploadImage } from '@/lib/upload';
 import { useAdminProducts, type ProductForm } from '@/hooks/use-admin-products';
 import { useAdminCategories } from '@/hooks/use-admin-categories';
+import Link from 'next/link';
 import { CategoryPanel } from '@/components/admin/category-panel';
+import { CategoryQuickAdd } from '@/components/admin/category-quick-add';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 import { Modal } from '@/components/admin/modal';
@@ -284,19 +286,40 @@ export default function AdminProductsPage() {
           </option>
         ))}
       </select>
-      <select
-        className="w-full rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
-        value={form.categoryId ?? ''}
-        onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-        disabled={!form.restaurantId}
-      >
-        <option value="">No category</option>
-        {(categories.data ?? []).map((c: any) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
+      <div className="space-y-2">
+        <label className="text-xs font-medium opacity-70">Category</label>
+        <select
+          className="w-full rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
+          value={form.categoryId ?? ''}
+          onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+          disabled={!form.restaurantId}
+        >
+          <option value="">Select category (optional)</option>
+          {(categories.data ?? []).map((c: any) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        {form.restaurantId && !(categories.data ?? []).length && (
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            No categories yet — create one below or on the{' '}
+            <Link
+              href={`/admin/categories?restaurantId=${form.restaurantId}`}
+              className="font-semibold underline"
+            >
+              Categories
+            </Link>{' '}
+            page.
+          </p>
+        )}
+        {form.restaurantId && (
+          <CategoryQuickAdd
+            restaurantId={form.restaurantId}
+            onCreated={(categoryId) => setForm({ ...form, categoryId })}
+          />
+        )}
+      </div>
       <Input
         placeholder="Name"
         value={form.name}
@@ -352,8 +375,13 @@ export default function AdminProductsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-lg font-semibold">Products</h1>
         <div className="flex gap-2">
+          <Link href={restaurantId ? `/admin/categories?restaurantId=${restaurantId}` : '/admin/categories'}>
+            <Button type="button" variant="secondary">
+              Categories
+            </Button>
+          </Link>
           <Button type="button" variant="secondary" onClick={() => setShowCategories((v) => !v)}>
-            {showCategories ? 'Hide categories' : 'Manage categories'}
+            {showCategories ? 'Hide panel' : 'Quick manage'}
           </Button>
           <Button
             type="button"
@@ -367,9 +395,13 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {showCategories && restaurantId && <CategoryPanel restaurantId={restaurantId} />}
-      {showCategories && !restaurantId && (
-        <p className="text-sm opacity-60">Select a restaurant filter to manage its categories.</p>
+      {showCategories && (restaurantId || form.restaurantId) && (
+        <CategoryPanel restaurantId={restaurantId || form.restaurantId} />
+      )}
+      {showCategories && !restaurantId && !form.restaurantId && (
+        <p className="text-sm opacity-60">
+          Select a restaurant in the filter or in the product form to manage categories.
+        </p>
       )}
 
       <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">

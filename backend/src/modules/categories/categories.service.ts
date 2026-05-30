@@ -47,7 +47,12 @@ export class CategoriesService {
   }
 
   private assertAccess(restaurantId: string, user: JwtPayload) {
-    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER) return;
+    if (
+      user.role === UserRole.SUPER_ADMIN ||
+      user.role === UserRole.MANAGER
+    ) {
+      return;
+    }
     if (user.restaurantId !== restaurantId) throw new ForbiddenException();
   }
 }
