@@ -7,7 +7,6 @@ const withPWA = require('next-pwa')({
   skipWaiting: true,
   // Avoid caching client navigations — fixes 404 on dynamic routes like /restaurants/[slug]
   cacheOnFrontEndNav: false,
-  aggressiveFrontEndNavCaching: false,
   workboxOptions: {
     navigateFallback: null,
     runtimeCaching: [
