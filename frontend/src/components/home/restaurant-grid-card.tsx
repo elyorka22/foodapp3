@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
+import { coverObjectPosition } from '@/lib/cover-position';
 import { uz } from '@/lib/uz';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
@@ -22,9 +23,13 @@ type Props = {
 
 export function RestaurantGridCard({ restaurant, index }: Props) {
   const imageUrl = resolveImageUrl(restaurant.coverUrl ?? restaurant.logoUrl);
+  const objectPosition = coverObjectPosition(
+    restaurant.coverPositionX,
+    restaurant.coverPositionY,
+  );
   const tags =
     restaurant.categories?.map((c) => c.name).join(', ') ||
-    restaurant.description?.slice(0, 40) ||
+    restaurant.description?.slice(0, 36) ||
     '';
   const prepMin = restaurant.avgPrepMinutes ?? 25;
   const prep = `${Math.max(15, prepMin - 5)}–${prepMin + 5} ${uz.min}`;
@@ -32,7 +37,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   return (
     <Link
       href={`/restaurants/${restaurant.slug}`}
-      className="relative block aspect-[3/4] overflow-hidden rounded-2xl shadow-card transition active:scale-[0.98]"
+      className="relative block aspect-[5/6] overflow-hidden rounded-2xl transition active:scale-[0.98]"
     >
       {imageUrl ? (
         <Image
@@ -40,6 +45,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
           alt={restaurant.name}
           fill
           className="object-cover"
+          style={{ objectPosition }}
           sizes="(max-width: 430px) 50vw, 200px"
           unoptimized
         />
@@ -52,23 +58,22 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
         />
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/5" />
+      {/* Light bottom fade only — keeps photo bright */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[48%] bg-gradient-to-t from-black/70 to-transparent" />
 
       <span
-        className="absolute right-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/90 bg-black/20 text-white backdrop-blur-sm"
+        className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/90 bg-white/25 text-white backdrop-blur-[2px]"
         aria-hidden
       >
-        <Heart size={16} strokeWidth={2} />
+        <Heart size={14} strokeWidth={2} />
       </span>
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-3 pt-8">
-        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-white drop-shadow-sm">
-          {restaurant.name}
-        </h3>
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-2.5">
+        <h3 className="line-clamp-2 text-sm font-bold leading-tight text-white">{restaurant.name}</h3>
         {tags && (
-          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/90">{tags}</p>
+          <p className="mt-0.5 line-clamp-1 text-[10px] leading-snug text-white/90">{tags}</p>
         )}
-        <span className="mt-3 inline-block rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-zinc-800 shadow-sm">
+        <span className="mt-2 inline-block rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-zinc-800">
           {prep}
         </span>
       </div>

@@ -17,6 +17,8 @@ export type RestaurantForm = {
   description?: string;
   logoUrl?: string;
   coverUrl?: string;
+  coverPositionX?: number;
+  coverPositionY?: number;
   phone?: string;
   commissionRate?: number;
   isActive?: boolean;

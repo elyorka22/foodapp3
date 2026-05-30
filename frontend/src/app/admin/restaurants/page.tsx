@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/admin/ui';
 import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CoverPositionControls } from '@/components/admin/cover-position-controls';
 
 function slugify(value: string) {
   return value
@@ -33,6 +34,8 @@ const emptyForm: RestaurantForm = {
   phone: '',
   commissionRate: 10,
   isActive: true,
+  coverPositionX: 50,
+  coverPositionY: 50,
 };
 
 function RestaurantFormFields({
@@ -97,6 +100,7 @@ function RestaurantFormFields({
       {(form.logoUrl || form.coverUrl) && (
         <p className="text-xs opacity-60">Images attached. Save to apply.</p>
       )}
+      <CoverPositionControls form={form} setForm={setForm} />
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
@@ -209,6 +213,8 @@ export default function AdminRestaurantsPage() {
       phone: row.phone ?? '',
       commissionRate: Number(row.commissionRate ?? 10),
       isActive: row.isActive,
+      coverPositionX: row.coverPositionX ?? 50,
+      coverPositionY: row.coverPositionY ?? 50,
     });
   };
 

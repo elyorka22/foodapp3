@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
 
 export class CreateRestaurantDto {
   @ApiProperty()
@@ -40,4 +40,18 @@ export class CreateRestaurantDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ description: 'Cover focal point X (0=left, 100=right)', default: 50 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  coverPositionX?: number;
+
+  @ApiPropertyOptional({ description: 'Cover focal point Y (0=top, 100=bottom)', default: 50 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  coverPositionY?: number;
 }

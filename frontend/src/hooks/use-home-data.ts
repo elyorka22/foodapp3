@@ -12,6 +12,8 @@ export type HomeRestaurant = {
   description?: string | null;
   logoUrl?: string | null;
   coverUrl?: string | null;
+  coverPositionX?: number;
+  coverPositionY?: number;
   createdAt?: string;
   avgPrepMinutes?: number;
   minOrderAmount?: string | number | null;

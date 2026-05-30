@@ -227,6 +227,8 @@ export class RestaurantsService {
         description: dto.description,
         logoUrl: dto.logoUrl,
         coverUrl: dto.coverUrl,
+        coverPositionX: dto.coverPositionX ?? 50,
+        coverPositionY: dto.coverPositionY ?? 50,
         phone: dto.phone,
         commissionRate: dto.commissionRate,
         approvalStatus: publishOnSite
