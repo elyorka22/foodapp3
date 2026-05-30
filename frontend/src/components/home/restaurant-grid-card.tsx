@@ -6,7 +6,6 @@ import { Heart } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { coverObjectPosition } from '@/lib/cover-position';
-import { formatSum } from '@/lib/format-sum';
 import { restaurantPublicPath } from '@/lib/restaurant-url';
 import { uz } from '@/lib/uz';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
@@ -17,8 +16,6 @@ const FALLBACK_BACKGROUNDS = [
   'bg-[#7C5CFF]',
   'bg-[#EA6A1A]',
 ] as const;
-
-const DEFAULT_MIN_ORDER = 30_000;
 
 type Props = {
   restaurant: HomeRestaurant;
@@ -37,8 +34,6 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
     '';
   const prepMin = restaurant.avgPrepMinutes ?? 25;
   const prep = `${Math.max(15, prepMin - 5)}–${prepMin + 5} ${uz.min}`;
-  const minOrder = Number(restaurant.minOrderAmount ?? DEFAULT_MIN_ORDER);
-  const freeLine = `• ${uz.freeDeliveryFrom(formatSum(minOrder))}`;
   const href = restaurantPublicPath(restaurant);
 
   return (
@@ -74,15 +69,14 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
         <Heart size={18} strokeWidth={2} />
       </span>
 
-      <div className="absolute inset-x-0 bottom-0 flex flex-col px-2.5 pb-2.5 pt-8">
-        <h3 className="line-clamp-2 text-[15px] font-bold leading-tight text-white">{restaurant.name}</h3>
+      <div className="absolute inset-x-0 bottom-9 flex flex-col px-2 pb-2">
+        <h3 className="line-clamp-2 text-[14px] font-bold leading-tight text-white">{restaurant.name}</h3>
         {tags ? (
-          <p className="mt-0.5 line-clamp-1 text-[11px] font-medium text-white/90">{tags}</p>
+          <p className="mt-0.5 line-clamp-1 text-[10px] font-medium text-white/90">{tags}</p>
         ) : null}
-        <span className="mt-1.5 inline-flex w-fit rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-zinc-900">
+        <span className="mt-1 inline-flex w-fit rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-zinc-900">
           {prep}
         </span>
-        <p className="mt-1.5 text-[10px] font-semibold text-[#86EFAC]">{freeLine}</p>
       </div>
     </Link>
   );
