@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsOptional, IsString, IsUUID } from 'class-validator';
+import { BannerPlacement } from '@prisma/client';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class UpdateBannerDto {
   @ApiPropertyOptional()
@@ -31,4 +32,14 @@ export class UpdateBannerDto {
   @IsOptional()
   @IsUUID()
   restaurantId?: string;
+
+  @ApiPropertyOptional({ enum: BannerPlacement })
+  @IsOptional()
+  @IsEnum(BannerPlacement)
+  placement?: BannerPlacement;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  description?: string;
 }

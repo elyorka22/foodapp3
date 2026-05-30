@@ -7,14 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { StaffLoginForm } from '@/components/auth/staff-login-form';
 import { clearAuth, dashboardPath, getToken, getUser, StaffUser } from '@/lib/auth';
-
-const PANEL_LABELS: Record<string, string> = {
-  SUPER_ADMIN: 'Super Admin Panel',
-  MANAGER: 'Manager Panel',
-  RESTAURANT_OWNER: 'Restaurant Panel',
-  RESTAURANT_STAFF: 'Restaurant Panel',
-  COURIER: 'Courier Panel',
-};
+import { uz } from '@/lib/uz';
 
 export function StaffPanelCard() {
   const [staff, setStaff] = useState<StaffUser | null>(null);
@@ -30,12 +23,12 @@ export function StaffPanelCard() {
 
   if (staff) {
     const href = dashboardPath(staff.role);
-    const label = PANEL_LABELS[staff.role] ?? 'Staff Panel';
+    const label = uz.staffPanels[staff.role] ?? uz.staff;
 
     return (
       <Card className="mt-6 overflow-hidden border-brand-200/60 p-0 dark:border-brand-800/40">
         <div className="bg-gradient-to-br from-brand-600 to-brand-700 px-5 py-4 text-white">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">Staff account</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{uz.staffAccount}</p>
           <p className="mt-1 text-lg font-bold">{staff.fullName ?? staff.email}</p>
           <p className="text-sm text-white/75">{staff.role.replace(/_/g, ' ')}</p>
         </div>
@@ -52,7 +45,7 @@ export function StaffPanelCard() {
             className="flex w-full min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-medium text-red-600 active:bg-red-50"
           >
             <LogOut size={18} />
-            Sign out of staff account
+            {uz.staffSignOut}
           </button>
         </div>
       </Card>
@@ -66,15 +59,15 @@ export function StaffPanelCard() {
           <Shield size={22} />
         </div>
         <div>
-          <p className="font-semibold">Staff & Super Admin</p>
-          <p className="mt-1 text-sm text-zinc-500">Sign in with work email and password.</p>
+          <p className="font-semibold">{uz.staffLoginTitle}</p>
+          <p className="mt-1 text-sm text-zinc-500">{uz.staffLoginHint}</p>
         </div>
       </div>
       <div className="mt-5">
         <StaffLoginForm redirect onSuccess={() => { if (getToken()) setStaff(getUser()); }} />
       </div>
       <Link href="/login" className="mt-4 block text-center text-sm font-medium text-brand-600">
-        Open full-screen login
+        {uz.staffFullLogin}
       </Link>
     </Card>
   );

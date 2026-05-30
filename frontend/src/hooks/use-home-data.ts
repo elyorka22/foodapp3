@@ -22,8 +22,10 @@ export type HomeRestaurant = {
 export type HomeBanner = {
   id: string;
   title: string;
+  description?: string | null;
   imageUrl: string;
   linkUrl?: string | null;
+  placement?: 'HERO' | 'PROMO';
   restaurantId?: string | null;
   sortOrder?: number;
 };

@@ -8,6 +8,8 @@ import { api } from '@/lib/api';
 import { getCustomer, saveTrackingToken } from '@/lib/customer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatSum } from '@/lib/format-sum';
+import { uz } from '@/lib/uz';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -31,7 +33,7 @@ export default function CheckoutPage() {
 
   const useMyLocation = () => {
     if (!navigator.geolocation) {
-      setError('Geolocation not supported');
+      setError(uz.geolocationUnsupported);
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -40,7 +42,7 @@ export default function CheckoutPage() {
         setLng(pos.coords.longitude);
         setError('');
       },
-      () => setError('Could not get location'),
+      () => setError(uz.geolocationFailed),
     );
   };
 
@@ -64,14 +66,14 @@ export default function CheckoutPage() {
       });
       if (res.valid) {
         setPromoDiscount(res.discount);
-        setPromoMessage(`Discount: ${res.discount.toLocaleString()} UZS`);
+        setPromoMessage(uz.promoDiscount(formatSum(res.discount)));
       } else {
         setPromoDiscount(0);
-        setPromoMessage(res.message ?? 'Invalid promo code');
+        setPromoMessage(res.message ?? uz.invalidPromo);
       }
     } catch (err) {
       setPromoDiscount(0);
-      setPromoMessage(err instanceof Error ? err.message : 'Could not validate promo');
+      setPromoMessage(err instanceof Error ? err.message : uz.promoValidateFailed);
     } finally {
       setValidatingPromo(false);
     }
@@ -102,7 +104,7 @@ export default function CheckoutPage() {
       clear();
       router.push(`/track/${res.order.trackingToken}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Order failed');
+      setError(err instanceof Error ? err.message : uz.orderFailed);
     } finally {
       setLoading(false);
     }
@@ -111,9 +113,9 @@ export default function CheckoutPage() {
   if (!items.length) {
     return (
       <main className="mx-auto max-w-lg p-4">
-        <p>Cart is empty.</p>
+        <p>{uz.cartEmpty}</p>
         <Link href="/" className="mt-2 inline-block text-brand-600">
-          Browse restaurants
+          {uz.browseRestaurants}
         </Link>
       </main>
     );
@@ -121,41 +123,39 @@ export default function CheckoutPage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-6">
-      <Link href="/" className="text-sm text-brand-600">
-        ← Back
+      <Link href="/cart" className="text-sm text-brand-600">
+        ← {uz.back}
       </Link>
-      <h1 className="mt-2 text-xl font-bold">Checkout</h1>
-      <p className="text-sm opacity-70">No account required</p>
+      <h1 className="mt-2 text-xl font-bold">{uz.checkoutTitle}</h1>
+      <p className="text-sm text-zinc-500">{uz.noAccountRequired}</p>
 
-      <ul className="mt-4 space-y-2 rounded-xl border p-4 dark:border-white/10">
+      <ul className="mt-4 space-y-2 rounded-2xl border bg-white p-4 shadow-card">
         {items.map((i) => (
           <li key={i.productId} className="flex justify-between text-sm">
             <span>
               {i.name} × {i.quantity}
             </span>
-            <span>{(i.price * i.quantity).toLocaleString()} UZS</span>
+            <span>{formatSum(i.price * i.quantity)}</span>
           </li>
         ))}
       </ul>
       <p className="mt-3 font-semibold">
-        Subtotal: {total().toLocaleString()} UZS
+        {uz.subtotal}: {formatSum(total())}
         {promoDiscount > 0 && (
-          <span className="ml-2 text-green-600">
-            −{promoDiscount.toLocaleString()} UZS promo
-          </span>
+          <span className="ml-2 text-green-600">−{formatSum(promoDiscount)}</span>
         )}
         {' '}
-        + delivery
+        + {uz.deliveryFee}
       </p>
 
       <div className="mt-4 flex gap-2">
         <Input
-          placeholder="Promo code"
+          placeholder={uz.promoCode}
           value={promoCode}
           onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
         />
         <Button type="button" variant="secondary" onClick={applyPromo} disabled={validatingPromo}>
-          {validatingPromo ? '...' : 'Apply'}
+          {validatingPromo ? '...' : uz.apply}
         </Button>
       </div>
       {promoMessage && <p className="text-sm text-brand-600">{promoMessage}</p>}
@@ -164,31 +164,31 @@ export default function CheckoutPage() {
         <Input
           required
           type="tel"
-          placeholder="Phone (+998901234567)"
+          placeholder={uz.phone}
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
         <textarea
           required
-          placeholder="Delivery address"
+          placeholder={uz.deliveryAddress}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           rows={3}
-          className="w-full rounded-lg border px-4 py-3 dark:border-white/20 dark:bg-zinc-900"
+          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3"
         />
         <button type="button" onClick={useMyLocation} className="text-sm text-brand-600">
-          📍 Use my GPS location
+          📍 {uz.useGps}
         </button>
         <textarea
-          placeholder="Comment (optional)"
+          placeholder={uz.commentOptional}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           rows={2}
-          className="w-full rounded-lg border px-4 py-3 dark:border-white/20 dark:bg-zinc-900"
+          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3"
         />
         {error && <p className="text-sm text-red-500">{error}</p>}
         <Button type="submit" size="lg" disabled={loading}>
-          {loading ? 'Placing order...' : 'Place order'}
+          {loading ? uz.placingOrder : uz.placeOrder}
         </Button>
       </form>
     </main>

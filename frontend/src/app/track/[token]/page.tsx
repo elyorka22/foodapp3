@@ -5,17 +5,8 @@ import { useParams } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import { api, getWsBase } from '@/lib/api';
 import { saveTrackingToken } from '@/lib/customer';
-
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Waiting for restaurant',
-  ACCEPTED: 'Order accepted',
-  PREPARING: 'Preparing your food',
-  COURIER_ASSIGNED: 'Courier assigned',
-  PICKED_UP: 'Picked up',
-  DELIVERING: 'On the way',
-  DELIVERED: 'Delivered',
-  CANCELLED: 'Cancelled',
-};
+import { formatSum } from '@/lib/format-sum';
+import { uz } from '@/lib/uz';
 
 type Order = {
   orderNumber: string;
@@ -38,7 +29,7 @@ export default function TrackPage() {
         setOrder(o);
         saveTrackingToken(token, o.orderNumber);
       })
-      .catch(() => setError('Order not found'));
+      .catch(() => setError(uz.orderNotFound));
 
     socket = io(`${getWsBase()}/orders`, { transports: ['websocket', 'polling'] });
     socket.emit('joinOrder', token);
@@ -50,16 +41,16 @@ export default function TrackPage() {
   }, [token]);
 
   if (error) return <main className="p-4 text-red-500">{error}</main>;
-  if (!order) return <main className="p-4">Loading order...</main>;
+  if (!order) return <main className="p-4 text-zinc-500">{uz.loading}</main>;
+
+  const statusLabel = uz.orderStatus[order.status] ?? order.status;
 
   return (
     <main className="mx-auto max-w-lg px-4 py-8">
-      <h1 className="text-xl font-bold">Order #{order.orderNumber}</h1>
-      <div className="mt-6 rounded-xl border p-6 dark:border-white/10">
-        <p className="text-2xl font-semibold text-brand-600">
-          {STATUS_LABELS[order.status] ?? order.status}
-        </p>
-        <p className="mt-2 text-sm opacity-70">Live updates enabled</p>
+      <h1 className="text-xl font-bold">{uz.orderNumber(order.orderNumber)}</h1>
+      <div className="mt-6 rounded-2xl border bg-white p-6 shadow-card">
+        <p className="text-2xl font-semibold text-brand-600">{statusLabel}</p>
+        <p className="mt-2 text-sm text-zinc-500">{uz.liveUpdates}</p>
       </div>
       <ul className="mt-6 space-y-2">
         {order.items?.map((i, idx) => (
@@ -70,7 +61,9 @@ export default function TrackPage() {
           </li>
         ))}
       </ul>
-      <p className="mt-4 font-bold">Total: {Number(order.total).toLocaleString()} UZS</p>
+      <p className="mt-4 font-bold">
+        {uz.total}: {formatSum(order.total)}
+      </p>
     </main>
   );
 }

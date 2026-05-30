@@ -6,8 +6,10 @@ import { getToken } from '@/lib/auth';
 
 export type BannerForm = {
   title: string;
+  description?: string;
   imageUrl: string;
   link?: string;
+  placement?: 'HERO' | 'PROMO';
   sortOrder?: number;
   isActive?: boolean;
 };

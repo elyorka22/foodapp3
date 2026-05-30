@@ -36,9 +36,11 @@ export class BannersService {
   async create(dto: CreateBannerDto, user?: JwtPayload) {
     const banner = await this.prisma.banner.create({
       data: {
-        title: dto.title,
+        title: dto.title?.trim() ?? '',
+        description: dto.description?.trim() || null,
         imageUrl: dto.imageUrl,
         linkUrl: dto.link,
+        placement: dto.placement ?? 'HERO',
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
         restaurantId: dto.restaurantId,
@@ -61,7 +63,9 @@ export class BannersService {
     if (!banner) throw new NotFoundException('Banner not found');
 
     const data: Prisma.BannerUpdateInput = {};
-    if (dto.title !== undefined) data.title = dto.title;
+    if (dto.title !== undefined) data.title = dto.title.trim();
+    if (dto.description !== undefined) data.description = dto.description.trim() || null;
+    if (dto.placement !== undefined) data.placement = dto.placement;
     if (dto.imageUrl !== undefined) data.imageUrl = dto.imageUrl;
     if (dto.link !== undefined) data.linkUrl = dto.link;
     if (dto.sortOrder !== undefined) data.sortOrder = dto.sortOrder;

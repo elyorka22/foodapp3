@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Heart, Home, ShoppingBag, User } from 'lucide-react';
 import { clsx } from 'clsx';
+import { uz } from '@/lib/uz';
 
 const items = [
-  { href: '/', label: 'Bosh sahifa', icon: Home },
-  { href: '/orders', label: 'Buyurtmalarim', icon: ShoppingBag },
-  { href: '/favorites', label: 'Sevimlilar', icon: Heart },
-  { href: '/profile', label: 'Profil', icon: User },
+  { href: '/', label: uz.navHome, icon: Home },
+  { href: '/orders', label: uz.navOrders, icon: ShoppingBag },
+  { href: '/favorites', label: uz.navFavorites, icon: Heart },
+  { href: '/profile', label: uz.navProfile, icon: User },
 ];
 
 export function BottomNav() {

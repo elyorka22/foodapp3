@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { LogOut, UserCircle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 import { clearCustomer, getCustomer, setCustomer } from '@/lib/customer';
 import { StaffPanelCard } from '@/components/profile/staff-panel-card';
+import { uz } from '@/lib/uz';
 import { clsx } from 'clsx';
 
 type ProfileTab = 'customer' | 'staff';
@@ -40,8 +40,8 @@ function TabButton({
       className={clsx(
         'flex-1 rounded-xl py-3 text-sm font-semibold transition active:scale-[0.98]',
         active
-          ? 'bg-white text-zinc-900 shadow-card dark:bg-zinc-800 dark:text-white'
-          : 'text-zinc-500 dark:text-zinc-400',
+          ? 'bg-white text-zinc-900 shadow-card'
+          : 'text-zinc-500',
       )}
     >
       {children}
@@ -79,11 +79,11 @@ export default function ProfilePage() {
       setCustomer(res.customer);
       setCustomerState(res.customer);
       const refMsg = res.customer.referralCode
-        ? ` Your referral code: ${res.customer.referralCode}`
+        ? ` ${uz.referralCode(res.customer.referralCode)}`
         : '';
-      setMessage(`Welcome! Your account is ready.${refMsg}`);
+      setMessage(`${uz.welcomeRegistered}${refMsg}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err.message : uz.registrationFailed);
     } finally {
       setLoading(false);
     }
@@ -101,9 +101,9 @@ export default function ProfilePage() {
       });
       setCustomer(res.customer);
       setCustomerState(res.customer);
-      setMessage(`Welcome back, ${res.customer.fullName}!`);
+      setMessage(uz.welcome(res.customer.fullName));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : uz.loginFailed);
     } finally {
       setLoading(false);
     }
@@ -115,46 +115,45 @@ export default function ProfilePage() {
     setPhone('');
     setFullName('');
     setEmail('');
-    setMessage('You have been signed out.');
+    setMessage(uz.loggedOut);
     setError('');
   };
 
   if (customer) {
     return (
       <main className="mx-auto max-w-lg px-4 py-6">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Profile</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
 
         <Card className="mt-6 p-5">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-950/50">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
               <UserCircle size={32} strokeWidth={1.5} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Customer</p>
-              <p className="truncate text-lg font-bold text-zinc-900 dark:text-white">
-                {customer.fullName}
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                {uz.customer}
               </p>
+              <p className="truncate text-lg font-bold text-zinc-900">{customer.fullName}</p>
               <p className="text-sm text-zinc-500">{customer.phone}</p>
             </div>
           </div>
-          {customer.email && (
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{customer.email}</p>
-          )}
+          {customer.email && <p className="mt-3 text-sm text-zinc-600">{customer.email}</p>}
           {customer.referralCode && (
-            <div className="mt-4 rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/50">
-              <p className="text-xs text-zinc-500">Your referral code</p>
-              <p className="font-mono text-base font-semibold text-brand-600">{customer.referralCode}</p>
+            <div className="mt-4 rounded-xl bg-zinc-50 px-4 py-3">
+              <p className="text-xs text-zinc-500">{uz.yourReferral}</p>
+              <p className="font-mono text-base font-semibold text-brand-600">
+                {customer.referralCode}
+              </p>
             </div>
           )}
           {customer.loyalty && (
             <p className="mt-3 text-sm text-zinc-600">
-              Loyalty · <span className="font-medium">{customer.loyalty.level}</span> ·{' '}
-              {customer.loyalty.points} pts
+              {uz.loyalty(customer.loyalty.level, customer.loyalty.points)}
             </p>
           )}
           <Button type="button" variant="secondary" className="mt-5 w-full gap-2" onClick={logoutCustomer}>
             <LogOut size={18} />
-            Sign out
+            {uz.signOut}
           </Button>
         </Card>
 
@@ -165,10 +164,10 @@ export default function ProfilePage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-6">
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Profile</h1>
-      <p className="mt-1 text-sm text-zinc-500">Save your phone for faster checkout and order history</p>
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
+      <p className="mt-1 text-sm text-zinc-500">{uz.profileHint}</p>
 
-      <div className="mt-6 flex gap-2 rounded-2xl bg-zinc-100 p-1.5 dark:bg-zinc-900">
+      <div className="mt-6 flex gap-2 rounded-2xl bg-zinc-100 p-1.5">
         <TabButton
           active={pageTab === 'customer'}
           onClick={() => {
@@ -179,7 +178,7 @@ export default function ProfilePage() {
         >
           <span className="inline-flex items-center justify-center gap-1.5">
             <UserCircle size={16} />
-            Customer
+            {uz.customer}
           </span>
         </TabButton>
         <TabButton
@@ -192,33 +191,33 @@ export default function ProfilePage() {
         >
           <span className="inline-flex items-center justify-center gap-1.5">
             <Users size={16} />
-            Staff
+            {uz.staff}
           </span>
         </TabButton>
       </div>
 
       {pageTab === 'customer' ? (
         <Card className="mt-6 p-5">
-          <div className="flex gap-2 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/80">
+          <div className="flex gap-2 rounded-xl bg-zinc-100 p-1">
             <button
               type="button"
               className={clsx(
                 'flex-1 rounded-lg py-2 text-sm font-medium transition',
-                customerTab === 'login' && 'bg-white shadow-sm dark:bg-zinc-700',
+                customerTab === 'login' && 'bg-white shadow-sm',
               )}
               onClick={() => setCustomerTab('login')}
             >
-              Sign in
+              {uz.signIn}
             </button>
             <button
               type="button"
               className={clsx(
                 'flex-1 rounded-lg py-2 text-sm font-medium transition',
-                customerTab === 'register' && 'bg-white shadow-sm dark:bg-zinc-700',
+                customerTab === 'register' && 'bg-white shadow-sm',
               )}
               onClick={() => setCustomerTab('register')}
             >
-              Register
+              {uz.register}
             </button>
           </div>
 
@@ -227,12 +226,12 @@ export default function ProfilePage() {
               <Input
                 type="tel"
                 required
-                placeholder="Phone number"
+                placeholder={uz.phone}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
               <Button type="submit" size="lg" disabled={loading}>
-                {loading ? 'Signing in…' : 'Sign in'}
+                {loading ? uz.signingIn : uz.signIn}
               </Button>
             </form>
           ) : (
@@ -240,30 +239,30 @@ export default function ProfilePage() {
               <Input
                 type="text"
                 required
-                placeholder="Full name"
+                placeholder={uz.fullName}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
               <Input
                 type="tel"
                 required
-                placeholder="Phone"
+                placeholder={uz.phone}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
               <Input
                 type="email"
-                placeholder="Email (optional)"
+                placeholder={uz.emailOptional}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
               <Input
-                placeholder="Friend's referral code (optional)"
+                placeholder={uz.referralOptional}
                 value={referredByCode}
                 onChange={(e) => setReferredByCode(e.target.value.toUpperCase())}
               />
               <Button type="submit" size="lg" disabled={loading}>
-                {loading ? 'Creating account…' : 'Create account'}
+                {loading ? uz.creatingAccount : uz.createAccount}
               </Button>
             </form>
           )}
@@ -273,25 +272,21 @@ export default function ProfilePage() {
       )}
 
       {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
-          {error}
-        </p>
+        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
       )}
       {message && (
-        <p className="mt-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-700 dark:bg-brand-950/40 dark:text-brand-300">
-          {message}
-        </p>
+        <p className="mt-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-700">{message}</p>
       )}
 
       {pageTab === 'customer' && (
         <p className="mt-8 text-center text-sm text-zinc-500">
-          Platform admin?{' '}
+          {uz.platformAdmin}{' '}
           <button
             type="button"
             className="font-semibold text-brand-600 active:opacity-70"
             onClick={() => setPageTab('staff')}
           >
-            Open staff login
+            {uz.openStaffLogin}
           </button>
         </p>
       )}

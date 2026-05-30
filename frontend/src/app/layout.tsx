@@ -6,8 +6,8 @@ import { Providers } from '@/components/providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'FoodApp — Fast Food Delivery',
-  description: 'Order food without registration. Fast delivery.',
+  title: 'FoodApp — Tez yetkazib berish',
+  description: "Ro'yxatdan o'tmasdan taom buyurtma qiling. Tez yetkazib berish.",
   manifest: '/manifest.json',
 };
 
@@ -20,7 +20,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="uz" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen antialiased`}>
         <Providers>{children}</Providers>
       </body>

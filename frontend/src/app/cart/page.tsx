@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
 import { Button } from '@/components/ui/button';
+import { formatSum } from '@/lib/format-sum';
+import { uz } from '@/lib/uz';
 
 export default function CartPage() {
   const router = useRouter();
@@ -12,9 +14,9 @@ export default function CartPage() {
   if (!items.length) {
     return (
       <main className="mx-auto max-w-lg px-4 py-8 text-center">
-        <p className="text-lg font-medium">Cart is empty</p>
+        <p className="text-lg font-medium">{uz.cartEmpty}</p>
         <Link href="/" className="mt-4 inline-block text-brand-600">
-          Browse restaurants
+          {uz.browseRestaurants}
         </Link>
       </main>
     );
@@ -22,17 +24,17 @@ export default function CartPage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-6">
-      <h1 className="text-xl font-bold">Cart</h1>
+      <h1 className="text-xl font-bold">{uz.cartTitle}</h1>
       <ul className="mt-4 space-y-3">
         {items.map((i) => (
           <li
             key={i.productId}
-            className="flex items-center justify-between rounded-xl border p-4 dark:border-white/10"
+            className="flex items-center justify-between rounded-xl border bg-white p-4 shadow-card"
           >
             <div>
               <p className="font-medium">{i.name}</p>
-              <p className="text-sm opacity-70">
-                {i.quantity} × {i.price.toLocaleString()} UZS
+              <p className="text-sm text-zinc-500">
+                {i.quantity} × {formatSum(i.price)}
               </p>
             </div>
             <button
@@ -40,18 +42,20 @@ export default function CartPage() {
               className="text-sm text-red-500"
               onClick={() => removeItem(i.productId)}
             >
-              Remove
+              {uz.remove}
             </button>
           </li>
         ))}
       </ul>
-      <p className="mt-4 text-lg font-bold">Subtotal: {total().toLocaleString()} UZS</p>
+      <p className="mt-4 text-lg font-bold">
+        {uz.subtotal}: {formatSum(total())}
+      </p>
       <div className="mt-4 flex gap-2">
         <Button type="button" variant="secondary" onClick={() => clear()}>
-          Clear
+          {uz.clear}
         </Button>
         <Button type="button" size="lg" className="flex-1" onClick={() => router.push('/checkout')}>
-          Checkout
+          {uz.checkout}
         </Button>
       </div>
     </main>

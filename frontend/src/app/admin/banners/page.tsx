@@ -16,8 +16,10 @@ import { Input } from '@/components/ui/input';
 
 const emptyBanner: BannerForm = {
   title: '',
+  description: '',
   imageUrl: '',
   link: '',
+  placement: 'HERO',
   sortOrder: 0,
   isActive: true,
 };
@@ -52,9 +54,11 @@ export default function AdminBannersPage() {
   const openEdit = (b: any) => {
     setEditId(b.id);
     setForm({
-      title: b.title,
+      title: b.title ?? '',
+      description: b.description ?? '',
       imageUrl: b.imageUrl,
       link: b.linkUrl ?? '',
+      placement: b.placement ?? 'HERO',
       sortOrder: b.sortOrder,
       isActive: b.isActive,
     });
@@ -179,8 +183,11 @@ export default function AdminBannersPage() {
               <span className="cursor-grab text-xs opacity-40">⋮⋮</span>
               <img src={b.imageUrl} alt="" className="h-16 w-28 rounded object-cover" />
               <div className="min-w-0 flex-1">
-                <p className="font-medium">{b.title}</p>
-                <p className="truncate text-xs opacity-50">{b.linkUrl || 'No link'}</p>
+                <p className="font-medium">{b.title || '(image only)'}</p>
+                <p className="truncate text-xs opacity-50">
+                  {b.placement ?? 'HERO'}
+                  {b.linkUrl ? ` · ${b.linkUrl}` : ''}
+                </p>
               </div>
               <ActiveBadge active={b.isActive} />
               <div className="flex gap-2">
@@ -197,7 +204,29 @@ export default function AdminBannersPage() {
 
       <Modal open={modalOpen} title={editId ? 'Edit banner' : 'Add banner'} onClose={() => setModalOpen(false)}>
         <div className="space-y-3">
-          <Input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <label className="block text-xs font-medium opacity-70">
+            Placement
+            <select
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
+              value={form.placement ?? 'HERO'}
+              onChange={(e) =>
+                setForm({ ...form, placement: e.target.value as 'HERO' | 'PROMO' })
+              }
+            >
+              <option value="HERO">Hero carousel (homepage top)</option>
+              <option value="PROMO">Promo block (below hero)</option>
+            </select>
+          </label>
+          <Input
+            placeholder="Title (optional — leave empty for image-only)"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+          <Input
+            placeholder="Description (optional, promo block only)"
+            value={form.description ?? ''}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
           <Input placeholder="Link URL" value={form.link ?? ''} onChange={(e) => setForm({ ...form, link: e.target.value })} />
           <label className="text-xs opacity-70">
             Image

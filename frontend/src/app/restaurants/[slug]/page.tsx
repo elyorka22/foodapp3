@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useCartStore } from '@/store/cart';
 import { ShoppingCart } from 'lucide-react';
+import { formatSum } from '@/lib/format-sum';
+import { uz } from '@/lib/uz';
 
 type Product = {
   id: string;
@@ -29,15 +31,18 @@ export default function RestaurantPage() {
       ),
   });
 
-  if (isLoading) return <p className="p-4">Loading...</p>;
-  if (!restaurant) return <p className="p-4">Restaurant not found</p>;
+  if (isLoading) return <p className="p-4 text-zinc-500">{uz.loading}</p>;
+  if (!restaurant) return <p className="p-4 text-zinc-500">{uz.restaurantNotFound}</p>;
 
   return (
-    <main className="mx-auto max-w-lg px-4 pt-4">
-      <h1 className="text-2xl font-bold">{restaurant.name}</h1>
+    <main className="mx-auto max-w-lg px-4 pt-4 pb-24">
+      <Link href="/" className="text-sm text-brand-600">
+        ← {uz.back}
+      </Link>
+      <h1 className="mt-2 text-2xl font-bold">{restaurant.name}</h1>
       {restaurant.isOpen === false && (
-        <p className="mt-2 rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-100">
-          This restaurant is currently closed. You can browse the menu but cannot place orders.
+        <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {uz.restaurantClosed}
         </p>
       )}
 
@@ -45,21 +50,19 @@ export default function RestaurantPage() {
         {restaurant.products?.map((p) => (
           <li
             key={p.id}
-            className="flex items-center justify-between rounded-xl border p-4 dark:border-white/10"
+            className="flex items-center justify-between rounded-2xl border bg-white p-4 shadow-card"
           >
             <div className="pr-3">
               <h3 className="font-medium">{p.name}</h3>
               {p.description && (
-                <p className="text-xs opacity-60 line-clamp-2">{p.description}</p>
+                <p className="line-clamp-2 text-xs text-zinc-500">{p.description}</p>
               )}
-              <p className="mt-1 font-semibold text-brand-600">
-                {Number(p.price).toLocaleString()} UZS
-              </p>
+              <p className="mt-1 font-semibold text-brand-600">{formatSum(p.price)}</p>
             </div>
             <button
               type="button"
               disabled={restaurant.isOpen === false}
-              className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm text-white disabled:opacity-40"
+              className="shrink-0 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
               onClick={() =>
                 addItem({
                   productId: p.id,
@@ -69,7 +72,7 @@ export default function RestaurantPage() {
                 })
               }
             >
-              Add
+              {uz.addToCart}
             </button>
           </li>
         ))}
@@ -78,10 +81,10 @@ export default function RestaurantPage() {
       {cartCount > 0 && (
         <button
           type="button"
-          className="fixed bottom-20 left-4 right-4 mx-auto flex max-w-lg items-center justify-center gap-2 rounded-xl bg-brand-600 py-4 font-semibold text-white shadow-lg"
+          className="fixed bottom-20 left-4 right-4 mx-auto flex max-w-lg items-center justify-center gap-2 rounded-2xl bg-brand-600 py-4 font-semibold text-white shadow-lg"
           onClick={() => router.push('/cart')}
         >
-          <ShoppingCart size={20} /> Cart ({cartCount})
+          <ShoppingCart size={20} /> {uz.cartFab(cartCount)}
         </button>
       )}
     </main>
