@@ -30,7 +30,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   );
   const tags =
     restaurant.categories?.map((c) => c.name).join(', ') ||
-    restaurant.description?.slice(0, 36) ||
+    restaurant.description?.slice(0, 40) ||
     '';
   const prepMin = restaurant.avgPrepMinutes ?? 25;
   const prep = `${Math.max(15, prepMin - 5)}–${prepMin + 5} ${uz.min}`;
@@ -39,7 +39,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   return (
     <Link
       href={href}
-      className="relative block aspect-[5/6] overflow-hidden rounded-2xl shadow-none ring-0 transition active:scale-[0.98]"
+      className="relative block aspect-[7/5] overflow-hidden rounded-2xl shadow-none ring-0 transition active:scale-[0.98]"
     >
       {imageUrl ? (
         <Image
@@ -62,6 +62,11 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
         </div>
       )}
 
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[55%] bg-gradient-to-b from-black/45 to-transparent"
+        aria-hidden
+      />
+
       <span
         className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center text-white"
         aria-hidden
@@ -69,15 +74,16 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
         <Heart size={18} strokeWidth={2} />
       </span>
 
-      <div className="absolute inset-x-0 bottom-9 flex flex-col px-2 pb-2">
-        <h3 className="line-clamp-2 text-[14px] font-bold leading-tight text-white">{restaurant.name}</h3>
+      <div className="absolute left-2 right-10 top-9">
+        <h3 className="line-clamp-2 text-[17px] font-bold leading-snug text-white">{restaurant.name}</h3>
         {tags ? (
-          <p className="mt-0.5 line-clamp-1 text-[10px] font-medium text-white/90">{tags}</p>
+          <p className="mt-1 line-clamp-2 text-[12px] font-medium leading-snug text-white/90">{tags}</p>
         ) : null}
-        <span className="mt-1 inline-flex w-fit rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-zinc-900">
-          {prep}
-        </span>
       </div>
+
+      <span className="absolute bottom-2 left-2 inline-flex rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-zinc-900">
+        {prep}
+      </span>
     </Link>
   );
 }
