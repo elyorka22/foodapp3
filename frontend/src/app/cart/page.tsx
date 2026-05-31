@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
 import { Button } from '@/components/ui/button';
 import { formatSum } from '@/lib/format-sum';
+import { HomeTopBar } from '@/components/home/home-top-bar';
 import { uz } from '@/lib/uz';
 
 export default function CartPage() {
@@ -13,18 +14,22 @@ export default function CartPage() {
 
   if (!items.length) {
     return (
-      <main className="mx-auto max-w-lg px-4 py-8 text-center">
-        <p className="text-lg font-medium">{uz.cartEmpty}</p>
-        <Link href="/" className="mt-4 inline-block text-brand-600">
-          {uz.browseRestaurants}
-        </Link>
+      <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+        <HomeTopBar />
+        <div className="mt-8 text-center">
+          <p className="text-lg font-medium">{uz.cartEmpty}</p>
+          <Link href="/" className="mt-4 inline-block text-brand-600">
+            {uz.browseRestaurants}
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-6">
-      <h1 className="text-xl font-bold">{uz.cartTitle}</h1>
+    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+      <HomeTopBar />
+      <h1 className="mt-6 text-xl font-bold">{uz.cartTitle}</h1>
       <ul className="mt-4 space-y-3">
         {items.map((i) => (
           <li

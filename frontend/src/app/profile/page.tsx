@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 import { clearCustomer, getCustomer, setCustomer } from '@/lib/customer';
+import { HomeTopBar } from '@/components/home/home-top-bar';
 import { StaffPanelCard } from '@/components/profile/staff-panel-card';
 import { uz } from '@/lib/uz';
 import { clsx } from 'clsx';
