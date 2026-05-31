@@ -1,11 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { Heart, Plus } from 'lucide-react';
+import { Heart, Minus, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
+import { useCartStore } from '@/store/cart';
 
 export type MenuProduct = {
   id: string;
@@ -18,8 +19,8 @@ export type MenuProduct = {
 
 type Props = {
   product: MenuProduct;
+  restaurantId: string;
   disabled?: boolean;
-  onAdd: () => void;
 };
 
 function productImage(product: MenuProduct): string | null {
@@ -38,7 +39,13 @@ function discountPercent(price: number, compare: number): number | null {
   return Math.round((1 - price / compare) * 100);
 }
 
-export function ProductCard({ product, disabled, onAdd }: Props) {
+export function ProductCard({ product, restaurantId, disabled }: Props) {
+  const quantity = useCartStore(
+    (s) => s.items.find((i) => i.productId === product.id)?.quantity ?? 0,
+  );
+  const addItem = useCartStore((s) => s.addItem);
+  const decrementItem = useCartStore((s) => s.decrementItem);
+
   const imageUrl = productImage(product);
   const price = Number(product.price);
   const compare = product.comparePrice != null ? Number(product.comparePrice) : null;
@@ -48,6 +55,25 @@ export function ProductCard({ product, disabled, onAdd }: Props) {
   const titleWeight = weight
     ? product.description?.replace(/\d+(?:[.,]\d+)?\s*(?:g|г|kg|кг|ml|мл|l|л)\b/i, '').trim()
     : product.description;
+
+  const addToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled) return;
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price,
+      restaurantId,
+    });
+  };
+
+  const removeFromCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled) return;
+    decrementItem(product.id);
+  };
 
   return (
     <article className="flex flex-col">
@@ -80,18 +106,47 @@ export function ProductCard({ product, disabled, onAdd }: Props) {
           </span>
         )}
 
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={onAdd}
-          className={clsx(
-            'absolute bottom-1.5 right-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-900 transition active:scale-95',
-            disabled && 'opacity-40',
-          )}
-          aria-label={uz.addToCart}
-        >
-          <Plus size={20} strokeWidth={2.5} />
-        </button>
+        {quantity === 0 ? (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={addToCart}
+            className={clsx(
+              'absolute bottom-1.5 right-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-900 transition active:scale-95',
+              disabled && 'opacity-40',
+            )}
+            aria-label={uz.addToCart}
+          >
+            <Plus size={20} strokeWidth={2.5} />
+          </button>
+        ) : (
+          <div
+            className={clsx(
+              'absolute bottom-1.5 right-1.5 flex items-center rounded-full bg-white text-zinc-900 shadow-sm',
+              disabled && 'opacity-40',
+            )}
+          >
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={removeFromCart}
+              className="flex h-9 w-8 items-center justify-center rounded-l-full active:bg-zinc-100"
+              aria-label={uz.remove}
+            >
+              <Minus size={18} strokeWidth={2.5} />
+            </button>
+            <span className="min-w-[1.25rem] text-center text-sm font-bold tabular-nums">{quantity}</span>
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={addToCart}
+              className="flex h-9 w-8 items-center justify-center rounded-r-full active:bg-zinc-100"
+              aria-label={uz.addToCart}
+            >
+              <Plus size={18} strokeWidth={2.5} />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mt-1.5 px-0.5">

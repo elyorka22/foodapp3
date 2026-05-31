@@ -22,7 +22,6 @@ type RestaurantDetail = {
 export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const addItem = useCartStore((s) => s.addItem);
   const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
 
   const { data: restaurant, isLoading, isError, refetch } = useQuery({
@@ -98,15 +97,8 @@ export default function RestaurantPage() {
             <ProductCard
               key={p.id}
               product={p}
+              restaurantId={restaurant.id}
               disabled={closed}
-              onAdd={() =>
-                addItem({
-                  productId: p.id,
-                  name: p.name,
-                  price: Number(p.price),
-                  restaurantId: restaurant.id,
-                })
-              }
             />
           ))}
         </div>

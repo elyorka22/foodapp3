@@ -7,6 +7,7 @@ type CartState = {
   restaurantId: string | null;
   items: CartItem[];
   addItem: (item: Omit<CartItem, 'quantity'>, qty?: number) => void;
+  decrementItem: (productId: string) => void;
   removeItem: (productId: string) => void;
   clear: () => void;
   total: () => number;
@@ -33,6 +34,21 @@ export const useCartStore = create<CartState>()(
         } else {
           set({ restaurantId: item.restaurantId, items: [...state.items, { ...item, quantity: qty }] });
         }
+      },
+      decrementItem: (productId) => {
+        const state = get();
+        const existing = state.items.find((i) => i.productId === productId);
+        if (!existing) return;
+        if (existing.quantity <= 1) {
+          const items = state.items.filter((i) => i.productId !== productId);
+          set({ items, restaurantId: items.length ? state.restaurantId : null });
+          return;
+        }
+        set({
+          items: state.items.map((i) =>
+            i.productId === productId ? { ...i, quantity: i.quantity - 1 } : i,
+          ),
+        });
       },
       removeItem: (productId) => {
         const items = get().items.filter((i) => i.productId !== productId);
