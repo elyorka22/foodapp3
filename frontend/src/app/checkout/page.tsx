@@ -8,6 +8,11 @@ import { api } from '@/lib/api';
 import { getCustomer, saveTrackingToken } from '@/lib/customer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  DeliveryLocation,
+  validateDeliveryLocation,
+  type DeliveryLocationValue,
+} from '@/components/checkout/delivery-location';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
 
@@ -15,10 +20,13 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, restaurantId, total, clear } = useCartStore();
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocationValue>({
+    mode: 'gps',
+    address: '',
+    lat: null,
+    lng: null,
+  });
   const [comment, setComment] = useState('');
-  const [lat, setLat] = useState(41.311081);
-  const [lng, setLng] = useState(69.240562);
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoMessage, setPromoMessage] = useState('');
@@ -30,21 +38,6 @@ export default function CheckoutPage() {
     const c = getCustomer();
     if (c?.phone) setPhone(c.phone);
   }, []);
-
-  const useMyLocation = () => {
-    if (!navigator.geolocation) {
-      setError(uz.geolocationUnsupported);
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLat(pos.coords.latitude);
-        setLng(pos.coords.longitude);
-        setError('');
-      },
-      () => setError(uz.geolocationFailed),
-    );
-  };
 
   const applyPromo = async () => {
     if (!promoCode.trim() || !restaurantId) return;
@@ -82,6 +75,11 @@ export default function CheckoutPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!restaurantId || !items.length) return;
+    const locationError = validateDeliveryLocation(deliveryLocation);
+    if (locationError) {
+      setError(locationError);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -92,9 +90,9 @@ export default function CheckoutPage() {
           restaurantId,
           phone: loggedIn?.phone ?? phone,
           customerId: loggedIn?.id,
-          deliveryAddress: address,
-          latitude: lat,
-          longitude: lng,
+          deliveryAddress: deliveryLocation.address.trim(),
+          latitude: deliveryLocation.lat,
+          longitude: deliveryLocation.lng,
           comment: comment || undefined,
           promoCode: promoCode.trim() || undefined,
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
@@ -168,17 +166,11 @@ export default function CheckoutPage() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
-        <textarea
-          required
-          placeholder={uz.deliveryAddress}
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          rows={3}
-          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3"
+        <DeliveryLocation
+          value={deliveryLocation}
+          onChange={setDeliveryLocation}
+          onError={setError}
         />
-        <button type="button" onClick={useMyLocation} className="text-sm text-brand-600">
-          📍 {uz.useGps}
-        </button>
         <textarea
           placeholder={uz.commentOptional}
           value={comment}

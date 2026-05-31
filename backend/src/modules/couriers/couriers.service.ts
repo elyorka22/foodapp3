@@ -372,7 +372,7 @@ export class CouriersService {
   }
 
   async getAvailableOrders() {
-    return this.prisma.order.findMany({
+    const orders = await this.prisma.order.findMany({
       where: {
         status: { in: [OrderStatus.PREPARING, OrderStatus.COURIER_ASSIGNED] },
         courierId: null,
@@ -380,12 +380,31 @@ export class CouriersService {
       },
       include: {
         guestOrder: true,
+        address: true,
         restaurant: { select: { name: true } },
         branch: true,
       },
       orderBy: { createdAt: 'asc' },
       take: 50,
     });
+    return orders.map((order) => ({
+      ...order,
+      total: Number(order.total),
+      guestOrder: order.guestOrder
+        ? {
+            ...order.guestOrder,
+            latitude: Number(order.guestOrder.latitude),
+            longitude: Number(order.guestOrder.longitude),
+          }
+        : null,
+      address: order.address
+        ? {
+            ...order.address,
+            latitude: Number(order.address.latitude),
+            longitude: Number(order.address.longitude),
+          }
+        : null,
+    }));
   }
 
   async getEarnings(userId: string) {

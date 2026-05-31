@@ -520,7 +520,27 @@ export class OrdersService {
     });
   }
 
+  private serializeGuestOrder(guestOrder: Record<string, unknown> | null | undefined) {
+    if (!guestOrder) return guestOrder;
+    return {
+      ...guestOrder,
+      latitude: Number(guestOrder.latitude),
+      longitude: Number(guestOrder.longitude),
+    };
+  }
+
+  private serializeAddress(address: Record<string, unknown> | null | undefined) {
+    if (!address) return address;
+    return {
+      ...address,
+      latitude: Number(address.latitude),
+      longitude: Number(address.longitude),
+    };
+  }
+
   private serializeOrder(order: Record<string, unknown>) {
+    const guestOrder = order.guestOrder as Record<string, unknown> | undefined;
+    const address = order.address as Record<string, unknown> | undefined;
     return {
       id: order.id,
       orderNumber: order.orderNumber,
@@ -534,11 +554,11 @@ export class OrdersService {
       createdAt: order.createdAt,
       deliveredAt: order.deliveredAt,
       items: order.items,
-      guestOrder: order.guestOrder,
+      guestOrder: this.serializeGuestOrder(guestOrder),
       restaurant: order.restaurant,
       courier: order.courier,
       assignment: order.assignment,
-      address: order.address,
+      address: this.serializeAddress(address),
       payment: order.payment,
       transactions: order.transactions,
     };

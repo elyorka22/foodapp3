@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/admin/ui';
+import { DeliveryCoords } from '@/components/shared/delivery-coords';
 
 export function OrderDrawer({
   orderId,
@@ -93,9 +94,13 @@ export function OrderDrawer({
 
             <Section title="Delivery">
               <p className="text-sm">{data.address?.line1 ?? data.guestOrder?.deliveryAddress}</p>
-              <p className="text-xs opacity-60">
-                Lat/Lng: {data.address?.latitude}, {data.address?.longitude}
-              </p>
+              <DeliveryCoords
+                className="mt-2"
+                lat={data.address?.latitude}
+                lng={data.address?.longitude}
+                guestLat={data.guestOrder?.latitude}
+                guestLng={data.guestOrder?.longitude}
+              />
             </Section>
 
             <Section title="Items">

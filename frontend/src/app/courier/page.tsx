@@ -7,13 +7,20 @@ import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { getToken, getUser } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { DeliveryCoords } from '@/components/shared/delivery-coords';
 
 type AvailableOrder = {
   id: string;
   orderNumber: string;
   status: string;
   total: number;
-  guestOrder: { deliveryAddress: string; phone: string };
+  guestOrder: {
+    deliveryAddress: string;
+    phone: string;
+    latitude: number;
+    longitude: number;
+  };
+  address?: { latitude: number; longitude: number };
   restaurant: { name: string };
 };
 
@@ -125,7 +132,14 @@ export default function CourierPage() {
               <p className="font-bold">#{o.orderNumber}</p>
               <p className="text-sm">{o.restaurant.name}</p>
               <p className="text-sm opacity-70">{o.guestOrder.deliveryAddress}</p>
-              <p className="text-sm">{o.guestOrder.phone}</p>
+              <DeliveryCoords
+                className="mt-1"
+                lat={o.address?.latitude}
+                lng={o.address?.longitude}
+                guestLat={o.guestOrder.latitude}
+                guestLng={o.guestOrder.longitude}
+              />
+              <p className="mt-1 text-sm">{o.guestOrder.phone}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button size="lg" onClick={() => acceptOrder.mutate(o.id)}>
                   Accept
