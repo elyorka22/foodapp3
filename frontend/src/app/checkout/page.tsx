@@ -13,7 +13,9 @@ import {
   validateDeliveryLocation,
   type DeliveryLocationValue,
 } from '@/components/checkout/delivery-location';
+import { geocodeAddress, isValidCoords } from '@/lib/maps';
 import { formatSum } from '@/lib/format-sum';
+import { HomeTopBar } from '@/components/home/home-top-bar';
 import { uz } from '@/lib/uz';
 
 export default function CheckoutPage() {
@@ -21,7 +23,7 @@ export default function CheckoutPage() {
   const { items, restaurantId, total, clear } = useCartStore();
   const [phone, setPhone] = useState('');
   const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocationValue>({
-    mode: 'gps',
+    mode: 'manual',
     address: '',
     lat: null,
     lng: null,
@@ -75,13 +77,30 @@ export default function CheckoutPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!restaurantId || !items.length) return;
+
     const locationError = validateDeliveryLocation(deliveryLocation);
     if (locationError) {
       setError(locationError);
       return;
     }
+
     setLoading(true);
     setError('');
+
+    let lat = deliveryLocation.lat;
+    let lng = deliveryLocation.lng;
+
+    if (deliveryLocation.mode === 'manual' && !isValidCoords(lat, lng)) {
+      const coords = await geocodeAddress(deliveryLocation.address);
+      if (!coords) {
+        setError(uz.addressNotResolved);
+        setLoading(false);
+        return;
+      }
+      lat = coords.lat;
+      lng = coords.lng;
+    }
+
     try {
       const loggedIn = getCustomer();
       const res = await api<{ order: { trackingToken: string; orderNumber?: string } }>('/orders/guest', {
@@ -91,8 +110,8 @@ export default function CheckoutPage() {
           phone: loggedIn?.phone ?? phone,
           customerId: loggedIn?.id,
           deliveryAddress: deliveryLocation.address.trim(),
-          latitude: deliveryLocation.lat,
-          longitude: deliveryLocation.lng,
+          latitude: lat,
+          longitude: lng,
           comment: comment || undefined,
           promoCode: promoCode.trim() || undefined,
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
@@ -110,22 +129,23 @@ export default function CheckoutPage() {
 
   if (!items.length) {
     return (
-      <main className="mx-auto max-w-lg p-4">
-        <p>{uz.cartEmpty}</p>
-        <Link href="/" className="mt-2 inline-block text-brand-600">
-          {uz.browseRestaurants}
-        </Link>
+      <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+        <HomeTopBar />
+        <div className="mt-8 text-center">
+          <p className="text-lg font-medium">{uz.cartEmpty}</p>
+          <Link href="/" className="mt-4 inline-block text-brand-600">
+            {uz.browseRestaurants}
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-6">
-      <Link href="/cart" className="text-sm text-brand-600">
-        ← {uz.back}
-      </Link>
-      <h1 className="mt-2 text-xl font-bold">{uz.checkoutTitle}</h1>
-      <p className="text-sm text-zinc-500">{uz.noAccountRequired}</p>
+    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+      <HomeTopBar />
+      <h1 className="mt-6 text-xl font-bold">{uz.checkoutTitle}</h1>
+      <p className="mt-1 text-sm text-zinc-500">{uz.noAccountRequired}</p>
 
       <ul className="mt-4 space-y-2 rounded-2xl border bg-white p-4 shadow-card">
         {items.map((i) => (
@@ -179,7 +199,7 @@ export default function CheckoutPage() {
           className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3"
         />
         {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" size="lg" disabled={loading}>
+        <Button type="submit" size="lg" disabled={loading} className="w-full">
           {loading ? uz.placingOrder : uz.placeOrder}
         </Button>
       </form>
