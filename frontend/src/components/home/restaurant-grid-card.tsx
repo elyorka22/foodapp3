@@ -63,7 +63,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
       )}
 
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[55%] bg-gradient-to-b from-black/45 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-black/35 to-transparent"
         aria-hidden
       />
 

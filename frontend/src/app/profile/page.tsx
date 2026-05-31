@@ -122,8 +122,9 @@ export default function ProfilePage() {
 
   if (customer) {
     return (
-      <main className="mx-auto max-w-lg px-4 py-6">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
+      <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+        <HomeTopBar />
+        <h1 className="mt-6 text-2xl font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
 
         <Card className="mt-6 p-5">
           <div className="flex items-center gap-4">
@@ -164,8 +165,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-6">
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
+    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+      <HomeTopBar />
+      <h1 className="mt-6 text-2xl font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
       <p className="mt-1 text-sm text-zinc-500">{uz.profileHint}</p>
 
       <div className="mt-6 flex gap-2 rounded-2xl bg-zinc-100 p-1.5">
