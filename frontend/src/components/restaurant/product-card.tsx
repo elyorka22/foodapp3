@@ -77,18 +77,18 @@ export function ProductCard({ product, restaurantId, disabled }: Props) {
 
   return (
     <article className="flex flex-col">
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-[#F0F0F2]">
+      <div className="relative aspect-square overflow-hidden rounded-2xl bg-white">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={product.name}
             fill
-            className="object-contain p-2"
+            className="object-cover"
             sizes="120px"
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-3xl opacity-30">🍽</div>
+          <div className="flex h-full items-center justify-center bg-[#F0F0F2] text-3xl opacity-30">🍽</div>
         )}
 
         <button
