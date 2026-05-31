@@ -83,12 +83,12 @@ export function ProductCard({ product, restaurantId, disabled }: Props) {
             src={imageUrl}
             alt={product.name}
             fill
-            className="object-cover"
+            className="object-contain"
             sizes="120px"
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-[#F0F0F2] text-3xl opacity-30">🍽</div>
+          <div className="flex h-full items-center justify-center bg-white text-3xl opacity-25">🍽</div>
         )}
 
         <button
