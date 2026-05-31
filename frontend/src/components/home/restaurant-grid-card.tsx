@@ -39,7 +39,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   return (
     <Link
       href={href}
-      className="relative block aspect-[7/5] overflow-hidden rounded-2xl shadow-none ring-0 transition active:scale-[0.98]"
+      className="relative block aspect-[6/5] overflow-hidden rounded-2xl shadow-none ring-0 drop-shadow-none transition active:scale-[0.98]"
     >
       {imageUrl ? (
         <Image
