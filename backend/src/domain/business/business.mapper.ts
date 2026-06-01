@@ -8,11 +8,18 @@ type BusinessWithRelations = {
   description: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
+  phone: string | null;
   minOrderAmount: Prisma.Decimal | null;
   avgPrepMinutes: number;
   averageRating: Prisma.Decimal | null;
   reviewCount: number;
-  businessType?: { id: string; name: string; slug: string; icon: string | null } | null;
+  businessType?: {
+    id: string;
+    name: string;
+    slug: string;
+    icon: string | null;
+    catalogMode?: string;
+  } | null;
   branches?: { latitude: Prisma.Decimal; longitude: Prisma.Decimal }[];
 };
 
@@ -25,6 +32,7 @@ export function toBusinessPublicDto(row: BusinessWithRelations): BusinessPublicD
     description: row.description,
     logoUrl: row.logoUrl,
     coverUrl: row.coverUrl,
+    phone: row.phone,
     minOrderAmount: row.minOrderAmount ? Number(row.minOrderAmount) : null,
     deliveryMinutes: row.avgPrepMinutes,
     averageRating: row.averageRating ? Number(row.averageRating) : 4.5,

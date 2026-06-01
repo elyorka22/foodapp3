@@ -27,6 +27,7 @@ export type BusinessPublicDto = {
   description: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
+  phone: string | null;
   minOrderAmount: number | null;
   deliveryMinutes: number;
   averageRating: number;
@@ -36,6 +37,7 @@ export type BusinessPublicDto = {
     name: string;
     slug: string;
     icon: string | null;
+    catalogMode?: string;
   } | null;
   category: string | null;
   latitude: number | null;

@@ -21,6 +21,7 @@ import {
   Image as ImageIcon,
   ScrollText,
   Server,
+  Store,
 } from 'lucide-react';
 import { NotificationsBell } from '@/components/admin/notifications-bell';
 import { clsx } from 'clsx';
@@ -34,6 +35,7 @@ const NAV: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/restaurants', label: 'Restaurants', icon: Building2 },
+  { href: '/admin/businesses', label: "Do'konlar", icon: Store },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/categories', label: 'Product categories', icon: Tags },
   { href: '/admin/business-types', label: 'Business types', icon: Tags },

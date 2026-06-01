@@ -12,6 +12,7 @@ import { uploadImage } from '@/lib/upload';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
 import { CategoryImagePositionControls } from '@/components/admin/category-image-position-controls';
+import { catalogModeLabel } from '@/lib/business-catalog-mode';
 import {
   useAdminBusinessTypes,
   type AdminBusinessType,
@@ -27,6 +28,7 @@ const empty: BusinessTypeForm = {
   imageScale: 100,
   imagePositionX: 50,
   imagePositionY: 50,
+  catalogMode: 'CATALOG',
   sortOrder: 0,
 };
 
@@ -53,6 +55,7 @@ export default function AdminBusinessTypesPage() {
         imageScale: form.imageScale ?? 100,
         imagePositionX: form.imagePositionX ?? 50,
         imagePositionY: form.imagePositionY ?? 50,
+        catalogMode: form.catalogMode ?? 'CATALOG',
         sortOrder: Number(form.sortOrder) || 0,
       };
       if (editId) {
@@ -100,6 +103,7 @@ export default function AdminBusinessTypesPage() {
       imageScale: row.imageScale ?? 100,
       imagePositionX: row.imagePositionX ?? 50,
       imagePositionY: row.imagePositionY ?? 50,
+      catalogMode: row.catalogMode ?? 'CATALOG',
       sortOrder: row.sortOrder,
     });
     setOpen(true);
@@ -199,6 +203,22 @@ export default function AdminBusinessTypesPage() {
             )}
           </div>
           <CategoryImagePositionControls form={form} setForm={setForm} />
+          <label className="block text-xs font-medium opacity-70">
+            Mijozlar uchun rejim
+            <select
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
+              value={form.catalogMode ?? 'CATALOG'}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  catalogMode: e.target.value as 'CATALOG' | 'CONTACT',
+                })
+              }
+            >
+              <option value="CATALOG">{catalogModeLabel('CATALOG')}</option>
+              <option value="CONTACT">{catalogModeLabel('CONTACT')}</option>
+            </select>
+          </label>
           <Input
             type="number"
             placeholder="Sort order"

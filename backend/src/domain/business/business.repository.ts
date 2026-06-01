@@ -40,6 +40,7 @@ export class BusinessRepository {
         deletedAt: null,
       },
       include: {
+        businessType: true,
         branches: { where: { isActive: true } },
         productCategories: {
           where: { isActive: true, deletedAt: null },

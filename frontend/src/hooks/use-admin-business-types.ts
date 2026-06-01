@@ -16,6 +16,7 @@ export type AdminBusinessType = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
+  catalogMode?: 'CATALOG' | 'CONTACT';
   sortOrder: number;
   isActive: boolean;
 };
@@ -29,6 +30,7 @@ export type BusinessTypeForm = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
+  catalogMode?: 'CATALOG' | 'CONTACT';
   sortOrder?: number;
 };
 

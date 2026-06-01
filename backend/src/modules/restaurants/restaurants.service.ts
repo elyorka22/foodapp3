@@ -172,6 +172,7 @@ export class RestaurantsService {
         deletedAt: null,
       },
       include: {
+        businessType: true,
         branches: { where: { isActive: true } },
         productCategories: {
           where: { isActive: true, deletedAt: null },
@@ -186,12 +187,24 @@ export class RestaurantsService {
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
     const isOpen = await this.schedule.isOpen(restaurant.id);
-    const products = restaurant.products.map((p) => ({
+    const catalogMode = restaurant.businessType?.catalogMode ?? 'CATALOG';
+    const products =
+      catalogMode === 'CONTACT'
+        ? []
+        : restaurant.products.map((p) => ({
       ...p,
       price: Number(p.price),
       comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
     }));
-    return { ...restaurant, products, isOpen };
+    return {
+      ...restaurant,
+      products,
+      isOpen,
+      catalogMode,
+      phone: restaurant.phone,
+      logoUrl: restaurant.logoUrl,
+      description: restaurant.description,
+    };
   }
 
   async findById(id: string, user?: JwtPayload) {
@@ -234,7 +247,13 @@ export class RestaurantsService {
     }
 
     const [rows, total] = await Promise.all([
-      this.prisma.business.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } }),
+      this.prisma.business.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: { businessType: true },
+      }),
       this.prisma.business.count({ where }),
     ]);
 
@@ -351,10 +370,18 @@ export class RestaurantsService {
       isTaken: (s) => this.isBusinessSlugTaken(s),
     });
 
+    if (dto.businessTypeId) {
+      const type = await this.prisma.businessType.findUnique({
+        where: { id: dto.businessTypeId },
+      });
+      if (!type) throw new NotFoundException('Business type not found');
+    }
+
     const restaurant = await this.prisma.business.create({
       data: {
         name: dto.name,
         slug,
+        businessTypeId: dto.businessTypeId,
         description: dto.description,
         logoUrl: dto.logoUrl,
         coverUrl: dto.coverUrl,
@@ -381,13 +408,25 @@ export class RestaurantsService {
 
   async update(id: string, dto: UpdateRestaurantDto, user: JwtPayload) {
     this.assertRestaurantAccess(id, user);
-    const data: Prisma.BusinessUpdateInput = { ...dto };
+    if (dto.businessTypeId) {
+      const type = await this.prisma.businessType.findUnique({
+        where: { id: dto.businessTypeId },
+      });
+      if (!type) throw new NotFoundException('Business type not found');
+    }
+    const { businessTypeId, slug: slugInput, ...rest } = dto;
+    const data: Prisma.BusinessUpdateInput = { ...rest };
+    if (businessTypeId !== undefined) {
+      data.businessType = businessTypeId
+        ? { connect: { id: businessTypeId } }
+        : { disconnect: true };
+    }
     if (dto.commissionRate !== undefined) {
       data.commissionRate = dto.commissionRate;
     }
-    if (dto.slug !== undefined) {
+    if (slugInput !== undefined) {
       data.slug = await resolveSlugForUpdate({
-        slug: dto.slug,
+        slug: slugInput,
         isTaken: (s) => this.isBusinessSlugTaken(s, id),
       });
     }

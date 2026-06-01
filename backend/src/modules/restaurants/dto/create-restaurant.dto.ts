@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUUID, Max, Min, MinLength } from 'class-validator';
 
 export class CreateRestaurantDto {
   @ApiProperty()
@@ -14,6 +14,11 @@ export class CreateRestaurantDto {
   @IsOptional()
   @IsString()
   slug?: string;
+
+  @ApiPropertyOptional({ description: 'Marketplace category (business type) UUID' })
+  @IsOptional()
+  @IsUUID()
+  businessTypeId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

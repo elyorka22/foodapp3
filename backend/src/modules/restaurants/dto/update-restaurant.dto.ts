@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUUID, Max, Min, MinLength } from 'class-validator';
 
 export class UpdateRestaurantDto {
   @ApiPropertyOptional()
@@ -12,6 +12,11 @@ export class UpdateRestaurantDto {
   @IsOptional()
   @IsString()
   slug?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  businessTypeId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

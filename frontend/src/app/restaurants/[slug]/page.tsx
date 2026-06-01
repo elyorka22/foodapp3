@@ -3,19 +3,24 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { isCatalogMode } from '@/lib/business-catalog-mode';
 import { useCartStore } from '@/store/cart';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Package } from 'lucide-react';
 import { RestaurantMenuHeader } from '@/components/restaurant/restaurant-menu-header';
 import { ProductCard, type MenuProduct } from '@/components/restaurant/product-card';
+import { BusinessContactProfile } from '@/components/business/business-contact-profile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { uz } from '@/lib/uz';
-import { Package } from 'lucide-react';
 
 type RestaurantDetail = {
   id: string;
   name: string;
   isOpen?: boolean;
+  catalogMode?: string;
+  phone?: string | null;
+  logoUrl?: string | null;
+  description?: string | null;
   products: MenuProduct[];
 };
 
@@ -29,26 +34,23 @@ export default function RestaurantPage() {
     queryFn: () => api<RestaurantDetail>(`/restaurants/${encodeURIComponent(slug)}`),
     enabled: Boolean(slug),
     retry: 1,
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 60_000,
   });
+
+  const catalog = isCatalogMode(restaurant?.catalogMode);
 
   const { data: fallbackProducts } = useQuery({
     queryKey: ['restaurant-products', restaurant?.id],
     queryFn: () => api<MenuProduct[]>(`/products?restaurantId=${restaurant!.id}`),
-    enabled: Boolean(restaurant?.id),
-    staleTime: 0,
+    enabled: Boolean(restaurant?.id) && catalog,
+    staleTime: 60_000,
   });
 
   if (isLoading) {
     return (
       <div className="mx-auto max-w-lg bg-[#F5F5F7] px-3 pb-24">
         <Skeleton className="h-12 w-full rounded-xl" />
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="aspect-square rounded-2xl" />
-          ))}
-        </div>
+        <Skeleton className="mt-6 h-48 w-full rounded-2xl" />
       </div>
     );
   }
@@ -67,6 +69,20 @@ export default function RestaurantPage() {
           </button>
         )}
       </main>
+    );
+  }
+
+  if (!catalog) {
+    return (
+      <div className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-3 pb-24">
+        <RestaurantMenuHeader title={restaurant.name} />
+        <BusinessContactProfile
+          name={restaurant.name}
+          description={restaurant.description}
+          logoUrl={restaurant.logoUrl}
+          phone={restaurant.phone}
+        />
+      </div>
     );
   }
 

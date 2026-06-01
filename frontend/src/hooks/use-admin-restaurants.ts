@@ -14,6 +14,7 @@ export type AdminRestaurantsQuery = {
 export type RestaurantForm = {
   name: string;
   slug: string;
+  businessTypeId?: string;
   description?: string;
   logoUrl?: string;
   coverUrl?: string;

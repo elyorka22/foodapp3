@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { BusinessCatalogMode } from '@prisma/client';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateBusinessTypeDto {
   @ApiProperty()
@@ -53,6 +54,11 @@ export class CreateBusinessTypeDto {
   @Min(0)
   @Max(100)
   imagePositionY?: number;
+
+  @ApiPropertyOptional({ enum: BusinessCatalogMode, default: BusinessCatalogMode.CATALOG })
+  @IsOptional()
+  @IsEnum(BusinessCatalogMode)
+  catalogMode?: BusinessCatalogMode;
 
   @ApiPropertyOptional()
   @IsOptional()

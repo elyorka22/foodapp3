@@ -12,11 +12,18 @@ export type BusinessPublic = {
   description?: string | null;
   logoUrl?: string | null;
   coverUrl?: string | null;
+  phone?: string | null;
   minOrderAmount?: number | null;
   deliveryMinutes: number;
   averageRating: number;
   reviewCount: number;
-  businessType?: { id: string; name: string; slug: string; icon?: string | null } | null;
+  businessType?: {
+    id: string;
+    name: string;
+    slug: string;
+    icon?: string | null;
+    catalogMode?: 'CATALOG' | 'CONTACT';
+  } | null;
   category?: string | null;
 };
 
@@ -30,6 +37,7 @@ export type BusinessType = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
+  catalogMode?: 'CATALOG' | 'CONTACT';
   sortOrder: number;
 };
 
