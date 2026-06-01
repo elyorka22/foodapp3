@@ -1,13 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { MapPin } from 'lucide-react';
 import { uz } from '@/lib/uz';
 import { isValidCoords } from '@/lib/maps';
 
-export type LocationMode = 'manual' | 'auto';
-
 export type DeliveryLocationValue = {
-  mode: LocationMode;
   address: string;
   lat: number | null;
   lng: number | null;
@@ -20,71 +18,35 @@ type Props = {
 };
 
 export function DeliveryLocation({ value, onChange, onError }: Props) {
-  const [detecting, setDetecting] = useState(false);
+  const [sending, setSending] = useState(false);
+  const locationSent = isValidCoords(value.lat, value.lng);
 
-  const runAutoDetect = (next: DeliveryLocationValue) => {
-    if (isValidCoords(next.lat, next.lng)) return;
+  const sendLocation = () => {
     if (!navigator.geolocation) {
-      onError?.(uz.locationAutoFailed);
+      onError?.(uz.locationSendFailed);
       return;
     }
-    setDetecting(true);
+    setSending(true);
     onError?.('');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         onChange({
-          ...next,
-          mode: 'auto',
+          ...value,
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         });
-        setDetecting(false);
+        setSending(false);
       },
       () => {
-        onError?.(uz.locationAutoFailed);
-        setDetecting(false);
+        onError?.(uz.locationSendFailed);
+        setSending(false);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   };
 
-  const setMode = (mode: LocationMode) => {
-    const next = { ...value, mode };
-    onChange(next);
-    onError?.('');
-    if (mode === 'auto') {
-      runAutoDetect(next);
-    }
-  };
-
   return (
     <div className="space-y-3">
-      <div className="flex rounded-xl border border-zinc-200 bg-zinc-50 p-1">
-        <button
-          type="button"
-          onClick={() => setMode('manual')}
-          className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
-            value.mode === 'manual'
-              ? 'bg-white text-brand-700 shadow-sm'
-              : 'text-zinc-600 hover:text-zinc-900'
-          }`}
-        >
-          {uz.locationManual}
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('auto')}
-          disabled={detecting}
-          className={`flex-1 rounded-lg py-2 text-sm font-medium transition disabled:opacity-60 ${
-            value.mode === 'auto'
-              ? 'bg-white text-brand-700 shadow-sm'
-              : 'text-zinc-600 hover:text-zinc-900'
-          }`}
-        >
-          {detecting && value.mode === 'auto' ? uz.detectingLocation : uz.locationAuto}
-        </button>
-      </div>
-
       <textarea
         required
         placeholder={uz.deliveryAddress}
@@ -93,14 +55,30 @@ export function DeliveryLocation({ value, onChange, onError }: Props) {
         rows={3}
         className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3"
       />
+
+      <button
+        type="button"
+        onClick={sendLocation}
+        disabled={sending}
+        className={`flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition disabled:opacity-60 ${
+          locationSent
+            ? 'border-green-200 bg-green-50 text-green-800'
+            : 'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100'
+        }`}
+      >
+        <MapPin size={18} aria-hidden />
+        {sending
+          ? uz.detectingLocation
+          : locationSent
+            ? uz.locationSent
+            : uz.sendLocation}
+      </button>
     </div>
   );
 }
 
 export function validateDeliveryLocation(value: DeliveryLocationValue): string | null {
   if (!value.address.trim()) return uz.deliveryAddressRequired;
-  if (value.mode === 'auto' && !isValidCoords(value.lat, value.lng)) {
-    return uz.locationAutoFailed;
-  }
+  if (!isValidCoords(value.lat, value.lng)) return uz.locationRequired;
   return null;
 }

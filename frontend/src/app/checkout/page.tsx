@@ -13,7 +13,6 @@ import {
   validateDeliveryLocation,
   type DeliveryLocationValue,
 } from '@/components/checkout/delivery-location';
-import { geocodeAddress, isValidCoords } from '@/lib/maps';
 import { formatSum } from '@/lib/format-sum';
 import { HomeTopBar } from '@/components/home/home-top-bar';
 import { uz } from '@/lib/uz';
@@ -23,7 +22,6 @@ export default function CheckoutPage() {
   const { items, restaurantId, total, clear } = useCartStore();
   const [phone, setPhone] = useState('');
   const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocationValue>({
-    mode: 'manual',
     address: '',
     lat: null,
     lng: null,
@@ -87,20 +85,6 @@ export default function CheckoutPage() {
     setLoading(true);
     setError('');
 
-    let lat = deliveryLocation.lat;
-    let lng = deliveryLocation.lng;
-
-    if (deliveryLocation.mode === 'manual' && !isValidCoords(lat, lng)) {
-      const coords = await geocodeAddress(deliveryLocation.address);
-      if (!coords) {
-        setError(uz.addressNotResolved);
-        setLoading(false);
-        return;
-      }
-      lat = coords.lat;
-      lng = coords.lng;
-    }
-
     try {
       const loggedIn = getCustomer();
       const res = await api<{ order: { trackingToken: string; orderNumber?: string } }>('/orders/guest', {
@@ -110,8 +94,8 @@ export default function CheckoutPage() {
           phone: loggedIn?.phone ?? phone,
           customerId: loggedIn?.id,
           deliveryAddress: deliveryLocation.address.trim(),
-          latitude: lat,
-          longitude: lng,
+          latitude: deliveryLocation.lat,
+          longitude: deliveryLocation.lng,
           comment: comment || undefined,
           promoCode: promoCode.trim() || undefined,
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
