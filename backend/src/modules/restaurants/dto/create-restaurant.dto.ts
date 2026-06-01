@@ -7,9 +7,13 @@ export class CreateRestaurantDto {
   @MinLength(2)
   name: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({
+    description:
+      'Optional URL slug. Omit or match auto slug from name for unique auto-generation (pizza-house-2, …). Custom slug must be unique.',
+  })
+  @IsOptional()
   @IsString()
-  slug: string;
+  slug?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

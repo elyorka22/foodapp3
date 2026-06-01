@@ -7,10 +7,14 @@ export class CreateBusinessTypeDto {
   @MaxLength(120)
   name: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({
+    description:
+      'Optional URL slug. Omit for auto-generation from name. Custom slug must be unique.',
+  })
+  @IsOptional()
   @IsString()
   @MaxLength(80)
-  slug: string;
+  slug?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

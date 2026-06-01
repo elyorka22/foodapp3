@@ -10,6 +10,7 @@ import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { AdminRestaurantsQueryDto } from './dto/admin-restaurants-query.dto';
 import { userBusinessId } from '../../domain/business/business-id.util';
+import { resolveSlugForCreate, resolveSlugForUpdate } from '../../common/utils/slug.util';
 
 @Injectable()
 export class RestaurantsService {
@@ -326,16 +327,34 @@ export class RestaurantsService {
     };
   }
 
+  private async isBusinessSlugTaken(slug: string, excludeId?: string): Promise<boolean> {
+    const row = await this.prisma.business.findFirst({
+      where: {
+        slug,
+        deletedAt: null,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      select: { id: true },
+    });
+    return !!row;
+  }
+
   async create(dto: CreateRestaurantDto, user?: JwtPayload) {
     const isAdmin =
       user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.MANAGER;
     const wantsActive = dto.isActive !== false;
     const publishOnSite = isAdmin && wantsActive;
 
+    const slug = await resolveSlugForCreate({
+      name: dto.name,
+      slug: dto.slug,
+      isTaken: (s) => this.isBusinessSlugTaken(s),
+    });
+
     const restaurant = await this.prisma.business.create({
       data: {
         name: dto.name,
-        slug: dto.slug,
+        slug,
         description: dto.description,
         logoUrl: dto.logoUrl,
         coverUrl: dto.coverUrl,
@@ -365,6 +384,12 @@ export class RestaurantsService {
     const data: Prisma.BusinessUpdateInput = { ...dto };
     if (dto.commissionRate !== undefined) {
       data.commissionRate = dto.commissionRate;
+    }
+    if (dto.slug !== undefined) {
+      data.slug = await resolveSlugForUpdate({
+        slug: dto.slug,
+        isTaken: (s) => this.isBusinessSlugTaken(s, id),
+      });
     }
     const restaurant = await this.prisma.business.update({ where: { id }, data });
     await this.audit.log({
