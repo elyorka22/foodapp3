@@ -31,7 +31,8 @@ export function OrderTable({
   onStatusChange: (id: string, status: string) => void;
   showRestaurant?: boolean;
 }) {
-  if (!orders.length) return <p className="text-sm opacity-60">No orders</p>;
+  const rows = Array.isArray(orders) ? orders : [];
+  if (!rows.length) return <p className="text-sm opacity-60">No orders</p>;
 
   return (
     <div className="overflow-x-auto rounded-xl border dark:border-white/10">
@@ -41,13 +42,14 @@ export function OrderTable({
             <th className="p-3">#</th>
             {showRestaurant && <th className="p-3">Restaurant</th>}
             <th className="p-3">Phone</th>
+            <th className="p-3">Items</th>
             <th className="p-3">Status</th>
             <th className="p-3">Total</th>
             <th className="p-3">Action</th>
           </tr>
         </thead>
         <tbody>
-          {orders.map((o) => {
+          {rows.map((o) => {
             const next = NEXT_STATUS[o.status];
             return (
               <tr key={o.id} className="border-t dark:border-white/10">
@@ -55,7 +57,7 @@ export function OrderTable({
                 {showRestaurant && <td className="p-3">{o.restaurant?.name}</td>}
                 <td className="p-3">{o.guestOrder?.phone}</td>
                 <td className="max-w-xs p-3">
-                  {o.items?.length ? (
+                  {Array.isArray(o.items) && o.items.length > 0 ? (
                     <OrderLineItems items={o.items} />
                   ) : (
                     <span className="text-xs opacity-50">—</span>

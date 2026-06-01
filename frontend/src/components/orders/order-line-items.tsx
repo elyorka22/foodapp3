@@ -17,11 +17,12 @@ export function OrderLineItems({
   showSubtotal?: boolean;
   className?: string;
 }) {
-  if (!items?.length) return null;
+  const list = Array.isArray(items) ? items : [];
+  if (!list.length) return null;
 
   return (
     <ul className={`space-y-2 ${className}`}>
-      {items.map((item, idx) => (
+      {list.map((item, idx) => (
         <li key={item.id ?? `${item.name}-${idx}`} className="text-sm">
           <div className="flex justify-between gap-2">
             <span className="font-medium">

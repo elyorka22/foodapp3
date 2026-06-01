@@ -6,8 +6,10 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CouriersService } from './couriers.service';
@@ -29,8 +31,16 @@ export class CouriersController {
 
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
-  findAll(@Query() query: AdminCouriersQueryDto) {
-    if (query.page || query.search || query.isActive !== undefined || query.isOnline !== undefined) {
+  findAll(@Query() query: AdminCouriersQueryDto, @Req() req: Request) {
+    // PaginationDto defaults page=1 even with no query string; only paginate when client sent params.
+    const q = req.query as Record<string, string | undefined>;
+    const wantsPaginated =
+      'page' in q ||
+      'limit' in q ||
+      'search' in q ||
+      'isActive' in q ||
+      'isOnline' in q;
+    if (wantsPaginated) {
       return this.couriers.findAllAdmin(query);
     }
     return this.couriers.findAll();

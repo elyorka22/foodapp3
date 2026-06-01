@@ -11,7 +11,7 @@ export default function RestaurantPanelPage() {
   const { ready, authorized, token } = useRequireStaffRole({
     roles: ['RESTAURANT_OWNER', 'RESTAURANT_STAFF'],
   });
-  const { data: orders, updateStatus } = useStaffOrders();
+  const { orders, updateStatus } = useStaffOrders();
 
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants-admin'],
@@ -60,7 +60,7 @@ export default function RestaurantPanelPage() {
         </div>
       </div>
       <OrderTable
-        orders={orders?.data ?? []}
+        orders={orders}
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
       />
     </DashboardShell>
