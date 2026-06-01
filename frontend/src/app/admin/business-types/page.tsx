@@ -1,30 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { getToken, getUser } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { getToken } from '@/lib/auth';
 import { Modal } from '@/components/admin/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/admin/ui';
 import { uploadImage } from '@/lib/upload';
 import { resolveImageUrl } from '@/lib/image-url';
+import {
+  useAdminBusinessTypes,
+  type AdminBusinessType,
+  type BusinessTypeForm,
+} from '@/hooks/use-admin-business-types';
 
-type BusinessType = {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-  icon?: string | null;
-  imageUrl?: string | null;
-  sortOrder: number;
-  isActive: boolean;
-};
-
-const empty = {
+const empty: BusinessTypeForm = {
   name: '',
   slug: '',
   description: '',
@@ -34,37 +26,20 @@ const empty = {
 };
 
 export default function AdminBusinessTypesPage() {
-  const router = useRouter();
   const token = getToken();
-  const user = getUser();
-  const [rows, setRows] = useState<BusinessType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { list, create, update, remove } = useAdminBusinessTypes();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState(empty);
+  const [form, setForm] = useState<BusinessTypeForm>(empty);
   const [uploading, setUploading] = useState(false);
 
-  const load = () => {
-    if (!token) return;
-    setLoading(true);
-    api<BusinessType[]>('/business-types/admin', { token })
-      .then(setRows)
-      .catch(() => toast.error('Failed to load'))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') {
-      router.replace('/login');
-      return;
-    }
-    load();
-  }, [token, user, router]);
+  const rows = list.data ?? [];
+  const loading = list.isLoading;
 
   const save = async () => {
     if (!token || !form.name.trim() || !form.slug.trim()) return;
     try {
-      const body = {
+      const body: BusinessTypeForm = {
         name: form.name.trim(),
         slug: form.slug.trim().toLowerCase(),
         description: form.description || undefined,
@@ -73,18 +48,13 @@ export default function AdminBusinessTypesPage() {
         sortOrder: Number(form.sortOrder) || 0,
       };
       if (editId) {
-        await api(`/business-types/${editId}`, {
-          method: 'PATCH',
-          token,
-          body: JSON.stringify(body),
-        });
+        await update.mutateAsync({ id: editId, body });
       } else {
-        await api('/business-types', { method: 'POST', token, body: JSON.stringify(body) });
+        await create.mutateAsync(body);
       }
       setOpen(false);
       setEditId(null);
       setForm(empty);
-      load();
       toast.success('Saved');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Save failed');
@@ -105,7 +75,7 @@ export default function AdminBusinessTypesPage() {
     }
   };
 
-  const startEdit = (row: BusinessType) => {
+  const startEdit = (row: AdminBusinessType) => {
     setEditId(row.id);
     setForm({
       name: row.name,
@@ -118,11 +88,24 @@ export default function AdminBusinessTypesPage() {
     setOpen(true);
   };
 
-  const remove = async (id: string) => {
+  const deactivate = async (id: string) => {
     if (!token || !confirm('Deactivate this category?')) return;
-    await api(`/business-types/${id}`, { method: 'DELETE', token });
-    load();
+    try {
+      await remove.mutateAsync(id);
+      toast.success('Deactivated');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Delete failed');
+    }
   };
+
+  if (list.isError) {
+    return (
+      <EmptyState
+        title="Failed to load categories"
+        description={list.error instanceof Error ? list.error.message : 'Unknown error'}
+      />
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -166,7 +149,7 @@ export default function AdminBusinessTypesPage() {
               <Button type="button" size="sm" variant="secondary" onClick={() => startEdit(r)}>
                 Edit
               </Button>
-              <Button type="button" size="sm" variant="danger" onClick={() => remove(r.id)}>
+              <Button type="button" size="sm" variant="danger" onClick={() => deactivate(r.id)}>
                 Delete
               </Button>
             </div>
