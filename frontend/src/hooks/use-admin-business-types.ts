@@ -13,6 +13,9 @@ export type AdminBusinessType = {
   description?: string | null;
   icon?: string | null;
   imageUrl?: string | null;
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
   sortOrder: number;
   isActive: boolean;
 };
@@ -23,6 +26,9 @@ export type BusinessTypeForm = {
   description?: string;
   icon?: string;
   imageUrl?: string;
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
   sortOrder?: number;
 };
 

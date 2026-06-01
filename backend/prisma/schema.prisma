@@ -109,9 +109,12 @@ model BusinessType {
   name        String
   slug        String   @unique
   description String?
-  icon        String?
-  imageUrl    String?  @map("image_url")
-  isActive    Boolean  @default(true) @map("is_active")
+  icon             String?
+  imageUrl         String?  @map("image_url")
+  imageScale       Int      @default(100) @map("image_scale")
+  imagePositionX   Int      @default(50) @map("image_position_x")
+  imagePositionY   Int      @default(50) @map("image_position_y")
+  isActive         Boolean  @default(true) @map("is_active")
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

@@ -54,6 +54,9 @@ export class BusinessTypesService {
         description: dto.description?.trim(),
         icon: dto.icon?.trim(),
         imageUrl: dto.imageUrl,
+        imageScale: dto.imageScale ?? 100,
+        imagePositionX: dto.imagePositionX ?? 50,
+        imagePositionY: dto.imagePositionY ?? 50,
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
       },
@@ -73,6 +76,9 @@ export class BusinessTypesService {
     if (dto.description !== undefined) data.description = dto.description?.trim();
     if (dto.icon !== undefined) data.icon = dto.icon?.trim();
     if (dto.imageUrl !== undefined) data.imageUrl = dto.imageUrl;
+    if (dto.imageScale !== undefined) data.imageScale = dto.imageScale;
+    if (dto.imagePositionX !== undefined) data.imagePositionX = dto.imagePositionX;
+    if (dto.imagePositionY !== undefined) data.imagePositionY = dto.imagePositionY;
     if (dto.sortOrder !== undefined) data.sortOrder = dto.sortOrder;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
     return this.prisma.businessType.update({ where: { id }, data });

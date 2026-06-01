@@ -5,7 +5,11 @@ import { api } from '@/lib/api';
 import type { BusinessType as ApiBusinessType, BusinessPublic } from '@/lib/api/business';
 import { unwrapList } from '@/lib/list-utils';
 
-export type BusinessType = ApiBusinessType;
+export type BusinessType = ApiBusinessType & {
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
+};
 
 export type ShopBusiness = BusinessPublic;
 
@@ -15,6 +19,9 @@ export function useBusinessTypes() {
   return useQuery({
     queryKey: ['business-types'],
     queryFn: () => api<BusinessType[]>('/business-types'),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 

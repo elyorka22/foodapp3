@@ -27,6 +27,9 @@ export type BusinessType = {
   description?: string | null;
   icon?: string | null;
   imageUrl?: string | null;
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
   sortOrder: number;
 };
 

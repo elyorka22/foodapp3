@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/admin/ui';
 import { uploadImage } from '@/lib/upload';
 import { resolveImageUrl } from '@/lib/image-url';
+import { categoryImageStyle } from '@/lib/category-image-style';
+import { CategoryImagePositionControls } from '@/components/admin/category-image-position-controls';
 import {
   useAdminBusinessTypes,
   type AdminBusinessType,
@@ -22,6 +24,9 @@ const empty: BusinessTypeForm = {
   description: '',
   icon: '',
   imageUrl: '',
+  imageScale: 100,
+  imagePositionX: 50,
+  imagePositionY: 50,
   sortOrder: 0,
 };
 
@@ -45,6 +50,9 @@ export default function AdminBusinessTypesPage() {
         description: form.description || undefined,
         icon: form.icon || undefined,
         imageUrl: form.imageUrl || undefined,
+        imageScale: form.imageScale ?? 100,
+        imagePositionX: form.imagePositionX ?? 50,
+        imagePositionY: form.imagePositionY ?? 50,
         sortOrder: Number(form.sortOrder) || 0,
       };
       if (editId) {
@@ -66,7 +74,13 @@ export default function AdminBusinessTypesPage() {
     setUploading(true);
     try {
       const { url } = await uploadImage(file);
-      setForm((f) => ({ ...f, imageUrl: url }));
+      setForm((f) => ({
+        ...f,
+        imageUrl: url,
+        imageScale: f.imageScale ?? 100,
+        imagePositionX: f.imagePositionX ?? 50,
+        imagePositionY: f.imagePositionY ?? 50,
+      }));
       toast.success('Image uploaded');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Upload failed');
@@ -83,6 +97,9 @@ export default function AdminBusinessTypesPage() {
       description: row.description ?? '',
       icon: row.icon ?? '',
       imageUrl: row.imageUrl ?? '',
+      imageScale: row.imageScale ?? 100,
+      imagePositionX: row.imagePositionX ?? 50,
+      imagePositionY: row.imagePositionY ?? 50,
       sortOrder: row.sortOrder,
     });
     setOpen(true);
@@ -131,17 +148,20 @@ export default function AdminBusinessTypesPage() {
             className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900"
           >
             {r.imageUrl ? (
-              <div className="relative mb-2 aspect-[16/9] overflow-hidden rounded-lg bg-zinc-100">
+              <div className="relative mb-2 aspect-[4/3] overflow-hidden rounded-lg bg-zinc-100">
                 <Image
                   src={resolveImageUrl(r.imageUrl) ?? r.imageUrl}
                   alt={r.name}
                   fill
                   className="object-cover"
+                  style={categoryImageStyle(r)}
                   unoptimized
                 />
               </div>
             ) : (
-              <p className="text-2xl">{r.icon}</p>
+              <div className="mb-2 flex aspect-[4/3] items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-400">
+                No image
+              </div>
             )}
             <p className="mt-2 font-bold">{r.name}</p>
             <p className="text-xs opacity-60">{r.slug}</p>
@@ -162,7 +182,6 @@ export default function AdminBusinessTypesPage() {
           <Input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <Input placeholder="Slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
           <Input placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <Input placeholder="Icon (emoji)" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} />
           <div className="space-y-2">
             <label className="text-xs font-medium opacity-70">Category image</label>
             <input
@@ -179,6 +198,7 @@ export default function AdminBusinessTypesPage() {
               <p className="truncate text-xs opacity-60">{form.imageUrl}</p>
             )}
           </div>
+          <CategoryImagePositionControls form={form} setForm={setForm} />
           <Input
             type="number"
             placeholder="Sort order"
