@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
-import { getToken, getUser } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/admin/ui';
@@ -24,15 +23,15 @@ type WorkingHour = {
 type Holiday = { id: string; date: string; reason?: string | null };
 
 export default function RestaurantSchedulePage() {
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
+  const { ready, authorized, token } = useRequireStaffRole({
+    roles: ['RESTAURANT_OWNER', 'RESTAURANT_STAFF'],
+  });
   const qc = useQueryClient();
 
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants-admin'],
     queryFn: () => api<{ data: { id: string; name: string }[] }>('/restaurants/admin', { token: token ?? undefined }),
-    enabled: !!token,
+    enabled: !!token && authorized,
   });
 
   const restaurantId = restaurants?.data?.[0]?.id;
@@ -68,11 +67,6 @@ export default function RestaurantSchedulePage() {
       );
     }
   }, [hours, hoursLoading, restaurantId]);
-
-  useEffect(() => {
-    const ok = user?.role === 'RESTAURANT_OWNER' || user?.role === 'RESTAURANT_STAFF';
-    if (!token || !ok) router.replace('/login');
-  }, [token, user, router]);
 
   const saveHours = useMutation({
     mutationFn: () =>
@@ -118,6 +112,16 @@ export default function RestaurantSchedulePage() {
     { href: '/restaurant', label: 'Orders' },
     { href: '/restaurant/schedule', label: 'Hours & holidays' },
   ];
+
+  if (!ready) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-8 text-sm text-zinc-500">
+        Loading...
+      </main>
+    );
+  }
+
+  if (!authorized) return null;
 
   if (!restaurantId) {
     return (

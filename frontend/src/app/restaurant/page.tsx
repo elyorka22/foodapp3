@@ -1,24 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
-import { getToken, getUser } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useStaffOrders } from '@/hooks/use-staff-orders';
+import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { OrderTable } from '@/components/orders/order-table';
 
 export default function RestaurantPanelPage() {
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
+  const { ready, authorized, token } = useRequireStaffRole({
+    roles: ['RESTAURANT_OWNER', 'RESTAURANT_STAFF'],
+  });
   const { data: orders, updateStatus } = useStaffOrders();
 
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants-admin'],
     queryFn: () => api<{ data: { id: string; name: string }[] }>('/restaurants/admin', { token: token ?? undefined }),
-    enabled: !!token,
+    enabled: !!token && authorized,
   });
 
   const restaurantId = restaurants?.data?.[0]?.id;
@@ -29,13 +27,18 @@ export default function RestaurantPanelPage() {
       api<{ totalOrders: number; revenue: number }>(`/analytics/restaurant/${restaurantId}`, {
         token: token ?? undefined,
       }),
-    enabled: !!token && !!restaurantId,
+    enabled: !!token && authorized && !!restaurantId,
   });
 
-  useEffect(() => {
-    const ok = user?.role === 'RESTAURANT_OWNER' || user?.role === 'RESTAURANT_STAFF';
-    if (!token || !ok) router.replace('/login');
-  }, [token, user, router]);
+  if (!ready) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-8 text-sm text-zinc-500">
+        Loading...
+      </main>
+    );
+  }
+
+  if (!authorized) return null;
 
   return (
     <DashboardShell

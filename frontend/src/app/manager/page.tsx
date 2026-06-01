@@ -1,19 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
-import { getToken, getUser } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useStaffOrders } from '@/hooks/use-staff-orders';
+import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { OrderTable } from '@/components/orders/order-table';
 import { Button } from '@/components/ui/button';
 
 export default function ManagerPage() {
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
+  const { ready, authorized, token } = useRequireStaffRole({ roles: 'MANAGER' });
   const { data: orders, updateStatus } = useStaffOrders();
   const [assignOrderId, setAssignOrderId] = useState<string | null>(null);
   const [courierId, setCourierId] = useState('');
@@ -24,12 +21,8 @@ export default function ManagerPage() {
       api<{ id: string; user: { fullName: string }; isOnline: boolean }[]>('/couriers', {
         token: token ?? undefined,
       }),
-    enabled: !!token,
+    enabled: !!token && authorized,
   });
-
-  useEffect(() => {
-    if (!token || user?.role !== 'MANAGER') router.replace('/login');
-  }, [token, user, router]);
 
   const assignCourier = async () => {
     if (!assignOrderId || !courierId || !token) return;
@@ -41,6 +34,16 @@ export default function ManagerPage() {
     setAssignOrderId(null);
     setCourierId('');
   };
+
+  if (!ready) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-8 text-sm text-zinc-500">
+        Loading...
+      </main>
+    );
+  }
+
+  if (!authorized) return null;
 
   return (
     <DashboardShell title="Manager Panel" nav={[{ href: '/manager', label: 'Operations' }]}>

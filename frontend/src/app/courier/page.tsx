@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
-import { getToken, getUser } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { Button } from '@/components/ui/button';
 import { DeliveryCoords } from '@/components/shared/delivery-coords';
 import { OrderLineItems, type OrderLineItem } from '@/components/orders/order-line-items';
@@ -27,9 +26,7 @@ type AvailableOrder = {
 };
 
 export default function CourierPage() {
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
+  const { ready, authorized, token } = useRequireStaffRole({ roles: 'COURIER' });
   const qc = useQueryClient();
   const [online, setOnline] = useState(false);
 
@@ -37,7 +34,7 @@ export default function CourierPage() {
     queryKey: ['courier-me'],
     queryFn: () =>
       api<{ isOnline: boolean; totalEarnings: string }>('/couriers/me', { token: token ?? undefined }),
-    enabled: !!token,
+    enabled: !!token && authorized,
   });
 
   const { data: available } = useQuery({
@@ -54,7 +51,7 @@ export default function CourierPage() {
       api<{ totalEarnings: number; completedAssignments: number }>('/couriers/me/earnings', {
         token: token ?? undefined,
       }),
-    enabled: !!token,
+    enabled: !!token && authorized,
   });
 
   const toggleOnline = useMutation({
@@ -90,8 +87,8 @@ export default function CourierPage() {
   }, [profile]);
 
   useEffect(() => {
-    if (!token || user?.role !== 'COURIER') router.replace('/login');
-    if (token && navigator.geolocation) {
+    if (!authorized || !token) return;
+    if (navigator.geolocation) {
       const watch = navigator.geolocation.watchPosition((pos) => {
         api('/couriers/me/location', {
           method: 'PATCH',
@@ -104,7 +101,17 @@ export default function CourierPage() {
       });
       return () => navigator.geolocation.clearWatch(watch);
     }
-  }, [token, user, router]);
+  }, [authorized, token]);
+
+  if (!ready) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-8 text-sm text-zinc-500">
+        Loading...
+      </main>
+    );
+  }
+
+  if (!authorized) return null;
 
   return (
     <DashboardShell title="Courier" nav={[{ href: '/courier', label: 'Deliveries' }]}>

@@ -1,4 +1,5 @@
 import { api } from './api';
+import { normalizePhone } from './phone';
 
 export type StaffUser = {
   id: string;
@@ -19,7 +20,7 @@ export function buildStaffLoginBody(loginId: string, password: string) {
   if (id.includes('@')) {
     return { email: id.toLowerCase(), password };
   }
-  return { phone: id, password };
+  return { phone: normalizePhone(id), password };
 }
 
 /** Canonical staff login endpoint (users table, JWT). Never use /customers/login for staff. */

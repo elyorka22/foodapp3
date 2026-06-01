@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 import { NotificationsBell } from '@/components/admin/notifications-bell';
 import { clsx } from 'clsx';
-import { clearAuth, getToken, getUser } from '@/lib/auth';
+import { clearAuth, getUser } from '@/lib/auth';
+import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ size?: number }> };
@@ -52,13 +53,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const user = useMemo(() => getUser(), []);
-  const token = useMemo(() => getToken(), []);
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') {
-      router.replace('/login');
-    }
-  }, [router, token, user?.role]);
+  const { ready, authorized } = useRequireStaffRole({ roles: 'SUPER_ADMIN' });
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -68,6 +63,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     clearAuth();
     router.push('/login');
   };
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-zinc-500">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) return null;
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">

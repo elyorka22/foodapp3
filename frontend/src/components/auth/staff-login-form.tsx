@@ -33,7 +33,7 @@ export function StaffLoginForm({ redirect = true, onSuccess }: Props) {
       setAuth(res.accessToken, res.user);
       onSuccess?.();
       if (redirect) {
-        router.push(dashboardPath(res.user.role));
+        router.replace(dashboardPath(res.user.role));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
