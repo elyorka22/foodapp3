@@ -21,18 +21,31 @@ export class RestaurantsService {
     private schedule: RestaurantScheduleService,
   ) {}
 
+  /** Homepage / food delivery — restaurants only, not marketplace shops (grocery, pharmacy, …). */
   async findAllPublic(query: { page?: number; limit?: number; search?: string }) {
     const { skip, take } = paginate(query.page, query.limit);
     const where: Prisma.BusinessWhereInput = {
       isActive: true,
       approvalStatus: BusinessApprovalStatus.APPROVED,
       deletedAt: null,
-      ...(query.search && {
-        OR: [
-          { name: { contains: query.search, mode: 'insensitive' } },
-          { description: { contains: query.search, mode: 'insensitive' } },
-        ],
-      }),
+      AND: [
+        {
+          OR: [
+            { businessTypeId: null },
+            { businessType: { slug: 'restaurant', isActive: true } },
+          ],
+        },
+        ...(query.search
+          ? [
+              {
+                OR: [
+                  { name: { contains: query.search, mode: 'insensitive' as const } },
+                  { description: { contains: query.search, mode: 'insensitive' as const } },
+                ],
+              },
+            ]
+          : []),
+      ],
     };
 
     const [data, total] = await Promise.all([

@@ -15,6 +15,7 @@ import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
+import { BusinessImageUpload } from '@/components/admin/business-image-upload';
 
 function slugify(value: string) {
   return value
@@ -84,6 +85,10 @@ export default function AdminBusinessesPage() {
       toast.error('Nom va kategoriya tanlang');
       return;
     }
+    if (!form.logoUrl?.trim() || !form.coverUrl?.trim()) {
+      toast.error('Logo va asosiy rasm yuklang');
+      return;
+    }
     try {
       await create.mutateAsync({
         ...form,
@@ -100,6 +105,10 @@ export default function AdminBusinessesPage() {
 
   const submitEdit = async () => {
     if (!editRow?.id) return;
+    if (!form.logoUrl?.trim() || !form.coverUrl?.trim()) {
+      toast.error('Logo va asosiy rasm yuklang');
+      return;
+    }
     try {
       await update.mutateAsync({
         id: String(editRow.id),
@@ -182,26 +191,18 @@ export default function AdminBusinessesPage() {
         value={form.description ?? ''}
         onChange={(e) => setForm({ ...form, description: e.target.value })}
       />
-      <label className="text-xs opacity-70">
-        Logo
-        <input
-          type="file"
-          accept="image/*"
-          className="mt-1 block w-full text-xs"
-          onChange={(e) => e.target.files?.[0] && uploadField(e.target.files[0], 'logoUrl')}
-        />
-      </label>
-      {!isContactType && (
-        <label className="text-xs opacity-70">
-          Muqova (ixtiyoriy)
-          <input
-            type="file"
-            accept="image/*"
-            className="mt-1 block w-full text-xs"
-            onChange={(e) => e.target.files?.[0] && uploadField(e.target.files[0], 'coverUrl')}
-          />
-        </label>
-      )}
+      <BusinessImageUpload
+        label="Logo *"
+        hint="Do'kon belgisi — kartochka va sahifada"
+        imageUrl={form.logoUrl}
+        onFile={(f) => uploadField(f, 'logoUrl')}
+      />
+      <BusinessImageUpload
+        label="Asosiy rasm *"
+        hint="Katta fon rasmi — ro'yxat va do'kon sahifasida"
+        imageUrl={form.coverUrl}
+        onFile={(f) => uploadField(f, 'coverUrl')}
+      />
       {!isContactType && <CoverPositionControls form={form} setForm={setForm} />}
       <Input
         type="number"

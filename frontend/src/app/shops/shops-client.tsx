@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { HomeSearchBar } from '@/components/home/home-search-bar';
-import { HomeTopBar } from '@/components/home/home-top-bar';
 import { BusinessTypeCard } from '@/components/shops/business-type-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBusinessTypes } from '@/hooks/use-shops-data';
@@ -24,9 +23,8 @@ export default function ShopsClient() {
   }, [typesQuery.data, search]);
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
-      <HomeTopBar />
-      <h1 className="mt-4 text-xl font-bold text-zinc-900">{uz.shopsTitle}</h1>
+    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+      <h1 className="text-xl font-bold text-zinc-900">{uz.shopsTitle}</h1>
       <p className="text-sm text-zinc-500">{uz.shopsSubtitle}</p>
 
       <div className="mt-4">

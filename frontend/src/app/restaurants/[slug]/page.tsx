@@ -20,6 +20,7 @@ type RestaurantDetail = {
   catalogMode?: string;
   phone?: string | null;
   logoUrl?: string | null;
+  coverUrl?: string | null;
   description?: string | null;
   products: MenuProduct[];
 };
@@ -80,6 +81,7 @@ export default function RestaurantPage() {
           name={restaurant.name}
           description={restaurant.description}
           logoUrl={restaurant.logoUrl}
+          coverUrl={restaurant.coverUrl}
           phone={restaurant.phone}
         />
       </div>

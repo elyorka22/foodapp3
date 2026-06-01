@@ -14,8 +14,10 @@ import {
   type DeliveryLocationValue,
 } from '@/components/checkout/delivery-location';
 import { formatSum } from '@/lib/format-sum';
-import { HomeTopBar } from '@/components/home/home-top-bar';
 import { uz } from '@/lib/uz';
+
+const mainClass =
+  'mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -113,8 +115,7 @@ export default function CheckoutPage() {
 
   if (!items.length) {
     return (
-      <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
-        <HomeTopBar />
+      <main className={mainClass}>
         <div className="mt-8 text-center">
           <p className="text-lg font-medium">{uz.cartEmpty}</p>
           <Link href="/" className="mt-4 inline-block text-brand-600">
@@ -126,9 +127,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
-      <HomeTopBar />
-      <h1 className="mt-6 text-xl font-bold">{uz.checkoutTitle}</h1>
+    <main className={mainClass}>
+      <h1 className="text-xl font-bold">{uz.checkoutTitle}</h1>
       <p className="mt-1 text-sm text-zinc-500">{uz.noAccountRequired}</p>
 
       <ul className="mt-4 space-y-2 rounded-2xl border bg-white p-4 shadow-card">

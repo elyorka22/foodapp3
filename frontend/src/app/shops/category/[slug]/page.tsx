@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { HomeTopBar } from '@/components/home/home-top-bar';
 import { ShopBusinessCard } from '@/components/shops/shop-business-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBusinessTypes, useShops } from '@/hooks/use-shops-data';
@@ -23,11 +22,10 @@ export default function ShopCategoryPage() {
   const businesses = shopsQuery.data?.data ?? [];
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
-      <HomeTopBar />
+    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <Link
         href="/shops"
-        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600"
+        className="inline-flex items-center gap-1 text-sm font-medium text-brand-600"
       >
         <ArrowLeft size={16} />
         {uz.shopsTitle}
