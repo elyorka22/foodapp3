@@ -4,6 +4,9 @@ export interface JwtPayload {
   sub: string;
   email: string;
   role: string;
+  /** Active merchant for BUSINESS role users */
+  businessId?: string;
+  /** @deprecated Use businessId — kept for API/JWT backward compatibility */
   restaurantId?: string;
 }
 

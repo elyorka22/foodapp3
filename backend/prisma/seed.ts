@@ -35,9 +35,34 @@ async function main() {
     create: { userId: manager.id },
   });
 
-  const restaurant = await prisma.restaurant.upsert({
+  const businessTypes = [
+    { name: "Oziq-ovqat", slug: 'grocery', icon: '🥬', sortOrder: 1 },
+    { name: "Gul do'konlari", slug: 'flowers', icon: '💐', sortOrder: 2 },
+    { name: 'Parfyumeriya', slug: 'perfume', icon: '🧴', sortOrder: 3 },
+    { name: "Sovg'alar", slug: 'gift', icon: '🎁', sortOrder: 4 },
+    { name: 'Dorixona', slug: 'pharmacy', icon: '💊', sortOrder: 5 },
+    { name: 'Elektronika', slug: 'electronics', icon: '💻', sortOrder: 6 },
+    { name: 'Restoran', slug: 'restaurant', icon: '🍽', sortOrder: 0 },
+  ];
+
+  const typeMap: Record<string, string> = {};
+  for (const t of businessTypes) {
+    const row = await prisma.businessType.upsert({
+      where: { slug: t.slug },
+      update: { name: t.name, icon: t.icon, sortOrder: t.sortOrder, isActive: true },
+      create: { ...t, isActive: true },
+    });
+    typeMap[t.slug] = row.id;
+  }
+
+  const restaurant = await prisma.business.upsert({
     where: { slug: 'demo-pizza' },
-    update: { isActive: true, approvalStatus: 'APPROVED', deletedAt: null },
+    update: {
+      isActive: true,
+      approvalStatus: 'APPROVED',
+      deletedAt: null,
+      businessTypeId: typeMap.restaurant,
+    },
     create: {
       name: 'Demo Pizza',
       slug: 'demo-pizza',
@@ -45,16 +70,19 @@ async function main() {
       commissionRate: 10,
       isActive: true,
       approvalStatus: 'APPROVED',
+      businessTypeId: typeMap.restaurant,
+      averageRating: 4.8,
+      reviewCount: 120,
     },
   });
 
-  let branch = await prisma.restaurantBranch.findFirst({
-    where: { restaurantId: restaurant.id, name: 'Main Branch' },
+  let branch = await prisma.businessBranch.findFirst({
+    where: { businessId: restaurant.id, name: 'Main Branch' },
   });
   if (!branch) {
-    branch = await prisma.restaurantBranch.create({
+    branch = await prisma.businessBranch.create({
       data: {
-        restaurantId: restaurant.id,
+        businessId: restaurant.id,
         name: 'Main Branch',
         address: 'Tashkent, Amir Temur 1',
         latitude: 41.311081,
@@ -70,16 +98,16 @@ async function main() {
     create: {
       email: 'owner@foodapp.local',
       phone: '+998900000003',
-      fullName: 'Restaurant Owner',
-      role: UserRole.RESTAURANT_OWNER,
+      fullName: 'Business Owner',
+      role: UserRole.BUSINESS,
       passwordHash,
     },
   });
 
-  await prisma.restaurantStaff.upsert({
-    where: { userId_restaurantId: { userId: owner.id, restaurantId: restaurant.id } },
+  await prisma.businessStaff.upsert({
+    where: { userId_restaurantId: { userId: owner.id, businessId: restaurant.id } },
     update: {},
-    create: { userId: owner.id, restaurantId: restaurant.id },
+    create: { userId: owner.id, businessId: restaurant.id },
   });
 
   const courierUser = await prisma.user.upsert({
@@ -100,18 +128,18 @@ async function main() {
     create: { userId: courierUser.id, isOnline: true },
   });
 
-  const category = await prisma.category.upsert({
-    where: { restaurantId_slug: { restaurantId: restaurant.id, slug: 'pizza' } },
+  const category = await prisma.productCategory.upsert({
+    where: { restaurantId_slug: { businessId: restaurant.id, slug: 'pizza' } },
     update: {},
-    create: { restaurantId: restaurant.id, name: 'Pizza', slug: 'pizza' },
+    create: { businessId: restaurant.id, name: 'Pizza', slug: 'pizza' },
   });
 
   await prisma.product.upsert({
-    where: { restaurantId_slug: { restaurantId: restaurant.id, slug: 'margherita' } },
+    where: { restaurantId_slug: { businessId: restaurant.id, slug: 'margherita' } },
     update: {},
     create: {
-      restaurantId: restaurant.id,
-      categoryId: category.id,
+      businessId: restaurant.id,
+      productCategoryId: category.id,
       name: 'Margherita',
       slug: 'margherita',
       description: 'Classic tomato and mozzarella',
@@ -151,7 +179,7 @@ async function main() {
   console.log('Seed complete. Staff logins (password: Admin123!):');
   console.log('  Super Admin — email: admin@foodapp.local | phone: +998900000001');
   console.log('  Manager     — email: manager@foodapp.local');
-  console.log('  Owner       — email: owner@foodapp.local');
+  console.log('  Business    — email: owner@foodapp.local');
   console.log('  Courier     — email: courier@foodapp.local');
   console.log('  Restaurant:', branch.name);
 }

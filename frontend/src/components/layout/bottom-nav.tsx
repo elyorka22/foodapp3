@@ -16,10 +16,10 @@ const tabs = [
       path === '/' || path.startsWith('/restaurants/'),
   },
   {
-    href: '/products',
-    label: uz.navProducts,
+    href: '/shops',
+    label: uz.navShops,
     icon: Apple,
-    match: (path: string) => path === '/products' || path.startsWith('/products/'),
+    match: (path: string) => path === '/shops' || path.startsWith('/shops/'),
   },
   {
     href: '/cart',

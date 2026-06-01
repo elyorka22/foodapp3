@@ -31,7 +31,7 @@ type RestaurantDashboard = {
 
 export default function RestaurantDashboardPage() {
   const { ready, authorized, token } = useRequireStaffRole({
-    roles: ['RESTAURANT_OWNER', 'RESTAURANT_STAFF'],
+    roles: 'BUSINESS',
   });
 
   const { data: restaurants } = useQuery({

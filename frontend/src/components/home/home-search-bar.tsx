@@ -6,9 +6,10 @@ import { uz } from '@/lib/uz';
 type Props = {
   value?: string;
   onChange?: (value: string) => void;
+  placeholder?: string;
 };
 
-export function HomeSearchBar({ value = '', onChange }: Props) {
+export function HomeSearchBar({ value = '', onChange, placeholder }: Props) {
   return (
     <div className="mt-3 flex h-10 items-center gap-2 rounded-xl bg-white px-3 shadow-sm">
       <Search size={17} className="shrink-0 text-zinc-400" strokeWidth={2} />
@@ -16,7 +17,7 @@ export function HomeSearchBar({ value = '', onChange }: Props) {
         type="search"
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
-        placeholder={uz.searchPlaceholder}
+        placeholder={placeholder ?? uz.searchPlaceholder}
         className="min-w-0 flex-1 bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
         aria-label={uz.searchAria}
       />

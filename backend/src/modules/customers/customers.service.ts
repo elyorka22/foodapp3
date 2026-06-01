@@ -347,7 +347,7 @@ export class CustomersService {
       orderBy: { createdAt: 'desc' },
       take: 50,
       include: {
-        restaurant: { select: { name: true } },
+        business: { select: { name: true } },
         guestOrder: true,
       },
     });
@@ -357,7 +357,7 @@ export class CustomersService {
       orderNumber: o.orderNumber,
       status: o.status,
       total: Number(o.total),
-      restaurantName: o.restaurant.name,
+      restaurantName: o.business.name,
       createdAt: o.createdAt,
       deliveryAddress: o.guestOrder.deliveryAddress,
     }));

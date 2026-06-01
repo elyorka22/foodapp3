@@ -19,27 +19,31 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
+import { resolveBusinessId } from '../../domain/business/business-id.util';
 
-@ApiTags('categories')
+/** Product menu categories for a business (NOT business vertical types). */
+@ApiTags('product-categories')
 @Controller('categories')
 export class CategoriesController {
   constructor(private categories: CategoriesService) {}
 
   @Get()
-  findByRestaurant(
-    @Query('restaurantId') restaurantId: string,
+  findByBusiness(
+    @Query('businessId') businessId?: string,
+    @Query('restaurantId') restaurantId?: string,
     @Query('includeInactive') includeInactive?: string,
   ) {
-    if (!restaurantId?.trim()) {
-      throw new BadRequestException('restaurantId is required');
+    const id = resolveBusinessId({ businessId, restaurantId });
+    if (!id) {
+      throw new BadRequestException('businessId (or legacy restaurantId) is required');
     }
-    return this.categories.findByRestaurant(restaurantId, includeInactive === 'true');
+    return this.categories.findByBusiness(id, includeInactive === 'true');
   }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   create(@Body() body: CreateCategoryDto, @CurrentUser() user: JwtPayload) {
     return this.categories.create(body, user);
   }
@@ -47,7 +51,7 @@ export class CategoriesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   update(@Param('id') id: string, @Body() dto: UpdateCategoryDto, @CurrentUser() user: JwtPayload) {
     return this.categories.update(id, dto, user);
   }
@@ -55,7 +59,7 @@ export class CategoriesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.categories.softDelete(id, user);
   }

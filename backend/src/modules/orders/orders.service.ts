@@ -4,7 +4,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { OrderStatus, Prisma, RestaurantApprovalStatus, UserRole } from '@prisma/client';
+import { OrderStatus, Prisma, BusinessApprovalStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SettingsService } from '../settings/settings.service';
 import { OrdersGateway } from './orders.gateway';
@@ -12,6 +12,7 @@ import { AdminNotificationsService } from '../admin-notifications/admin-notifica
 import { PromoCodesService } from '../promo-codes/promo-codes.service';
 import { LoyaltyService } from '../growth/loyalty.service';
 import { RestaurantScheduleService } from '../restaurants/restaurant-schedule.service';
+import { userBusinessId } from '../../domain/business/business-id.util';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersQueryDto } from './dto/orders-query.dto';
@@ -48,12 +49,12 @@ export class OrdersService {
   ) {}
 
   async createGuestOrder(dto: CreateGuestOrderDto) {
-    const restaurant = await this.prisma.restaurant.findFirst({
+    const restaurant = await this.prisma.business.findFirst({
       where: {
         id: dto.restaurantId,
         isActive: true,
         deletedAt: null,
-        approvalStatus: RestaurantApprovalStatus.APPROVED,
+        approvalStatus: BusinessApprovalStatus.APPROVED,
       },
       include: { branches: { where: { isActive: true }, take: 1 } },
     });
@@ -68,7 +69,7 @@ export class OrdersService {
     const products = await this.prisma.product.findMany({
       where: {
         id: { in: productIds },
-        restaurantId: dto.restaurantId,
+        businessId: dto.restaurantId,
         isAvailable: true,
         deletedAt: null,
       },
@@ -78,8 +79,8 @@ export class OrdersService {
     }
 
     const branch = dto.branchId
-      ? await this.prisma.restaurantBranch.findFirst({
-          where: { id: dto.branchId, restaurantId: dto.restaurantId },
+      ? await this.prisma.businessBranch.findFirst({
+          where: { id: dto.branchId, businessId: dto.restaurantId },
         })
       : restaurant.branches[0];
     if (!branch) throw new BadRequestException('No active branch');
@@ -148,7 +149,7 @@ export class OrdersService {
         data: {
           orderNumber,
           trackingToken,
-          restaurantId: dto.restaurantId,
+          businessId: dto.restaurantId,
           branchId: branch.id,
           guestOrderId: guestOrder.id,
           subtotal,
@@ -201,7 +202,7 @@ export class OrdersService {
         include: {
           items: true,
           guestOrder: true,
-          restaurant: { select: { id: true, name: true, slug: true } },
+          business: { select: { id: true, name: true, slug: true } },
         },
       });
     });
@@ -209,13 +210,13 @@ export class OrdersService {
     await this.recordStatusChange(order.id, OrderStatus.PENDING, undefined, 'Order placed');
 
     const payload = this.serializeOrder(order);
-    this.gateway.emitRestaurantOrder(order.restaurantId, payload);
+    this.gateway.emitBusinessOrder(order.businessId, payload);
     this.gateway.emitOrderUpdate(order.trackingToken, payload);
 
     const notification = await this.adminNotifications.notifyNewOrder({
       id: order.id,
       orderNumber: order.orderNumber,
-      restaurant: order.restaurant,
+      restaurant: order.business,
     });
     this.gateway.emitAdminEvent('notification', notification);
 
@@ -231,7 +232,7 @@ export class OrdersService {
       include: {
         items: true,
         guestOrder: true,
-        restaurant: { select: { name: true, phone: true } },
+        business: { select: { name: true, phone: true } },
         courier: {
           include: { user: { select: { fullName: true, phone: true } } },
         },
@@ -244,9 +245,9 @@ export class OrdersService {
   async findOneById(id: string, user: JwtPayload) {
     const where: Prisma.OrderWhereInput = { id, deletedAt: null };
 
-    if (user.role === UserRole.RESTAURANT_OWNER || user.role === UserRole.RESTAURANT_STAFF) {
-      if (!user.restaurantId) throw new ForbiddenException();
-      where.restaurantId = user.restaurantId;
+    if (user.role === UserRole.BUSINESS) {
+      if (!userBusinessId(user)) throw new ForbiddenException();
+      where.businessId = user.businessId;
     }
 
     if (user.role === UserRole.COURIER) {
@@ -259,7 +260,7 @@ export class OrdersService {
       include: {
         items: true,
         guestOrder: { include: { customer: true } },
-        restaurant: { select: { id: true, name: true } },
+        business: { select: { id: true, name: true } },
         branch: true,
         courier: { include: { user: { select: { fullName: true, phone: true } } } },
         assignment: true,
@@ -276,11 +277,11 @@ export class OrdersService {
     const { skip, take } = paginate(query.page, query.limit);
     const where: Prisma.OrderWhereInput = { deletedAt: null };
 
-    if (user.role === UserRole.RESTAURANT_OWNER || user.role === UserRole.RESTAURANT_STAFF) {
-      if (!user.restaurantId) throw new ForbiddenException();
-      where.restaurantId = user.restaurantId;
-    } else if (query.restaurantId) {
-      where.restaurantId = query.restaurantId;
+    if (user.role === UserRole.BUSINESS) {
+      if (!userBusinessId(user)) throw new ForbiddenException();
+      where.businessId = userBusinessId(user)!;
+    } else if (query.restaurantId || query.businessId) {
+      where.businessId = query.businessId ?? query.restaurantId;
     }
 
     if (user.role === UserRole.COURIER) {
@@ -300,7 +301,7 @@ export class OrdersService {
       where.OR = [
         { orderNumber: { contains: q, mode: 'insensitive' } },
         { guestOrder: { phone: { contains: q, mode: 'insensitive' } } },
-        { restaurant: { name: { contains: q, mode: 'insensitive' } } },
+        { business: { name: { contains: q, mode: 'insensitive' } } },
       ];
     }
 
@@ -313,7 +314,7 @@ export class OrdersService {
         include: {
           items: true,
           guestOrder: { include: { customer: true } },
-          restaurant: { select: { name: true } },
+          business: { select: { name: true } },
           courier: { include: { user: { select: { fullName: true } } } },
         },
       }),
@@ -359,7 +360,7 @@ export class OrdersService {
         include: {
           items: true,
           guestOrder: true,
-          restaurant: { select: { name: true } },
+          business: { select: { name: true } },
           courier: { include: { user: { select: { fullName: true } } } },
         },
       });
@@ -375,7 +376,7 @@ export class OrdersService {
       include: {
         items: true,
         guestOrder: true,
-        restaurant: { select: { name: true } },
+        business: { select: { name: true } },
         courier: { include: { user: { select: { fullName: true } } } },
       },
     });
@@ -393,7 +394,7 @@ export class OrdersService {
 
     const payload = this.serializeOrder(updated);
     this.gateway.emitOrderUpdate(updated.trackingToken, payload);
-    this.gateway.emitRestaurantOrder(updated.restaurantId, payload);
+    this.gateway.emitBusinessOrder(updated.businessId, payload);
     this.gateway.emitAdminOrderUpdate(payload);
 
     return payload;
@@ -465,7 +466,7 @@ export class OrdersService {
 
     const updated = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: true, guestOrder: true, restaurant: { select: { name: true } } },
+      include: { items: true, guestOrder: true, business: { select: { name: true } } },
     });
     const payload = this.serializeOrder(updated!);
     this.gateway.emitOrderUpdate(updated!.trackingToken, payload);
@@ -490,13 +491,13 @@ export class OrdersService {
   }
 
   private async assertCanUpdateOrder(
-    order: { id: string; restaurantId: string; courierId: string | null },
+    order: { id: string; businessId: string; courierId: string | null },
     user: JwtPayload,
   ) {
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER) return;
     if (
-      (user.role === UserRole.RESTAURANT_OWNER || user.role === UserRole.RESTAURANT_STAFF) &&
-      user.restaurantId === order.restaurantId
+      user.role === UserRole.BUSINESS &&
+      userBusinessId(user) === order.businessId
     ) {
       return;
     }
@@ -562,7 +563,7 @@ export class OrdersService {
           }))
         : order.items,
       guestOrder: this.serializeGuestOrder(guestOrder),
-      restaurant: order.restaurant,
+      restaurant: order.business,
       courier: order.courier,
       assignment: order.assignment,
       address: this.serializeAddress(address),

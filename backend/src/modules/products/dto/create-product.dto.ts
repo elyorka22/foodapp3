@@ -2,11 +2,22 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateProductDto {
-  @ApiProperty()
+  @ApiPropertyOptional({ description: 'Preferred merchant UUID' })
+  @IsOptional()
   @IsUUID()
-  restaurantId: string;
+  businessId?: string;
+
+  @ApiPropertyOptional({ deprecated: true, description: 'Legacy alias for businessId' })
+  @IsOptional()
+  @IsUUID()
+  restaurantId?: string;
 
   @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  productCategoryId?: string;
+
+  @ApiPropertyOptional({ deprecated: true })
   @IsOptional()
   @IsUUID()
   categoryId?: string;
@@ -31,6 +42,16 @@ export class CreateProductDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsNumber()
+  comparePrice?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsBoolean()
   isAvailable?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  sortOrder?: number;
 }

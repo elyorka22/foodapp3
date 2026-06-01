@@ -7,8 +7,7 @@ import { getToken } from '@/lib/auth';
 export type StaffRole =
   | 'SUPER_ADMIN'
   | 'MANAGER'
-  | 'RESTAURANT_OWNER'
-  | 'RESTAURANT_STAFF'
+  | 'BUSINESS'
   | 'COURIER';
 
 export type StaffUser = {

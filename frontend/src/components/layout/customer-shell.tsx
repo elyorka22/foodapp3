@@ -4,8 +4,8 @@ import { usePathname } from 'next/navigation';
 import { BottomNav } from './bottom-nav';
 import { SiteHeader } from './site-header';
 
-const STAFF_PREFIXES = ['/login', '/admin', '/manager', '/restaurant', '/courier'];
-const HIDE_HEADER_PATHS = ['/', '/products', '/favorites', '/notifications', '/cart', '/profile', '/checkout'];
+const STAFF_PREFIXES = ['/login', '/admin', '/manager', '/business', '/restaurant', '/courier'];
+const HIDE_HEADER_PATHS = ['/', '/shops', '/products', '/favorites', '/notifications', '/cart', '/profile', '/checkout'];
 
 export function CustomerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

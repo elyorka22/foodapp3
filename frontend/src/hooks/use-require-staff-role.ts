@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { dashboardPath, getToken, getUser, type StaffUser } from '@/lib/auth';
+import { isBusinessRole } from '@/lib/roles';
 
 type Options = {
   /** Allowed roles (e.g. 'MANAGER' or ['RESTAURANT_OWNER', 'RESTAURANT_STAFF']) */
@@ -33,7 +34,11 @@ export function useRequireStaffRole({ roles }: Options) {
       return;
     }
 
-    if (!allowed.includes(user.role)) {
+    const roleOk =
+      allowed.includes(user.role) ||
+      (allowed.includes('BUSINESS') && isBusinessRole(user.role));
+
+    if (!roleOk) {
       setState({ ready: true, authorized: false, user, token });
       router.replace(dashboardPath(user.role));
       return;

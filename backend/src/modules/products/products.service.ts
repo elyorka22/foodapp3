@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { userBusinessId, resolveBusinessId } from '../../domain/business/business-id.util';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AdminProductsQueryDto } from './dto/admin-products-query.dto';
 import { BulkProductAction, BulkProductsDto } from './dto/bulk-products.dto';
@@ -15,15 +16,18 @@ export class ProductsService {
     private audit: AuditService,
   ) {}
 
-  async findByRestaurant(restaurantId: string, categoryId?: string, publicMenu = false) {
+  async findByBusiness(businessId: string, categoryId?: string, publicMenu = false) {
     const rows = await this.prisma.product.findMany({
       where: {
-        restaurantId,
+        businessId,
         deletedAt: null,
         ...(publicMenu && { isAvailable: true }),
-        ...(categoryId && { categoryId }),
+        ...(categoryId && { productCategoryId: categoryId }),
       },
-      include: { images: { orderBy: { sortOrder: 'asc' } }, category: true },
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        productCategory: true,
+      },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
     return rows.map((p) => ({
@@ -33,12 +37,22 @@ export class ProductsService {
     }));
   }
 
+  /** @deprecated use findByBusiness */
+  findByRestaurant(businessId: string, categoryId?: string, publicMenu = false) {
+    return this.findByBusiness(businessId, categoryId, publicMenu);
+  }
+
   async findAllAdmin(query: AdminProductsQueryDto, user: JwtPayload) {
     const { skip, take } = paginate(query.page, query.limit);
+    const businessFilter = resolveBusinessId({
+      businessId: query.businessId,
+      restaurantId: query.restaurantId,
+    });
+
     const where: Prisma.ProductWhereInput = {
       deletedAt: null,
-      ...(query.restaurantId && { restaurantId: query.restaurantId }),
-      ...(query.categoryId && { categoryId: query.categoryId }),
+      ...(businessFilter && { businessId: businessFilter }),
+      ...(query.categoryId && { productCategoryId: query.categoryId }),
       ...(query.isAvailable !== undefined && { isAvailable: query.isAvailable }),
       ...(query.search && {
         OR: [
@@ -49,9 +63,10 @@ export class ProductsService {
       }),
     };
 
-    if (user.role === UserRole.RESTAURANT_OWNER || user.role === UserRole.RESTAURANT_STAFF) {
-      if (!user.restaurantId) throw new ForbiddenException();
-      where.restaurantId = user.restaurantId;
+    if (user.role === UserRole.BUSINESS) {
+      const scopeId = userBusinessId(user);
+      if (!scopeId) throw new ForbiddenException();
+      where.businessId = scopeId;
     }
 
     const [data, total] = await Promise.all([
@@ -62,8 +77,8 @@ export class ProductsService {
         orderBy: { createdAt: 'desc' },
         include: {
           images: { orderBy: { sortOrder: 'asc' }, take: 1 },
-          category: true,
-          restaurant: { select: { id: true, name: true, slug: true } },
+          productCategory: true,
+          business: { select: { id: true, name: true, slug: true } },
         },
       }),
       this.prisma.product.count({ where }),
@@ -79,14 +94,30 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto, user: JwtPayload) {
-    this.assertAccess(dto.restaurantId, user);
+    const businessId = resolveBusinessId({
+      businessId: dto.businessId,
+      restaurantId: dto.restaurantId,
+    });
+    if (!businessId) throw new NotFoundException('businessId is required');
+    this.assertAccess(businessId, user);
+
     const product = await this.prisma.product.create({
       data: {
-        ...dto,
+        businessId,
+        productCategoryId: dto.productCategoryId ?? dto.categoryId,
+        name: dto.name,
+        slug: dto.slug,
+        description: dto.description,
         price: dto.price,
+        comparePrice: dto.comparePrice,
         isAvailable: dto.isAvailable ?? true,
+        sortOrder: dto.sortOrder ?? 0,
       },
-      include: { images: true, category: true, restaurant: { select: { id: true, name: true } } },
+      include: {
+        images: true,
+        productCategory: true,
+        business: { select: { id: true, name: true } },
+      },
     });
     await this.audit.log({
       userId: user.sub,
@@ -101,11 +132,26 @@ export class ProductsService {
   async update(id: string, dto: Partial<CreateProductDto>, user: JwtPayload) {
     const existing = await this.prisma.product.findUnique({ where: { id } });
     if (!existing || existing.deletedAt) throw new NotFoundException();
-    this.assertAccess(existing.restaurantId, user);
+    this.assertAccess(existing.businessId, user);
     const product = await this.prisma.product.update({
       where: { id },
-      data: dto,
-      include: { images: true, category: true, restaurant: { select: { id: true, name: true } } },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.slug !== undefined && { slug: dto.slug }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.price !== undefined && { price: dto.price }),
+        ...(dto.comparePrice !== undefined && { comparePrice: dto.comparePrice }),
+        ...(dto.isAvailable !== undefined && { isAvailable: dto.isAvailable }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+        ...((dto.productCategoryId ?? dto.categoryId) !== undefined && {
+          productCategoryId: dto.productCategoryId ?? dto.categoryId,
+        }),
+      },
+      include: {
+        images: true,
+        productCategory: true,
+        business: { select: { id: true, name: true } },
+      },
     });
     await this.audit.log({
       userId: user.sub,
@@ -123,7 +169,7 @@ export class ProductsService {
       include: { images: true },
     });
     if (!product || product.deletedAt) throw new NotFoundException();
-    this.assertAccess(product.restaurantId, user);
+    this.assertAccess(product.businessId, user);
 
     const isFirst = product.images.length === 0;
     return this.prisma.productImage.create({
@@ -143,11 +189,11 @@ export class ProductsService {
     if (!products.length) throw new NotFoundException('No products found');
 
     for (const p of products) {
-      this.assertAccess(p.restaurantId, user);
+      this.assertAccess(p.businessId, user);
     }
 
     if (dto.action === BulkProductAction.DELETE) {
-      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.RESTAURANT_OWNER) {
+      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.BUSINESS) {
         throw new ForbiddenException();
       }
       await this.prisma.product.updateMany({
@@ -180,7 +226,7 @@ export class ProductsService {
   async softDelete(id: string, user: JwtPayload) {
     const existing = await this.prisma.product.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException();
-    this.assertAccess(existing.restaurantId, user);
+    this.assertAccess(existing.businessId, user);
     const product = await this.prisma.product.update({
       where: { id },
       data: { deletedAt: new Date(), isAvailable: false },
@@ -194,8 +240,8 @@ export class ProductsService {
     return product;
   }
 
-  private assertAccess(restaurantId: string, user: JwtPayload) {
+  private assertAccess(businessId: string, user: JwtPayload) {
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER) return;
-    if (user.restaurantId !== restaurantId) throw new ForbiddenException();
+    if (userBusinessId(user) !== businessId) throw new ForbiddenException();
   }
 }

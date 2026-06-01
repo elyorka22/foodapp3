@@ -29,8 +29,7 @@ export class AnalyticsController {
   @Roles(
     UserRole.SUPER_ADMIN,
     UserRole.MANAGER,
-    UserRole.RESTAURANT_OWNER,
-    UserRole.RESTAURANT_STAFF,
+    UserRole.BUSINESS,
   )
   restaurant(@Param('id') id: string) {
     return this.analytics.getRestaurantStats(id);

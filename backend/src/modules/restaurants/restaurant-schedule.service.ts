@@ -13,19 +13,19 @@ export type WorkingHourInput = {
 export class RestaurantScheduleService {
   constructor(private prisma: PrismaService) {}
 
-  async assertRestaurantOpen(restaurantId: string) {
-    const open = await this.isOpen(restaurantId);
+  async assertRestaurantOpen(businessId: string) {
+    const open = await this.isOpen(businessId);
     if (!open) {
-      throw new Error('Restaurant is currently closed');
+      throw new Error('Business is currently closed');
     }
   }
 
-  async isOpen(restaurantId: string) {
+  async isOpen(businessId: string) {
     const [hours, holidays] = await Promise.all([
-      this.prisma.restaurantWorkingHours.findMany({ where: { restaurantId } }),
-      this.prisma.restaurantHoliday.findMany({
+      this.prisma.businessWorkingHours.findMany({ where: { businessId } }),
+      this.prisma.businessHoliday.findMany({
         where: {
-          restaurantId,
+          businessId,
           date: {
             gte: new Date(new Date().setHours(0, 0, 0, 0)),
             lt: new Date(new Date().setHours(23, 59, 59, 999)),
@@ -36,19 +36,19 @@ export class RestaurantScheduleService {
     return isRestaurantOpenNow(hours, holidays);
   }
 
-  getWorkingHours(restaurantId: string) {
-    return this.prisma.restaurantWorkingHours.findMany({
-      where: { restaurantId },
+  getWorkingHours(businessId: string) {
+    return this.prisma.businessWorkingHours.findMany({
+      where: { businessId },
       orderBy: { dayOfWeek: 'asc' },
     });
   }
 
-  async setWorkingHours(restaurantId: string, hours: WorkingHourInput[]) {
-    await this.prisma.restaurantWorkingHours.deleteMany({ where: { restaurantId } });
+  async setWorkingHours(businessId: string, hours: WorkingHourInput[]) {
+    await this.prisma.businessWorkingHours.deleteMany({ where: { businessId } });
     if (hours.length) {
-      await this.prisma.restaurantWorkingHours.createMany({
+      await this.prisma.businessWorkingHours.createMany({
         data: hours.map((h) => ({
-          restaurantId,
+          businessId,
           dayOfWeek: h.dayOfWeek,
           openTime: h.openTime,
           closeTime: h.closeTime,
@@ -56,31 +56,31 @@ export class RestaurantScheduleService {
         })),
       });
     }
-    return this.getWorkingHours(restaurantId);
+    return this.getWorkingHours(businessId);
   }
 
-  getHolidays(restaurantId: string) {
-    return this.prisma.restaurantHoliday.findMany({
-      where: { restaurantId },
+  getHolidays(businessId: string) {
+    return this.prisma.businessHoliday.findMany({
+      where: { businessId },
       orderBy: { date: 'asc' },
     });
   }
 
-  async addHoliday(restaurantId: string, date: string, reason?: string) {
-    return this.prisma.restaurantHoliday.create({
+  async addHoliday(businessId: string, date: string, reason?: string) {
+    return this.prisma.businessHoliday.create({
       data: {
-        restaurantId,
+        businessId,
         date: new Date(date),
         reason,
       },
     });
   }
 
-  async removeHoliday(restaurantId: string, holidayId: string) {
-    const row = await this.prisma.restaurantHoliday.findFirst({
-      where: { id: holidayId, restaurantId },
+  async removeHoliday(businessId: string, holidayId: string) {
+    const row = await this.prisma.businessHoliday.findFirst({
+      where: { id: holidayId, businessId },
     });
     if (!row) throw new NotFoundException('Holiday not found');
-    return this.prisma.restaurantHoliday.delete({ where: { id: holidayId } });
+    return this.prisma.businessHoliday.delete({ where: { id: holidayId } });
   }
 }

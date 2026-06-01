@@ -9,7 +9,7 @@ import { OrderTable } from '@/components/orders/order-table';
 
 export default function RestaurantPanelPage() {
   const { ready, authorized, token } = useRequireStaffRole({
-    roles: ['RESTAURANT_OWNER', 'RESTAURANT_STAFF'],
+    roles: 'BUSINESS',
   });
   const { orders, updateStatus } = useStaffOrders();
 

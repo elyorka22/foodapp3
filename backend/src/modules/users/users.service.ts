@@ -9,7 +9,7 @@ import { AuthService } from '../auth/auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { normalizePhone } from '../../common/utils/phone.util';
 
-const RESTAURANT_ROLES: UserRole[] = [UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF];
+const BUSINESS_ROLES: UserRole[] = [UserRole.BUSINESS];
 
 @Injectable()
 export class UsersService {
@@ -22,7 +22,7 @@ export class UsersService {
     const email = dto.email.trim().toLowerCase();
     const phone = dto.phone?.trim() ? normalizePhone(dto.phone) : null;
 
-    if (RESTAURANT_ROLES.includes(dto.role) && !dto.restaurantId) {
+    if (BUSINESS_ROLES.includes(dto.role) && !dto.restaurantId) {
       throw new BadRequestException('restaurantId is required for restaurant roles');
     }
 
@@ -40,7 +40,7 @@ export class UsersService {
     }
 
     if (dto.restaurantId) {
-      const restaurant = await this.prisma.restaurant.findFirst({
+      const restaurant = await this.prisma.business.findFirst({
         where: { id: dto.restaurantId, deletedAt: null },
       });
       if (!restaurant) throw new BadRequestException('Restaurant not found');
@@ -64,9 +64,9 @@ export class UsersService {
     if (dto.role === UserRole.COURIER) {
       await this.prisma.courier.create({ data: { userId: user.id } });
     }
-    if (dto.restaurantId && RESTAURANT_ROLES.includes(dto.role)) {
-      await this.prisma.restaurantStaff.create({
-        data: { userId: user.id, restaurantId: dto.restaurantId },
+    if (dto.restaurantId && BUSINESS_ROLES.includes(dto.role)) {
+      await this.prisma.businessStaff.create({
+        data: { userId: user.id, businessId: dto.restaurantId },
       });
     }
 
@@ -74,9 +74,9 @@ export class UsersService {
       await this.prisma.user.findFirstOrThrow({
         where: { id: user.id },
         include: {
-          restaurantStaff: {
+          businessStaff: {
             where: { deletedAt: null },
-            include: { restaurant: { select: { id: true, name: true } } },
+            include: { business: { select: { id: true, name: true } } },
             take: 1,
           },
         },
@@ -88,9 +88,9 @@ export class UsersService {
     const users = await this.prisma.user.findMany({
       where: { deletedAt: null, ...(role && { role }) },
       include: {
-        restaurantStaff: {
+        businessStaff: {
           where: { deletedAt: null },
-          include: { restaurant: { select: { id: true, name: true } } },
+          include: { business: { select: { id: true, name: true } } },
           take: 1,
         },
       },
@@ -107,9 +107,10 @@ export class UsersService {
     role: UserRole;
     isActive: boolean;
     createdAt: Date;
-    restaurantStaff?: { restaurant: { id: string; name: string } }[];
+    businessStaff?: { business: { id: string; name: string } }[];
   }) {
-    const staff = user.restaurantStaff?.[0];
+    const staff = user.businessStaff?.[0];
+    const merchant = staff?.business ?? null;
     return {
       id: user.id,
       email: user.email,
@@ -118,7 +119,8 @@ export class UsersService {
       role: user.role,
       isActive: user.isActive,
       createdAt: user.createdAt,
-      restaurant: staff?.restaurant ?? null,
+      business: merchant,
+      restaurant: merchant,
     };
   }
 }

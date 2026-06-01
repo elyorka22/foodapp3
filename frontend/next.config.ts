@@ -8,6 +8,13 @@ const withPWA = require('next-pwa')({
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  async redirects() {
+    return [
+      { source: '/restaurant', destination: '/business', permanent: true },
+      { source: '/restaurant/:path*', destination: '/business/:path*', permanent: true },
+      { source: '/products', destination: '/shops', permanent: true },
+    ];
+  },
   images: {
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
     unoptimized: process.env.NODE_ENV === 'development',

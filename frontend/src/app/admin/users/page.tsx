@@ -19,12 +19,11 @@ import { Input } from '@/components/ui/input';
 const ROLES: { value: StaffRole; label: string }[] = [
   { value: 'SUPER_ADMIN', label: 'Super Admin' },
   { value: 'MANAGER', label: 'Manager' },
-  { value: 'RESTAURANT_OWNER', label: 'Restaurant owner' },
-  { value: 'RESTAURANT_STAFF', label: 'Restaurant staff' },
+  { value: 'BUSINESS', label: 'Business' },
   { value: 'COURIER', label: 'Courier' },
 ];
 
-const RESTAURANT_ROLES: StaffRole[] = ['RESTAURANT_OWNER', 'RESTAURANT_STAFF'];
+const BUSINESS_ROLES: StaffRole[] = ['BUSINESS'];
 
 const emptyForm: CreateStaffUserForm = {
   email: '',
@@ -62,15 +61,15 @@ export default function AdminUsersPage() {
   }, [token]);
 
   const rows = list.data ?? [];
-  const needsRestaurant = RESTAURANT_ROLES.includes(form.role);
+  const needsBusiness = BUSINESS_ROLES.includes(form.role);
 
   const submitCreate = async () => {
     if (!form.email.trim() || !form.password || form.password.length < 6) {
       toast.error('Email and password (min 6 chars) are required');
       return;
     }
-    if (needsRestaurant && !form.restaurantId) {
-      toast.error('Select a restaurant for this role');
+    if (needsBusiness && !form.restaurantId) {
+      toast.error('Select a business for this role');
       return;
     }
     try {
@@ -80,7 +79,7 @@ export default function AdminUsersPage() {
         fullName: form.fullName.trim(),
         phone: form.phone?.trim() || undefined,
         role: form.role,
-        restaurantId: needsRestaurant ? form.restaurantId : undefined,
+        restaurantId: needsBusiness ? form.restaurantId : undefined,
       });
       setCreateOpen(false);
       setForm(emptyForm);
@@ -194,7 +193,7 @@ export default function AdminUsersPage() {
                 setForm({
                   ...form,
                   role: e.target.value as StaffRole,
-                  restaurantId: RESTAURANT_ROLES.includes(e.target.value as StaffRole)
+                  restaurantId: BUSINESS_ROLES.includes(e.target.value as StaffRole)
                     ? form.restaurantId
                     : '',
                 })
@@ -207,7 +206,7 @@ export default function AdminUsersPage() {
               ))}
             </select>
           </div>
-          {needsRestaurant && (
+          {needsBusiness && (
             <div>
               <label className="text-xs opacity-60">Restaurant</label>
               <select

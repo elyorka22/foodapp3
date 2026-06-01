@@ -24,6 +24,9 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AdminNotificationsModule } from './modules/admin-notifications/admin-notifications.module';
 import { PromoCodesModule } from './modules/promo-codes/promo-codes.module';
 import { GrowthModule } from './modules/growth/growth.module';
+import { BusinessTypesModule } from './modules/business-types/business-types.module';
+import { BusinessesModule } from './modules/businesses/businesses.module';
+import { MarketplaceModule } from './modules/marketplace/marketplace.module';
 
 @Module({
   imports: [
@@ -55,6 +58,9 @@ import { GrowthModule } from './modules/growth/growth.module';
     AdminNotificationsModule,
     PromoCodesModule,
     GrowthModule,
+    BusinessTypesModule,
+    BusinessesModule,
+    MarketplaceModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })

@@ -43,7 +43,7 @@ export class RestaurantsController {
   @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   findAllAdmin(@Query() query: AdminRestaurantsQueryDto, @CurrentUser() user: JwtPayload) {
     return this.restaurants.findAllAdmin(query, user);
   }
@@ -51,7 +51,7 @@ export class RestaurantsController {
   @Get(':id/finance')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   getFinance(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.restaurants.getFinance(id, user);
   }
@@ -65,7 +65,7 @@ export class RestaurantsController {
   @Get(':id/working-hours')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   getWorkingHours(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     this.restaurants.assertAccess(id, user);
     return this.schedule.getWorkingHours(id);
@@ -74,7 +74,7 @@ export class RestaurantsController {
   @Post(':id/working-hours')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
   setWorkingHours(
     @Param('id') id: string,
     @Body() dto: SetWorkingHoursDto,
@@ -87,7 +87,7 @@ export class RestaurantsController {
   @Get(':id/holidays')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   getHolidays(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     this.restaurants.assertAccess(id, user);
     return this.schedule.getHolidays(id);
@@ -96,7 +96,7 @@ export class RestaurantsController {
   @Post(':id/holidays')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
   addHoliday(
     @Param('id') id: string,
     @Body() dto: AddHolidayDto,
@@ -109,7 +109,7 @@ export class RestaurantsController {
   @Delete(':id/holidays/:holidayId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
   removeHoliday(
     @Param('id') id: string,
     @Param('holidayId') holidayId: string,
@@ -122,7 +122,7 @@ export class RestaurantsController {
   @Get(':param/stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   getStats(@Param('param') param: string, @CurrentUser() user: JwtPayload) {
     if (!isUuid(param)) throw new BadRequestException('Invalid restaurant id');
     return this.restaurants.getStats(param, user);
@@ -159,7 +159,7 @@ export class RestaurantsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
   update(
     @Param('id') id: string,
     @Body() dto: UpdateRestaurantDto,

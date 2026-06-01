@@ -161,7 +161,7 @@ export class CouriersService {
         status: { in: ACTIVE_STATUSES },
       },
       include: {
-        restaurant: { select: { name: true } },
+        business: { select: { name: true } },
         guestOrder: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -269,7 +269,7 @@ export class CouriersService {
       orderBy: { createdAt: 'desc' },
       take: 50,
       include: {
-        restaurant: { select: { name: true } },
+        business: { select: { name: true } },
         guestOrder: true,
         assignment: true,
       },
@@ -382,7 +382,7 @@ export class CouriersService {
         items: true,
         guestOrder: true,
         address: true,
-        restaurant: { select: { name: true } },
+        business: { select: { name: true } },
         branch: true,
       },
       orderBy: { createdAt: 'asc' },

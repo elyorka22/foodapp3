@@ -41,7 +41,7 @@ export class AnalyticsService {
         _sum: { total: true },
       }),
       this.prisma.courier.count({ where: { isOnline: true, deletedAt: null } }),
-      this.prisma.restaurant.count({ where: { isActive: true, deletedAt: null } }),
+      this.prisma.business.count({ where: { isActive: true, deletedAt: null } }),
     ]);
 
     const recentOrdersRaw = await this.prisma.order.findMany({
@@ -50,7 +50,7 @@ export class AnalyticsService {
       take: 10,
       include: {
         guestOrder: true,
-        restaurant: { select: { name: true } },
+        business: { select: { name: true } },
         courier: { include: { user: { select: { fullName: true } } } },
       },
     });
@@ -113,7 +113,8 @@ export class AnalyticsService {
         status: o.status,
         total: Number(o.total),
         createdAt: o.createdAt,
-        restaurant: o.restaurant,
+        business: o.business,
+        restaurant: o.business,
         guestOrder: { phone: o.guestOrder.phone, deliveryAddress: o.guestOrder.deliveryAddress },
         courier: o.courier ? { fullName: o.courier.user.fullName } : null,
       })),
@@ -133,7 +134,7 @@ export class AnalyticsService {
           where: { status: OrderStatus.DELIVERED, deletedAt: null },
           _sum: { total: true, commissionAmount: true },
         }),
-        this.prisma.restaurant.count({ where: { isActive: true, deletedAt: null } }),
+        this.prisma.business.count({ where: { isActive: true, deletedAt: null } }),
         this.prisma.courier.count({ where: { isOnline: true, deletedAt: null } }),
       ]);
 
@@ -147,7 +148,7 @@ export class AnalyticsService {
     };
   }
 
-  async getRestaurantStats(restaurantId: string) {
+  async getRestaurantStats(businessId: string) {
     const now = new Date();
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
@@ -156,7 +157,7 @@ export class AnalyticsService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const baseDelivered = {
-      restaurantId,
+      businessId,
       deletedAt: null,
       status: OrderStatus.DELIVERED,
     };
@@ -179,18 +180,18 @@ export class AnalyticsService {
           _count: { _all: true },
         }),
         this.prisma.order.count({
-          where: { restaurantId, deletedAt: null, createdAt: { gte: startOfToday } },
+          where: { businessId, deletedAt: null, createdAt: { gte: startOfToday } },
         }),
         this.prisma.order.count({
-          where: { restaurantId, deletedAt: null, createdAt: { gte: startOfWeek } },
+          where: { businessId, deletedAt: null, createdAt: { gte: startOfWeek } },
         }),
         this.prisma.order.count({
-          where: { restaurantId, deletedAt: null, createdAt: { gte: startOfMonth } },
+          where: { businessId, deletedAt: null, createdAt: { gte: startOfMonth } },
         }),
         this.prisma.orderItem.groupBy({
           by: ['name'],
           where: {
-            order: { restaurantId, deletedAt: null, status: OrderStatus.DELIVERED },
+            order: { businessId, deletedAt: null, status: OrderStatus.DELIVERED },
           },
           _sum: { quantity: true, subtotal: true },
           orderBy: { _sum: { quantity: 'desc' } },
@@ -214,7 +215,7 @@ export class AnalyticsService {
       FROM orders
       WHERE deleted_at IS NULL
         AND status = 'DELIVERED'
-        AND restaurant_id = ${restaurantId}::uuid
+        AND restaurant_id = ${businessId}::uuid
         AND delivered_at >= ${last30Start}
       GROUP BY 1
       ORDER BY 1 ASC
@@ -227,7 +228,7 @@ export class AnalyticsService {
              COUNT(*)::int as count
       FROM orders
       WHERE deleted_at IS NULL
-        AND restaurant_id = ${restaurantId}::uuid
+        AND restaurant_id = ${businessId}::uuid
         AND created_at >= ${last30Start}
       GROUP BY 1
       ORDER BY 1 ASC
@@ -284,7 +285,7 @@ export class AnalyticsService {
 
   async getTopRestaurants(limit = 10) {
     const rows = await this.prisma.order.groupBy({
-      by: ['restaurantId'],
+      by: ['businessId'],
       where: { deletedAt: null, status: OrderStatus.DELIVERED },
       _sum: { subtotal: true, total: true },
       _count: { _all: true },
@@ -292,16 +293,16 @@ export class AnalyticsService {
       take: limit,
     });
 
-    const restaurants = await this.prisma.restaurant.findMany({
-      where: { id: { in: rows.map((r) => r.restaurantId) } },
+    const restaurants = await this.prisma.business.findMany({
+      where: { id: { in: rows.map((r) => r.businessId) } },
       select: { id: true, name: true, slug: true },
     });
     const nameById = new Map(restaurants.map((r) => [r.id, r]));
 
     return rows.map((r) => ({
-      restaurantId: r.restaurantId,
-      name: nameById.get(r.restaurantId)?.name ?? 'Unknown',
-      slug: nameById.get(r.restaurantId)?.slug,
+      businessId: r.businessId,
+      name: nameById.get(r.businessId)?.name ?? 'Unknown',
+      slug: nameById.get(r.businessId)?.slug,
       orderCount: r._count._all,
       revenue: Number(r._sum.subtotal ?? 0),
     }));

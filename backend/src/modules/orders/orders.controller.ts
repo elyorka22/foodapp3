@@ -46,8 +46,7 @@ export class OrdersController {
   @Roles(
     UserRole.SUPER_ADMIN,
     UserRole.MANAGER,
-    UserRole.RESTAURANT_OWNER,
-    UserRole.RESTAURANT_STAFF,
+    UserRole.BUSINESS,
     UserRole.COURIER,
   )
   @ApiOperation({ summary: 'Order status change history' })
@@ -61,8 +60,7 @@ export class OrdersController {
   @Roles(
     UserRole.SUPER_ADMIN,
     UserRole.MANAGER,
-    UserRole.RESTAURANT_OWNER,
-    UserRole.RESTAURANT_STAFF,
+    UserRole.BUSINESS,
     UserRole.COURIER,
   )
   @ApiOperation({ summary: 'Get order by id (role-filtered)' })
@@ -76,8 +74,7 @@ export class OrdersController {
   @Roles(
     UserRole.SUPER_ADMIN,
     UserRole.MANAGER,
-    UserRole.RESTAURANT_OWNER,
-    UserRole.RESTAURANT_STAFF,
+    UserRole.BUSINESS,
     UserRole.COURIER,
   )
   @ApiOperation({ summary: 'List orders (role-filtered)' })
@@ -94,8 +91,7 @@ export class OrdersController {
   @Roles(
     UserRole.SUPER_ADMIN,
     UserRole.MANAGER,
-    UserRole.RESTAURANT_OWNER,
-    UserRole.RESTAURANT_STAFF,
+    UserRole.BUSINESS,
     UserRole.COURIER,
   )
   @ApiOperation({ summary: 'Update order status' })

@@ -17,14 +17,15 @@ export class WsAuthService {
       const payload = this.jwt.verify<{ sub: string; email: string; role: string }>(token);
       const user = await this.prisma.user.findFirst({
         where: { id: payload.sub, deletedAt: null, isActive: true },
-        include: { restaurantStaff: { take: 1 } },
+        include: { businessStaff: { take: 1 } },
       });
       if (!user) return null;
       return {
         sub: user.id,
         email: user.email ?? '',
         role: user.role,
-        restaurantId: user.restaurantStaff[0]?.restaurantId,
+        businessId: user.businessStaff[0]?.businessId,
+        restaurantId: user.businessStaff[0]?.businessId,
       };
     } catch {
       return null;
@@ -48,15 +49,18 @@ export class WsAuthService {
     }
   }
 
-  assertRestaurant(user: JwtPayload, restaurantId: string) {
+  assertBusiness(user: JwtPayload, businessId: string) {
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER) return;
-    if (
-      (user.role === UserRole.RESTAURANT_OWNER || user.role === UserRole.RESTAURANT_STAFF) &&
-      user.restaurantId === restaurantId
-    ) {
+    const userBusinessId = user.businessId ?? user.restaurantId;
+    if (user.role === UserRole.BUSINESS && userBusinessId === businessId) {
       return;
     }
-    throw new UnauthorizedException('Restaurant room access denied');
+    throw new UnauthorizedException('Business room access denied');
+  }
+
+  /** @deprecated use assertBusiness */
+  assertRestaurant(user: JwtPayload, businessId: string) {
+    return this.assertBusiness(user, businessId);
   }
 
   async assertCourier(user: JwtPayload, courierId: string) {

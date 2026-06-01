@@ -24,7 +24,7 @@ type Holiday = { id: string; date: string; reason?: string | null };
 
 export default function RestaurantSchedulePage() {
   const { ready, authorized, token } = useRequireStaffRole({
-    roles: ['RESTAURANT_OWNER', 'RESTAURANT_STAFF'],
+    roles: 'BUSINESS',
   });
   const qc = useQueryClient();
 

@@ -48,11 +48,17 @@ export class OrdersGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('joinRestaurant')
-  handleJoinRestaurant(client: Socket, restaurantId: string) {
+  handleJoinRestaurant(client: Socket, businessId: string) {
     const user = this.wsAuth.requireUser((client.data as SocketData).user ?? null);
-    this.wsAuth.assertRestaurant(user, restaurantId);
-    client.join(`restaurant:${restaurantId}`);
-    return { joined: restaurantId };
+    this.wsAuth.assertBusiness(user, businessId);
+    client.join(`business:${businessId}`);
+    client.join(`restaurant:${businessId}`);
+    return { joined: businessId };
+  }
+
+  @SubscribeMessage('joinBusiness')
+  handleJoinBusiness(client: Socket, businessId: string) {
+    return this.handleJoinRestaurant(client, businessId);
   }
 
   @SubscribeMessage('joinManager')
@@ -83,10 +89,16 @@ export class OrdersGateway implements OnGatewayConnection {
     this.server.to(`order:${trackingToken}`).emit('orderUpdated', payload);
   }
 
-  emitRestaurantOrder(restaurantId: string, payload: unknown) {
-    this.server.to(`restaurant:${restaurantId}`).emit('newOrder', payload);
+  emitBusinessOrder(businessId: string, payload: unknown) {
+    this.server.to(`business:${businessId}`).emit('newOrder', payload);
+    this.server.to(`restaurant:${businessId}`).emit('newOrder', payload);
     this.server.to('managers').emit('newOrder', payload);
     this.emitAdminEvent('newOrder', payload);
+  }
+
+  /** @deprecated use emitBusinessOrder */
+  emitRestaurantOrder(businessId: string, payload: unknown) {
+    return this.emitBusinessOrder(businessId, payload);
   }
 
   emitAdminOrderUpdate(payload: unknown) {

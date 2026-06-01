@@ -1,11 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { RestaurantApprovalStatus } from '@prisma/client';
+import { BusinessApprovalStatus } from '@prisma/client';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class RestaurantApprovalDto {
-  @ApiProperty({ enum: RestaurantApprovalStatus })
-  @IsEnum(RestaurantApprovalStatus)
-  status: RestaurantApprovalStatus;
+  @ApiProperty({ enum: BusinessApprovalStatus })
+  @IsEnum(BusinessApprovalStatus)
+  status: BusinessApprovalStatus;
 
   @ApiPropertyOptional()
   @IsOptional()

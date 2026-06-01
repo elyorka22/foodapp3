@@ -27,7 +27,7 @@ export class UploadController {
 
   @Post('image')
   @ApiConsumes('multipart/form-data')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_OWNER, UserRole.RESTAURANT_STAFF)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),

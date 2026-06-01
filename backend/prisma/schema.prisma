@@ -9,9 +9,8 @@ datasource db {
 
 enum UserRole {
   SUPER_ADMIN
-  RESTAURANT_OWNER
-  RESTAURANT_STAFF
   MANAGER
+  BUSINESS
   COURIER
 }
 
@@ -46,11 +45,18 @@ enum NotificationType {
   SMS_READY
 }
 
-enum RestaurantApprovalStatus {
+enum BusinessApprovalStatus {
   PENDING
   APPROVED
   REJECTED
   SUSPENDED
+}
+
+enum DeliveryProviderType {
+  INTERNAL
+  COURIER_NETWORK
+  TAXI
+  THIRD_PARTY
 }
 
 enum AdminNotificationType {
@@ -85,7 +91,7 @@ model User {
   updatedAt    DateTime  @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
 
-  restaurantStaff RestaurantStaff[]
+  businessStaff BusinessStaff[]
   managerProfile  Manager?
   courierProfile  Courier?
   notifications   Notification[]
@@ -98,8 +104,28 @@ model User {
   @@map("users")
 }
 
-model Restaurant {
+model BusinessType {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  imageUrl    String?  @map("image_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  businesses Business[]
+
+  @@index([isActive, sortOrder])
+  @@map("business_types")
+}
+
+/// Universal merchant (restaurant, grocery, flower shop, etc.). DB table: restaurants.
+model Business {
   id              String    @id @default(uuid()) @db.Uuid
+  businessTypeId  String?   @map("business_type_id") @db.Uuid
   name            String
   slug            String    @unique
   description     String?
@@ -109,64 +135,68 @@ model Restaurant {
   coverPositionY  Int       @default(50) @map("cover_position_y")
   phone           String?
   email           String?
-  commissionRate  Decimal                  @default(10) @map("commission_rate") @db.Decimal(5, 2)
-  isActive        Boolean                  @default(true) @map("is_active")
-  approvalStatus  RestaurantApprovalStatus @default(APPROVED) @map("approval_status")
-  approvalNote    String?                  @map("approval_note")
-  approvedAt      DateTime?                @map("approved_at")
-  minOrderAmount  Decimal?  @map("min_order_amount") @db.Decimal(10, 2)
-  avgPrepMinutes  Int       @default(30) @map("avg_prep_minutes")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  deletedAt       DateTime? @map("deleted_at")
+  commissionRate  Decimal               @default(10) @map("commission_rate") @db.Decimal(5, 2)
+  isActive        Boolean               @default(true) @map("is_active")
+  approvalStatus  BusinessApprovalStatus @default(APPROVED) @map("approval_status")
+  approvalNote    String?               @map("approval_note")
+  approvedAt      DateTime?             @map("approved_at")
+  minOrderAmount  Decimal?              @map("min_order_amount") @db.Decimal(10, 2)
+  avgPrepMinutes  Int                   @default(30) @map("avg_prep_minutes")
+  averageRating   Decimal?              @default(4.5) @map("average_rating") @db.Decimal(3, 2)
+  reviewCount     Int                   @default(0) @map("review_count")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+  deletedAt       DateTime?             @map("deleted_at")
 
-  branches   RestaurantBranch[]
-  categories Category[]
-  products   Product[]
-  staff      RestaurantStaff[]
-  orders        Order[]
-  banners       Banner[]
-  workingHours  RestaurantWorkingHours[]
-  holidays      RestaurantHoliday[]
+  businessType       BusinessType?           @relation(fields: [businessTypeId], references: [id])
+  branches           BusinessBranch[]
+  productCategories  ProductCategory[]
+  products           Product[]
+  staff              BusinessStaff[]
+  orders             Order[]
+  banners            Banner[]
+  workingHours       BusinessWorkingHours[]
+  holidays           BusinessHoliday[]
 
   @@index([isActive, deletedAt])
   @@index([approvalStatus])
+  @@index([businessTypeId])
   @@map("restaurants")
 }
 
-model RestaurantBranch {
-  id           String    @id @default(uuid()) @db.Uuid
-  restaurantId String    @map("restaurant_id") @db.Uuid
-  name         String
-  address      String
-  latitude     Decimal   @db.Decimal(10, 7)
-  longitude    Decimal   @db.Decimal(10, 7)
-  phone        String?
-  isActive     Boolean   @default(true) @map("is_active")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at")
+model BusinessBranch {
+  id         String    @id @default(uuid()) @db.Uuid
+  businessId String    @map("restaurant_id") @db.Uuid
+  name       String
+  address    String
+  latitude   Decimal   @db.Decimal(10, 7)
+  longitude  Decimal   @db.Decimal(10, 7)
+  phone      String?
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
 
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
-  orders     Order[]
+  business Business @relation(fields: [businessId], references: [id])
+  orders   Order[]
 
-  @@index([restaurantId])
+  @@index([businessId])
   @@map("restaurant_branches")
 }
 
-model RestaurantStaff {
-  id           String    @id @default(uuid()) @db.Uuid
-  userId       String    @map("user_id") @db.Uuid
-  restaurantId String    @map("restaurant_id") @db.Uuid
-  position     String?
-  createdAt    DateTime  @default(now()) @map("created_at")
-  deletedAt    DateTime? @map("deleted_at")
+model BusinessStaff {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  businessId String    @map("restaurant_id") @db.Uuid
+  position   String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  deletedAt  DateTime? @map("deleted_at")
 
-  user       User       @relation(fields: [userId], references: [id])
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  business Business @relation(fields: [businessId], references: [id])
 
-  @@unique([userId, restaurantId])
-  @@index([restaurantId])
+  @@unique([userId, businessId])
+  @@index([businessId])
   @@map("restaurant_staff")
 }
 
@@ -203,49 +233,53 @@ model Courier {
   @@map("couriers")
 }
 
-model Category {
-  id           String    @id @default(uuid()) @db.Uuid
-  restaurantId String    @map("restaurant_id") @db.Uuid
-  name         String
-  slug         String
-  sortOrder    Int       @default(0) @map("sort_order")
-  isActive     Boolean   @default(true) @map("is_active")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at")
+/// Per-business product menu category (Fruits, Drinks, etc.). NOT a business vertical type.
+model ProductCategory {
+  id          String    @id @default(uuid()) @db.Uuid
+  businessId  String    @map("restaurant_id") @db.Uuid
+  name        String
+  slug        String
+  description String?
+  icon        String?
+  imageUrl    String?   @map("image_url")
+  sortOrder   Int       @default(0) @map("sort_order")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
-  products   Product[]
+  business Business  @relation(fields: [businessId], references: [id])
+  products Product[]
 
-  @@unique([restaurantId, slug])
-  @@index([restaurantId, isActive])
+  @@unique([businessId, slug])
+  @@index([businessId, isActive])
   @@map("categories")
 }
 
 model Product {
-  id           String    @id @default(uuid()) @db.Uuid
-  restaurantId String    @map("restaurant_id") @db.Uuid
-  categoryId   String?   @map("category_id") @db.Uuid
-  name         String
-  slug         String
-  description  String?
-  price        Decimal   @db.Decimal(10, 2)
-  comparePrice Decimal?  @map("compare_price") @db.Decimal(10, 2)
-  isAvailable  Boolean   @default(true) @map("is_available")
-  sortOrder    Int       @default(0) @map("sort_order")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at")
+  id                String    @id @default(uuid()) @db.Uuid
+  businessId        String    @map("restaurant_id") @db.Uuid
+  productCategoryId String?   @map("category_id") @db.Uuid
+  name              String
+  slug              String
+  description       String?
+  price             Decimal   @db.Decimal(10, 2)
+  comparePrice      Decimal?  @map("compare_price") @db.Decimal(10, 2)
+  isAvailable       Boolean   @default(true) @map("is_available")
+  sortOrder         Int       @default(0) @map("sort_order")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
 
-  restaurant Restaurant     @relation(fields: [restaurantId], references: [id])
-  category   Category?      @relation(fields: [categoryId], references: [id])
-  images     ProductImage[]
-  orderItems OrderItem[]
-  cartItems  CartItem[]
+  business         Business         @relation(fields: [businessId], references: [id])
+  productCategory  ProductCategory? @relation(fields: [productCategoryId], references: [id])
+  images           ProductImage[]
+  orderItems       OrderItem[]
+  cartItems        CartItem[]
 
-  @@unique([restaurantId, slug])
-  @@index([restaurantId, isAvailable])
-  @@index([categoryId])
+  @@unique([businessId, slug])
+  @@index([businessId, isAvailable])
+  @@index([productCategoryId])
   @@map("products")
 }
 
@@ -269,8 +303,8 @@ enum BannerPlacement {
 }
 
 model Banner {
-  id           String          @id @default(uuid()) @db.Uuid
-  restaurantId String?         @map("restaurant_id") @db.Uuid
+  id         String          @id @default(uuid()) @db.Uuid
+  businessId String?         @map("restaurant_id") @db.Uuid
   title        String          @default("")
   description  String?
   imageUrl     String          @map("image_url")
@@ -283,7 +317,7 @@ model Banner {
   createdAt    DateTime        @default(now()) @map("created_at")
   deletedAt    DateTime?       @map("deleted_at")
 
-  restaurant Restaurant? @relation(fields: [restaurantId], references: [id])
+  business Business? @relation(fields: [businessId], references: [id])
 
   @@index([isActive, placement])
   @@map("banners")
@@ -360,14 +394,16 @@ model GuestOrder {
 }
 
 model Order {
-  id               String      @id @default(uuid()) @db.Uuid
-  orderNumber      String      @unique @map("order_number")
-  trackingToken    String      @unique @map("tracking_token")
-  restaurantId     String      @map("restaurant_id") @db.Uuid
-  branchId         String?     @map("branch_id") @db.Uuid
-  guestOrderId     String      @map("guest_order_id") @db.Uuid
-  courierId        String?     @map("courier_id") @db.Uuid
-  status           OrderStatus @default(PENDING)
+  id                    String               @id @default(uuid()) @db.Uuid
+  orderNumber           String               @unique @map("order_number")
+  trackingToken         String               @unique @map("tracking_token")
+  businessId            String               @map("restaurant_id") @db.Uuid
+  branchId              String?              @map("branch_id") @db.Uuid
+  guestOrderId          String               @map("guest_order_id") @db.Uuid
+  courierId             String?              @map("courier_id") @db.Uuid
+  deliveryProviderType  DeliveryProviderType @default(INTERNAL) @map("delivery_provider_type")
+  externalDeliveryRef   String?              @map("external_delivery_ref")
+  status                OrderStatus          @default(PENDING)
   subtotal         Decimal     @db.Decimal(10, 2)
   deliveryFee      Decimal     @map("delivery_fee") @db.Decimal(10, 2)
   commissionAmount Decimal     @default(0) @map("commission_amount") @db.Decimal(10, 2)
@@ -383,8 +419,8 @@ model Order {
   updatedAt        DateTime    @updatedAt @map("updated_at")
   deletedAt        DateTime?   @map("deleted_at")
 
-  restaurant  Restaurant        @relation(fields: [restaurantId], references: [id])
-  branch      RestaurantBranch? @relation(fields: [branchId], references: [id])
+  business    Business        @relation(fields: [businessId], references: [id])
+  branch      BusinessBranch? @relation(fields: [branchId], references: [id])
   guestOrder  GuestOrder        @relation(fields: [guestOrderId], references: [id])
   courier     Courier?          @relation(fields: [courierId], references: [id])
   items       OrderItem[]
@@ -396,7 +432,7 @@ model Order {
   promoCode      PromoCode?         @relation(fields: [promoCodeId], references: [id])
   promoUsage     PromoCodeUsage?
 
-  @@index([restaurantId, status])
+  @@index([businessId, status])
   @@index([promoCodeId])
   @@index([status, createdAt])
   @@index([courierId])
@@ -625,32 +661,32 @@ model PromoCodeUsage {
   @@map("promo_code_usages")
 }
 
-model RestaurantWorkingHours {
-  id           String   @id @default(uuid()) @db.Uuid
-  restaurantId String   @map("restaurant_id") @db.Uuid
-  dayOfWeek    Int      @map("day_of_week")
-  openTime     String   @map("open_time")
-  closeTime    String   @map("close_time")
-  isClosed     Boolean  @default(false) @map("is_closed")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+model BusinessWorkingHours {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @map("restaurant_id") @db.Uuid
+  dayOfWeek  Int      @map("day_of_week")
+  openTime   String   @map("open_time")
+  closeTime  String   @map("close_time")
+  isClosed   Boolean  @default(false) @map("is_closed")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
-  @@unique([restaurantId, dayOfWeek])
+  @@unique([businessId, dayOfWeek])
   @@map("restaurant_working_hours")
 }
 
-model RestaurantHoliday {
-  id           String   @id @default(uuid()) @db.Uuid
-  restaurantId String   @map("restaurant_id") @db.Uuid
-  date         DateTime @db.Date
-  reason       String?
-  createdAt    DateTime @default(now()) @map("created_at")
+model BusinessHoliday {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @map("restaurant_id") @db.Uuid
+  date       DateTime @db.Date
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
-  @@unique([restaurantId, date])
+  @@unique([businessId, date])
   @@map("restaurant_holidays")
 }
 

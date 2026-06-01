@@ -7,6 +7,11 @@ export class AdminProductsQueryDto extends PaginationDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
+  businessId?: string;
+
+  @ApiPropertyOptional({ deprecated: true })
+  @IsOptional()
+  @IsUUID()
   restaurantId?: string;
 
   @ApiPropertyOptional()

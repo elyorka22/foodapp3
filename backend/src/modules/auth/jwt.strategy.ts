@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: { sub: string; email: string; role: string }): Promise<JwtPayload> {
     const user = await this.prisma.user.findFirst({
       where: { id: payload.sub, deletedAt: null, isActive: true },
-      include: { restaurantStaff: { take: 1 } },
+      include: { businessStaff: { take: 1 } },
     });
     if (!user) throw new UnauthorizedException();
 
@@ -25,7 +25,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       sub: user.id,
       email: user.email ?? '',
       role: user.role,
-      restaurantId: user.restaurantStaff[0]?.restaurantId,
+      businessId: user.businessStaff[0]?.businessId,
+      restaurantId: user.businessStaff[0]?.businessId,
     };
   }
 }

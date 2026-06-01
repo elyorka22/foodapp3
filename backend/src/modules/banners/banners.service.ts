@@ -43,7 +43,7 @@ export class BannersService {
         placement: dto.placement ?? 'HERO',
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
-        restaurantId: dto.restaurantId,
+        businessId: dto.restaurantId,
       },
     });
     await this.audit.log({
@@ -71,7 +71,7 @@ export class BannersService {
     if (dto.sortOrder !== undefined) data.sortOrder = dto.sortOrder;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
     if (dto.restaurantId !== undefined) {
-      data.restaurant = dto.restaurantId
+      data.business = dto.restaurantId
         ? { connect: { id: dto.restaurantId } }
         : { disconnect: true };
     }
