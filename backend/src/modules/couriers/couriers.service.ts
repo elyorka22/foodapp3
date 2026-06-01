@@ -379,6 +379,7 @@ export class CouriersService {
         deletedAt: null,
       },
       include: {
+        items: true,
         guestOrder: true,
         address: true,
         restaurant: { select: { name: true } },

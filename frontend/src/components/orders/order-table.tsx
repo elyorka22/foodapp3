@@ -1,12 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { OrderLineItems, type OrderLineItem } from '@/components/orders/order-line-items';
 
 export type OrderRow = {
   id: string;
   orderNumber: string;
   status: string;
   total: number;
+  items?: OrderLineItem[];
   guestOrder?: { phone: string; deliveryAddress: string };
   restaurant?: { name: string };
 };
@@ -52,6 +54,13 @@ export function OrderTable({
                 <td className="p-3 font-mono text-xs">{o.orderNumber}</td>
                 {showRestaurant && <td className="p-3">{o.restaurant?.name}</td>}
                 <td className="p-3">{o.guestOrder?.phone}</td>
+                <td className="max-w-xs p-3">
+                  {o.items?.length ? (
+                    <OrderLineItems items={o.items} />
+                  ) : (
+                    <span className="text-xs opacity-50">—</span>
+                  )}
+                </td>
                 <td className="p-3">
                   <span className="rounded bg-brand-100 px-2 py-0.5 text-xs dark:bg-brand-900">
                     {o.status}

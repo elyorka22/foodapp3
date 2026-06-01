@@ -7,12 +7,13 @@ import { api, getWsBase } from '@/lib/api';
 import { saveTrackingToken } from '@/lib/customer';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
+import { OrderLineItems } from '@/components/orders/order-line-items';
 
 type Order = {
   orderNumber: string;
   status: string;
   total: number;
-  items: { name: string; quantity: number }[];
+  items: { name: string; description?: string | null; quantity: number }[];
 };
 
 export default function TrackPage() {
@@ -52,15 +53,9 @@ export default function TrackPage() {
         <p className="text-2xl font-semibold text-brand-600">{statusLabel}</p>
         <p className="mt-2 text-sm text-zinc-500">{uz.liveUpdates}</p>
       </div>
-      <ul className="mt-6 space-y-2">
-        {order.items?.map((i, idx) => (
-          <li key={idx} className="flex justify-between text-sm">
-            <span>
-              {i.name} × {i.quantity}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-6">
+        <OrderLineItems items={order.items ?? []} />
+      </div>
       <p className="mt-4 font-bold">
         {uz.total}: {formatSum(order.total)}
       </p>

@@ -8,12 +8,14 @@ import { getToken, getUser } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { DeliveryCoords } from '@/components/shared/delivery-coords';
+import { OrderLineItems, type OrderLineItem } from '@/components/orders/order-line-items';
 
 type AvailableOrder = {
   id: string;
   orderNumber: string;
   status: string;
   total: number;
+  items?: OrderLineItem[];
   guestOrder: {
     deliveryAddress: string;
     phone: string;
@@ -140,6 +142,11 @@ export default function CourierPage() {
                 guestLng={o.guestOrder.longitude}
               />
               <p className="mt-1 text-sm">{o.guestOrder.phone}</p>
+              {o.items && o.items.length > 0 && (
+                <div className="mt-3 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-900">
+                  <OrderLineItems items={o.items} />
+                </div>
+              )}
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button size="lg" onClick={() => acceptOrder.mutate(o.id)}>
                   Accept

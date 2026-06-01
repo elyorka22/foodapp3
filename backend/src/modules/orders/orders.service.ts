@@ -107,6 +107,7 @@ export class OrdersService {
       orderItems.push({
         product: { connect: { id: product.id } },
         name: product.name,
+        description: product.description ?? null,
         price: product.price,
         quantity: item.quantity,
         subtotal: lineSubtotal,
@@ -553,7 +554,13 @@ export class OrdersService {
       distanceKm: order.distanceKm ? Number(order.distanceKm) : null,
       createdAt: order.createdAt,
       deliveredAt: order.deliveredAt,
-      items: order.items,
+      items: Array.isArray(order.items)
+        ? (order.items as Record<string, unknown>[]).map((item) => ({
+            ...item,
+            price: Number(item.price),
+            subtotal: Number(item.subtotal),
+          }))
+        : order.items,
       guestOrder: this.serializeGuestOrder(guestOrder),
       restaurant: order.restaurant,
       courier: order.courier,

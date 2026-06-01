@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/admin/ui';
 import { DeliveryCoords } from '@/components/shared/delivery-coords';
+import { OrderLineItems } from '@/components/orders/order-line-items';
 
 export function OrderDrawer({
   orderId,
@@ -104,16 +105,7 @@ export function OrderDrawer({
             </Section>
 
             <Section title="Items">
-              <ul className="space-y-2">
-                {data.items?.map((i: any) => (
-                  <li key={i.id} className="flex justify-between text-sm">
-                    <span>
-                      {i.name} × {i.quantity}
-                    </span>
-                    <span>{Number(i.subtotal).toLocaleString()} UZS</span>
-                  </li>
-                ))}
-              </ul>
+              <OrderLineItems items={data.items ?? []} showSubtotal />
               <div className="mt-3 border-t pt-3 text-sm dark:border-white/10">
                 <p className="flex justify-between">
                   <span>Subtotal</span>
