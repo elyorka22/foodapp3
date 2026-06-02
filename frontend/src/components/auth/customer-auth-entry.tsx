@@ -21,6 +21,8 @@ type Props = {
   title?: string;
   description?: string;
   showRegisterFooter?: boolean;
+  /** Sheet/modal: hide page-level heading, tighter layout */
+  compact?: boolean;
   onSuccess: (res: CustomerAuthResponse) => void;
 };
 
@@ -30,6 +32,7 @@ export function CustomerAuthEntry({
   title = uz.signIn,
   description = uz.authBenefitsDescription,
   showRegisterFooter = true,
+  compact = false,
   onSuccess,
 }: Props) {
   const [phoneMode, setPhoneMode] = useState(false);
@@ -71,11 +74,19 @@ export function CustomerAuthEntry({
   };
 
   return (
-    <section aria-label={uz.signIn} className="mt-6">
-      <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{title}</h1>
-      <p className="mt-2 text-sm leading-6 text-zinc-500">{description}</p>
+    <section aria-label={uz.signIn} className={compact ? 'pb-2' : 'mt-6'}>
+      {!compact && (
+        <>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{title}</h1>
+          <p className="mt-2 text-sm leading-6 text-zinc-500">{description}</p>
+        </>
+      )}
 
-      <Card className="mt-5 overflow-hidden border-zinc-200 p-0">
+      {compact && (
+        <p className="mb-3 text-sm leading-5 text-zinc-500">{uz.telegramLoginHint}</p>
+      )}
+
+      <Card className={clsx('overflow-hidden border-zinc-200 p-0', compact ? 'mt-0' : 'mt-5')}>
         <div className="border-b border-zinc-100 bg-gradient-to-br from-brand-50 to-[#2AABEE]/10 px-4 py-4">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-white p-2 text-[#229ED9] shadow-sm">

@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { LogOut, MessageCircle, UserCircle, Users } from 'lucide-react';
+import { LogOut, MessageCircle, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CustomerAuthEntry } from '@/components/auth/customer-auth-entry';
+import { GuestProfileView } from '@/components/profile/guest-profile-view';
+import { StaffPanelCard } from '@/components/profile/staff-panel-card';
 import { api } from '@/lib/api';
 import {
   clearCustomer,
@@ -16,35 +17,8 @@ import {
   setCustomerAuth,
   type CustomerProfile,
 } from '@/lib/customer';
-import { StaffPanelCard } from '@/components/profile/staff-panel-card';
 import type { CustomerAuthResponse } from '@/lib/customer-auth';
 import { uz } from '@/lib/uz';
-import { clsx } from 'clsx';
-
-type ProfileTab = 'customer' | 'staff';
-
-function TabButton({
-  active,
-  children,
-  onClick,
-}: {
-  active: boolean;
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={clsx(
-        'flex-1 rounded-xl py-3 text-sm font-semibold transition active:scale-[0.98]',
-        active ? 'bg-white text-zinc-900 shadow-card' : 'text-zinc-500',
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 function displayTelegramName(c: CustomerProfile): string {
   if (c.telegramFirstName) {
@@ -55,8 +29,8 @@ function displayTelegramName(c: CustomerProfile): string {
 
 export default function ProfilePage() {
   const [customer, setCustomerState] = useState<CustomerProfile | null>(null);
-  const [pageTab, setPageTab] = useState<ProfileTab>('customer');
   const [message, setMessage] = useState('');
+  const [staffOpen, setStaffOpen] = useState(false);
 
   useEffect(() => {
     const local = getCustomer();
@@ -87,7 +61,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (pageTab === 'customer' && customer) {
+  if (customer) {
     const tgName = displayTelegramName(customer);
     const showTelegram = customer.isTelegramVerified || customer.telegramId;
 
@@ -179,7 +153,19 @@ export default function ProfilePage() {
           <p className="mt-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-700">{message}</p>
         )}
 
-        <StaffPanelCard />
+        <div className="mt-10 border-t border-zinc-200/80 pt-6">
+          {!staffOpen ? (
+            <button
+              type="button"
+              onClick={() => setStaffOpen(true)}
+              className="w-full text-center text-xs text-zinc-400 underline-offset-2 hover:text-zinc-500 hover:underline"
+            >
+              {uz.openStaffLogin}
+            </button>
+          ) : (
+            <StaffPanelCard />
+          )}
+        </div>
       </main>
     );
   }
@@ -187,46 +173,7 @@ export default function ProfilePage() {
   return (
     <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
-      <p className="mt-1 text-sm text-zinc-500">{uz.profileHint}</p>
-
-      <div className="mt-6 flex gap-2 rounded-2xl bg-zinc-100 p-1.5">
-        <TabButton active={pageTab === 'customer'} onClick={() => setPageTab('customer')}>
-          <span className="inline-flex items-center justify-center gap-1.5">
-            <UserCircle size={16} />
-            {uz.customer}
-          </span>
-        </TabButton>
-        <TabButton active={pageTab === 'staff'} onClick={() => setPageTab('staff')}>
-          <span className="inline-flex items-center justify-center gap-1.5">
-            <Users size={16} />
-            {uz.staff}
-          </span>
-        </TabButton>
-      </div>
-
-      {pageTab === 'customer' ? (
-        <CustomerAuthEntry
-          title={uz.signIn}
-          description={uz.authBenefitsDescription}
-          showRegisterFooter
-          onSuccess={handleAuthSuccess}
-        />
-      ) : (
-        <StaffPanelCard />
-      )}
-
-      {pageTab === 'customer' && (
-        <p className="mt-8 text-center text-sm text-zinc-500">
-          {uz.platformAdmin}{' '}
-          <button
-            type="button"
-            className="font-semibold text-brand-600 active:opacity-70"
-            onClick={() => setPageTab('staff')}
-          >
-            {uz.openStaffLogin}
-          </button>
-        </p>
-      )}
+      <GuestProfileView onAuthSuccess={handleAuthSuccess} />
     </main>
   );
 }
