@@ -5,7 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cart';
 import { api } from '@/lib/api';
-import { getCustomer, saveTrackingToken } from '@/lib/customer';
+import {
+  customerNeedsPhone,
+  getCustomer,
+  getCustomerToken,
+  isCustomerLoggedIn,
+  saveTrackingToken,
+} from '@/lib/customer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,9 +43,18 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (isCustomerLoggedIn() && customerNeedsPhone()) {
+      router.replace('/complete-profile');
+      return;
+    }
     const c = getCustomer();
     if (c?.phone) setPhone(c.phone);
-  }, []);
+    if (c?.defaultDeliveryAddress) {
+      setDeliveryLocation((prev) =>
+        prev.address ? prev : { ...prev, address: c.defaultDeliveryAddress! },
+      );
+    }
+  }, [router]);
 
   const applyPromo = async () => {
     if (!promoCode.trim() || !restaurantId) return;
@@ -89,8 +104,14 @@ export default function CheckoutPage() {
 
     try {
       const loggedIn = getCustomer();
+      const token = getCustomerToken();
+      if (loggedIn && customerNeedsPhone()) {
+        router.replace('/complete-profile');
+        return;
+      }
       const res = await api<{ order: { trackingToken: string; orderNumber?: string } }>('/orders/guest', {
         method: 'POST',
+        token: token ?? undefined,
         body: JSON.stringify({
           restaurantId,
           phone: loggedIn?.phone ?? phone,

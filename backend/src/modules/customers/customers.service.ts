@@ -1,11 +1,12 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { OrderStatus, Prisma } from '@prisma/client';
+import { CustomerAuthProvider, OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BruteForceService } from '../../common/security/brute-force.service';
 import { AuditService } from '../audit/audit.service';
@@ -15,6 +16,8 @@ import { normalizePhone } from '../../common/utils/phone.util';
 import { RegisterCustomerDto } from './dto/register-customer.dto';
 import { LoginCustomerDto } from './dto/login-customer.dto';
 import { AdminCustomersQueryDto } from './dto/admin-customers-query.dto';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { CustomerTokenService } from './customer-token.service';
 
 @Injectable()
 export class CustomersService {
@@ -23,31 +26,8 @@ export class CustomersService {
     private audit: AuditService,
     private adminNotifications: AdminNotificationsService,
     private bruteForce: BruteForceService,
+    private customerTokens: CustomerTokenService,
   ) {}
-
-  private serialize(customer: {
-    id: string;
-    phone: string;
-    fullName: string;
-    email: string | null;
-    isActive: boolean;
-    referralCode?: string | null;
-    createdAt: Date;
-    loyalty?: { points: number; level: string } | null;
-  }) {
-    return {
-      id: customer.id,
-      phone: customer.phone,
-      fullName: customer.fullName,
-      email: customer.email ?? undefined,
-      isActive: customer.isActive,
-      referralCode: customer.referralCode ?? undefined,
-      loyalty: customer.loyalty
-        ? { points: customer.loyalty.points, level: customer.loyalty.level }
-        : undefined,
-      createdAt: customer.createdAt,
-    };
-  }
 
   async register(dto: RegisterCustomerDto, clientIp: string) {
     const phone = normalizePhone(dto.phone);
@@ -65,12 +45,13 @@ export class CustomersService {
         phone,
         fullName: dto.fullName.trim(),
         email: dto.email?.trim() || null,
+        authProvider: CustomerAuthProvider.PHONE,
       },
       include: { loyalty: true },
     });
 
     await this.bruteForce.clearFailures('customer-auth', `${clientIp}:${phone}`);
-    return { customer: this.serialize(customer) };
+    return this.customerTokens.issueToken(customer);
   }
 
   async login(dto: LoginCustomerDto, clientIp: string) {
@@ -90,8 +71,139 @@ export class CustomersService {
       throw new ForbiddenException('Account is blocked. Contact support.');
     }
 
+    const updated =
+      customer.authProvider === CustomerAuthProvider.PHONE
+        ? customer
+        : await this.prisma.customer.update({
+            where: { id: customer.id },
+            data: { authProvider: customer.authProvider ?? CustomerAuthProvider.PHONE },
+            include: { loyalty: true },
+          });
+
     await this.bruteForce.clearFailures('customer-auth', scopeKey);
-    return { customer: this.serialize(customer) };
+    return this.customerTokens.issueToken(updated);
+  }
+
+  async findMe(customerId: string) {
+    const customer = await this.prisma.customer.findFirst({
+      where: { id: customerId, deletedAt: null },
+      include: { loyalty: true },
+    });
+    if (!customer) throw new NotFoundException('Customer not found');
+    return { user: this.customerTokens.serialize(customer) };
+  }
+
+  async completeProfile(customerId: string, dto: CompleteProfileDto) {
+    const phone = normalizePhone(dto.phone);
+    const current = await this.prisma.customer.findFirst({
+      where: { id: customerId, deletedAt: null },
+      include: { loyalty: true },
+    });
+    if (!current) throw new NotFoundException('Customer not found');
+
+    if (current.phone === phone) {
+      const customer = await this.prisma.customer.update({
+        where: { id: current.id },
+        data: {
+          ...(dto.deliveryAddress && {
+            defaultDeliveryAddress: dto.deliveryAddress.trim(),
+            defaultLatitude: dto.latitude,
+            defaultLongitude: dto.longitude,
+          }),
+        },
+        include: { loyalty: true },
+      });
+      return this.customerTokens.issueToken(customer);
+    }
+
+    let targetId = current.id;
+
+    const other = await this.prisma.customer.findFirst({
+      where: { phone, deletedAt: null, NOT: { id: customerId } },
+    });
+
+    if (other) {
+      if (current.telegramId) {
+        targetId = current.id;
+        await this.mergeCustomers(targetId, other.id);
+      } else if (other.telegramId) {
+        targetId = other.id;
+        await this.mergeCustomers(targetId, current.id);
+      } else {
+        targetId = other.id;
+        await this.mergeCustomers(targetId, current.id);
+      }
+    }
+
+    const data: Prisma.CustomerUpdateInput = {
+      phone,
+      authProvider: current.telegramId
+        ? CustomerAuthProvider.TELEGRAM
+        : CustomerAuthProvider.PHONE,
+      ...(dto.deliveryAddress && {
+        defaultDeliveryAddress: dto.deliveryAddress.trim(),
+        defaultLatitude: dto.latitude,
+        defaultLongitude: dto.longitude,
+      }),
+    };
+
+    const customer = await this.prisma.customer.update({
+      where: { id: targetId },
+      data,
+      include: { loyalty: true },
+    });
+
+    return this.customerTokens.issueToken(customer);
+  }
+
+  /** Merge source customer into target; target survives. Priority: telegramId account. */
+  async mergeCustomers(targetId: string, sourceId: string) {
+    if (targetId === sourceId) return;
+
+    const [target, source] = await Promise.all([
+      this.prisma.customer.findFirst({ where: { id: targetId, deletedAt: null } }),
+      this.prisma.customer.findFirst({ where: { id: sourceId, deletedAt: null } }),
+    ]);
+    if (!target || !source) return;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.guestOrder.updateMany({
+        where: { customerId: sourceId },
+        data: { customerId: targetId },
+      });
+
+      if (source.phone) {
+        await tx.guestOrder.updateMany({
+          where: { phone: source.phone, customerId: null },
+          data: { customerId: targetId },
+        });
+      }
+
+      const telegramPatch: Prisma.CustomerUpdateInput = {};
+      if (!target.telegramId && source.telegramId) {
+        telegramPatch.telegramId = source.telegramId;
+        telegramPatch.telegramUsername = source.telegramUsername;
+        telegramPatch.telegramFirstName = source.telegramFirstName;
+        telegramPatch.telegramLastName = source.telegramLastName;
+        telegramPatch.telegramPhotoUrl = source.telegramPhotoUrl;
+        telegramPatch.isTelegramVerified = source.isTelegramVerified;
+        telegramPatch.lastTelegramLoginAt = source.lastTelegramLoginAt;
+      }
+      if (!target.phone && source.phone) telegramPatch.phone = source.phone;
+      if (!target.email && source.email) telegramPatch.email = source.email;
+      if (Object.keys(telegramPatch).length) {
+        await tx.customer.update({ where: { id: targetId }, data: telegramPatch });
+      }
+
+      await tx.customer.update({
+        where: { id: sourceId },
+        data: {
+          deletedAt: new Date(),
+          telegramId: null,
+          phone: source.phone ? `${source.phone}_merged_${sourceId.slice(0, 8)}` : null,
+        },
+      });
+    });
   }
 
   async findByIdVerified(id: string, phoneRaw: string) {
@@ -103,7 +215,7 @@ export class CustomersService {
     if (!customer) {
       throw new UnauthorizedException('Customer not found or phone mismatch');
     }
-    return { customer: this.serialize(customer) };
+    return { customer: this.customerTokens.serialize(customer) };
   }
 
   async findAllAdmin(query: AdminCustomersQueryDto) {
@@ -116,6 +228,7 @@ export class CustomersService {
           { fullName: { contains: query.search, mode: 'insensitive' } },
           { phone: { contains: query.search, mode: 'insensitive' } },
           { email: { contains: query.search, mode: 'insensitive' } },
+          { telegramUsername: { contains: query.search, mode: 'insensitive' } },
         ],
       }),
     };
@@ -130,9 +243,11 @@ export class CustomersService {
       this.prisma.customer.count({ where }),
     ]);
 
-    const statsMap = await this.getCustomerStatsBatch(rows.map((c) => ({ id: c.id, phone: c.phone })));
+    const statsMap = await this.getCustomerStatsBatch(
+      rows.map((c) => ({ id: c.id, phone: c.phone })),
+    );
     const data = rows.map((c) => ({
-      ...this.serialize(c),
+      ...this.customerTokens.serialize(c),
       stats: statsMap.get(c.id) ?? {
         totalOrders: 0,
         completedOrders: 0,
@@ -156,7 +271,7 @@ export class CustomersService {
     const orders = await this.getOrderHistory(id, customer.phone);
 
     return {
-      customer: this.serialize(customer),
+      customer: this.customerTokens.serialize(customer),
       stats,
       addresses,
       orders,
@@ -188,7 +303,7 @@ export class CustomersService {
       });
     }
 
-    return { customer: this.serialize(updated) };
+    return { customer: this.customerTokens.serialize(updated) };
   }
 
   async getHistory(id: string) {
@@ -203,17 +318,32 @@ export class CustomersService {
     return { stats, orders };
   }
 
-  private orderWhereForCustomer(customerId: string, phone: string): Prisma.OrderWhereInput {
+  async assertCustomerCanOrder(customerId: string) {
+    const customer = await this.prisma.customer.findFirst({
+      where: { id: customerId, deletedAt: null, isActive: true },
+    });
+    if (!customer?.phone) {
+      throw new BadRequestException(
+        'Phone number is required to place orders. Complete your profile first.',
+      );
+    }
+    return customer;
+  }
+
+  private orderWhereForCustomer(
+    customerId: string,
+    phone: string | null,
+  ): Prisma.OrderWhereInput {
+    const guestOr: Prisma.GuestOrderWhereInput[] = [{ customerId }];
+    if (phone) guestOr.push({ phone });
     return {
       deletedAt: null,
-      guestOrder: {
-        OR: [{ customerId }, { phone }],
-      },
+      guestOrder: { OR: guestOr },
     };
   }
 
   private async getCustomerStatsBatch(
-    customers: { id: string; phone: string }[],
+    customers: { id: string; phone: string | null }[],
   ): Promise<
     Map<
       string,
@@ -249,15 +379,18 @@ export class CustomersService {
     }
 
     const ids = customers.map((c) => c.id);
-    const phones = customers.map((c) => c.phone);
-    const phoneToId = new Map(customers.map((c) => [c.phone, c.id]));
+    const phones = customers.map((c) => c.phone).filter((p): p is string => !!p);
+    const phoneToId = new Map(
+      customers.filter((c) => c.phone).map((c) => [c.phone!, c.id]),
+    );
+
+    const guestOr: Prisma.GuestOrderWhereInput[] = [{ customerId: { in: ids } }];
+    if (phones.length) guestOr.push({ phone: { in: phones } });
 
     const orders = await this.prisma.order.findMany({
       where: {
         deletedAt: null,
-        guestOrder: {
-          OR: [{ customerId: { in: ids } }, { phone: { in: phones } }],
-        },
+        guestOrder: { OR: guestOr },
       },
       select: {
         status: true,
@@ -270,7 +403,11 @@ export class CustomersService {
     for (const order of orders) {
       const g = order.guestOrder;
       const customerId =
-        g.customerId && ids.includes(g.customerId) ? g.customerId : phoneToId.get(g.phone);
+        g.customerId && ids.includes(g.customerId)
+          ? g.customerId
+          : g.phone
+            ? phoneToId.get(g.phone)
+            : undefined;
       if (!customerId) continue;
 
       const stats = result.get(customerId)!;
@@ -288,7 +425,7 @@ export class CustomersService {
     return result;
   }
 
-  private async getCustomerStats(customerId: string, phone: string) {
+  private async getCustomerStats(customerId: string, phone: string | null) {
     const where = this.orderWhereForCustomer(customerId, phone);
 
     const [totalOrders, completedOrders, cancelledOrders, spentAgg, lastOrder] =
@@ -320,11 +457,12 @@ export class CustomersService {
     };
   }
 
-  private async getAddresses(customerId: string, phone: string) {
+  private async getAddresses(customerId: string, phone: string | null) {
+    const guestOr: Prisma.GuestOrderWhereInput[] = [{ customerId }];
+    if (phone) guestOr.push({ phone });
+
     const guestOrders = await this.prisma.guestOrder.findMany({
-      where: {
-        OR: [{ customerId }, { phone }],
-      },
+      where: { OR: guestOr },
       select: {
         deliveryAddress: true,
         latitude: true,
@@ -341,7 +479,7 @@ export class CustomersService {
     }));
   }
 
-  private async getOrderHistory(customerId: string, phone: string) {
+  private async getOrderHistory(customerId: string, phone: string | null) {
     const orders = await this.prisma.order.findMany({
       where: this.orderWhereForCustomer(customerId, phone),
       orderBy: { createdAt: 'desc' },

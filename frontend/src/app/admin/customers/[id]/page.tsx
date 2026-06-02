@@ -52,7 +52,10 @@ export default function AdminCustomerDetailPage() {
         <div>
           <Link href="/admin/customers" className="text-xs opacity-60 hover:underline">← Customers</Link>
           <h1 className="mt-1 text-lg font-semibold">{customer.fullName}</h1>
-          <p className="text-sm opacity-60">{customer.phone} · {customer.email ?? 'no email'}</p>
+          <p className="text-sm opacity-60">
+            {customer.phone ?? 'no phone'} · {customer.email ?? 'no email'}
+            {customer.authProvider ? ` · ${customer.authProvider}` : ''}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <ActiveBadge active={customer.isActive} label={customer.isActive ? 'Active' : 'Blocked'} />
@@ -61,6 +64,34 @@ export default function AdminCustomerDetailPage() {
           </Button>
         </div>
       </div>
+
+      {(customer.telegramId || customer.isTelegramVerified) && (
+        <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+          <p className="text-sm font-semibold">Telegram</p>
+          <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-xs opacity-60">Telegram ID</dt>
+              <dd className="font-mono">{customer.telegramId ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs opacity-60">Username</dt>
+              <dd>{customer.telegramUsername ? `@${customer.telegramUsername}` : '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs opacity-60">First name</dt>
+              <dd>{customer.telegramFirstName ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs opacity-60">Last login</dt>
+              <dd>
+                {customer.lastTelegramLoginAt
+                  ? new Date(customer.lastTelegramLoginAt).toLocaleString()
+                  : '—'}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard label="Total orders" value={stats?.totalOrders ?? 0} />

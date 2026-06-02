@@ -24,6 +24,7 @@ import { distanceKm, calculateDeliveryFee } from '../../common/utils/geo.util';
 import { normalizePhone } from '../../common/utils/phone.util';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { CustomersService } from '../customers/customers.service';
 
 const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
@@ -46,6 +47,7 @@ export class OrdersService {
     private promoCodes: PromoCodesService,
     private loyalty: LoyaltyService,
     private schedule: RestaurantScheduleService,
+    private customers: CustomersService,
   ) {}
 
   async createGuestOrder(dto: CreateGuestOrderDto) {
@@ -123,8 +125,11 @@ export class OrdersService {
     if (linkedCustomer) {
       customerId = linkedCustomer.id;
     }
-    if (dto.customerId && dto.customerId !== customerId) {
-      throw new BadRequestException('Customer id does not match phone number');
+    if (dto.customerId) {
+      if (dto.customerId !== customerId) {
+        throw new BadRequestException('Customer id does not match phone number');
+      }
+      await this.customers.assertCustomerCanOrder(dto.customerId);
     }
 
     const orderNumber = generateOrderNumber();

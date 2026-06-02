@@ -7,9 +7,17 @@ import { AdminNotificationsModule } from '../admin-notifications/admin-notificat
 import { PromoCodesModule } from '../promo-codes/promo-codes.module';
 import { GrowthModule } from '../growth/growth.module';
 import { RestaurantsModule } from '../restaurants/restaurants.module';
+import { CustomersModule } from '../customers/customers.module';
 
 @Module({
-  imports: [SettingsModule, AdminNotificationsModule, PromoCodesModule, GrowthModule, RestaurantsModule],
+  imports: [
+    SettingsModule,
+    AdminNotificationsModule,
+    PromoCodesModule,
+    GrowthModule,
+    RestaurantsModule,
+    CustomersModule,
+  ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersGateway],
   exports: [OrdersService, OrdersGateway],

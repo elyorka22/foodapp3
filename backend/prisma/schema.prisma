@@ -45,6 +45,11 @@ enum NotificationType {
   SMS_READY
 }
 
+enum CustomerAuthProvider {
+  TELEGRAM
+  PHONE
+}
+
 enum BusinessApprovalStatus {
   PENDING
   APPROVED
@@ -359,7 +364,7 @@ model CartItem {
 
 model Customer {
   id           String    @id @default(uuid()) @db.Uuid
-  phone        String    @unique
+  phone        String?   @unique
   fullName     String    @map("full_name")
   email        String?
   isActive     Boolean   @default(true) @map("is_active")
@@ -371,6 +376,19 @@ model Customer {
   updatedAt    DateTime  @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
 
+  telegramId          BigInt?               @unique @map("telegram_id")
+  telegramUsername    String?               @map("telegram_username")
+  telegramFirstName   String?               @map("telegram_first_name")
+  telegramLastName    String?               @map("telegram_last_name")
+  telegramPhotoUrl    String?               @map("telegram_photo_url")
+  authProvider        CustomerAuthProvider? @map("auth_provider")
+  isTelegramVerified  Boolean               @default(false) @map("is_telegram_verified")
+  lastTelegramLoginAt DateTime?             @map("last_telegram_login_at")
+
+  defaultDeliveryAddress String?  @map("default_delivery_address")
+  defaultLatitude        Decimal? @map("default_latitude") @db.Decimal(10, 7)
+  defaultLongitude       Decimal? @map("default_longitude") @db.Decimal(10, 7)
+
   referralCode   String?  @unique @map("referral_code")
   guestOrders    GuestOrder[]
   loyalty        CustomerLoyalty?
@@ -379,6 +397,7 @@ model Customer {
   referralsGot   Referral[] @relation("ReferralInvited")
 
   @@index([deletedAt])
+  @@index([telegramUsername])
   @@map("customers")
 }
 
