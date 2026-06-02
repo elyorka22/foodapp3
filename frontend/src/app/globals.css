@@ -6,7 +6,7 @@
   --color-primary: #ff6b00;
   --color-primary-hover: #ea580c;
   --color-surface: #ffffff;
-  --color-background: #f8f8f8;
+  --color-background: #f7f8fa;
   --color-border: #eaeaea;
   --color-text: #1a1a1a;
   --color-text-muted: #6b7280;
@@ -25,7 +25,7 @@
 }
 
 body {
-  background-color: #f8f8f8;
+  background-color: #f7f8fa;
   color: #1a1a1a;
 }
 
@@ -75,7 +75,7 @@ body {
   }
 
   .customer-page {
-    background-color: #f8f8f8;
+    background-color: #f7f8fa;
     color: #1a1a1a;
   }
 }

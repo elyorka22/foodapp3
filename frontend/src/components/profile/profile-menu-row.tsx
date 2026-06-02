@@ -21,7 +21,7 @@ export function ProfileMenuRow({
   href,
 }: Props) {
   const className = clsx(
-    'flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left transition active:bg-background',
+    'flex min-h-[56px] w-full items-center gap-3 border-b border-border px-4 py-3 text-left transition last:border-b-0 active:bg-background',
   );
 
   const inner = (

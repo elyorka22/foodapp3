@@ -13,7 +13,7 @@ const config: Config = {
           soft: '#FFF4EB',
         },
         surface: '#FFFFFF',
-        background: '#F8F8F8',
+        background: '#F7F8FA',
         border: '#EAEAEA',
         foreground: {
           DEFAULT: '#1A1A1A',

@@ -171,7 +171,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="customer-page mx-auto min-h-screen max-w-lg px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+    <main className="customer-page mx-auto min-h-screen max-w-lg px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+8px)]">
       <h1 className="text-[22px] font-bold tracking-tight text-foreground">{uz.profile}</h1>
       <GuestProfileView onAuthSuccess={handleAuthSuccess} />
     </main>
