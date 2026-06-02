@@ -91,11 +91,7 @@ export default function CustomerLoginPage() {
               <div className={clsx(loading && 'pointer-events-none opacity-60')}>
                 <TelegramLoginButton botUsername={botUsername} onAuth={handleTelegram} />
               </div>
-            ) : (
-              <p className="rounded-xl bg-amber-50 p-3 text-center text-sm text-amber-900">
-                {uz.telegramNotConfigured}
-              </p>
-            )}
+            ) : null}
             <p className="text-center text-xs text-zinc-400">{uz.telegramLoginHint}</p>
           </>
         ) : (
