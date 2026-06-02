@@ -21,7 +21,6 @@ type Props = {
   title?: string;
   description?: string;
   showRegisterFooter?: boolean;
-  /** Sheet/modal: hide page-level heading, tighter layout */
   compact?: boolean;
   onSuccess: (res: CustomerAuthResponse) => void;
 };
@@ -74,7 +73,7 @@ export function CustomerAuthEntry({
   };
 
   return (
-    <section aria-label={uz.signIn} className={compact ? 'pb-2' : 'mt-6'}>
+    <section aria-label={uz.signIn} className={compact ? 'pb-1' : 'mt-6'}>
       {!compact && (
         <>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{title}</h1>
@@ -82,28 +81,24 @@ export function CustomerAuthEntry({
         </>
       )}
 
-      {compact && (
-        <p className="mb-3 text-sm leading-5 text-zinc-500">{uz.telegramLoginHint}</p>
-      )}
-
-      <Card className={clsx('overflow-hidden border-zinc-200 p-0', compact ? 'mt-0' : 'mt-5')}>
-        <div className="border-b border-zinc-100 bg-gradient-to-br from-brand-50 to-[#2AABEE]/10 px-4 py-4">
-          <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-white p-2 text-[#229ED9] shadow-sm">
-              <MessageCircle size={20} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-zinc-900">{uz.loginWithTelegram}</p>
-              <p className="mt-0.5 text-xs text-zinc-600">{uz.telegramCardHint}</p>
+      {!phoneMode && (
+        <Card className="mt-0 overflow-hidden border-0 p-0 shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
+          <div className="border-b border-[#2AABEE]/10 bg-gradient-to-br from-[#E8F7FD] to-white px-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2AABEE] text-white shadow-md shadow-[#2AABEE]/25">
+                <MessageCircle size={24} />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-zinc-900">{uz.loginWithTelegram}</p>
+                <p className="mt-0.5 text-sm text-zinc-600">{uz.telegramCardHint}</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-3 p-4">
-          {!phoneMode && (
-            <div className={clsx('relative min-h-[58px] rounded-xl bg-zinc-50 p-2')}>
-              {!widgetReady && (
-                <div className="absolute inset-2 animate-pulse rounded-lg bg-zinc-200/80" />
+          <div className="space-y-4 bg-white px-5 py-5">
+            <div className={clsx('relative min-h-[54px] rounded-2xl bg-zinc-50 px-2 py-2')}>
+              {!widgetReady && botUsername && (
+                <div className="absolute inset-2 animate-pulse rounded-xl bg-zinc-200/70" />
               )}
               <div className={clsx('relative z-10', loading && 'pointer-events-none opacity-60')}>
                 {botUsername ? (
@@ -113,36 +108,35 @@ export function CustomerAuthEntry({
                     onReady={() => setWidgetReady(true)}
                   />
                 ) : (
-                  <Button
-                    type="button"
-                    className="w-full gap-2 bg-[#2AABEE] text-white hover:bg-[#229ED9]"
-                    onClick={() => setPhoneMode(true)}
-                  >
-                    <MessageCircle size={16} />
-                    {uz.loginWithTelegram}
-                  </Button>
+                  <p className="px-2 py-3 text-center text-sm text-zinc-500">{uz.telegramNotConfigured}</p>
                 )}
               </div>
             </div>
-          )}
 
-          {loading && (
-            <p className="flex items-center justify-center gap-2 text-xs text-zinc-500">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              {uz.signingIn}
-            </p>
-          )}
-
-          <div className="relative py-1">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-200" />
-            </div>
-            <p className="relative mx-auto w-fit bg-white px-2 text-xs text-zinc-400">{uz.or}</p>
+            {loading && (
+              <p className="flex items-center justify-center gap-2 text-sm text-zinc-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {uz.signingIn}
+              </p>
+            )}
           </div>
+        </Card>
+      )}
 
-          {phoneMode ? (
-            <form onSubmit={handlePhoneLogin} className="space-y-3" aria-label={uz.loginWithPhone}>
-              <label className="sr-only" htmlFor="customer-phone-login">
+      <div className="relative my-5">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-zinc-200" />
+        </div>
+        <p className="relative mx-auto w-fit bg-[#F5F5F7] px-3 text-xs font-medium uppercase tracking-wide text-zinc-400">
+          {uz.or}
+        </p>
+      </div>
+
+      {phoneMode ? (
+        <Card className="border-0 p-5 shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
+          <form onSubmit={handlePhoneLogin} className="space-y-4" aria-label={uz.loginWithPhone}>
+            <div>
+              <label htmlFor="customer-phone-login" className="mb-2 block text-sm font-medium text-zinc-700">
                 {uz.phone}
               </label>
               <Input
@@ -150,50 +144,47 @@ export function CustomerAuthEntry({
                 type="tel"
                 autoComplete="tel"
                 inputMode="tel"
-                placeholder={uz.phone}
+                placeholder="+998 90 123 45 67"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
               />
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1" disabled={loading}>
-                  {loading ? uz.signingIn : uz.signIn}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => {
-                    setPhoneMode(false);
-                    setError('');
-                  }}
-                >
-                  {uz.loginWithTelegram}
-                </Button>
-              </div>
-            </form>
-          ) : (
+            </div>
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading ? uz.signingIn : uz.signIn}
+            </Button>
             <Button
               type="button"
-              variant="secondary"
-              className="w-full gap-2"
-              onClick={() => setPhoneMode(true)}
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setPhoneMode(false);
+                setError('');
+              }}
             >
-              <Phone size={16} />
-              {uz.loginWithPhone}
+              {uz.backToTelegram}
             </Button>
-          )}
+          </form>
+        </Card>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setPhoneMode(true)}
+          className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[18px] border border-zinc-200 bg-white text-[15px] font-semibold text-zinc-800 shadow-sm active:bg-zinc-50"
+        >
+          <Phone size={18} className="text-zinc-600" />
+          {uz.loginWithPhone}
+        </button>
+      )}
 
-          {error && (
-            <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-      </Card>
+      {error && (
+        <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600" role="alert">
+          {error}
+        </p>
+      )}
 
-      {showRegisterFooter && (
-        <p className="mt-5 text-center text-sm text-zinc-500">
+      {showRegisterFooter && !compact && (
+        <p className="mt-6 text-center text-sm text-zinc-500">
           {uz.noAccount}{' '}
           <Link href="/auth/register" className="font-semibold text-brand-600">
             {uz.register}

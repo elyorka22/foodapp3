@@ -14,7 +14,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        'inline-flex items-center justify-center rounded-xl font-semibold transition',
+        'inline-flex items-center justify-center rounded-2xl font-semibold transition',
         'active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
         variant === 'primary' &&
           'bg-brand-600 text-white shadow-md shadow-brand-600/25 hover:bg-brand-700',
