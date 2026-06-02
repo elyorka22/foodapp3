@@ -10,9 +10,10 @@ import type { TelegramSignedUser } from '@/lib/customer-auth';
 type Props = {
   botUsername: string;
   onAuth: (user: TelegramSignedUser) => void;
+  onReady?: () => void;
 };
 
-export function TelegramLoginButton({ botUsername, onAuth }: Props) {
+export function TelegramLoginButton({ botUsername, onAuth, onReady }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,12 +34,22 @@ export function TelegramLoginButton({ botUsername, onAuth }: Props) {
     script.setAttribute('data-request-access', 'write');
     el.appendChild(script);
 
+    const observer = new MutationObserver(() => {
+      const hasWidget = !!el.querySelector('iframe');
+      if (hasWidget) {
+        onReady?.();
+        observer.disconnect();
+      }
+    });
+    observer.observe(el, { childList: true, subtree: true });
+
     return () => {
+      observer.disconnect();
       el.innerHTML = '';
       delete (window as Window & { onTelegramAuth?: (u: TelegramSignedUser) => void })
         .onTelegramAuth;
     };
-  }, [botUsername, onAuth]);
+  }, [botUsername, onAuth, onReady]);
 
   return <div ref={containerRef} className="flex min-h-[52px] justify-center" />;
 }

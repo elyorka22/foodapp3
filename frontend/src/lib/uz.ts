@@ -118,8 +118,11 @@ export const uz = {
   registrationFailed: "Ro'yxatdan o'tish amalga oshmadi",
   loginFailed: 'Kirish amalga oshmadi',
   loginSubtitle: 'Telegram orqali tez kirish yoki telefon raqamidan foydalaning',
+  authBenefitsDescription:
+    "Buyurtmalar tarixi, saqlangan manzillar va tezkor buyurtma uchun tizimga kiring",
   loginWithTelegram: 'Telegram orqali kirish',
   loginWithPhone: 'Telefon raqam orqali kirish',
+  telegramCardHint: 'Bir teginish orqali xavfsiz va tez autentifikatsiya',
   telegramNotConfigured: 'Telegram bot sozlanmagan (NEXT_PUBLIC_TELEGRAM_BOT_USERNAME)',
   telegramLoginHint: 'Telegram hisobingiz orqali xavfsiz kirish',
   noAccount: "Hisobingiz yo'qmi?",

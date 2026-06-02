@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { LogOut, MessageCircle, UserCircle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CustomerAuthEntry } from '@/components/auth/customer-auth-entry';
 import { api } from '@/lib/api';
 import {
   clearCustomer,
@@ -16,6 +17,7 @@ import {
   type CustomerProfile,
 } from '@/lib/customer';
 import { StaffPanelCard } from '@/components/profile/staff-panel-card';
+import type { CustomerAuthResponse } from '@/lib/customer-auth';
 import { uz } from '@/lib/uz';
 import { clsx } from 'clsx';
 
@@ -73,6 +75,16 @@ export default function ProfilePage() {
     clearCustomer();
     setCustomerState(null);
     setMessage(uz.loggedOut);
+  };
+
+  const handleAuthSuccess = (res: CustomerAuthResponse) => {
+    const user = res.user as CustomerProfile;
+    setCustomerState(user);
+    if (user.needsPhone || !user.phone) {
+      window.location.href = '/complete-profile';
+    } else {
+      setMessage(uz.welcome(user.fullName));
+    }
   };
 
   if (pageTab === 'customer' && customer) {
@@ -193,20 +205,12 @@ export default function ProfilePage() {
       </div>
 
       {pageTab === 'customer' ? (
-        <Card className="mt-6 space-y-4 p-5">
-          <p className="text-center text-sm text-zinc-600">{uz.loginSubtitle}</p>
-          <Link href="/auth/login">
-            <Button type="button" className="w-full gap-2 bg-[#2AABEE] hover:bg-[#229ED9]">
-              <MessageCircle size={18} />
-              {uz.loginWithTelegram}
-            </Button>
-          </Link>
-          <Link href="/auth/login">
-            <Button type="button" variant="secondary" className="w-full">
-              {uz.goToLogin}
-            </Button>
-          </Link>
-        </Card>
+        <CustomerAuthEntry
+          title={uz.signIn}
+          description={uz.authBenefitsDescription}
+          showRegisterFooter
+          onSuccess={handleAuthSuccess}
+        />
       ) : (
         <StaffPanelCard />
       )}
