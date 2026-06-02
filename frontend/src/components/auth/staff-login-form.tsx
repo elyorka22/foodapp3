@@ -6,6 +6,7 @@ import { LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { dashboardPath, loginStaff, setAuth } from '@/lib/auth';
+import { uz } from '@/lib/uz';
 
 type Props = {
   /** After login, go to role dashboard (default) or stay on page */
@@ -48,7 +49,7 @@ export function StaffLoginForm({ redirect = true, onSuccess }: Props) {
         type="text"
         name="staff-login-id"
         required
-        placeholder="Staff email or phone"
+        placeholder={uz.staffLoginIdPlaceholder}
         value={loginId}
         onChange={(e) => setLoginId(e.target.value)}
         autoComplete="username"
@@ -57,7 +58,7 @@ export function StaffLoginForm({ redirect = true, onSuccess }: Props) {
         type="password"
         name="staff-password"
         required
-        placeholder="Password"
+        placeholder={uz.password}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         autoComplete="current-password"
@@ -65,7 +66,7 @@ export function StaffLoginForm({ redirect = true, onSuccess }: Props) {
       {error && <p className="text-sm text-red-500">{error}</p>}
       <Button type="submit" size="lg" className="w-full gap-2" disabled={loading}>
         <LayoutDashboard size={20} />
-        {loading ? 'Signing in...' : 'Staff sign in'}
+        {loading ? uz.signingIn : uz.staffSignIn}
       </Button>
     </form>
   );

@@ -21,24 +21,24 @@ export function ProfileMenuRow({
   href,
 }: Props) {
   const className = clsx(
-    'flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left transition active:bg-zinc-50',
+    'flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left transition active:bg-background',
   );
 
   const inner = (
     <>
       <div
         className={clsx(
-          'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700',
+          'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-background text-foreground',
           iconClassName,
         )}
       >
         <Icon size={18} strokeWidth={2} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-medium text-zinc-900">{label}</p>
-        {hint && <p className="mt-0.5 text-xs leading-4 text-zinc-500">{hint}</p>}
+        <p className="text-[15px] font-medium text-foreground">{label}</p>
+        {hint && <p className="mt-0.5 text-xs leading-4 text-foreground-muted">{hint}</p>}
       </div>
-      <ChevronRight size={18} className="shrink-0 text-zinc-300" />
+      <ChevronRight size={18} className="shrink-0 text-[#D1D5DB]" />
     </>
   );
 

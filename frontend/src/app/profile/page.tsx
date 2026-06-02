@@ -66,8 +66,8 @@ export default function ProfilePage() {
     const showTelegram = customer.isTelegramVerified || customer.telegramId;
 
     return (
-      <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
+      <main className="customer-page mx-auto min-h-screen max-w-lg px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{uz.profile}</h1>
 
         {customerNeedsPhone() && (
           <Card className="mt-4 border-amber-200 bg-amber-50 p-4">
@@ -92,17 +92,17 @@ export default function ProfilePage() {
                 unoptimized
               />
             ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
                 <UserCircle size={32} strokeWidth={1.5} />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              <p className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
                 {uz.customer}
               </p>
-              <p className="truncate text-lg font-bold text-zinc-900">{customer.fullName}</p>
+              <p className="truncate text-lg font-bold text-foreground">{customer.fullName}</p>
               {customer.phone ? (
-                <p className="text-sm text-zinc-500">{customer.phone}</p>
+                <p className="text-sm text-foreground-muted">{customer.phone}</p>
               ) : (
                 <p className="text-sm text-amber-600">{uz.phoneRequiredForOrders}</p>
               )}
@@ -110,31 +110,31 @@ export default function ProfilePage() {
           </div>
 
           {showTelegram && (
-            <div className="mt-4 rounded-xl bg-[#2AABEE]/10 px-4 py-3">
+            <div className="mt-4 rounded-xl bg-[#E8F7FD] px-4 py-3">
               <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-[#229ED9]">
                 <MessageCircle size={14} />
                 {uz.telegramProfile}
               </p>
-              <p className="mt-1 font-medium text-zinc-900">{tgName}</p>
+              <p className="mt-1 font-medium text-foreground">{tgName}</p>
               {customer.telegramUsername && (
-                <p className="text-sm text-zinc-600">
+                <p className="text-sm text-foreground-muted">
                   {uz.telegramUsernameLabel}: @{customer.telegramUsername}
                 </p>
               )}
             </div>
           )}
 
-          {customer.email && <p className="mt-3 text-sm text-zinc-600">{customer.email}</p>}
+          {customer.email && <p className="mt-3 text-sm text-foreground-muted">{customer.email}</p>}
           {customer.referralCode && (
-            <div className="mt-4 rounded-xl bg-zinc-50 px-4 py-3">
-              <p className="text-xs text-zinc-500">{uz.yourReferral}</p>
-              <p className="font-mono text-base font-semibold text-brand-600">
+            <div className="mt-4 rounded-xl bg-background px-4 py-3">
+              <p className="text-xs text-foreground-muted">{uz.yourReferral}</p>
+              <p className="font-mono text-base font-semibold text-primary">
                 {customer.referralCode}
               </p>
             </div>
           )}
           {customer.loyalty && (
-            <p className="mt-3 text-sm text-zinc-600">
+            <p className="mt-3 text-sm text-foreground-muted">
               {uz.loyalty(customer.loyalty.level, customer.loyalty.points)}
             </p>
           )}
@@ -150,7 +150,7 @@ export default function ProfilePage() {
         </Card>
 
         {message && (
-          <p className="mt-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-700">{message}</p>
+          <p className="mt-4 rounded-xl bg-primary-soft px-4 py-3 text-sm text-primary-dark">{message}</p>
         )}
 
         <div className="mt-10 border-t border-zinc-200/80 pt-6">
@@ -171,8 +171,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
-      <h1 className="text-[22px] font-bold tracking-tight text-zinc-900">{uz.profile}</h1>
+    <main className="customer-page mx-auto min-h-screen max-w-lg px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+      <h1 className="text-[22px] font-bold tracking-tight text-foreground">{uz.profile}</h1>
       <GuestProfileView onAuthSuccess={handleAuthSuccess} />
     </main>
   );

@@ -20,6 +20,7 @@ import { LoginPromptSheet } from '@/components/profile/login-prompt-sheet';
 import { ProfileMenuRow } from '@/components/profile/profile-menu-row';
 import { StaffPanelCard } from '@/components/profile/staff-panel-card';
 import type { CustomerAuthResponse } from '@/lib/customer-auth';
+import { colors, shadows } from '@/lib/design-tokens';
 import { getLocale, setLocale, type AppLocale } from '@/lib/locale';
 import { uz } from '@/lib/uz';
 
@@ -72,40 +73,53 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
 
   return (
     <>
-      <Card className="mt-5 overflow-hidden border-0 p-0 shadow-[0_4px_24px_rgba(234,88,12,0.12)]">
-        <div className="relative bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 px-5 pb-5 pt-6 text-white">
-          <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/10" />
-          <div className="absolute -bottom-8 left-8 h-20 w-20 rounded-full bg-white/5" />
+      <Card className="mt-5 overflow-hidden border-0 p-0" style={{ boxShadow: shadows.cardElevated }}>
+        <div className="relative bg-hero-primary px-5 pb-5 pt-6 text-white">
+          <div
+            className="absolute -right-6 -top-6 h-28 w-28 rounded-full"
+            style={{ backgroundColor: colors.whiteAlpha10 }}
+          />
+          <div
+            className="absolute -bottom-8 left-8 h-20 w-20 rounded-full"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+          />
           <div className="relative flex items-start gap-3">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-white/20 backdrop-blur-sm">
+            <div
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px]"
+              style={{ backgroundColor: colors.whiteAlpha20 }}
+            >
               <UserRound size={30} strokeWidth={1.5} />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/85">{uz.guestGreeting}</p>
+              <p className="text-sm font-medium" style={{ color: colors.whiteAlpha85 }}>
+                {uz.guestGreeting}
+              </p>
               <p className="mt-0.5 text-xl font-bold leading-tight">{uz.guestUserTitle}</p>
             </div>
           </div>
-          <p className="relative mt-3 text-sm leading-6 text-white/90">{uz.guestUserDescription}</p>
+          <p className="relative mt-3 text-sm leading-6" style={{ color: colors.whiteAlpha90 }}>
+            {uz.guestUserDescription}
+          </p>
         </div>
-        <div className="space-y-3 bg-white px-5 py-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+        <div className="space-y-3 bg-surface px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground-subtle">
             {uz.guestAccountBenefitsLabel}
           </p>
-          <ul className="grid grid-cols-2 gap-2 text-xs text-zinc-600">
-            <li className="rounded-2xl bg-zinc-50 px-3 py-2">❤️ {uz.guestFeatureFavoritesTitle}</li>
-            <li className="rounded-2xl bg-zinc-50 px-3 py-2">📦 {uz.guestFeatureOrdersTitle}</li>
-            <li className="rounded-2xl bg-zinc-50 px-3 py-2">📍 {uz.guestFeatureAddressesTitle}</li>
-            <li className="rounded-2xl bg-zinc-50 px-3 py-2">⚡️ {uz.guestFeatureFastOrderTitle}</li>
+          <ul className="grid grid-cols-2 gap-2 text-xs text-foreground-muted">
+            <li className="rounded-2xl bg-background px-3 py-2">❤️ {uz.guestFeatureFavoritesTitle}</li>
+            <li className="rounded-2xl bg-background px-3 py-2">📦 {uz.guestFeatureOrdersTitle}</li>
+            <li className="rounded-2xl bg-background px-3 py-2">📍 {uz.guestFeatureAddressesTitle}</li>
+            <li className="rounded-2xl bg-background px-3 py-2">⚡️ {uz.guestFeatureFastOrderTitle}</li>
           </ul>
           <div className="flex gap-2 pt-1">
-            <Button type="button" size="lg" className="flex-1 shadow-md" onClick={() => openAuth('login')}>
+            <Button type="button" size="lg" className="flex-1" onClick={() => openAuth('login')}>
               {uz.signIn}
             </Button>
             <Button
               type="button"
               size="lg"
               variant="secondary"
-              className="flex-1 border-zinc-200"
+              className="flex-1"
               onClick={() => openAuth('register')}
             >
               {uz.register}
@@ -115,21 +129,25 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
       </Card>
 
       <section className="mt-7" aria-labelledby="quick-actions-heading">
-        <h2 id="quick-actions-heading" className="px-0.5 text-[15px] font-semibold text-zinc-900">
+        <h2 id="quick-actions-heading" className="px-0.5 text-[15px] font-semibold text-foreground">
           {uz.quickActions}
         </h2>
-        <Card className="mt-3 grid grid-cols-2 gap-px overflow-hidden bg-zinc-100 p-0">
-          {quickActions.map((item) => (
+        <Card className="mt-3 grid grid-cols-2 overflow-hidden p-0">
+          {quickActions.map((item, index) => (
             <button
               key={item.key}
               type="button"
               onClick={() => setPromptFeature(item.title)}
-              className="flex min-h-[88px] flex-col items-center justify-center gap-2 bg-white px-3 py-4 active:bg-zinc-50"
+              className="flex min-h-[88px] flex-col items-center justify-center gap-2 bg-surface px-3 py-4 active:bg-background"
+              style={{
+                borderRight: index % 2 === 0 ? `1px solid ${colors.border}` : undefined,
+                borderBottom: index < 2 ? `1px solid ${colors.border}` : undefined,
+              }}
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-soft text-primary">
                 <item.icon size={20} />
               </div>
-              <span className="text-center text-xs font-medium leading-4 text-zinc-800">
+              <span className="text-center text-xs font-medium leading-4 text-foreground">
                 {item.title}
               </span>
             </button>
@@ -138,7 +156,7 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
       </section>
 
       <section className="mt-7" aria-labelledby="help-section-heading">
-        <h2 id="help-section-heading" className="px-0.5 text-[15px] font-semibold text-zinc-900">
+        <h2 id="help-section-heading" className="px-0.5 text-[15px] font-semibold text-foreground">
           {uz.helpfulSections}
         </h2>
         <Card className="mt-3 overflow-hidden p-0">
@@ -154,7 +172,7 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
       </section>
 
       <section className="mt-7" aria-labelledby="language-heading">
-        <h2 id="language-heading" className="px-0.5 text-[15px] font-semibold text-zinc-900">
+        <h2 id="language-heading" className="px-0.5 text-[15px] font-semibold text-foreground">
           {uz.languageSection}
         </h2>
         <Card className="mt-3 overflow-hidden p-0">
@@ -162,25 +180,23 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
             icon={Globe}
             label={uz.changeLanguage}
             hint={locale === 'uz' ? "O'zbekcha" : 'Русский'}
-            iconClassName="bg-sky-50 text-sky-600"
+            iconClassName="bg-[#E0F2FE] text-[#0284C7]"
             onClick={toggleLocale}
           />
         </Card>
       </section>
 
-      <div className="mt-12 border-t border-zinc-200/70 pt-5">
+      <div className="mt-12 border-t border-border pt-5">
         {!staffOpen ? (
           <button
             type="button"
             onClick={() => setStaffOpen(true)}
-            className="w-full py-2 text-center text-[11px] text-zinc-400"
+            className="w-full py-2 text-center text-[11px] text-foreground-subtle"
           >
             {uz.openStaffLogin}
           </button>
         ) : (
-          <div className="opacity-80">
-            <StaffPanelCard />
-          </div>
+          <StaffPanelCard />
         )}
       </div>
 

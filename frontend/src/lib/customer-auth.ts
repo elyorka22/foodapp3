@@ -30,10 +30,16 @@ export async function signInWithTelegram(
   });
 }
 
-export async function signInWithPhone(phone: string): Promise<CustomerAuthResponse> {
+export async function signInWithPhone(
+  phone: string,
+  password?: string,
+): Promise<CustomerAuthResponse> {
   return api<CustomerAuthResponse>('/customers/login', {
     method: 'POST',
-    body: JSON.stringify({ phone }),
+    body: JSON.stringify({
+      phone,
+      ...(password?.trim() ? { password: password.trim() } : {}),
+    }),
   });
 }
 
@@ -41,11 +47,18 @@ export async function registerWithPhone(body: {
   phone: string;
   fullName: string;
   email?: string;
+  password?: string;
   referredByCode?: string;
 }): Promise<CustomerAuthResponse> {
   return api<CustomerAuthResponse>('/customers/register', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      phone: body.phone,
+      fullName: body.fullName,
+      ...(body.email ? { email: body.email } : {}),
+      ...(body.password?.trim() ? { password: body.password.trim() } : {}),
+      ...(body.referredByCode ? { referredByCode: body.referredByCode } : {}),
+    }),
   });
 }
 

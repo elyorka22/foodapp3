@@ -6,6 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { CustomerAuthProvider, OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BruteForceService } from '../../common/security/brute-force.service';
@@ -40,12 +41,17 @@ export class CustomersService {
       throw new ConflictException('Phone already registered. Please log in.');
     }
 
+    const passwordHash = dto.password
+      ? await bcrypt.hash(dto.password, 12)
+      : undefined;
+
     const customer = await this.prisma.customer.create({
       data: {
         phone,
         fullName: dto.fullName.trim(),
         email: dto.email?.trim() || null,
         authProvider: CustomerAuthProvider.PHONE,
+        ...(passwordHash ? { passwordHash } : {}),
       },
       include: { loyalty: true },
     });
@@ -69,6 +75,18 @@ export class CustomersService {
     }
     if (!customer.isActive) {
       throw new ForbiddenException('Account is blocked. Contact support.');
+    }
+
+    if (customer.passwordHash) {
+      if (!dto.password) {
+        await this.bruteForce.recordFailure('customer-auth', scopeKey);
+        throw new UnauthorizedException('Password is required for this account');
+      }
+      const valid = await bcrypt.compare(dto.password, customer.passwordHash);
+      if (!valid) {
+        await this.bruteForce.recordFailure('customer-auth', scopeKey);
+        throw new UnauthorizedException('Invalid phone or password');
+      }
     }
 
     const updated =

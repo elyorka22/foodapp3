@@ -21,4 +21,10 @@ export class RegisterCustomerDto {
   @IsOptional()
   @IsString()
   referredByCode?: string;
+
+  @ApiPropertyOptional({ minLength: 6 })
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
 }
