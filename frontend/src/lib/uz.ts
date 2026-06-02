@@ -95,7 +95,6 @@ export const uz = {
   otpResendSoon: 'SMS xizmati tez orada ulanadi',
   resendCode: 'Kodni qayta yuborish',
   continue: 'Davom etish',
-  back: 'Orqaga',
   guestFeatureFavoritesTitle: 'Sevimlilar',
   guestFeatureFavoritesDesc: "Yoqtirgan restoran va mahsulotlarni saqlang",
   guestFeatureOrdersTitle: 'Buyurtmalar tarixi',
