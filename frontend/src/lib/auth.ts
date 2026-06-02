@@ -68,6 +68,6 @@ export function dashboardPath(role: string): string {
     case 'COURIER':
       return '/courier';
     default:
-      return '/login';
+      return '/staff/login';
   }
 }

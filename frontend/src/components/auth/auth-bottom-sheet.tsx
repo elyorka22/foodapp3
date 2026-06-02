@@ -70,12 +70,12 @@ export function AuthBottomSheet({
         aria-modal="true"
         aria-labelledby="auth-sheet-title"
         className={clsx(
-          'relative z-10 mx-auto flex w-full max-w-lg flex-col rounded-t-[20px] bg-background',
+          'relative z-10 mx-auto flex w-full max-w-lg flex-col rounded-t-2xl bg-white',
           'max-h-[90vh]',
         )}
         style={{ boxShadow: shadows.sheet }}
       >
-        <div className="shrink-0 rounded-t-[20px] border-b border-border bg-background px-5 pb-3 pt-3">
+        <div className="shrink-0 rounded-t-2xl border-b border-border bg-white px-5 pb-3 pt-3">
           <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#D1D5DB]" />
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 pr-2">

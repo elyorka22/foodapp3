@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { BottomNav } from './bottom-nav';
 
-const STAFF_PREFIXES = ['/login', '/admin', '/manager', '/business', '/restaurant', '/courier'];
+const STAFF_PREFIXES = ['/login', '/staff', '/admin', '/manager', '/business', '/restaurant', '/courier'];
 
 /** Global SiteHeader removed — only the home page shows HomeTopBar inside its own layout. */
 export function CustomerShell({ children }: { children: React.ReactNode }) {

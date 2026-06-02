@@ -36,7 +36,7 @@ export default function CompleteProfilePage() {
 
   useEffect(() => {
     if (!isCustomerLoggedIn()) {
-      router.replace('/auth/login');
+      router.replace('/profile');
       return;
     }
     if (!customerNeedsPhone()) {
@@ -53,7 +53,7 @@ export default function CompleteProfilePage() {
     e.preventDefault();
     const token = getCustomerToken();
     if (!token) {
-      router.replace('/auth/login');
+      router.replace('/profile');
       return;
     }
 

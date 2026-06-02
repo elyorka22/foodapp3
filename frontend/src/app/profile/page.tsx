@@ -7,7 +7,6 @@ import { LogOut, MessageCircle, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { GuestProfileView } from '@/components/profile/guest-profile-view';
-import { StaffPanelCard } from '@/components/profile/staff-panel-card';
 import { api } from '@/lib/api';
 import {
   clearCustomer,
@@ -30,7 +29,6 @@ function displayTelegramName(c: CustomerProfile): string {
 export default function ProfilePage() {
   const [customer, setCustomerState] = useState<CustomerProfile | null>(null);
   const [message, setMessage] = useState('');
-  const [staffOpen, setStaffOpen] = useState(false);
 
   useEffect(() => {
     const local = getCustomer();
@@ -153,26 +151,21 @@ export default function ProfilePage() {
           <p className="mt-4 rounded-xl bg-primary-soft px-4 py-3 text-sm text-primary-dark">{message}</p>
         )}
 
-        <div className="mt-10 border-t border-zinc-200/80 pt-6">
-          {!staffOpen ? (
-            <button
-              type="button"
-              onClick={() => setStaffOpen(true)}
-              className="w-full text-center text-xs text-zinc-400 underline-offset-2 hover:text-zinc-500 hover:underline"
-            >
-              {uz.openStaffLogin}
-            </button>
-          ) : (
-            <StaffPanelCard />
-          )}
-        </div>
+        <footer className="mt-10 pb-2">
+          <Link
+            href="/staff/login"
+            className="block py-1 text-center text-[12px] text-foreground-subtle underline-offset-2 hover:text-foreground-muted hover:underline"
+          >
+            {uz.staffLoginForEmployees}
+          </Link>
+        </footer>
       </main>
     );
   }
 
   return (
-    <main className="customer-page mx-auto min-h-screen max-w-lg px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+8px)]">
-      <h1 className="text-[22px] font-bold tracking-tight text-foreground">{uz.profile}</h1>
+    <main className="mx-auto min-h-screen max-w-lg bg-white px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">{uz.profile}</h1>
       <GuestProfileView onAuthSuccess={handleAuthSuccess} />
     </main>
   );

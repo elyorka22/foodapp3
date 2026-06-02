@@ -2,25 +2,21 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { dashboardPath, loginStaff, setAuth } from '@/lib/auth';
 import { uz } from '@/lib/uz';
 
 type Props = {
-  /** After login, go to role dashboard (default) or stay on page */
   redirect?: boolean;
   onSuccess?: () => void;
 };
 
-/**
- * Staff / admin login only — POST /api/v1/auth/login (users table).
- * Do not use for customer phone login (/customers/login).
- */
+/** Staff login — POST /auth/login (users table). Phone + password only. */
 export function StaffLoginForm({ redirect = true, onSuccess }: Props) {
   const router = useRouter();
-  const [loginId, setLoginId] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,43 +26,55 @@ export function StaffLoginForm({ redirect = true, onSuccess }: Props) {
     setLoading(true);
     setError('');
     try {
-      const res = await loginStaff(loginId, password);
+      const res = await loginStaff(phone, password);
       setAuth(res.accessToken, res.user);
       onSuccess?.();
       if (redirect) {
         router.replace(dashboardPath(res.user.role));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : uz.loginFailed);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={submit} className="space-y-3" id="staff-login-form" autoComplete="on">
-      <Input
-        type="text"
-        name="staff-login-id"
-        required
-        placeholder={uz.staffLoginIdPlaceholder}
-        value={loginId}
-        onChange={(e) => setLoginId(e.target.value)}
-        autoComplete="username"
-      />
-      <Input
-        type="password"
-        name="staff-password"
-        required
-        placeholder={uz.password}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        autoComplete="current-password"
-      />
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      <Button type="submit" size="lg" className="w-full gap-2" disabled={loading}>
-        <LayoutDashboard size={20} />
-        {loading ? uz.signingIn : uz.staffSignIn}
+    <form onSubmit={submit} className="space-y-4" autoComplete="on">
+      <div>
+        <label htmlFor="staff-phone" className="mb-2 block text-sm font-medium text-foreground">
+          {uz.phone}
+        </label>
+        <Input
+          id="staff-phone"
+          type="tel"
+          name="staff-phone"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder="+998 90 123 45 67"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="staff-password" className="mb-2 block text-sm font-medium text-foreground">
+          {uz.password}
+        </label>
+        <Input
+          id="staff-password"
+          type="password"
+          name="staff-password"
+          autoComplete="current-password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <Button type="submit" size="lg" className="min-h-[52px] w-full" disabled={loading}>
+        {loading ? uz.signingIn : uz.signIn}
       </Button>
     </form>
   );

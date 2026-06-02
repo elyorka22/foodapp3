@@ -12,19 +12,25 @@ type Props = {
   open: boolean;
   mode: AuthSheetMode;
   onClose: () => void;
+  onSwitchMode: (mode: AuthSheetMode) => void;
   onSuccess: (res: CustomerAuthResponse) => void;
 };
 
-export function CustomerAuthSheet({ open, mode, onClose, onSuccess }: Props) {
+export function CustomerAuthSheet({ open, mode, onClose, onSwitchMode, onSuccess }: Props) {
   const title = mode === 'login' ? uz.signIn : uz.register;
-  const subtitle = mode === 'login' ? uz.authSheetLoginSubtitle : uz.authSheetRegisterSubtitle;
 
   return (
-    <AuthBottomSheet open={open} onClose={onClose} title={title} subtitle={subtitle}>
+    <AuthBottomSheet open={open} onClose={onClose} title={title}>
       {mode === 'login' ? (
-        <CustomerAuthEntry compact showRegisterFooter={false} onSuccess={onSuccess} />
+        <CustomerAuthEntry
+          onSuccess={onSuccess}
+          onSwitchToRegister={() => onSwitchMode('register')}
+        />
       ) : (
-        <CustomerRegisterForm compact onSuccess={onSuccess} />
+        <CustomerRegisterForm
+          onSuccess={onSuccess}
+          onSwitchToLogin={() => onSwitchMode('login')}
+        />
       )}
     </AuthBottomSheet>
   );
