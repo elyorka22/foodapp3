@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
+import { useAdminAccess } from '@/hooks/use-admin-access';
 import { EmptyState, LoadingState, StatusBadge } from '@/components/admin/ui';
 import { SearchInput, DateRangeFilter } from '@/components/admin/filters';
 import { useAdminOrders } from '@/hooks/use-admin-orders';
@@ -28,9 +28,8 @@ export function AdminOrdersView({
   lockStatus = false,
   merchantColumnLabel,
 }: Props) {
-  const router = useRouter();
-  const user = getUser();
   const token = getToken();
+  const { ready, authorized } = useAdminAccess({ permission: 'orders' });
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [from, setFrom] = useState('');
@@ -53,10 +52,6 @@ export function AdminOrdersView({
     dateFrom: from || undefined,
     dateTo: to || undefined,
   });
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -96,6 +91,8 @@ export function AdminOrdersView({
     setCancelId(null);
   };
 
+  if (!ready) return <LoadingState label={t.loading} />;
+  if (!authorized) return null;
   if (list.isLoading) return <LoadingState label={t.loading} />;
 
   if (list.isError) {

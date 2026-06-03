@@ -1,17 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
+import { AdminPageGuard } from '@/components/admin/admin-page-guard';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { api } from '@/lib/api';
 import { DateRangeFilter, SearchInput } from '@/components/admin/filters';
 import { EmptyState, LoadingState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 
-export default function AdminAuditPage() {
-  const router = useRouter();
-  const user = getUser();
+function AdminAuditContent() {
   const token = getToken();
   const [page, setPage] = useState(1);
   const [entity, setEntity] = useState('');
@@ -19,10 +18,6 @@ export default function AdminAuditPage() {
   const [userId, setUserId] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   const params = new URLSearchParams();
   params.set('page', String(page));
@@ -120,5 +115,13 @@ export default function AdminAuditPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminAuditPage() {
+  return (
+    <AdminPageGuard permission="audit">
+      <AdminAuditContent />
+    </AdminPageGuard>
   );
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { businessWhereForVertical } from '../../domain/business/merchant-vertical';
 
 @Injectable()
 export class AnalyticsService {
@@ -23,7 +24,11 @@ export class AnalyticsService {
       this.getTopRestaurants(5),
     ]);
 
-    const [revenueTodayAgg, revenueMonthAgg, activeCouriers, activeRestaurants] = await Promise.all([
+    const restaurantWhere = businessWhereForVertical('restaurant') ?? {};
+    const storeWhere = businessWhereForVertical('store') ?? {};
+
+    const [revenueTodayAgg, revenueMonthAgg, activeCouriers, activeRestaurants, activeStores] =
+      await Promise.all([
       this.prisma.order.aggregate({
         where: {
           deletedAt: null,
@@ -41,7 +46,12 @@ export class AnalyticsService {
         _sum: { total: true },
       }),
       this.prisma.courier.count({ where: { isOnline: true, deletedAt: null } }),
-      this.prisma.business.count({ where: { isActive: true, deletedAt: null } }),
+      this.prisma.business.count({
+        where: { isActive: true, deletedAt: null, ...restaurantWhere },
+      }),
+      this.prisma.business.count({
+        where: { isActive: true, deletedAt: null, ...storeWhere },
+      }),
     ]);
 
     const recentOrdersRaw = await this.prisma.order.findMany({
@@ -107,6 +117,9 @@ export class AnalyticsService {
       revenueMonth: Number(revenueMonthAgg._sum.total ?? 0),
       activeCouriers,
       activeRestaurants,
+      activeStores,
+      topProducts,
+      topRestaurants,
       recentOrders: recentOrdersRaw.map((o) => ({
         id: o.id,
         orderNumber: o.orderNumber,

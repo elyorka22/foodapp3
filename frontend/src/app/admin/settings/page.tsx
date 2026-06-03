@@ -1,24 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { getToken, getUser } from '@/lib/auth';
+import { AdminPageGuard } from '@/components/admin/admin-page-guard';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminSettings, type AdminSettings } from '@/hooks/use-admin-settings';
 import { LoadingState, EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export default function AdminSettingsPage() {
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
+function AdminSettingsContent() {
   const { settings, save } = useAdminSettings();
   const [form, setForm] = useState<AdminSettings | null>(null);
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   useEffect(() => {
     if (settings.data) setForm(settings.data);
@@ -119,5 +112,13 @@ export default function AdminSettingsPage() {
         />
       </Section>
     </div>
+  );
+}
+
+export default function AdminSettingsPage() {
+  return (
+    <AdminPageGuard permission="settings">
+      <AdminSettingsContent />
+    </AdminPageGuard>
   );
 }

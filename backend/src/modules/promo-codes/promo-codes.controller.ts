@@ -40,7 +40,7 @@ export class PromoCodesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   create(@Body() dto: CreatePromoCodeDto) {
     return this.promoCodes.create(dto);
   }
@@ -48,7 +48,7 @@ export class PromoCodesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   update(@Param('id') id: string, @Body() dto: Partial<CreatePromoCodeDto>) {
     return this.promoCodes.update(id, dto);
   }
@@ -56,7 +56,7 @@ export class PromoCodesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   remove(@Param('id') id: string) {
     return this.promoCodes.remove(id);
   }

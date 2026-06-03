@@ -47,7 +47,7 @@ export class CouriersController {
   }
 
   @Post()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   create(@Body() dto: CreateCourierDto, @CurrentUser() user: JwtPayload) {
     return this.couriers.create(dto, user.sub);
   }
@@ -108,7 +108,7 @@ export class CouriersController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   update(@Param('id') id: string, @Body() dto: UpdateCourierDto) {
     return this.couriers.update(id, dto);
   }

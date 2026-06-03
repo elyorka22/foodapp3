@@ -60,7 +60,7 @@ export function dashboardPath(role: string): string {
     case 'SUPER_ADMIN':
       return '/admin';
     case 'MANAGER':
-      return '/manager';
+      return '/admin';
     case 'BUSINESS':
     case 'RESTAURANT_OWNER':
     case 'RESTAURANT_STAFF':

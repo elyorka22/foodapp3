@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
+import { useAdminAccess } from '@/hooks/use-admin-access';
 import { CategoryPanel } from '@/components/admin/category-panel';
 import { EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
@@ -17,15 +18,11 @@ type Props = {
 };
 
 export function MerchantCategoriesPage({ title, vertical, listHref }: Props) {
-  const router = useRouter();
-  const user = getUser();
   const token = getToken();
+  const permission = vertical === 'store' ? 'store.categories' : 'restaurant.categories';
+  const { ready, authorized } = useAdminAccess({ permission });
   const [merchants, setMerchants] = useState<{ id: string; name: string }[]>([]);
   const [merchantId, setMerchantId] = useState('');
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   useEffect(() => {
     if (!token) return;
@@ -53,6 +50,9 @@ export function MerchantCategoriesPage({ title, vertical, listHref }: Props) {
   }, [token, vertical]);
 
   const selected = merchants.find((r) => r.id === merchantId);
+
+  if (!ready) return null;
+  if (!authorized) return null;
 
   return (
     <div className="space-y-4">

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { getToken, getUser } from '@/lib/auth';
+import { useAdminAccess } from '@/hooks/use-admin-access';
 import { api } from '@/lib/api';
 import {
   useAdminUsers,
@@ -19,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminI18n as t } from '@/lib/admin-i18n';
 
-const ROLES: { value: StaffRole; label: string }[] = [
+const ALL_ROLES: { value: StaffRole; label: string }[] = [
   { value: 'SUPER_ADMIN', label: t.staff.roleSuperAdmin },
   { value: 'MANAGER', label: t.staff.roleManager },
   { value: 'BUSINESS', label: t.staff.roleBusiness },
@@ -38,7 +39,7 @@ const emptyForm: CreateStaffUserForm = {
 };
 
 const ROLE_LABEL: Record<StaffRole, string> = Object.fromEntries(
-  ROLES.map((r) => [r.value, r.label]),
+  ALL_ROLES.map((r) => [r.value, r.label]),
 ) as Record<StaffRole, string>;
 
 function merchantName(row: StaffUser) {
@@ -49,6 +50,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const currentUser = getUser();
   const token = getToken();
+  const { ready, authorized, isManager } = useAdminAccess({ permission: 'staff' });
   const [roleFilter, setRoleFilter] = useState<StaffRole | ''>('');
   const [createOpen, setCreateOpen] = useState(false);
   const [editRow, setEditRow] = useState<StaffUser | null>(null);
@@ -59,17 +61,16 @@ export default function AdminUsersPage() {
   const { list, create, update } = useAdminUsers(roleFilter || undefined);
 
   useEffect(() => {
-    if (!token || currentUser?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, currentUser, router]);
-
-  useEffect(() => {
     if (!token) return;
     api<{ data: { id: string; name: string }[] }>('/restaurants/admin?limit=100', { token })
       .then((res) => setRestaurants(res.data ?? []))
       .catch(() => undefined);
   }, [token]);
 
-  const rows = list.data ?? [];
+  const creatableRoles = isManager
+    ? ALL_ROLES.filter((r) => r.value !== 'SUPER_ADMIN')
+    : ALL_ROLES;
+  const rows = (list.data ?? []).filter((r) => !isManager || r.role !== 'SUPER_ADMIN');
   const needsBusiness = BUSINESS_ROLES.includes(form.role);
 
   const submitCreate = async () => {
@@ -142,6 +143,8 @@ export default function AdminUsersPage() {
     }
   };
 
+  if (!ready) return <LoadingState label={t.loading} />;
+  if (!authorized) return null;
   if (list.isLoading) return <LoadingState label={t.loading} />;
 
   return (
@@ -164,7 +167,7 @@ export default function AdminUsersPage() {
           onChange={(e) => setRoleFilter(e.target.value as StaffRole | '')}
         >
           <option value="">{t.staff.allRoles}</option>
-          {ROLES.map((r) => (
+          {creatableRoles.map((r) => (
             <option key={r.value} value={r.value}>
               {r.label}
             </option>
@@ -299,7 +302,7 @@ export default function AdminUsersPage() {
                 })
               }
             >
-              {ROLES.map((r) => (
+              {creatableRoles.map((r) => (
                 <option key={r.value} value={r.value}>
                   {r.label}
                 </option>

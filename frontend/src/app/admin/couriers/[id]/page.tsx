@@ -1,25 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { getToken, getUser } from '@/lib/auth';
+import { useParams } from 'next/navigation';
+import { useAdminAccess } from '@/hooks/use-admin-access';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminCourier } from '@/hooks/use-admin-couriers';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { StatusBadge, StatCard, EmptyState, LoadingState } from '@/components/admin/ui';
 
 export default function AdminCourierDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
+  const { ready, authorized } = useAdminAccess({ permission: 'couriers' });
   const { detail, history } = useAdminCourier(id);
 
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
+  if (!ready) return <LoadingState label={t.loading} />;
+  if (!authorized) return null;
 
-  if (detail.isLoading) return <LoadingState label="Loading courier..." />;
+  if (detail.isLoading) return <LoadingState label={t.loading} />;
 
   if (detail.isError || !detail.data) {
     return (

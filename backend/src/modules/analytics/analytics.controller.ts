@@ -14,7 +14,7 @@ export class AnalyticsController {
   constructor(private analytics: AnalyticsService) {}
 
   @Get('dashboard')
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   dashboard() {
     return this.analytics.getAdminDashboard();
   }

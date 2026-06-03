@@ -27,7 +27,7 @@ export class ProductsController {
   @Post('bulk')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   bulk(@Body() dto: BulkProductsDto, @CurrentUser() user: JwtPayload) {
     return this.products.bulk(dto, user);
   }
@@ -43,7 +43,7 @@ export class ProductsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   create(@Body() dto: CreateProductDto, @CurrentUser() user: JwtPayload) {
     return this.products.create(dto, user);
   }
@@ -51,7 +51,7 @@ export class ProductsController {
   @Post(':id/image')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   addImage(@Param('id') id: string, @Body() dto: ProductImageDto, @CurrentUser() user: JwtPayload) {
     return this.products.addImage(id, dto.url, user);
   }
@@ -59,7 +59,7 @@ export class ProductsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   update(@Param('id') id: string, @Body() dto: Partial<CreateProductDto>, @CurrentUser() user: JwtPayload) {
     return this.products.update(id, dto, user);
   }
@@ -67,7 +67,7 @@ export class ProductsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.products.softDelete(id, user);
   }

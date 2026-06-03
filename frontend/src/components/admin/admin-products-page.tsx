@@ -10,7 +10,8 @@ import {
 } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
+import { useAdminAccess } from '@/hooks/use-admin-access';
 import { uploadImage } from '@/lib/upload';
 import { useAdminProducts, type ProductForm } from '@/hooks/use-admin-products';
 import { adminI18n } from '@/lib/admin-i18n';
@@ -50,9 +51,9 @@ type Props = {
 };
 
 export function AdminProductsPage({ vertical }: Props) {
-  const router = useRouter();
-  const user = getUser();
   const token = getToken();
+  const menuPermission = vertical === 'store' ? 'store.products' : 'restaurant.menu';
+  const { ready, authorized } = useAdminAccess({ permission: menuPermission });
   const [search, setSearch] = useState('');
   const [restaurantId, setRestaurantId] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -80,10 +81,6 @@ export function AdminProductsPage({ vertical }: Props) {
   });
 
   const { list: categories } = useAdminCategories(form.restaurantId || restaurantId || undefined);
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   useEffect(() => {
     if (!token) return;
@@ -386,6 +383,8 @@ export function AdminProductsPage({ vertical }: Props) {
     </div>
   );
 
+  if (!ready) return <TableSkeleton rows={8} cols={8} />;
+  if (!authorized) return null;
   if (list.isLoading) return <TableSkeleton rows={8} cols={8} />;
 
   if (list.isError) {

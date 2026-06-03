@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { getToken, getUser } from '@/lib/auth';
+import { useAdminAccess } from '@/hooks/use-admin-access';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminPromoCodes, type PromoCodeForm } from '@/hooks/use-admin-promo-codes';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
@@ -21,18 +21,12 @@ const emptyForm: PromoCodeForm = {
 };
 
 export default function AdminPromoCodesPage() {
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
+  const { ready, authorized } = useAdminAccess({ permission: 'promotions' });
   const { list, create, update, remove } = useAdminPromoCodes();
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<PromoCodeForm>(emptyForm);
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   const openCreate = () => {
     setEditId(null);
@@ -83,11 +77,14 @@ export default function AdminPromoCodesPage() {
     }
   };
 
+  if (!ready) return <TableSkeleton cols={6} rows={5} />;
+  if (!authorized) return null;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Promo Codes</h1>
-        <Button onClick={openCreate}>Add promo</Button>
+        <h1 className="text-xl font-bold">{t.nav.promotions}</h1>
+        <Button onClick={openCreate}>{t.create}</Button>
       </div>
 
       {list.isLoading ? (

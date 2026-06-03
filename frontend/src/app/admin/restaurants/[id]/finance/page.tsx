@@ -1,30 +1,29 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useAdminAccess } from '@/hooks/use-admin-access';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { StatCard, LoadingState, EmptyState } from '@/components/admin/ui';
 
 export default function RestaurantFinancePage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
-  const user = getUser();
+  const { ready, authorized } = useAdminAccess({ permission: 'restaurants' });
   const token = getToken();
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['restaurant-finance', id],
     queryFn: () => api<any>(`/restaurants/${id}/finance`, { token: token ?? undefined }),
-    enabled: !!token && !!id,
+    enabled: !!token && !!id && authorized,
   });
 
-  if (isLoading) return <LoadingState label="Loading finance data..." />;
+  if (!ready) return <LoadingState label={t.loading} />;
+  if (!authorized) return null;
+
+  if (isLoading) return <LoadingState label={t.loading} />;
 
   if (isError || !data) {
     return (

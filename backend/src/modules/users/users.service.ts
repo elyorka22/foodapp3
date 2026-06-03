@@ -11,6 +11,7 @@ import { AuthService } from '../auth/auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { normalizePhone } from '../../common/utils/phone.util';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
 
 const BUSINESS_ROLES: UserRole[] = [UserRole.BUSINESS];
 
@@ -21,7 +22,16 @@ export class UsersService {
     private auth: AuthService,
   ) {}
 
-  async create(dto: CreateUserDto) {
+  private assertManagerCanManageRole(actor: JwtPayload | undefined, targetRole: UserRole) {
+    if (actor?.role !== UserRole.MANAGER) return;
+    if (targetRole === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Managers cannot manage super admin accounts');
+    }
+  }
+
+  async create(dto: CreateUserDto, actor?: JwtPayload) {
+    this.assertManagerCanManageRole(actor, dto.role);
+
     const email = dto.email.trim().toLowerCase();
     const phone = dto.phone?.trim() ? normalizePhone(dto.phone) : null;
 
@@ -88,9 +98,18 @@ export class UsersService {
     );
   }
 
-  async findAll(role?: UserRole) {
+  async findAll(role?: UserRole, actor?: JwtPayload) {
+    if (actor?.role === UserRole.MANAGER && role === UserRole.SUPER_ADMIN) {
+      return [];
+    }
+
     const users = await this.prisma.user.findMany({
-      where: { deletedAt: null, ...(role && { role }) },
+      where: {
+        deletedAt: null,
+        ...(actor?.role === UserRole.MANAGER
+          ? { role: role ? role : { not: UserRole.SUPER_ADMIN } }
+          : role && { role }),
+      },
       include: {
         businessStaff: {
           where: { deletedAt: null },
@@ -103,7 +122,7 @@ export class UsersService {
     return users.map((u) => this.serializeUser(u));
   }
 
-  async update(id: string, dto: UpdateUserDto, actorUserId: string) {
+  async update(id: string, dto: UpdateUserDto, actor: JwtPayload) {
     const user = await this.prisma.user.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -116,7 +135,9 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('User not found');
 
-    if (dto.isActive === false && user.id === actorUserId) {
+    this.assertManagerCanManageRole(actor, user.role);
+
+    if (dto.isActive === false && user.id === actor.sub) {
       throw new ForbiddenException('You cannot block your own account');
     }
 

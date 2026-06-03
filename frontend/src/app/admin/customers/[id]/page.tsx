@@ -1,28 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { getToken, getUser } from '@/lib/auth';
+import { AdminPageGuard } from '@/components/admin/admin-page-guard';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminCustomer, useAdminCustomers } from '@/hooks/use-admin-customers';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { StatusBadge, StatCard, EmptyState, LoadingState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 
-export default function AdminCustomerDetailPage() {
+function AdminCustomerDetailContent() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
   const { detail } = useAdminCustomer(id);
   const { updateStatus } = useAdminCustomers({ page: 1, limit: 1 });
 
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
-
-  if (detail.isLoading) return <LoadingState label="Loading customer..." />;
+  if (detail.isLoading) return <LoadingState label={t.loading} />;
 
   if (detail.isError || !detail.data) {
     return (
@@ -149,5 +142,13 @@ export default function AdminCustomerDetailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminCustomerDetailPage() {
+  return (
+    <AdminPageGuard permission="customers">
+      <AdminCustomerDetailContent />
+    </AdminPageGuard>
   );
 }

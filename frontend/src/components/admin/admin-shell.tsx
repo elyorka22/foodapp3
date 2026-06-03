@@ -7,9 +7,9 @@ import { ChevronDown, ExternalLink, LogOut, Menu } from 'lucide-react';
 import { NotificationsBell } from '@/components/admin/notifications-bell';
 import { clsx } from 'clsx';
 import { clearAuth, getUser } from '@/lib/auth';
-import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { ADMIN_LEGACY_REDIRECTS, ADMIN_NAV_GROUPS } from '@/lib/admin-nav';
+import { ADMIN_LEGACY_REDIRECTS, getAdminNavForRole } from '@/lib/admin-nav';
+import { useAdminAccess } from '@/hooks/use-admin-access';
 import { adminI18n as t } from '@/lib/admin-i18n';
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   const user = useMemo(() => getUser(), []);
-  const { ready, authorized } = useRequireStaffRole({ roles: 'SUPER_ADMIN' });
+  const { ready, authorized, isManager } = useAdminAccess();
+  const navGroups = useMemo(() => getAdminNavForRole(user?.role), [user?.role]);
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -32,14 +33,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const next: Record<string, boolean> = {};
-    for (const group of ADMIN_NAV_GROUPS) {
+    for (const group of navGroups) {
       const active = group.items.some(
         (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
       );
       if (active) next[group.id] = true;
     }
     setOpenGroups((prev) => ({ ...prev, ...next }));
-  }, [pathname]);
+  }, [pathname, navGroups]);
 
   const logout = () => {
     clearAuth();
@@ -74,7 +75,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <Menu size={18} />
             </button>
             <Link href="/admin" className="font-bold text-primary">
-              {t.appName}
+              {isManager ? t.managerAppName : t.appName}
             </Link>
           </div>
 
@@ -108,7 +109,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-[272px_1fr]">
         <aside className="hidden border-r bg-white md:sticky md:top-[57px] md:block md:h-[calc(100vh-57px)] md:overflow-y-auto dark:border-white/10 dark:bg-zinc-900/50">
-          <AdminSidebar pathname={pathname} openGroups={openGroups} onToggle={toggleGroup} />
+          <AdminSidebar
+            pathname={pathname}
+            openGroups={openGroups}
+            onToggle={toggleGroup}
+            navGroups={navGroups}
+          />
         </aside>
 
         <main className="min-w-0 p-4 md:p-6">{children}</main>
@@ -132,7 +138,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <ExternalLink size={16} />
               {t.backToSite}
             </Link>
-            <AdminSidebar pathname={pathname} openGroups={openGroups} onToggle={toggleGroup} />
+            <AdminSidebar
+            pathname={pathname}
+            openGroups={openGroups}
+            onToggle={toggleGroup}
+            navGroups={navGroups}
+          />
           </div>
         </div>
       )}
@@ -144,14 +155,16 @@ function AdminSidebar({
   pathname,
   openGroups,
   onToggle,
+  navGroups,
 }: {
   pathname: string;
   openGroups: Record<string, boolean>;
   onToggle: (id: string) => void;
+  navGroups: ReturnType<typeof getAdminNavForRole>;
 }) {
   return (
     <nav className="space-y-1 p-2">
-      {ADMIN_NAV_GROUPS.map((group) => {
+      {navGroups.map((group) => {
         const isOpen = openGroups[group.id] ?? false;
         const groupActive = group.items.some(
           (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),

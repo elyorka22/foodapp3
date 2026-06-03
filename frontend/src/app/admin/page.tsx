@@ -1,89 +1,88 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { LoadingState, StatCard, EmptyState, StatusBadge } from '@/components/admin/ui';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import Link from 'next/link';
+import { useAdminAccess } from '@/hooks/use-admin-access';
+import { adminI18n as t } from '@/lib/admin-i18n';
+
+type DashboardData = {
+  todayOrders: number;
+  pendingOrders: number;
+  deliveredOrders: number;
+  cancelledOrders: number;
+  revenueToday: number;
+  revenueMonth: number;
+  activeCouriers: number;
+  activeRestaurants: number;
+  activeStores: number;
+  recentOrders: Array<{
+    id: string;
+    orderNumber: string;
+    status: string;
+    total: number;
+    createdAt: string;
+    restaurant?: { name: string };
+    guestOrder?: { phone: string; deliveryAddress: string };
+    courier?: { fullName: string } | null;
+  }>;
+  revenueChart: Array<{ date: string; value: number }>;
+  ordersChart: Array<{ date: string; value: number }>;
+  topProducts: Array<{ name: string; quantity: number; revenue: number }>;
+  topRestaurants: Array<{ name: string; orderCount: number; revenue: number }>;
+};
 
 export default function AdminPage() {
-  const router = useRouter();
-  const user = getUser();
   const token = getToken();
+  const { ready, authorized } = useAdminAccess({ permission: 'dashboard' });
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin-dashboard'],
-    queryFn: () =>
-      api<{
-        todayOrders: number;
-        pendingOrders: number;
-        deliveredOrders: number;
-        cancelledOrders: number;
-        revenueToday: number;
-        revenueMonth: number;
-        activeCouriers: number;
-        activeRestaurants: number;
-        recentOrders: Array<{
-          id: string;
-          orderNumber: string;
-          status: string;
-          total: number;
-          createdAt: string;
-          restaurant?: { name: string };
-          guestOrder?: { phone: string; deliveryAddress: string };
-          courier?: { fullName: string } | null;
-        }>;
-        revenueChart: Array<{ date: string; value: number }>;
-        ordersChart: Array<{ date: string; value: number }>;
-        topProducts: Array<{ name: string; quantity: number; revenue: number }>;
-        topRestaurants: Array<{ name: string; orderCount: number; revenue: number }>;
-      }>('/analytics/dashboard', { token: token ?? undefined }),
-    enabled: !!token,
+    queryFn: () => api<DashboardData>('/analytics/dashboard', { token: token ?? undefined }),
+    enabled: !!token && authorized,
   });
 
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
-
-  if (isLoading) return <LoadingState label="Loading dashboard..." />;
+  if (!ready) return <LoadingState label={t.loading} />;
+  if (!authorized) return null;
+  if (isLoading) return <LoadingState label={t.loading} />;
 
   if (isError) {
     return (
       <EmptyState
-        title="Failed to load dashboard"
-        description={error instanceof Error ? error.message : 'Unknown error'}
+        title={t.noData}
+        description={error instanceof Error ? error.message : ''}
         action={
-          <button
-            type="button"
-            className="text-sm font-semibold text-brand-600"
-            onClick={() => refetch()}
-          >
-            Retry
+          <button type="button" className="text-sm font-semibold text-brand-600" onClick={() => refetch()}>
+            {t.search}
           </button>
         }
       />
     );
   }
 
-  if (!data) return <EmptyState title="No data" description="Dashboard data not available." />;
+  if (!data) return <EmptyState title={t.noData} description="" />;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
-        <StatCard label="Today Orders" value={data.todayOrders} />
-        <StatCard label="Pending" value={data.pendingOrders} />
-        <StatCard label="Delivered" value={data.deliveredOrders} />
-        <StatCard label="Cancelled" value={data.cancelledOrders} />
-        <StatCard label="Revenue Today" value={`${data.revenueToday.toLocaleString()} UZS`} />
-        <StatCard label="Revenue Month" value={`${data.revenueMonth.toLocaleString()} UZS`} />
-        <StatCard label="Active Couriers" value={data.activeCouriers} subLabel={`Restaurants: ${data.activeRestaurants}`} />
+      <h1 className="text-xl font-bold">{t.nav.dashboard}</h1>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        <StatCard label={t.dashboard.todayOrders} value={data.todayOrders} />
+        <StatCard label={t.dashboard.activeOrders} value={data.pendingOrders} />
+        <StatCard label={t.dashboard.completedOrders} value={data.deliveredOrders} />
+        <StatCard label={t.dashboard.cancelledOrders} value={data.cancelledOrders} />
+        <StatCard label={t.dashboard.revenueToday} value={`${data.revenueToday.toLocaleString()} UZS`} />
+        <StatCard label={t.dashboard.revenueMonth} value={`${data.revenueMonth.toLocaleString()} UZS`} />
+        <StatCard label={t.dashboard.activeRestaurants} value={data.activeRestaurants} />
+        <StatCard label={t.dashboard.activeStores} value={data.activeStores ?? 0} />
+        <StatCard label={t.dashboard.activeCouriers} value={data.activeCouriers} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <ChartCard title="Revenue (last 30 days)">
+        <ChartCard title={t.dashboard.revenueChart}>
           <ResponsiveContainer width="100%" height={240}>
             <AreaChart data={data.revenueChart}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
@@ -94,7 +93,7 @@ export default function AdminPage() {
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
-        <ChartCard title="Orders (last 30 days)">
+        <ChartCard title={t.dashboard.ordersChart}>
           <ResponsiveContainer width="100%" height={240}>
             <AreaChart data={data.ordersChart}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
@@ -109,9 +108,9 @@ export default function AdminPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-          <h2 className="mb-3 font-semibold">Top products</h2>
+          <h2 className="mb-3 font-semibold">{t.dashboard.topProducts}</h2>
           {!data.topProducts?.length ? (
-            <p className="text-sm opacity-60">No data yet.</p>
+            <p className="text-sm opacity-60">{t.noData}</p>
           ) : (
             <ul className="space-y-2 text-sm">
               {data.topProducts.map((p) => (
@@ -126,9 +125,9 @@ export default function AdminPage() {
           )}
         </div>
         <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-          <h2 className="mb-3 font-semibold">Top restaurants</h2>
+          <h2 className="mb-3 font-semibold">{t.dashboard.topRestaurants}</h2>
           {!data.topRestaurants?.length ? (
-            <p className="text-sm opacity-60">No data yet.</p>
+            <p className="text-sm opacity-60">{t.noData}</p>
           ) : (
             <ul className="space-y-2 text-sm">
               {data.topRestaurants.map((r) => (
@@ -146,33 +145,29 @@ export default function AdminPage() {
 
       <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold">Recent orders</h2>
-          <Link href="/admin/orders" className="text-sm font-semibold text-brand-600">
-            View all →
+          <h2 className="font-semibold">{t.dashboard.recentOrders}</h2>
+          <Link href="/admin/orders/all" className="text-sm font-semibold text-brand-600">
+            {t.nav.allOrders} →
           </Link>
         </div>
         {!data.recentOrders.length ? (
-          <p className="text-sm opacity-60">No orders yet.</p>
+          <p className="text-sm opacity-60">{t.noData}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs opacity-60">
                 <tr>
-                  <th className="py-2 pr-3">Order</th>
-                  <th className="py-2 pr-3">Restaurant</th>
-                  <th className="py-2 pr-3">Phone</th>
-                  <th className="py-2 pr-3">Status</th>
-                  <th className="py-2 pr-3">Total</th>
+                  <th className="py-2 pr-3">{t.orders.orderNumber}</th>
+                  <th className="py-2 pr-3">{t.orders.merchant}</th>
+                  <th className="py-2 pr-3">{t.orders.customer}</th>
+                  <th className="py-2 pr-3">{t.orders.status}</th>
+                  <th className="py-2 pr-3">{t.orders.total}</th>
                 </tr>
               </thead>
               <tbody>
                 {data.recentOrders.map((o) => (
                   <tr key={o.id} className="border-t dark:border-white/10">
-                    <td className="py-2 pr-3 font-mono text-xs">
-                      <Link href={`/admin/orders?open=${o.id}`} className="text-brand-600">
-                        {o.orderNumber}
-                      </Link>
-                    </td>
+                    <td className="py-2 pr-3 font-mono text-xs">{o.orderNumber}</td>
                     <td className="py-2 pr-3">{o.restaurant?.name}</td>
                     <td className="py-2 pr-3">{o.guestOrder?.phone}</td>
                     <td className="py-2 pr-3">

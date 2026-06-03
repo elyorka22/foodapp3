@@ -30,7 +30,7 @@ export class BannersController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   create(@Body() dto: CreateBannerDto, @CurrentUser() user: JwtPayload) {
     return this.banners.create(dto, user);
   }
@@ -38,7 +38,7 @@ export class BannersController {
   @Put('admin/reorder')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   reorder(@Body() body: { ids: string[] }) {
     return this.banners.reorder(body.ids);
   }
@@ -46,7 +46,7 @@ export class BannersController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   update(@Param('id') id: string, @Body() dto: UpdateBannerDto, @CurrentUser() user: JwtPayload) {
     return this.banners.update(id, dto, user);
   }
@@ -54,7 +54,7 @@ export class BannersController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.banners.softDelete(id, user);
   }

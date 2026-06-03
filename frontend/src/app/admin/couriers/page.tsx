@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { getToken, getUser } from '@/lib/auth';
+import { useAdminAccess } from '@/hooks/use-admin-access';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminCouriers, type CourierForm } from '@/hooks/use-admin-couriers';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { Modal } from '@/components/admin/modal';
@@ -23,9 +23,7 @@ const emptyForm: CourierForm & { password: string } = {
 };
 
 export default function AdminCouriersPage() {
-  const router = useRouter();
-  const user = getUser();
-  const token = getToken();
+  const { ready, authorized } = useAdminAccess({ permission: 'couriers' });
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   const [onlineFilter, setOnlineFilter] = useState('');
@@ -44,10 +42,6 @@ export default function AdminCouriersPage() {
     isActive,
     isOnline,
   });
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   const rows = list.data?.data ?? [];
   const totalPages = list.data?.meta?.totalPages ?? 1;
@@ -122,13 +116,16 @@ export default function AdminCouriersPage() {
     </div>
   );
 
+  if (!ready) return <TableSkeleton rows={8} cols={7} />;
+  if (!authorized) return null;
+
   if (list.isLoading) return <TableSkeleton rows={8} cols={7} />;
 
   if (list.isError) {
     return (
       <EmptyState
-        title="Failed to load couriers"
-        description={list.error instanceof Error ? list.error.message : 'Unknown error'}
+        title={t.noData}
+        description={list.error instanceof Error ? list.error.message : ''}
       />
     );
   }
@@ -136,9 +133,9 @@ export default function AdminCouriersPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold">Couriers</h1>
+        <h1 className="text-lg font-semibold">{t.nav.couriers}</h1>
         <Button type="button" onClick={() => { setForm(emptyForm); setCreateOpen(true); }}>
-          Add courier
+          {t.create}
         </Button>
       </div>
 

@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { useAdminAccess } from '@/hooks/use-admin-access';
+import { adminI18n as t } from '@/lib/admin-i18n';
+import { LoadingState } from '@/components/admin/ui';
 import { uploadImage } from '@/lib/upload';
 import { catalogModeLabel } from '@/lib/business-catalog-mode';
 import { useAdminBusinessTypes } from '@/hooks/use-admin-business-types';
@@ -40,6 +43,7 @@ const emptyForm: RestaurantForm = {
 };
 
 export default function AdminStoresPage() {
+  const { ready, authorized } = useAdminAccess({ permission: 'stores' });
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
@@ -133,6 +137,9 @@ export default function AdminStoresPage() {
       coverPositionY: Number(row.coverPositionY ?? 50),
     });
   };
+
+  if (!ready) return <LoadingState label={t.loading} />;
+  if (!authorized) return null;
 
   if (list.isLoading) return <TableSkeleton rows={8} cols={6} />;
 

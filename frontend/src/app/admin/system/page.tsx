@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { AdminPageGuard } from '@/components/admin/admin-page-guard';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { LoadingState, StatCard, EmptyState } from '@/components/admin/ui';
 
 function StatusDot({ ok }: { ok: boolean }) {
@@ -13,14 +13,8 @@ function StatusDot({ ok }: { ok: boolean }) {
   );
 }
 
-export default function AdminSystemPage() {
-  const router = useRouter();
-  const user = getUser();
+function AdminSystemContent() {
   const token = getToken();
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin-system'],
@@ -80,5 +74,13 @@ export default function AdminSystemPage() {
         <StatCard label="Last check" value={new Date(data.timestamp).toLocaleTimeString()} />
       </div>
     </div>
+  );
+}
+
+export default function AdminSystemPage() {
+  return (
+    <AdminPageGuard permission="system">
+      <AdminSystemContent />
+    </AdminPageGuard>
   );
 }

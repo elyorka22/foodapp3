@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
+import { useAdminAccess } from '@/hooks/use-admin-access';
 import { uploadImage } from '@/lib/upload';
 import { useAdminRestaurants, type RestaurantForm } from '@/hooks/use-admin-restaurants';
 import { ActiveBadge } from '@/components/admin/active-badge';
@@ -119,9 +120,8 @@ function RestaurantFormFields({
 }
 
 export default function AdminRestaurantsPage() {
-  const router = useRouter();
-  const user = getUser();
   const token = getToken();
+  const { ready, authorized } = useAdminAccess({ permission: 'restaurants' });
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string>('');
   const [page, setPage] = useState(1);
@@ -139,10 +139,6 @@ export default function AdminRestaurantsPage() {
     isActive: isActiveFilter,
     vertical: 'restaurant',
   });
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   const rows = list.data?.data ?? [];
   const totalPages = list.data?.meta?.totalPages ?? 1;
@@ -220,6 +216,8 @@ export default function AdminRestaurantsPage() {
     });
   };
 
+  if (!ready) return <TableSkeleton rows={8} cols={7} />;
+  if (!authorized) return null;
   if (list.isLoading) return <TableSkeleton rows={8} cols={7} />;
 
   if (list.isError) {

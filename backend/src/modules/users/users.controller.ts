@@ -13,18 +13,18 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
-@Roles(UserRole.SUPER_ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
 export class UsersController {
   constructor(private users: UsersService) {}
 
   @Get()
-  findAll(@Query('role') role?: UserRole) {
-    return this.users.findAll(role);
+  findAll(@Query('role') role?: UserRole, @CurrentUser() actor?: JwtPayload) {
+    return this.users.findAll(role, actor);
   }
 
   @Post()
-  create(@Body() dto: CreateUserDto) {
-    return this.users.create(dto);
+  create(@Body() dto: CreateUserDto, @CurrentUser() actor: JwtPayload) {
+    return this.users.create(dto, actor);
   }
 
   @Patch(':id')
@@ -33,6 +33,6 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @CurrentUser() actor: JwtPayload,
   ) {
-    return this.users.update(id, dto, actor.sub);
+    return this.users.update(id, dto, actor);
   }
 }

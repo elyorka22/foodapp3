@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
+import { useAdminAccess } from '@/hooks/use-admin-access';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { toast } from 'sonner';
 import { useAdminRestaurant, useAdminRestaurants } from '@/hooks/use-admin-restaurants';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,7 @@ import { StatusBadge, StatCard, EmptyState, LoadingState } from '@/components/ad
 
 export default function AdminRestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
-  const user = getUser();
+  const { ready, authorized } = useAdminAccess({ permission: 'restaurants' });
   const token = getToken();
   const { detail, stats } = useAdminRestaurant(id);
   const { updateApproval } = useAdminRestaurants({ page: 1, limit: 1 });
@@ -27,9 +27,8 @@ export default function AdminRestaurantDetailPage() {
     enabled: !!token && !!id,
   });
 
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
+  if (!ready) return <LoadingState label={t.loading} />;
+  if (!authorized) return null;
 
   if (detail.isLoading || stats.isLoading) {
     return <LoadingState label="Loading restaurant..." />;

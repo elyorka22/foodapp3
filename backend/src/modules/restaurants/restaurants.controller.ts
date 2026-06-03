@@ -74,7 +74,7 @@ export class RestaurantsController {
   @Post(':id/working-hours')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   setWorkingHours(
     @Param('id') id: string,
     @Body() dto: SetWorkingHoursDto,
@@ -96,7 +96,7 @@ export class RestaurantsController {
   @Post(':id/holidays')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   addHoliday(
     @Param('id') id: string,
     @Body() dto: AddHolidayDto,
@@ -109,7 +109,7 @@ export class RestaurantsController {
   @Delete(':id/holidays/:holidayId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   removeHoliday(
     @Param('id') id: string,
     @Param('holidayId') holidayId: string,
@@ -139,7 +139,7 @@ export class RestaurantsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   create(@Body() dto: CreateRestaurantDto, @CurrentUser() user: JwtPayload) {
     return this.restaurants.create(dto, user);
   }
@@ -159,7 +159,7 @@ export class RestaurantsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   update(
     @Param('id') id: string,
     @Body() dto: UpdateRestaurantDto,
@@ -171,7 +171,7 @@ export class RestaurantsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.restaurants.softDelete(id, user);
   }

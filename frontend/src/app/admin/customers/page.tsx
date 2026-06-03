@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { getToken, getUser } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
+import { AdminPageGuard } from '@/components/admin/admin-page-guard';
+import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminCustomers } from '@/hooks/use-admin-customers';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { SearchInput } from '@/components/admin/filters';
@@ -13,8 +14,6 @@ import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 
 export default function AdminCustomersPage() {
-  const router = useRouter();
-  const user = getUser();
   const token = getToken();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
@@ -29,10 +28,6 @@ export default function AdminCustomersPage() {
     search: search || undefined,
     isActive,
   });
-
-  useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
-  }, [token, user, router]);
 
   const rows = list.data?.data ?? [];
   const totalPages = list.data?.meta?.totalPages ?? 1;
@@ -58,8 +53,9 @@ export default function AdminCustomersPage() {
   }
 
   return (
+    <AdminPageGuard permission="customers">
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Customers</h1>
+      <h1 className="text-lg font-semibold">{t.nav.customers}</h1>
 
       <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <div className="grid gap-3 md:grid-cols-3">
@@ -137,5 +133,6 @@ export default function AdminCustomersPage() {
         </div>
       )}
     </div>
+    </AdminPageGuard>
   );
 }
