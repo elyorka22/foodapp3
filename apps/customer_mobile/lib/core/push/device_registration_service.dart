@@ -8,6 +8,7 @@ import '../network/dio_client.dart';
 import '../storage/storage_providers.dart';
 import '../storage/token_storage.dart';
 import 'device_id_storage.dart';
+import 'push_notification_service.dart';
 import 'push_providers.dart';
 
 final deviceRegistrationRepositoryProvider = Provider<DeviceRegistrationRepository>((ref) {
