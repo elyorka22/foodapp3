@@ -1,24 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import {
-  Briefcase,
-  FileText,
-  Globe,
-  Heart,
-  HelpCircle,
-  MapPin,
-  Package,
-  Sparkles,
-  UserRound,
-} from 'lucide-react';
+import { useState } from 'react';
+import { Heart, MapPin, Package, Sparkles, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CustomerAuthSheet, type AuthSheetMode } from '@/components/auth/customer-auth-sheet';
-import { ProfileMenuRow } from '@/components/profile/profile-menu-row';
+import { ProfileInfoHelpSection } from '@/components/profile/profile-info-help-section';
+import { ProfileStaffLoginButton } from '@/components/profile/profile-staff-login-button';
 import type { CustomerAuthResponse } from '@/lib/customer-auth';
-import { getLocale, setLocale, type AppLocale } from '@/lib/locale';
 import { uz } from '@/lib/uz';
 
 type Props = {
@@ -35,12 +24,6 @@ const benefits = [
 export function GuestProfileView({ onAuthSuccess }: Props) {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthSheetMode>('login');
-  const [locale, setLocaleState] = useState<AppLocale>('uz');
-
-  useEffect(() => {
-    setLocaleState(getLocale());
-  }, []);
-
   const openAuth = (mode: AuthSheetMode) => {
     setAuthMode(mode);
     setAuthOpen(true);
@@ -49,12 +32,6 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
   const handleAuthSuccess = (res: CustomerAuthResponse) => {
     setAuthOpen(false);
     onAuthSuccess(res);
-  };
-
-  const toggleLocale = () => {
-    const next: AppLocale = locale === 'uz' ? 'ru' : 'uz';
-    setLocale(next);
-    setLocaleState(next);
   };
 
   return (
@@ -106,44 +83,9 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
         </Card>
       </section>
 
-      <section className="mt-6" aria-labelledby="info-section-heading">
-        <h2
-          id="info-section-heading"
-          className="mb-3 px-0.5 text-[15px] font-semibold text-foreground"
-        >
-          {uz.helpfulSections}
-        </h2>
-        <Card className="overflow-hidden rounded-2xl p-0 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-          <ProfileMenuRow
-            icon={HelpCircle}
-            label={uz.profileHelp}
-            hint={uz.profileHelpHint}
-            href="/notifications"
-          />
-          <ProfileMenuRow
-            icon={Briefcase}
-            label={uz.profilePartnership}
-            hint={uz.profilePartnershipHint}
-            href="mailto:partners@foodapp.uz"
-          />
-          <ProfileMenuRow icon={FileText} label={uz.termsOfUse} href="#" />
-          <ProfileMenuRow
-            icon={Globe}
-            label={uz.changeLanguage}
-            hint={locale === 'uz' ? "O'zbekcha" : 'Русский'}
-            onClick={toggleLocale}
-          />
-        </Card>
-      </section>
+      <ProfileInfoHelpSection />
 
-      <footer className="mt-8 pb-2">
-        <Link
-          href="/staff/login"
-          className="block py-1 text-center text-[12px] text-foreground-subtle underline-offset-2 hover:text-foreground-muted hover:underline"
-        >
-          {uz.staffLoginForEmployees}
-        </Link>
-      </footer>
+      <ProfileStaffLoginButton className="mt-8" />
 
       <CustomerAuthSheet
         open={authOpen}

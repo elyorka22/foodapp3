@@ -7,6 +7,9 @@ import { LogOut, MessageCircle, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { GuestProfileView } from '@/components/profile/guest-profile-view';
+import { ProfileAccountMenu } from '@/components/profile/profile-account-menu';
+import { ProfileInfoHelpSection } from '@/components/profile/profile-info-help-section';
+import { ProfileStaffLoginButton } from '@/components/profile/profile-staff-login-button';
 import { api } from '@/lib/api';
 import {
   clearCustomer,
@@ -147,18 +150,15 @@ export default function ProfilePage() {
           </Button>
         </Card>
 
+        <ProfileAccountMenu />
+
+        <ProfileInfoHelpSection />
+
+        <ProfileStaffLoginButton className="mt-6" />
+
         {message && (
           <p className="mt-4 rounded-xl bg-primary-soft px-4 py-3 text-sm text-primary-dark">{message}</p>
         )}
-
-        <footer className="mt-10 pb-2">
-          <Link
-            href="/staff/login"
-            className="block py-1 text-center text-[12px] text-foreground-subtle underline-offset-2 hover:text-foreground-muted hover:underline"
-          >
-            {uz.staffLoginForEmployees}
-          </Link>
-        </footer>
       </main>
     );
   }
