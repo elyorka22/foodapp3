@@ -144,11 +144,11 @@ export default function AdminRestaurantDetailPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold">Menu categories</p>
-        <Link href={`/admin/categories?restaurantId=${id}`} className="text-sm font-medium text-brand-600 hover:underline">
-          Open full categories page
+        <Link href="/admin/dish-categories" className="text-sm font-medium text-brand-600 hover:underline">
+          Taom kategoriyalarini boshqarish
         </Link>
       </div>
-      <CategoryPanel restaurantId={id} />
+      <CategoryPanel />
 
       <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <div className="flex flex-wrap items-center justify-between gap-2">

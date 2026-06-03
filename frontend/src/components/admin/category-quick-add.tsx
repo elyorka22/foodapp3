@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
-import { useAdminCategories } from '@/hooks/use-admin-categories';
+import { useAdminDishCategories } from '@/hooks/use-admin-dish-categories';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -15,24 +16,22 @@ function slugify(value: string) {
 }
 
 type Props = {
-  restaurantId: string;
   onCreated?: (categoryId: string) => void;
 };
 
-export function CategoryQuickAdd({ restaurantId, onCreated }: Props) {
-  const { create } = useAdminCategories(restaurantId);
+export function CategoryQuickAdd({ onCreated }: Props) {
+  const { create } = useAdminDishCategories();
   const [name, setName] = useState('');
 
   const submit = async () => {
     if (!name.trim()) return;
     try {
       const created = (await create.mutateAsync({
-        restaurantId,
         name: name.trim(),
         slug: slugify(name),
       })) as { id: string };
       setName('');
-      toast.success('Category created');
+      toast.success('Kategoriya yaratildi');
       onCreated?.(created.id);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to create category');
@@ -40,21 +39,29 @@ export function CategoryQuickAdd({ restaurantId, onCreated }: Props) {
   };
 
   return (
-    <div className="flex gap-2">
-      <Input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="New category name"
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            submit();
-          }
-        }}
-      />
-      <Button type="button" onClick={submit} disabled={create.isPending || !name.trim()}>
-        Add
-      </Button>
+    <div className="space-y-2">
+      <p className="text-xs text-zinc-500">
+        Umumiy kategoriya qo‘shiladi —{' '}
+        <Link href="/admin/dish-categories" className="text-brand-600 underline">
+          to‘liq boshqaruv
+        </Link>
+      </p>
+      <div className="flex gap-2">
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Yangi kategoriya nomi"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submit();
+            }
+          }}
+        />
+        <Button type="button" onClick={submit} disabled={create.isPending || !name.trim()}>
+          Qo‘shish
+        </Button>
+      </div>
     </div>
   );
 }

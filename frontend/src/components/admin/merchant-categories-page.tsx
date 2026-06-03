@@ -93,7 +93,7 @@ export function MerchantCategoriesPage({ title, vertical, listHref }: Props) {
       {!merchantId ? (
         <EmptyState title="Tanlang" description="Kategoriyalarni ko'rish uchun savdo nuqtasini tanlang." />
       ) : (
-        <CategoryPanel key={merchantId} restaurantId={merchantId} />
+        <CategoryPanel />
       )}
     </div>
   );

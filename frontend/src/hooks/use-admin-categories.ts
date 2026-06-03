@@ -1,1 +1,1 @@
-export { useAdminDishCategories as useAdminCategories } from './use-admin-dish-categories';
+export { useAdminDishCategories, useAdminCategories } from './use-admin-dish-categories';
