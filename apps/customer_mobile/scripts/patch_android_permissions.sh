@@ -4,29 +4,33 @@ set -euo pipefail
 MANIFEST="$(cd "$(dirname "$0")/.." && pwd)/android/app/src/main/AndroidManifest.xml"
 [[ -f "$MANIFEST" ]] || exit 0
 
-python3 - <<PY
+python3 - "$MANIFEST" <<'PY'
+import re
+import sys
 from pathlib import Path
 
-p = Path("$MANIFEST")
-text = p.read_text()
-changed = False
+path = Path(sys.argv[1])
+text = path.read_text()
 
-perms = [
-    '    <uses-permission android:name="android.permission.INTERNET"/>',
-    '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>',
-    '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>',
+required = [
+    "android.permission.INTERNET",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_COARSE_LOCATION",
 ]
 
-for perm in perms:
-    key = perm.split('android.permission.')[1].split('"')[0]
-    if key not in text:
-        text = text.replace('<manifest', '<manifest\n' + perm, 1)
-        changed = True
-        print(f"Added {key}")
-
-if changed:
-    p.write_text(text)
-    print("Patched AndroidManifest.xml")
-else:
+missing = [p for p in required if p not in text]
+if not missing:
     print("AndroidManifest already has required permissions")
+    sys.exit(0)
+
+match = re.search(r"<manifest[^>]*>", text)
+if not match:
+    print("ERROR: could not find <manifest> opening tag")
+    sys.exit(1)
+
+lines = [f'    <uses-permission android:name="{p}"/>' for p in missing]
+block = "\n" + "\n".join(lines) + "\n"
+insert_at = match.end()
+path.write_text(text[:insert_at] + block + text[insert_at:])
+print("Patched AndroidManifest.xml:", ", ".join(missing))
 PY
