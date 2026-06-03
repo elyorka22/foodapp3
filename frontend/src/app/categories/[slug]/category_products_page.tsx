@@ -33,7 +33,7 @@ export default function CategoryProductsPage({ slug }: { slug: string }) {
       )}
 
       {productsQuery.isError && (
-        <EmptyState title={uz.errorGeneric} description={uz.checkConnection} />
+        <EmptyState title={uz.productsLoadError} description={uz.checkConnection} />
       )}
 
       {!productsQuery.isLoading && !productsQuery.isError && products.length === 0 && (

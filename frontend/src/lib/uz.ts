@@ -9,6 +9,7 @@ export const uz = {
   seeAll: 'Barchasi',
   retry: 'Qayta urinish',
   restaurantsLoadError: 'Restoranlar yuklanmadi',
+  productsLoadError: 'Mahsulotlar yuklanmadi',
   checkConnection: "Internet aloqasini tekshiring",
   restaurantsComingSoon: 'Tez orada restoranlar',
   restaurantsEmptyHint:
