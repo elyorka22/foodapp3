@@ -13,6 +13,7 @@ import { PromoCodesService } from '../promo-codes/promo-codes.service';
 import { LoyaltyService } from '../growth/loyalty.service';
 import { RestaurantScheduleService } from '../restaurants/restaurant-schedule.service';
 import { userBusinessId } from '../../domain/business/business-id.util';
+import { orderWhereForVertical } from '../../domain/business/merchant-vertical';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersQueryDto } from './dto/orders-query.dto';
@@ -294,11 +295,28 @@ export class OrdersService {
       if (courier) where.courierId = courier.id;
     }
 
-    if (query.status) where.status = query.status;
+    if (query.statusGroup === 'active') {
+      where.status = {
+        in: [
+          OrderStatus.PENDING,
+          OrderStatus.ACCEPTED,
+          OrderStatus.PREPARING,
+          OrderStatus.COURIER_ASSIGNED,
+          OrderStatus.PICKED_UP,
+          OrderStatus.DELIVERING,
+        ],
+      };
+    } else if (query.statusGroup === 'cancelled') {
+      where.status = OrderStatus.CANCELLED;
+    } else if (query.status) {
+      where.status = query.status;
+    }
 
     const and: Prisma.OrderWhereInput[] = [];
     if (query.dateFrom) and.push({ createdAt: { gte: new Date(query.dateFrom) } });
     if (query.dateTo) and.push({ createdAt: { lte: new Date(query.dateTo) } });
+    const verticalFilter = orderWhereForVertical(query.vertical);
+    if (verticalFilter) and.push(verticalFilter);
     if (and.length) where.AND = and;
 
     if (query.search?.trim()) {

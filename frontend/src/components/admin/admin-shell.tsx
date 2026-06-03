@@ -3,57 +3,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  BarChart3,
-  Building2,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  ExternalLink,
-  Package,
-  Tags,
-  Settings,
-  ShoppingBag,
-  TicketPercent,
-  Truck,
-  Users,
-  UserCog,
-  Image as ImageIcon,
-  ScrollText,
-  Server,
-  Store,
-} from 'lucide-react';
+import { ChevronDown, ExternalLink, LogOut, Menu } from 'lucide-react';
 import { NotificationsBell } from '@/components/admin/notifications-bell';
 import { clsx } from 'clsx';
 import { clearAuth, getUser } from '@/lib/auth';
 import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { ThemeToggle } from '@/components/theme-toggle';
-
-type NavItem = { href: string; label: string; icon: React.ComponentType<{ size?: number }> };
-
-const NAV: NavItem[] = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
-  { href: '/admin/restaurants', label: 'Restaurants', icon: Building2 },
-  { href: '/admin/businesses', label: "Do'konlar", icon: Store },
-  { href: '/admin/products', label: 'Products', icon: Package },
-  { href: '/admin/categories', label: 'Product categories', icon: Tags },
-  { href: '/admin/business-types', label: 'Business types', icon: Tags },
-  { href: '/admin/couriers', label: 'Couriers', icon: Truck },
-  { href: '/admin/users', label: 'Staff users', icon: UserCog },
-  { href: '/admin/customers', label: 'Customers', icon: Users },
-  { href: '/admin/banners', label: 'Banners', icon: ImageIcon },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
-  { href: '/admin/audit', label: 'Audit log', icon: ScrollText },
-  { href: '/admin/system', label: 'System', icon: Server },
-  { href: '/admin/promo-codes', label: 'Promo Codes', icon: TicketPercent },
-];
+import { ADMIN_LEGACY_REDIRECTS, ADMIN_NAV_GROUPS } from '@/lib/admin-nav';
+import { adminI18n as t } from '@/lib/admin-i18n';
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   const user = useMemo(() => getUser(), []);
   const { ready, authorized } = useRequireStaffRole({ roles: 'SUPER_ADMIN' });
@@ -62,15 +25,35 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     setDrawerOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const target = ADMIN_LEGACY_REDIRECTS[pathname];
+    if (target) router.replace(target);
+  }, [pathname, router]);
+
+  useEffect(() => {
+    const next: Record<string, boolean> = {};
+    for (const group of ADMIN_NAV_GROUPS) {
+      const active = group.items.some(
+        (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+      );
+      if (active) next[group.id] = true;
+    }
+    setOpenGroups((prev) => ({ ...prev, ...next }));
+  }, [pathname]);
+
   const logout = () => {
     clearAuth();
-    router.push('/login');
+    router.push('/staff/login');
+  };
+
+  const toggleGroup = (id: string) => {
+    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   if (!ready) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-zinc-500">
-        Loading...
+        {t.loading}
       </div>
     );
   }
@@ -79,19 +62,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
-      <header className="sticky top-0 z-40 border-b bg-white/90 backdrop-blur dark:border-white/10 dark:bg-zinc-900/80">
+      <header className="sticky top-0 z-40 border-b bg-white/95 dark:border-white/10 dark:bg-zinc-900/90">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-lg border p-2 md:hidden dark:border-white/10"
               onClick={() => setDrawerOpen(true)}
-              aria-label="Open sidebar"
+              aria-label="Menyu"
             >
               <Menu size={18} />
             </button>
-            <Link href="/admin" className="font-bold text-brand-600">
-              FoodApp Admin
+            <Link href="/admin" className="font-bold text-primary">
+              {t.appName}
             </Link>
           </div>
 
@@ -100,14 +83,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-medium text-brand-700 transition hover:bg-brand-100 sm:inline-flex dark:border-brand-800 dark:bg-brand-950/50 dark:text-brand-300"
+              className="hidden items-center gap-1.5 rounded-lg border border-[#FFD0AD] bg-primary-soft px-3 py-2 text-sm font-medium text-primary sm:inline-flex"
             >
               <ExternalLink size={16} />
-              Saytga qaytish
+              {t.backToSite}
             </Link>
             <div className="hidden text-right md:block">
               <p className="text-sm font-semibold">{user?.fullName ?? user?.email}</p>
-              <p className="text-xs opacity-60">{user?.role}</p>
+              <p className="text-xs text-zinc-500">{user?.role}</p>
             </div>
             <NotificationsBell />
             <ThemeToggle />
@@ -116,18 +99,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               onClick={logout}
               className="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm text-red-600 dark:border-white/10"
             >
-              <LogOut size={16} /> Logout
+              <LogOut size={16} />
+              <span className="hidden sm:inline">{t.logout}</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-0 md:grid-cols-[260px_1fr]">
-        <aside className="hidden h-[calc(100vh-57px)] border-r bg-white/60 p-3 md:sticky md:top-[57px] md:block md:overflow-y-auto dark:border-white/10 dark:bg-zinc-900/40">
-          <Sidebar pathname={pathname} />
+      <div className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-[272px_1fr]">
+        <aside className="hidden border-r bg-white md:sticky md:top-[57px] md:block md:h-[calc(100vh-57px)] md:overflow-y-auto dark:border-white/10 dark:bg-zinc-900/50">
+          <AdminSidebar pathname={pathname} openGroups={openGroups} onToggle={toggleGroup} />
         </aside>
 
-        <main className="p-4 md:p-6">{children}</main>
+        <main className="min-w-0 p-4 md:p-6">{children}</main>
       </div>
 
       {drawerOpen && (
@@ -136,19 +120,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             type="button"
             className="absolute inset-0 bg-black/40"
             onClick={() => setDrawerOpen(false)}
-            aria-label="Close sidebar"
+            aria-label="Yopish"
           />
-          <div className="absolute left-0 top-0 h-full w-[82%] max-w-xs bg-white p-3 shadow-xl dark:bg-zinc-950">
+          <div className="absolute left-0 top-0 h-full w-[88%] max-w-xs overflow-y-auto bg-white p-3 shadow-xl dark:bg-zinc-950">
             <Link
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="mb-3 flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white"
+              className="mb-3 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white"
             >
               <ExternalLink size={16} />
-              Saytga qaytish
+              {t.backToSite}
             </Link>
-            <Sidebar pathname={pathname} />
+            <AdminSidebar pathname={pathname} openGroups={openGroups} onToggle={toggleGroup} />
           </div>
         </div>
       )}
@@ -156,33 +140,66 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Sidebar({ pathname }: { pathname: string }) {
+function AdminSidebar({
+  pathname,
+  openGroups,
+  onToggle,
+}: {
+  pathname: string;
+  openGroups: Record<string, boolean>;
+  onToggle: (id: string) => void;
+}) {
   return (
-    <nav className="space-y-1">
-      {NAV.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const Icon = item.icon;
+    <nav className="space-y-1 p-2">
+      {ADMIN_NAV_GROUPS.map((group) => {
+        const isOpen = openGroups[group.id] ?? false;
+        const groupActive = group.items.some(
+          (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+        );
+
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={clsx(
-              'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition',
-              active
-                ? 'bg-brand-600 text-white'
-                : 'opacity-75 hover:bg-black/5 dark:hover:bg-white/10',
+          <div key={group.id} className="rounded-lg">
+            <button
+              type="button"
+              onClick={() => onToggle(group.id)}
+              className={clsx(
+                'flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide',
+                groupActive ? 'text-primary' : 'text-zinc-500',
+              )}
+            >
+              {group.title}
+              <ChevronDown
+                size={14}
+                className={clsx('transition', isOpen && 'rotate-180')}
+              />
+            </button>
+            {isOpen && (
+              <div className="mt-0.5 space-y-0.5 pb-2 pl-1">
+                {group.items.map((item) => {
+                  const active =
+                    pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={clsx(
+                        'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition',
+                        active
+                          ? 'bg-primary text-white'
+                          : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/10',
+                      )}
+                    >
+                      <Icon size={16} />
+                      <span className="leading-snug">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
             )}
-          >
-            <Icon size={18} />
-            {item.label}
-          </Link>
+          </div>
         );
       })}
-      <div className="pt-3 text-xs opacity-50">
-        <p className="font-medium">System</p>
-        <p className="mt-1">SUPER_ADMIN only</p>
-      </div>
     </nav>
   );
 }
-

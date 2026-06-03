@@ -17,7 +17,7 @@ export default function AdminSettingsPage() {
   const [form, setForm] = useState<AdminSettings | null>(null);
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   useEffect(() => {

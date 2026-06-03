@@ -45,7 +45,7 @@ export default function AdminPage() {
   });
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   if (isLoading) return <LoadingState label="Loading dashboard..." />;

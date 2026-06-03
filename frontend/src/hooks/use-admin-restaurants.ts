@@ -9,6 +9,7 @@ export type AdminRestaurantsQuery = {
   limit: number;
   search?: string;
   isActive?: boolean;
+  vertical?: 'restaurant' | 'store';
 };
 
 export type RestaurantForm = {
@@ -34,6 +35,7 @@ export function useAdminRestaurants(query: AdminRestaurantsQuery) {
   params.set('limit', String(query.limit));
   if (query.search) params.set('search', query.search);
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive));
+  if (query.vertical) params.set('vertical', query.vertical);
 
   const list = useQuery({
     queryKey: ['admin-restaurants', query],

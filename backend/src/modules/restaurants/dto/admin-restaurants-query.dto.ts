@@ -1,9 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional } from 'class-validator';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 export class AdminRestaurantsQueryDto extends PaginationDto {
+  @ApiPropertyOptional({ enum: ['restaurant', 'store'] })
+  @IsOptional()
+  @IsIn(['restaurant', 'store'])
+  vertical?: 'restaurant' | 'store';
   @ApiPropertyOptional()
   @IsOptional()
   @Transform(({ value }) => {

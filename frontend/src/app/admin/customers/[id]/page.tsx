@@ -19,7 +19,7 @@ export default function AdminCustomerDetailPage() {
   const { updateStatus } = useAdminCustomers({ page: 1, limit: 1 });
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   if (detail.isLoading) return <LoadingState label="Loading customer..." />;

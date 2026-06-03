@@ -5,6 +5,7 @@ import { AuditService } from '../audit/audit.service';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { userBusinessId, resolveBusinessId } from '../../domain/business/business-id.util';
+import { businessWhereForVertical } from '../../domain/business/merchant-vertical';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AdminProductsQueryDto } from './dto/admin-products-query.dto';
 import { BulkProductAction, BulkProductsDto } from './dto/bulk-products.dto';
@@ -49,11 +50,13 @@ export class ProductsService {
       restaurantId: query.restaurantId,
     });
 
+    const verticalBusiness = businessWhereForVertical(query.vertical);
     const where: Prisma.ProductWhereInput = {
       deletedAt: null,
       ...(businessFilter && { businessId: businessFilter }),
       ...(query.categoryId && { productCategoryId: query.categoryId }),
       ...(query.isAvailable !== undefined && { isAvailable: query.isAvailable }),
+      ...(verticalBusiness && !businessFilter && { business: verticalBusiness }),
       ...(query.search && {
         OR: [
           { name: { contains: query.search, mode: 'insensitive' } },

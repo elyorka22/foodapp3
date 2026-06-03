@@ -46,7 +46,7 @@ export default function AdminCouriersPage() {
   });
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   const rows = list.data?.data ?? [];

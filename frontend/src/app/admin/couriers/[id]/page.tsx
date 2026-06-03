@@ -16,7 +16,7 @@ export default function AdminCourierDetailPage() {
   const { detail, history } = useAdminCourier(id);
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   if (detail.isLoading) return <LoadingState label="Loading courier..." />;

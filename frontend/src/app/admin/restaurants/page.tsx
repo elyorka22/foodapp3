@@ -16,6 +16,7 @@ import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
+import { adminI18n as t } from '@/lib/admin-i18n';
 
 function slugify(value: string) {
   return value
@@ -136,10 +137,11 @@ export default function AdminRestaurantsPage() {
     limit: 20,
     search: search || undefined,
     isActive: isActiveFilter,
+    vertical: 'restaurant',
   });
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   const rows = list.data?.data ?? [];
@@ -232,9 +234,9 @@ export default function AdminRestaurantsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold">Restaurants</h1>
+        <h1 className="text-lg font-semibold">{t.nav.restaurantList}</h1>
         <Button type="button" onClick={() => { setForm(emptyForm); setCreateOpen(true); }}>
-          Add restaurant
+          {t.merchant.addRestaurant}
         </Button>
       </div>
 

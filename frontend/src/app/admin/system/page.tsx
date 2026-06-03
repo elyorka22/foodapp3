@@ -19,7 +19,7 @@ export default function AdminSystemPage() {
   const token = getToken();
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   const { data, isLoading, isError, error, refetch } = useQuery({

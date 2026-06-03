@@ -9,8 +9,10 @@ export type AdminOrdersQuery = {
   limit: number;
   search?: string;
   status?: string;
-  dateFrom?: string; // YYYY-MM-DD
-  dateTo?: string; // YYYY-MM-DD
+  statusGroup?: 'active' | 'cancelled';
+  vertical?: 'restaurant' | 'store';
+  dateFrom?: string;
+  dateTo?: string;
   restaurantId?: string;
 };
 
@@ -23,6 +25,8 @@ export function useAdminOrders(query: AdminOrdersQuery) {
   params.set('limit', String(query.limit));
   if (query.search) params.set('search', query.search);
   if (query.status) params.set('status', query.status);
+  if (query.statusGroup) params.set('statusGroup', query.statusGroup);
+  if (query.vertical) params.set('vertical', query.vertical);
   if (query.restaurantId) params.set('restaurantId', query.restaurantId);
   if (query.dateFrom) params.set('dateFrom', new Date(`${query.dateFrom}T00:00:00.000Z`).toISOString());
   if (query.dateTo) params.set('dateTo', new Date(`${query.dateTo}T23:59:59.999Z`).toISOString());

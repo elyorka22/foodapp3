@@ -3,6 +3,7 @@ import { OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsISO8601,
   IsInt,
   IsOptional,
@@ -57,5 +58,16 @@ export class OrdersQueryDto {
   @IsOptional()
   @IsUUID()
   restaurantId?: string;
+
+  @ApiPropertyOptional({ enum: ['restaurant', 'store'] })
+  @IsOptional()
+  @IsIn(['restaurant', 'store'])
+  vertical?: 'restaurant' | 'store';
+
+  /** active = in-progress orders; cancelled = CANCELLED only */
+  @ApiPropertyOptional({ enum: ['active', 'cancelled'] })
+  @IsOptional()
+  @IsIn(['active', 'cancelled'])
+  statusGroup?: 'active' | 'cancelled';
 }
 

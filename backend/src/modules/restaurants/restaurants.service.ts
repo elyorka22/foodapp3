@@ -10,6 +10,7 @@ import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { AdminRestaurantsQueryDto } from './dto/admin-restaurants-query.dto';
 import { userBusinessId } from '../../domain/business/business-id.util';
+import { businessWhereForVertical } from '../../domain/business/merchant-vertical';
 import { resolveSlugForCreate, resolveSlugForUpdate } from '../../common/utils/slug.util';
 
 @Injectable()
@@ -242,9 +243,11 @@ export class RestaurantsService {
 
   async findAllAdmin(query: AdminRestaurantsQueryDto, user: JwtPayload) {
     const { skip, take } = paginate(query.page, query.limit);
+    const verticalFilter = businessWhereForVertical(query.vertical);
     const where: Prisma.BusinessWhereInput = {
       deletedAt: null,
       ...(query.isActive !== undefined && { isActive: query.isActive }),
+      ...(verticalFilter ?? {}),
       ...(query.search && {
         OR: [
           { name: { contains: query.search, mode: 'insensitive' } },

@@ -21,7 +21,7 @@ export default function AdminAuditPage() {
   const [to, setTo] = useState('');
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   const params = new URLSearchParams();

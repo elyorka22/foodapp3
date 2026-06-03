@@ -11,6 +11,7 @@ export type AdminProductsQuery = {
   restaurantId?: string;
   categoryId?: string;
   isAvailable?: boolean;
+  vertical?: 'restaurant' | 'store';
 };
 
 export type ProductForm = {
@@ -34,6 +35,7 @@ export function useAdminProducts(query: AdminProductsQuery) {
   if (query.restaurantId) params.set('restaurantId', query.restaurantId);
   if (query.categoryId) params.set('categoryId', query.categoryId);
   if (query.isAvailable !== undefined) params.set('isAvailable', String(query.isAvailable));
+  if (query.vertical) params.set('vertical', query.vertical);
 
   const list = useQuery({
     queryKey: ['admin-products', query],

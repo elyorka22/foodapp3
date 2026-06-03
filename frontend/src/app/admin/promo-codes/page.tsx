@@ -31,7 +31,7 @@ export default function AdminPromoCodesPage() {
   const [form, setForm] = useState<PromoCodeForm>(emptyForm);
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   const openCreate = () => {

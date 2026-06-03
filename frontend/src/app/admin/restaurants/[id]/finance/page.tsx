@@ -15,7 +15,7 @@ export default function RestaurantFinancePage() {
   const token = getToken();
 
   useEffect(() => {
-    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/login');
+    if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
   }, [token, user, router]);
 
   const { data, isLoading, isError, error } = useQuery({
