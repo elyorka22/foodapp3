@@ -15,10 +15,8 @@ import { useAdminAccess } from '@/hooks/use-admin-access';
 import { uploadImage } from '@/lib/upload';
 import { useAdminProducts, type ProductForm } from '@/hooks/use-admin-products';
 import { adminI18n } from '@/lib/admin-i18n';
-import { useAdminCategories } from '@/hooks/use-admin-categories';
 import Link from 'next/link';
-import { CategoryPanel } from '@/components/admin/category-panel';
-import { CategoryQuickAdd } from '@/components/admin/category-quick-add';
+import { useAdminDishCategories } from '@/hooks/use-admin-dish-categories';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 import { Modal } from '@/components/admin/modal';
@@ -66,7 +64,6 @@ export function AdminProductsPage({ vertical }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [restaurants, setRestaurants] = useState<any[]>([]);
-  const [showCategories, setShowCategories] = useState(false);
 
   const isAvailableFilter = availability === '' ? undefined : availability === 'yes';
 
@@ -80,7 +77,7 @@ export function AdminProductsPage({ vertical }: Props) {
     vertical,
   });
 
-  const { list: categories } = useAdminCategories(form.restaurantId || restaurantId || undefined);
+  const { list: categories } = useAdminDishCategories();
 
   useEffect(() => {
     if (!token) return;
@@ -213,7 +210,7 @@ export function AdminProductsPage({ vertical }: Props) {
     setImageFile(null);
     setForm({
       restaurantId: row.restaurantId,
-      categoryId: row.categoryId ?? '',
+      categoryId: row.dishCategoryId ?? row.categoryId ?? '',
       name: row.name,
       slug: row.slug,
       description: row.description ?? '',
@@ -301,7 +298,7 @@ export function AdminProductsPage({ vertical }: Props) {
       <select
         className="w-full rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
         value={form.restaurantId}
-        onChange={(e) => setForm({ ...form, restaurantId: e.target.value, categoryId: '' })}
+        onChange={(e) => setForm({ ...form, restaurantId: e.target.value })}
       >
         <option value="">Select restaurant</option>
         {restaurants.map((r) => (
@@ -311,37 +308,27 @@ export function AdminProductsPage({ vertical }: Props) {
         ))}
       </select>
       <div className="space-y-2">
-        <label className="text-xs font-medium opacity-70">Category</label>
+        <label className="text-xs font-medium opacity-70">Taom kategoriyasi</label>
         <select
           className="w-full rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
           value={form.categoryId ?? ''}
           onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-          disabled={!form.restaurantId}
         >
-          <option value="">Select category (optional)</option>
+          <option value="">Kategoriyani tanlang (ixtiyoriy)</option>
           {(categories.data ?? []).map((c: any) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
         </select>
-        {form.restaurantId && !(categories.data ?? []).length && (
+        {!(categories.data ?? []).length && (
           <p className="text-xs text-amber-700 dark:text-amber-400">
-            No categories yet — create one below or on the{' '}
-            <Link
-              href={`/admin/categories?restaurantId=${form.restaurantId}`}
-              className="font-semibold underline"
-            >
-              Categories
-            </Link>{' '}
-            page.
+            Kategoriyalar yo‘q —{' '}
+            <Link href="/admin/dish-categories" className="font-semibold underline">
+              admin panelda yarating
+            </Link>
+            .
           </p>
-        )}
-        {form.restaurantId && (
-          <CategoryQuickAdd
-            restaurantId={form.restaurantId}
-            onCreated={(categoryId) => setForm({ ...form, categoryId })}
-          />
         )}
       </div>
       <Input
@@ -407,14 +394,11 @@ export function AdminProductsPage({ vertical }: Props) {
               : adminI18n.products.title}
         </h1>
         <div className="flex gap-2">
-          <Link href={restaurantId ? `/admin/categories?restaurantId=${restaurantId}` : '/admin/categories'}>
+          <Link href="/admin/dish-categories">
             <Button type="button" variant="secondary">
-              Categories
+              Taom kategoriyalari
             </Button>
           </Link>
-          <Button type="button" variant="secondary" onClick={() => setShowCategories((v) => !v)}>
-            {showCategories ? 'Hide panel' : 'Quick manage'}
-          </Button>
           <Button
             type="button"
             onClick={() => {
@@ -426,15 +410,6 @@ export function AdminProductsPage({ vertical }: Props) {
           </Button>
         </div>
       </div>
-
-      {showCategories && (restaurantId || form.restaurantId) && (
-        <CategoryPanel restaurantId={restaurantId || form.restaurantId} />
-      )}
-      {showCategories && !restaurantId && !form.restaurantId && (
-        <p className="text-sm opacity-60">
-          Select a restaurant in the filter or in the product form to manage categories.
-        </p>
-      )}
 
       <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <div className="grid gap-3 md:grid-cols-5">

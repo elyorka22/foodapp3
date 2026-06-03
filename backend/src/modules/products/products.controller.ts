@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
+import { BadRequestException } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AdminProductsQueryDto } from './dto/admin-products-query.dto';
@@ -33,10 +34,25 @@ export class ProductsController {
   }
 
   @Get()
-  findByRestaurant(
-    @Query('restaurantId') restaurantId: string,
+  find(
+    @Query('restaurantId') restaurantId?: string,
     @Query('categoryId') categoryId?: string,
+    @Query('dishCategoryId') dishCategoryId?: string,
+    @Query('categorySlug') categorySlug?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
+    if (dishCategoryId || categorySlug) {
+      return this.products.findByDishCategory({
+        dishCategoryId,
+        categorySlug,
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+      });
+    }
+    if (!restaurantId) {
+      throw new BadRequestException('restaurantId is required unless dishCategoryId or categorySlug is set');
+    }
     return this.products.findByRestaurant(restaurantId, categoryId, true);
   }
 

@@ -293,10 +293,34 @@ model ProductCategory {
   @@map("categories")
 }
 
+/// Global dish category (Pizza, Burgers, …). Admin-managed; merchants assign products when creating dishes.
+model DishCategory {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  slug             String    @unique
+  description      String?
+  icon             String?
+  imageUrl         String?   @map("image_url")
+  imageScale       Int       @default(100) @map("image_scale")
+  imagePositionX   Int       @default(50) @map("image_position_x")
+  imagePositionY   Int       @default(50) @map("image_position_y")
+  sortOrder        Int       @default(0) @map("sort_order")
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  products Product[]
+
+  @@index([isActive, sortOrder])
+  @@map("dish_categories")
+}
+
 model Product {
   id                String    @id @default(uuid()) @db.Uuid
   businessId        String    @map("restaurant_id") @db.Uuid
   productCategoryId String?   @map("category_id") @db.Uuid
+  dishCategoryId    String?   @map("dish_category_id") @db.Uuid
   name              String
   slug              String
   description       String?
@@ -310,6 +334,7 @@ model Product {
 
   business         Business         @relation(fields: [businessId], references: [id])
   productCategory  ProductCategory? @relation(fields: [productCategoryId], references: [id])
+  dishCategory     DishCategory?    @relation(fields: [dishCategoryId], references: [id])
   images           ProductImage[]
   orderItems       OrderItem[]
   cartItems        CartItem[]
@@ -317,6 +342,7 @@ model Product {
   @@unique([businessId, slug])
   @@index([businessId, isAvailable])
   @@index([productCategoryId])
+  @@index([dishCategoryId])
   @@map("products")
 }
 

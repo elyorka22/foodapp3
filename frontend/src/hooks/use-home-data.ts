@@ -18,6 +18,7 @@ export type HomeRestaurant = {
   avgPrepMinutes?: number;
   minOrderAmount?: string | number | null;
   categories?: HomeCategory[];
+  productCategories?: HomeCategory[];
   branches?: { address?: string }[];
 };
 

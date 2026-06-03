@@ -1,19 +1,17 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BusinessTypesService } from '../business-types/business-types.service';
-import { CategoriesService } from '../categories/categories.service';
-import { resolveBusinessId } from '../../domain/business/business-id.util';
-import { BadRequestException } from '@nestjs/common';
+import { DishCategoriesService } from '../dish-categories/dish-categories.service';
 
 /**
- * Marketplace discovery — business verticals vs product menu categories are separate.
+ * Marketplace discovery — business verticals vs global dish categories are separate.
  */
 @ApiTags('marketplace')
 @Controller('marketplace')
 export class MarketplaceController {
   constructor(
     private businessTypes: BusinessTypesService,
-    private productCategories: CategoriesService,
+    private dishCategories: DishCategoriesService,
   ) {}
 
   @Get('business-types')
@@ -21,16 +19,17 @@ export class MarketplaceController {
     return this.businessTypes.findAllPublic();
   }
 
+  /** Global dish categories (Pizza, Burgers, …). Legacy alias: product-categories */
   @Get('product-categories')
-  listProductCategories(
-    @Query('businessId') businessId?: string,
-    @Query('restaurantId') restaurantId?: string,
-    @Query('includeInactive') includeInactive?: string,
-  ) {
-    const id = resolveBusinessId({ businessId, restaurantId });
-    if (!id) {
-      throw new BadRequestException('businessId (or legacy restaurantId) is required');
+  listProductCategories(@Query('includeInactive') includeInactive?: string) {
+    return this.listDishCategories(includeInactive);
+  }
+
+  @Get('dish-categories')
+  listDishCategories(@Query('includeInactive') includeInactive?: string) {
+    if (includeInactive === 'true') {
+      return this.dishCategories.findAllAdmin();
     }
-    return this.productCategories.findByBusiness(id, includeInactive === 'true');
+    return this.dishCategories.findAllPublic();
   }
 }

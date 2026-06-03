@@ -13,6 +13,7 @@ import '../../features/orders/presentation/order_tracking_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/promotions/presentation/promotions_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/restaurants/presentation/category_products_screen.dart';
 import '../../features/restaurants/presentation/restaurant_detail_screen.dart';
 import '../../features/restaurants/presentation/restaurants_screen.dart';
 import '../../features/shell/main_shell_screen.dart';
@@ -56,6 +57,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.networkHealth,
         builder: (_, __) => const NetworkHealthScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.categoryProducts}/:slug',
+        builder: (_, state) => CategoryProductsScreen(
+          slug: state.pathParameters['slug']!,
+        ),
       ),
       GoRoute(
         path: '${AppRoutes.orderTrack}/:token',

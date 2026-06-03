@@ -124,7 +124,7 @@ class ProductModel {
       price: parseNum(json['price']),
       description: parseString(json['description']),
       imageUrl: imageUrl,
-      categoryId: parseString(json['productCategoryId'] ?? json['categoryId']),
+      categoryId: parseString(json['dishCategoryId'] ?? json['productCategoryId'] ?? json['categoryId']),
       isAvailable: parseBool(json['isAvailable']),
     );
   }

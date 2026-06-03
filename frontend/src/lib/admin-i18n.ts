@@ -31,7 +31,7 @@ export const adminI18n = {
     cancelledOrders: 'Bekor qilingan buyurtmalar',
     restaurants: 'Restoranlar',
     restaurantList: 'Restoranlar',
-    restaurantCategories: 'Restoran kategoriyalari',
+    dishCategories: 'Taom kategoriyalari',
     restaurantMenu: 'Menyu mahsulotlari',
     restaurantBanners: 'Restoran bannerlari',
     restaurantPromos: 'Restoran aksiyalari',

@@ -140,18 +140,18 @@ async function main() {
     create: { userId: courierUser.id, isOnline: true },
   });
 
-  const category = await prisma.productCategory.upsert({
-    where: { restaurantId_slug: { businessId: restaurant.id, slug: 'pizza' } },
+  const dishCategory = await prisma.dishCategory.upsert({
+    where: { slug: 'pizza' },
     update: {},
-    create: { businessId: restaurant.id, name: 'Pizza', slug: 'pizza' },
+    create: { name: 'Pizza', slug: 'pizza', sortOrder: 0, isActive: true },
   });
 
   await prisma.product.upsert({
     where: { restaurantId_slug: { businessId: restaurant.id, slug: 'margherita' } },
-    update: {},
+    update: { dishCategoryId: dishCategory.id },
     create: {
       businessId: restaurant.id,
-      productCategoryId: category.id,
+      dishCategoryId: dishCategory.id,
       name: 'Margherita',
       slug: 'margherita',
       description: 'Classic tomato and mozzarella',

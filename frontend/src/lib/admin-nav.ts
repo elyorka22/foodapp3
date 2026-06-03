@@ -56,8 +56,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: '/admin/restaurants', label: t.nav.restaurantList, icon: Building2, permission: 'restaurants' },
       {
-        href: '/admin/restaurants/categories',
-        label: t.nav.restaurantCategories,
+        href: '/admin/dish-categories',
+        label: t.nav.dishCategories,
         icon: Tags,
         permission: 'restaurant.categories',
       },
@@ -81,8 +81,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: '/admin/stores', label: t.nav.storeList, icon: Store, permission: 'stores' },
       {
-        href: '/admin/stores/categories',
-        label: t.nav.storeCategories,
+        href: '/admin/dish-categories',
+        label: t.nav.dishCategories,
         icon: Tags,
         permission: 'store.categories',
       },
@@ -166,7 +166,7 @@ const MANAGER_NAV_ORDER: { groupId: string; hrefs: string[] }[] = [
   },
   {
     groupId: 'stores',
-    hrefs: ['/admin/stores', '/admin/stores/categories', '/admin/products/store'],
+    hrefs: ['/admin/stores', '/admin/dish-categories', '/admin/products/store'],
   },
   { groupId: 'banners', hrefs: ['/admin/banners/promo', '/admin/banners/hero'] },
   { groupId: 'promotions', hrefs: ['/admin/promo-codes'] },

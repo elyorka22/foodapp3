@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { DishCategoriesModule } from './modules/dish-categories/dish-categories.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { CouriersModule } from './modules/couriers/couriers.module';
@@ -47,6 +48,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     UsersModule,
     RestaurantsModule,
     CategoriesModule,
+    DishCategoriesModule,
     ProductsModule,
     OrdersModule,
     CouriersModule,

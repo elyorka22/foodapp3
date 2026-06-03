@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
@@ -23,19 +23,91 @@ export class ProductsService {
         businessId,
         deletedAt: null,
         ...(publicMenu && { isAvailable: true }),
-        ...(categoryId && { productCategoryId: categoryId }),
+        ...(categoryId && {
+          OR: [{ dishCategoryId: categoryId }, { productCategoryId: categoryId }],
+        }),
       },
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
         productCategory: true,
+        dishCategory: true,
+        business: { select: { id: true, name: true, slug: true } },
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
-    return rows.map((p) => ({
+    return rows.map((p) => this.mapProduct(p));
+  }
+
+  async findByDishCategory(params: {
+    dishCategoryId?: string;
+    categorySlug?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    let dishCategoryId = params.dishCategoryId;
+    if (!dishCategoryId && params.categorySlug) {
+      const cat = await this.prisma.dishCategory.findFirst({
+        where: {
+          slug: params.categorySlug,
+          isActive: true,
+          deletedAt: null,
+        },
+      });
+      if (!cat) throw new NotFoundException('Dish category not found');
+      dishCategoryId = cat.id;
+    }
+    if (!dishCategoryId) {
+      throw new BadRequestException('dishCategoryId or categorySlug is required');
+    }
+
+    const page = params.page ?? 1;
+    const limit = Math.min(params.limit ?? 24, 100);
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = {
+      dishCategoryId,
+      deletedAt: null,
+      isAvailable: true,
+      business: {
+        deletedAt: null,
+        isActive: true,
+        approvalStatus: 'APPROVED',
+      },
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+        include: {
+          images: { orderBy: { sortOrder: 'asc' }, take: 1 },
+          dishCategory: true,
+          business: { select: { id: true, name: true, slug: true, logoUrl: true } },
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return paginatedResponse(
+      data.map((p) => this.mapProduct(p)),
+      total,
+      page,
+      limit,
+    );
+  }
+
+  private mapProduct(p: {
+    price: Prisma.Decimal;
+    comparePrice: Prisma.Decimal | null;
+    [key: string]: unknown;
+  }) {
+    return {
       ...p,
       price: Number(p.price),
       comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
-    }));
+    };
   }
 
   /** @deprecated use findByBusiness */
@@ -54,7 +126,9 @@ export class ProductsService {
     const where: Prisma.ProductWhereInput = {
       deletedAt: null,
       ...(businessFilter && { businessId: businessFilter }),
-      ...(query.categoryId && { productCategoryId: query.categoryId }),
+      ...(query.categoryId && {
+        OR: [{ dishCategoryId: query.categoryId }, { productCategoryId: query.categoryId }],
+      }),
       ...(query.isAvailable !== undefined && { isAvailable: query.isAvailable }),
       ...(verticalBusiness && !businessFilter && { business: verticalBusiness }),
       ...(query.search && {
@@ -81,6 +155,7 @@ export class ProductsService {
         include: {
           images: { orderBy: { sortOrder: 'asc' }, take: 1 },
           productCategory: true,
+          dishCategory: true,
           business: { select: { id: true, name: true, slug: true } },
         },
       }),
@@ -104,10 +179,19 @@ export class ProductsService {
     if (!businessId) throw new NotFoundException('businessId is required');
     this.assertAccess(businessId, user);
 
+    const dishCategoryId = dto.dishCategoryId ?? dto.categoryId;
+    if (dishCategoryId) {
+      const cat = await this.prisma.dishCategory.findFirst({
+        where: { id: dishCategoryId, deletedAt: null, isActive: true },
+      });
+      if (!cat) throw new NotFoundException('Dish category not found');
+    }
+
     const product = await this.prisma.product.create({
       data: {
         businessId,
-        productCategoryId: dto.productCategoryId ?? dto.categoryId,
+        dishCategoryId: dishCategoryId ?? undefined,
+        productCategoryId: dto.productCategoryId,
         name: dto.name,
         slug: dto.slug,
         description: dto.description,
@@ -119,6 +203,7 @@ export class ProductsService {
       include: {
         images: true,
         productCategory: true,
+        dishCategory: true,
         business: { select: { id: true, name: true } },
       },
     });
@@ -136,6 +221,20 @@ export class ProductsService {
     const existing = await this.prisma.product.findUnique({ where: { id } });
     if (!existing || existing.deletedAt) throw new NotFoundException();
     this.assertAccess(existing.businessId, user);
+
+    const nextDishCategoryId =
+      dto.dishCategoryId !== undefined
+        ? dto.dishCategoryId
+        : dto.categoryId !== undefined
+          ? dto.categoryId
+          : undefined;
+    if (nextDishCategoryId) {
+      const cat = await this.prisma.dishCategory.findFirst({
+        where: { id: nextDishCategoryId, deletedAt: null, isActive: true },
+      });
+      if (!cat) throw new NotFoundException('Dish category not found');
+    }
+
     const product = await this.prisma.product.update({
       where: { id },
       data: {
@@ -146,13 +245,13 @@ export class ProductsService {
         ...(dto.comparePrice !== undefined && { comparePrice: dto.comparePrice }),
         ...(dto.isAvailable !== undefined && { isAvailable: dto.isAvailable }),
         ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
-        ...((dto.productCategoryId ?? dto.categoryId) !== undefined && {
-          productCategoryId: dto.productCategoryId ?? dto.categoryId,
-        }),
+        ...(nextDishCategoryId !== undefined && { dishCategoryId: nextDishCategoryId }),
+        ...(dto.productCategoryId !== undefined && { productCategoryId: dto.productCategoryId }),
       },
       include: {
         images: true,
         productCategory: true,
+        dishCategory: true,
         business: { select: { id: true, name: true } },
       },
     });

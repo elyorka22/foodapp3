@@ -12,12 +12,17 @@ export class CreateProductDto {
   @IsUUID()
   restaurantId?: string;
 
+  @ApiPropertyOptional({ description: 'Global dish category UUID' })
+  @IsOptional()
+  @IsUUID()
+  dishCategoryId?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
   productCategoryId?: string;
 
-  @ApiPropertyOptional({ deprecated: true })
+  @ApiPropertyOptional({ deprecated: true, description: 'Alias for dishCategoryId' })
   @IsOptional()
   @IsUUID()
   categoryId?: string;

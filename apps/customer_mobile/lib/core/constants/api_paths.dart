@@ -3,6 +3,7 @@ class ApiPaths {
   ApiPaths._();
 
   static const banners = '/banners';
+  static const dishCategories = '/dish-categories';
   static const restaurants = '/restaurants';
   static const businesses = '/businesses';
   static const businessTypes = '/business-types';
