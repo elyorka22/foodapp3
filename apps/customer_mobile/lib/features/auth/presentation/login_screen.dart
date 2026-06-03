@@ -31,7 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.login)),
+      appBar: AppBar(title: const Text(AppStrings.login)),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(

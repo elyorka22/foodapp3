@@ -147,12 +147,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   Text(_locationError!, style: AppTypography.bodySmall.copyWith(color: AppColors.danger)),
                   if (_locationFailure == LocationFailure.permissionPermanentlyDenied) ...[
                     const SizedBox(height: AppSpacing.sm),
-                    FoodAppButton(
-                      label: AppStrings.openSettings,
-                      variant: FoodAppButtonVariant.secondary,
-                      expanded: false,
-                      onPressed: openAppSettings,
-                    ),
+                    const _OpenAppSettingsButton(),
                   ],
                 ],
                 const SizedBox(height: AppSpacing.md),
@@ -167,19 +162,27 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(AppStrings.deliveryMethod, style: AppTypography.subtitle),
-          RadioListTile(
-            value: 'courier',
+          RadioGroup<String>(
             groupValue: _deliveryMethod,
-            title: const Text('Kuryer'),
-            onChanged: (v) => setState(() => _deliveryMethod = v!),
+            onChanged: (v) {
+              if (v != null) setState(() => _deliveryMethod = v);
+            },
+            child: const RadioListTile<String>(
+              value: 'courier',
+              title: Text('Kuryer'),
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(AppStrings.paymentMethod, style: AppTypography.subtitle),
-          RadioListTile(
-            value: 'cash',
+          RadioGroup<String>(
             groupValue: _paymentMethod,
-            title: const Text('Naqd'),
-            onChanged: (v) => setState(() => _paymentMethod = v!),
+            onChanged: (v) {
+              if (v != null) setState(() => _paymentMethod = v);
+            },
+            child: const RadioListTile<String>(
+              value: 'cash',
+              title: Text('Naqd'),
+            ),
           ),
           const SizedBox(height: AppSpacing.xxl),
           Text('${AppStrings.total}: ${total.toStringAsFixed(0)} UZS', style: AppTypography.title),
@@ -252,5 +255,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+}
+
+class _OpenAppSettingsButton extends StatelessWidget {
+  const _OpenAppSettingsButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return FoodAppButton(
+      label: AppStrings.openSettings,
+      variant: FoodAppButtonVariant.secondary,
+      expanded: false,
+      onPressed: openAppSettings,
+    );
   }
 }

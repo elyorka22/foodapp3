@@ -43,9 +43,9 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
           children: [
             TextField(
               controller: _searchController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: AppStrings.searchStores,
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search),
               ),
               onSubmitted: (v) => setState(() => _search = v.trim()),
             ),
@@ -62,7 +62,7 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
                       Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: FilterChip(
-                          label: Text(AppStrings.seeAll),
+                          label: const Text(AppStrings.seeAll),
                           selected: _selectedType == null,
                           onSelected: (_) => setState(() => _selectedType = null),
                         ),

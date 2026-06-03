@@ -23,7 +23,7 @@ class NotificationsScreen extends ConsumerWidget {
               ref.invalidate(notificationsListProvider);
               ref.invalidate(notificationsUnreadProvider);
             },
-            child: Text(AppStrings.notificationsMarkAll),
+            child: const Text(AppStrings.notificationsMarkAll),
           ),
         ],
       ),

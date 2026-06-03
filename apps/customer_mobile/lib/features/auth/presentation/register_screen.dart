@@ -33,7 +33,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.register)),
+      appBar: AppBar(title: const Text(AppStrings.register)),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(

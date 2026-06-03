@@ -109,7 +109,7 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.telegramLogin)),
+      appBar: AppBar(title: const Text(AppStrings.telegramLogin)),
       body: _error != null
           ? Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
