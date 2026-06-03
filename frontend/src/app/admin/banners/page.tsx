@@ -1,8 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { AdminBannersPage } from '@/components/admin/admin-banners-page';
-import { adminI18n } from '@/lib/admin-i18n';
-
-export default function MarketingBannersPage() {
-  return <AdminBannersPage title={adminI18n.banners.marketingTitle} />;
+export default function AdminBannersRedirect() {
+  redirect('/admin/banners/promo');
 }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Apple, ShoppingBasket, User, UtensilsCrossed } from 'lucide-react';
+import { ShoppingBag, ShoppingBasket, User, UtensilsCrossed } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useCartStore } from '@/store/cart';
 import { uz } from '@/lib/uz';
@@ -18,7 +18,7 @@ const tabs = [
   {
     href: '/shops',
     label: uz.navShops,
-    icon: Apple,
+    icon: ShoppingBag,
     match: (path: string) => path === '/shops' || path.startsWith('/shops/'),
   },
   {

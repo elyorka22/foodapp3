@@ -167,13 +167,24 @@ async function main() {
   await prisma.banner.createMany({
     data: [
       {
-        title: 'Free delivery over 100k',
+        title: '100 000 so‘mdan ortiq — bepul yetkazish',
+        description: 'Buyurtma qiling va yetkazish xarajatisiz',
         imageUrl: '/banners/promo1.jpg',
+        placement: 'PROMO',
         isActive: true,
         sortOrder: 0,
       },
     ],
     skipDuplicates: true,
+  });
+
+  await prisma.banner.updateMany({
+    where: {
+      deletedAt: null,
+      imageUrl: '/banners/promo1.jpg',
+      placement: 'HERO',
+    },
+    data: { placement: 'PROMO' },
   });
 
   console.log('Seed complete. Staff logins (password: Admin123!):');

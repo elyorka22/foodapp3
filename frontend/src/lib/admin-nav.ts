@@ -5,7 +5,6 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   LineChart,
-  Package,
   ScrollText,
   Server,
   Settings,
@@ -71,8 +70,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: 'products',
     title: t.nav.products,
     items: [
-      { href: '/admin/products/restaurant', label: 'Restoran mahsulotlari', icon: Package },
-      { href: '/admin/products/store', label: "Do'kon mahsulotlari", icon: Package },
+      { href: '/admin/products/restaurant', label: 'Restoran mahsulotlari', icon: ShoppingBag },
+      { href: '/admin/products/store', label: "Do'kon mahsulotlari", icon: ShoppingBag },
     ],
   },
   {
@@ -95,7 +94,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: 'marketing',
     title: t.nav.marketing,
     items: [
-      { href: '/admin/banners', label: t.nav.banners, icon: ImageIcon },
+      { href: '/admin/banners/promo', label: t.banners.promoTitle, icon: ImageIcon },
+      { href: '/admin/banners/hero', label: t.banners.heroTitle, icon: ImageIcon },
       { href: '/admin/promo-codes', label: t.nav.promoCodes, icon: TicketPercent },
     ],
   },
@@ -129,4 +129,5 @@ export const ADMIN_LEGACY_REDIRECTS: Record<string, string> = {
   '/admin/business-types': '/admin/stores/types',
   '/admin/products': '/admin/products/restaurant',
   '/admin/orders': '/admin/orders/restaurant',
+  '/admin/banners': '/admin/banners/promo',
 };

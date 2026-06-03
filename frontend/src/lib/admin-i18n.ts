@@ -122,5 +122,12 @@ export const adminI18n = {
     restaurantTitle: 'Restoran bannerlari',
     storeTitle: "Do'kon bannerlari",
     marketingTitle: 'Bannerlar',
+    heroTitle: 'Bosh sahifa — karusel',
+    promoTitle: 'Bosh sahifa — promo blok',
+    heroHint: 'Bosh sahifaning yuqorisidagi aylanuvchi bannerlar.',
+    promoHint:
+      'Asosiy karusel ostidagi blok (masalan, bepul yetkazish). Joylashuv: Promo blok.',
+    placementHero: 'Karusel (yuqori)',
+    placementPromo: 'Promo blok (karusel ostida)',
   },
 } as const;

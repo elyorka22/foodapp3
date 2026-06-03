@@ -16,34 +16,68 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminI18n as t } from '@/lib/admin-i18n';
 
-const emptyBanner: BannerForm = {
+type BannerRow = {
+  id: string;
+  title?: string;
+  description?: string | null;
+  imageUrl: string;
+  linkUrl?: string | null;
+  placement?: 'HERO' | 'PROMO';
+  sortOrder?: number;
+  isActive: boolean;
+  businessId?: string | null;
+  restaurantId?: string | null;
+};
+
+function merchantId(b: BannerRow) {
+  return b.businessId ?? b.restaurantId ?? null;
+}
+
+function placementLabel(placement?: string) {
+  return placement === 'PROMO' ? t.banners.placementPromo : t.banners.placementHero;
+}
+
+const emptyBanner = (placement: 'HERO' | 'PROMO'): BannerForm => ({
   title: '',
   description: '',
   imageUrl: '',
   link: '',
-  placement: 'HERO',
+  placement,
   sortOrder: 0,
   isActive: true,
-};
+});
 
 type Props = {
   title: string;
+  hint?: string;
   vertical?: 'restaurant' | 'store';
+  /** Homepage global banners only (no restaurant/store link) */
+  homepageOnly?: boolean;
+  /** Lock list and create form to one placement */
+  placementMode?: 'HERO' | 'PROMO';
 };
 
-export function AdminBannersPage({ title, vertical }: Props) {
+export function AdminBannersPage({
+  title,
+  hint,
+  vertical,
+  homepageOnly = false,
+  placementMode,
+}: Props) {
   const router = useRouter();
   const user = getUser();
   const token = getToken();
   const { list, create, update, remove, reorder } = useAdminBanners();
   const [merchantIds, setMerchantIds] = useState<Set<string>>(new Set());
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<BannerRow[]>([]);
   const [dragId, setDragId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState<BannerForm>(emptyBanner);
+  const [form, setForm] = useState<BannerForm>(emptyBanner(placementMode ?? 'HERO'));
   const [preview, setPreview] = useState(false);
+
+  const defaultPlacement = placementMode ?? 'HERO';
 
   useEffect(() => {
     if (!token || user?.role !== 'SUPER_ADMIN') router.replace('/staff/login');
@@ -59,15 +93,20 @@ export function AdminBannersPage({ title, vertical }: Props) {
   }, [token, vertical]);
 
   const filtered = useMemo(() => {
-    const raw = list.data ?? [];
-    if (!vertical) return raw;
-    return raw.filter(
-      (b: { businessId?: string | null; restaurantId?: string | null }) => {
-        const bid = b.businessId ?? b.restaurantId;
-        return bid != null && merchantIds.has(bid);
-      },
-    );
-  }, [list.data, vertical, merchantIds]);
+    const raw = (list.data ?? []) as BannerRow[];
+    return raw.filter((b) => {
+      if (homepageOnly && merchantId(b)) return false;
+      if (placementMode === 'PROMO' && homepageOnly) {
+        return (b.placement ?? 'HERO') === 'PROMO' || (b.placement ?? 'HERO') === 'HERO';
+      }
+      if (placementMode && (b.placement ?? 'HERO') !== placementMode) return false;
+      if (vertical) {
+        const mid = merchantId(b);
+        return mid != null && merchantIds.has(mid);
+      }
+      return true;
+    });
+  }, [list.data, vertical, merchantIds, homepageOnly, placementMode]);
 
   useEffect(() => {
     setItems(filtered);
@@ -75,18 +114,18 @@ export function AdminBannersPage({ title, vertical }: Props) {
 
   const openCreate = () => {
     setEditId(null);
-    setForm(emptyBanner);
+    setForm(emptyBanner(defaultPlacement));
     setModalOpen(true);
   };
 
-  const openEdit = (b: any) => {
+  const openEdit = (b: BannerRow) => {
     setEditId(b.id);
     setForm({
       title: b.title ?? '',
       description: b.description ?? '',
       imageUrl: b.imageUrl,
       link: b.linkUrl ?? '',
-      placement: b.placement ?? 'HERO',
+      placement: placementMode ?? b.placement ?? 'HERO',
       sortOrder: b.sortOrder,
       isActive: b.isActive,
     });
@@ -104,16 +143,24 @@ export function AdminBannersPage({ title, vertical }: Props) {
   };
 
   const save = async () => {
+    if (!form.imageUrl?.trim()) {
+      toast.error('Rasm yuklang');
+      return;
+    }
+    const body: BannerForm = {
+      ...form,
+      placement: placementMode ?? form.placement ?? 'HERO',
+    };
     try {
       if (editId) {
-        await update.mutateAsync({ id: editId, body: form });
+        await update.mutateAsync({ id: editId, body });
         toast.success('Banner yangilandi');
       } else {
-        await create.mutateAsync(form);
+        await create.mutateAsync(body);
         toast.success('Banner yaratildi');
       }
       setModalOpen(false);
-      setForm(emptyBanner);
+      setForm(emptyBanner(defaultPlacement));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Saqlashda xatolik');
     }
@@ -130,7 +177,16 @@ export function AdminBannersPage({ title, vertical }: Props) {
     }
   };
 
-  const toggleActive = async (b: any) => {
+  const fixPromoPlacement = async (b: BannerRow) => {
+    try {
+      await update.mutateAsync({ id: b.id, body: { placement: 'PROMO' } });
+      toast.success('Joylashuv: Promo blok');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Xatolik');
+    }
+  };
+
+  const toggleActive = async (b: BannerRow) => {
     try {
       await update.mutateAsync({ id: b.id, body: { isActive: !b.isActive } });
       toast.success(b.isActive ? 'Nofaol qilindi' : 'Faollashtirildi');
@@ -174,8 +230,9 @@ export function AdminBannersPage({ title, vertical }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-semibold">{title}</h1>
+          {hint && <p className="mt-1 max-w-xl text-sm text-zinc-500">{hint}</p>}
           {vertical && (
-            <p className="text-sm text-zinc-500">
+            <p className="mt-1 text-sm text-zinc-500">
               {vertical === 'restaurant'
                 ? t.merchant.restaurantsOnly
                 : t.merchant.storesOnly}
@@ -207,10 +264,20 @@ export function AdminBannersPage({ title, vertical }: Props) {
       )}
 
       {!items.length ? (
-        <EmptyState title="Bannerlar yo&apos;q" description="Yangi banner yarating." />
+        <EmptyState
+          title="Bannerlar yo&apos;q"
+          description={
+            placementMode === 'PROMO'
+              ? 'Promo blok uchun banner yarating (karusel ostidagi blok).'
+              : 'Yangi banner yarating.'
+          }
+        />
       ) : (
         <div className="space-y-2">
-          {items.map((b) => (
+          {items.map((b) => {
+            const wrongPlacement =
+              placementMode === 'PROMO' && (b.placement ?? 'HERO') !== 'PROMO';
+            return (
             <div
               key={b.id}
               draggable
@@ -223,13 +290,26 @@ export function AdminBannersPage({ title, vertical }: Props) {
               <img src={b.imageUrl} alt="" className="h-16 w-28 rounded object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{b.title || '(faqat rasm)'}</p>
+                {b.description && (
+                  <p className="text-xs text-zinc-500">{b.description}</p>
+                )}
+                {wrongPlacement && (
+                  <p className="mt-1 text-xs font-medium text-amber-700">
+                    Karuselda ko&apos;rinadi — promo blok uchun joylashuvni o&apos;zgartiring
+                  </p>
+                )}
                 <p className="truncate text-xs opacity-50">
-                  {b.placement ?? 'HERO'}
+                  {placementLabel(b.placement)}
                   {b.linkUrl ? ` · ${b.linkUrl}` : ''}
                 </p>
               </div>
               <ActiveBadge active={b.isActive} />
-              <div className="flex gap-2">
+              <div className="flex flex-wrap justify-end gap-2">
+                {wrongPlacement && (
+                  <Button type="button" onClick={() => fixPromoPlacement(b)}>
+                    Promo blokka
+                  </Button>
+                )}
                 <Button type="button" variant="secondary" onClick={() => toggleActive(b)}>
                   {b.isActive ? t.inactive : t.active}
                 </Button>
@@ -241,7 +321,8 @@ export function AdminBannersPage({ title, vertical }: Props) {
                 </Button>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 
@@ -251,26 +332,33 @@ export function AdminBannersPage({ title, vertical }: Props) {
         onClose={() => setModalOpen(false)}
       >
         <div className="space-y-3">
-          <label className="block text-xs font-medium opacity-70">
-            Joylashuv
-            <select
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
-              value={form.placement ?? 'HERO'}
-              onChange={(e) =>
-                setForm({ ...form, placement: e.target.value as 'HERO' | 'PROMO' })
-              }
-            >
-              <option value="HERO">Hero (bosh sahifa)</option>
-              <option value="PROMO">Promo blok</option>
-            </select>
-          </label>
+          {!placementMode && (
+            <label className="block text-xs font-medium opacity-70">
+              Joylashuv
+              <select
+                className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
+                value={form.placement ?? 'HERO'}
+                onChange={(e) =>
+                  setForm({ ...form, placement: e.target.value as 'HERO' | 'PROMO' })
+                }
+              >
+                <option value="HERO">{t.banners.placementHero}</option>
+                <option value="PROMO">{t.banners.placementPromo}</option>
+              </select>
+            </label>
+          )}
+          {placementMode === 'PROMO' && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+              Bu banner bosh sahifada asosiy karusel ostida ko&apos;rinadi.
+            </p>
+          )}
           <Input
-            placeholder="Sarlavha"
+            placeholder="Sarlavha (masalan: Bepul yetkazish)"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
           <Input
-            placeholder="Tavsif"
+            placeholder="Tavsif (promo blok ostida)"
             value={form.description ?? ''}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
@@ -280,7 +368,7 @@ export function AdminBannersPage({ title, vertical }: Props) {
             onChange={(e) => setForm({ ...form, link: e.target.value })}
           />
           <label className="text-xs opacity-70">
-            Rasm
+            Rasm *
             <input
               type="file"
               accept="image/*"
