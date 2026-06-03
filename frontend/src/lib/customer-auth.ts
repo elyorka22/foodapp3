@@ -1,4 +1,5 @@
 import { api } from '@/lib/api';
+import { registerCustomerDevice } from '@/lib/device-registration';
 import { setCustomerAuth, type CustomerProfile } from '@/lib/customer';
 
 /**
@@ -64,4 +65,5 @@ export async function registerWithPhone(body: {
 
 export function persistCustomerSession(res: CustomerAuthResponse) {
   setCustomerAuth(res.accessToken, res.user);
+  void registerCustomerDevice();
 }

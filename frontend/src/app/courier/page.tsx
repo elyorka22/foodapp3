@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { api } from '@/lib/api';
+import { registerStaffDevice } from '@/lib/device-registration';
 import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { Button } from '@/components/ui/button';
 import { DeliveryCoords } from '@/components/shared/delivery-coords';
@@ -29,6 +30,10 @@ export default function CourierPage() {
   const { ready, authorized, token } = useRequireStaffRole({ roles: 'COURIER' });
   const qc = useQueryClient();
   const [online, setOnline] = useState(false);
+
+  useEffect(() => {
+    if (token && authorized) void registerStaffDevice();
+  }, [token, authorized]);
 
   const { data: profile } = useQuery({
     queryKey: ['courier-me'],

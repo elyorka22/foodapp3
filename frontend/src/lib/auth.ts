@@ -48,6 +48,9 @@ export function getUser(): StaffUser | null {
 export function setAuth(token: string, user: StaffUser) {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  if (typeof window !== 'undefined') {
+    void import('@/lib/device-registration').then((m) => m.registerStaffDevice());
+  }
 }
 
 export function clearAuth() {

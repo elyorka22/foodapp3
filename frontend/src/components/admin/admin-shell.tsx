@@ -7,6 +7,7 @@ import { ChevronDown, ExternalLink, LogOut, Menu } from 'lucide-react';
 import { NotificationsBell } from '@/components/admin/notifications-bell';
 import { clsx } from 'clsx';
 import { clearAuth, getUser } from '@/lib/auth';
+import { registerStaffDevice } from '@/lib/device-registration';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ADMIN_LEGACY_REDIRECTS, getAdminNavForRole } from '@/lib/admin-nav';
 import { useAdminAccess } from '@/hooks/use-admin-access';
@@ -21,6 +22,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const user = useMemo(() => getUser(), []);
   const { ready, authorized, isManager } = useAdminAccess();
   const navGroups = useMemo(() => getAdminNavForRole(user?.role), [user?.role]);
+
+  useEffect(() => {
+    if (ready && authorized) void registerStaffDevice();
+  }, [ready, authorized]);
 
   useEffect(() => {
     setDrawerOpen(false);

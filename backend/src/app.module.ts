@@ -28,6 +28,7 @@ import { BusinessTypesModule } from './modules/business-types/business-types.mod
 import { BusinessesModule } from './modules/businesses/businesses.module';
 import { MarketplaceModule } from './modules/marketplace/marketplace.module';
 import { TelegramAuthModule } from './modules/telegram-auth/telegram-auth.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { TelegramAuthModule } from './modules/telegram-auth/telegram-auth.module
     BusinessesModule,
     MarketplaceModule,
     TelegramAuthModule,
+    NotificationsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })

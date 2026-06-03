@@ -1,0 +1,8 @@
+// Reference copy for future Firebase integration. Not compiled — see README.md in this folder.
+// Original implementation preserved from release stabilization branch.
+
+// import 'dart:async';
+// import 'dart:convert';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+// ... see git history: lib/core/push/firebase_push_notification_service.dart

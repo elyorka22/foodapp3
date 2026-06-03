@@ -8,6 +8,7 @@ import { PromoCodesModule } from '../promo-codes/promo-codes.module';
 import { GrowthModule } from '../growth/growth.module';
 import { RestaurantsModule } from '../restaurants/restaurants.module';
 import { CustomersModule } from '../customers/customers.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CustomersModule } from '../customers/customers.module';
     GrowthModule,
     RestaurantsModule,
     CustomersModule,
+    NotificationsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersGateway],

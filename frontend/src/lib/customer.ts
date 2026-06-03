@@ -47,6 +47,12 @@ export function clearCustomer() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+export async function clearCustomerSession() {
+  const { unregisterCustomerDevice } = await import('@/lib/device-registration');
+  await unregisterCustomerDevice().catch(() => {});
+  clearCustomer();
+}
+
 export function isCustomerLoggedIn(): boolean {
   return !!getCustomerToken() && !!getCustomer();
 }

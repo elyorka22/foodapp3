@@ -3,9 +3,17 @@
 import { Bell, Heart, Package } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ProfileMenuRow } from '@/components/profile/profile-menu-row';
+import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
+import { useNotificationsSocket } from '@/hooks/use-notifications-socket';
+import { isCustomerLoggedIn } from '@/lib/customer';
 import { uz } from '@/lib/uz';
 
 export function ProfileAccountMenu() {
+  const loggedIn = isCustomerLoggedIn();
+  const { unread, token } = useCustomerNotifications();
+  useNotificationsSocket(!!token && loggedIn);
+  const unreadCount = unread.data?.count ?? 0;
+
   return (
     <section className="mt-6" aria-label={uz.guestFeaturesSectionTitle}>
       <Card className="overflow-hidden rounded-2xl p-0 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
@@ -21,7 +29,12 @@ export function ProfileAccountMenu() {
           hint={uz.guestFeatureFavoritesDesc}
           href="/favorites"
         />
-        <ProfileMenuRow icon={Bell} label={uz.notificationsTitle} href="/notifications" />
+        <ProfileMenuRow
+          icon={Bell}
+          label={uz.notificationsTitle}
+          href="/notifications"
+          badge={loggedIn ? unreadCount : undefined}
+        />
       </Card>
     </section>
   );

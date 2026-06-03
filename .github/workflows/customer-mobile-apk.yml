@@ -1,0 +1,78 @@
+name: Customer Mobile APK
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'apps/customer_mobile/**'
+      - '.github/workflows/customer-mobile-apk.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'apps/customer_mobile/**'
+      - '.github/workflows/customer-mobile-apk.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: customer-mobile-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/customer_mobile
+
+    env:
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      WS_BASE_URL: ${{ secrets.WS_BASE_URL }}
+      TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate build environment
+        run: chmod +x scripts/validate_build_env.sh && ./scripts/validate_build_env.sh
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('apps/customer_mobile/pubspec.yaml') }}
+
+      - name: Create Android platform project
+        run: |
+          flutter create . --org com.foodapp --project-name customer_mobile --platforms=android
+          chmod +x scripts/patch_android_permissions.sh || true
+          ./scripts/patch_android_permissions.sh || true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build release APK
+        run: |
+          DART_DEFINES=(
+            "--dart-define=API_BASE_URL=${API_BASE_URL}"
+            "--dart-define=WS_BASE_URL=${WS_BASE_URL}"
+          )
+          if [[ -n "${TELEGRAM_BOT_USERNAME:-}" ]]; then
+            DART_DEFINES+=("--dart-define=TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}")
+          fi
+          flutter build apk --release "${DART_DEFINES[@]}"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foodapp-customer-apk
+          path: apps/customer_mobile/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14

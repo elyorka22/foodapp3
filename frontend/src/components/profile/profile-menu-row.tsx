@@ -10,6 +10,7 @@ type Props = {
   iconClassName?: string;
   onClick?: () => void;
   href?: string;
+  badge?: number;
 };
 
 export function ProfileMenuRow({
@@ -19,6 +20,7 @@ export function ProfileMenuRow({
   iconClassName,
   onClick,
   href,
+  badge,
 }: Props) {
   const className = clsx(
     'flex min-h-[52px] w-full items-center gap-3 border-b border-border px-4 py-3 text-left transition last:border-b-0 active:bg-[#FAFAFA]',
@@ -38,7 +40,13 @@ export function ProfileMenuRow({
         <p className="text-[15px] font-medium leading-snug text-foreground">{label}</p>
         {hint && <p className="mt-0.5 text-[13px] leading-4 text-foreground-muted">{hint}</p>}
       </div>
-      <ChevronRight size={16} className="shrink-0 text-[#D1D5DB]" strokeWidth={2} />
+      {badge != null && badge > 0 ? (
+        <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#E85D04] px-1.5 text-[11px] font-semibold text-white">
+          {badge > 99 ? '99+' : badge}
+        </span>
+      ) : (
+        <ChevronRight size={16} className="shrink-0 text-[#D1D5DB]" strokeWidth={2} />
+      )}
     </>
   );
 

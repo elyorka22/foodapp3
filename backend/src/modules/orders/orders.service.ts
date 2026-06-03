@@ -26,6 +26,8 @@ import { normalizePhone } from '../../common/utils/phone.util';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { CustomersService } from '../customers/customers.service';
+import { NotificationService } from '../notifications/notifications.service';
+import { ORDER_STATUS_TO_CUSTOMER_TEMPLATE } from '../notifications/constants/order-status-notification.map';
 
 const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
@@ -49,6 +51,7 @@ export class OrdersService {
     private loyalty: LoyaltyService,
     private schedule: RestaurantScheduleService,
     private customers: CustomersService,
+    private notifications: NotificationService,
   ) {}
 
   async createGuestOrder(dto: CreateGuestOrderDto) {
@@ -225,6 +228,24 @@ export class OrdersService {
       restaurant: order.business,
     });
     this.gateway.emitAdminEvent('notification', notification);
+
+    await this.notifications.notifyManagersNewOrder({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      businessName: order.business?.name,
+    });
+
+    if (customerId) {
+      await this.notifications.notifyCustomerOrderStatus({
+        customerId,
+        templateCode: 'ORDER_CREATED',
+        metadata: {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          trackingToken: order.trackingToken,
+        },
+      });
+    }
 
     return {
       order: payload,
@@ -420,7 +441,50 @@ export class OrdersService {
     this.gateway.emitBusinessOrder(updated.businessId, payload);
     this.gateway.emitAdminOrderUpdate(payload);
 
+    await this.emitOrderStatusNotifications(updated, dto.status);
+
     return payload;
+  }
+
+  private async emitOrderStatusNotifications(
+    order: {
+      id: string;
+      orderNumber: string;
+      trackingToken?: string;
+      status: OrderStatus;
+      guestOrder?: { customerId: string | null } | null;
+      courier?: { userId: string } | { user?: { id: string } } | null;
+      business?: { name: string | null } | null;
+    },
+    status: OrderStatus,
+  ) {
+    const templateCode = ORDER_STATUS_TO_CUSTOMER_TEMPLATE[status];
+    const customerId = order.guestOrder?.customerId;
+    if (customerId && templateCode) {
+      await this.notifications.notifyCustomerOrderStatus({
+        customerId,
+        templateCode,
+        metadata: {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          trackingToken: order.trackingToken,
+          status,
+          businessName: order.business?.name,
+        },
+      });
+    }
+
+    const courierUserId =
+      order.courier && 'userId' in order.courier
+        ? order.courier.userId
+        : order.courier?.user?.id;
+    if (status === OrderStatus.COURIER_ASSIGNED && courierUserId) {
+      await this.notifications.notifyCourierAssigned({
+        courierUserId,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+      });
+    }
   }
 
   async getStatusHistory(orderId: string, user: JwtPayload) {
@@ -489,11 +553,17 @@ export class OrdersService {
 
     const updated = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: true, guestOrder: true, business: { select: { name: true } } },
+      include: {
+        items: true,
+        guestOrder: true,
+        business: { select: { name: true } },
+        courier: { select: { userId: true } },
+      },
     });
     const payload = this.serializeOrder(updated!);
     this.gateway.emitOrderUpdate(updated!.trackingToken, payload);
     this.gateway.emitAdminOrderUpdate(payload);
+    await this.emitOrderStatusNotifications(updated!, OrderStatus.COURIER_ASSIGNED);
     return payload;
   }
 

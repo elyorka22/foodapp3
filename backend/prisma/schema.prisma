@@ -38,11 +38,32 @@ enum PaymentMethod {
   ONLINE
 }
 
-enum NotificationType {
-  ORDER_UPDATE
-  COURIER_ASSIGN
+/// FoodApp-owned notification event codes (templates + stored notifications).
+enum NotificationChannelCode {
+  ORDER_CREATED
+  ORDER_ACCEPTED
+  ORDER_PREPARING
+  ORDER_READY
+  ORDER_DELIVERING
+  ORDER_COMPLETED
+  ORDER_CANCELLED
+  PROMOTION
   SYSTEM
-  SMS_READY
+  NEW_ORDER
+  ORDER_ASSIGNED
+  ORDER_PROBLEM
+  DAILY_REPORT
+}
+
+enum NotificationAccountType {
+  CUSTOMER
+  STAFF
+}
+
+enum DevicePlatform {
+  android
+  ios
+  web
 }
 
 enum CustomerAuthProvider {
@@ -107,7 +128,6 @@ model User {
   businessStaff BusinessStaff[]
   managerProfile  Manager?
   courierProfile  Courier?
-  notifications   Notification[]
   orderStatusChanges OrderStatusHistory[]
   auditLogs          AuditLog[]
   adminNotificationReads AdminNotificationRead[]
@@ -576,21 +596,63 @@ model Setting {
   @@map("settings")
 }
 
-model Notification {
-  id        String           @id @default(uuid()) @db.Uuid
-  userId    String?          @map("user_id") @db.Uuid
-  orderId   String?          @map("order_id") @db.Uuid
-  type      NotificationType
+model NotificationTemplate {
+  id        String                 @id @default(uuid()) @db.Uuid
+  code      String                 @unique
   title     String
   body      String
-  isRead    Boolean          @default(false) @map("is_read")
-  metadata  Json?
-  createdAt DateTime         @default(now()) @map("created_at")
+  type      NotificationChannelCode
+  createdAt DateTime               @default(now()) @map("created_at")
 
-  user User? @relation(fields: [userId], references: [id])
+  @@map("notification_templates")
+}
 
-  @@index([userId, isRead])
+/// In-app notification history. `userId` is Customer.id or User.id per `accountType`.
+model Notification {
+  id          String                  @id @default(uuid()) @db.Uuid
+  userId      String                  @map("user_id") @db.Uuid
+  accountType NotificationAccountType @map("account_type")
+  title       String
+  body        String
+  type        NotificationChannelCode
+  isRead      Boolean                 @default(false) @map("is_read")
+  metadata    Json?
+  createdAt   DateTime                @default(now()) @map("created_at")
+
+  @@index([userId, accountType, isRead])
+  @@index([userId, accountType, createdAt(sort: Desc)])
   @@map("notifications")
+}
+
+model UserDevice {
+  id          String                  @id @default(uuid()) @db.Uuid
+  userId      String                  @map("user_id") @db.Uuid
+  accountType NotificationAccountType @map("account_type")
+  deviceId    String                  @map("device_id")
+  pushToken   String?                 @map("push_token")
+  platform    DevicePlatform
+  appVersion  String?                 @map("app_version")
+  lastSeenAt  DateTime                @default(now()) @map("last_seen_at")
+  createdAt   DateTime                @default(now()) @map("created_at")
+  updatedAt   DateTime                @updatedAt @map("updated_at")
+
+  @@unique([userId, accountType, deviceId])
+  @@index([userId, accountType])
+  @@map("user_devices")
+}
+
+model NotificationPreference {
+  id          String                  @id @default(uuid()) @db.Uuid
+  userId      String                  @map("user_id") @db.Uuid
+  accountType NotificationAccountType @map("account_type")
+  type        NotificationChannelCode
+  enabled     Boolean                 @default(true)
+  pushEnabled Boolean                 @default(true) @map("push_enabled")
+  createdAt   DateTime                @default(now()) @map("created_at")
+  updatedAt   DateTime                @updatedAt @map("updated_at")
+
+  @@unique([userId, accountType, type])
+  @@map("notification_preferences")
 }
 
 model OrderStatusHistory {
