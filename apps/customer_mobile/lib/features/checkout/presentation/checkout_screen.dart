@@ -261,13 +261,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 class _OpenAppSettingsButton extends StatelessWidget {
   const _OpenAppSettingsButton();
 
+  static void _onPressed() => openAppSettings();
+
   @override
   Widget build(BuildContext context) {
-    return FoodAppButton(
+    return const FoodAppButton(
       label: AppStrings.openSettings,
       variant: FoodAppButtonVariant.secondary,
       expanded: false,
-      onPressed: openAppSettings,
+      onPressed: _onPressed,
     );
   }
 }
