@@ -20,6 +20,50 @@ class AppConfig {
 
   static const String wsBaseUrl = String.fromEnvironment('WS_BASE_URL');
 
+  /// Trimmed API base without trailing slash (used by Dio).
+  static String get normalizedApiBaseUrl {
+    var url = apiBaseUrl.trim();
+    while (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+    return url;
+  }
+
+  static String get normalizedWsBaseUrl {
+    var url = wsBaseUrl.trim();
+    while (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+    return url;
+  }
+
+  /// True when base URL accidentally contains `/api/v1` twice.
+  static bool get hasDuplicateApiV1InBase {
+    return RegExp(r'/api/v1/api/v1', caseSensitive: false).hasMatch(normalizedApiBaseUrl);
+  }
+
+  /// Builds the URL Dio will request (for diagnostics).
+  static String resolveRequestUrl(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) {
+    final normalizedPath = path.startsWith('/') ? path : '/$path';
+    if (normalizedPath.contains('/api/v1/')) {
+      throw FlutterError(
+        'Path must not include /api/v1 — baseUrl already has it: $normalizedPath',
+      );
+    }
+    // Match Dio: baseUrl + path (not Uri.resolve, which drops /api/v1).
+    var combined = '$normalizedApiBaseUrl$normalizedPath';
+    if (queryParameters != null && queryParameters.isNotEmpty) {
+      final query = queryParameters.entries
+          .map((e) => '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent('${e.value}')}')
+          .join('&');
+      combined = '$combined?$query';
+    }
+    return combined;
+  }
+
   static final RegExp _forbiddenHost = RegExp(
     r'localhost|127\.0\.0\.1|10\.0\.2\.2',
     caseSensitive: false,
@@ -41,6 +85,13 @@ class AppConfig {
       throw FlutterError(
         'WS_BASE_URL is required.\n'
         'Example: --dart-define=WS_BASE_URL=https://api.example.com',
+      );
+    }
+
+    if (hasDuplicateApiV1InBase) {
+      throw FlutterError(
+        'API_BASE_URL must not contain /api/v1 twice.\n'
+        'Use: https://your-host/api/v1 (paths in code are relative, e.g. /restaurants).',
       );
     }
 

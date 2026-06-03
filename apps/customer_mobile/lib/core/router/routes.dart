@@ -9,4 +9,5 @@ abstract final class AppRoutes {
   static const orderTrack = '/track';
   static const notifications = '/notifications';
   static const promotions = '/promotions';
+  static const networkHealth = '/network-health';
 }

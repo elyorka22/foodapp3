@@ -7,6 +7,7 @@ import '../storage/token_storage.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 import 'interceptors/retry_interceptor.dart';
+import 'interceptors/url_log_interceptor.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final storage = ref.watch(tokenStorageProvider);
@@ -25,6 +26,7 @@ Dio createDioClient(TokenStorage storage) {
   );
 
   dio.interceptors.addAll([
+    UrlLogInterceptor(),
     AuthInterceptor(storage),
     RetryInterceptor(dio),
     ErrorInterceptor(),

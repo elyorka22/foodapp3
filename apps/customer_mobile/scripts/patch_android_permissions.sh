@@ -1,23 +1,32 @@
 #!/usr/bin/env bash
-# Adds location permissions after flutter create.
+# Ensures INTERNET + location permissions after flutter create.
 set -euo pipefail
 MANIFEST="$(cd "$(dirname "$0")/.." && pwd)/android/app/src/main/AndroidManifest.xml"
 [[ -f "$MANIFEST" ]] || exit 0
 
-if ! grep -q 'ACCESS_FINE_LOCATION' "$MANIFEST"; then
-  sed -i.bak '/<manifest/a\
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-' "$MANIFEST" 2>/dev/null || python3 - <<PY
+python3 - <<PY
 from pathlib import Path
+
 p = Path("$MANIFEST")
 text = p.read_text()
-perms = '''    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-'''
-if 'ACCESS_FINE_LOCATION' not in text:
-    text = text.replace('<manifest', '<manifest\n' + perms, 1)
+changed = False
+
+perms = [
+    '    <uses-permission android:name="android.permission.INTERNET"/>',
+    '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>',
+    '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>',
+]
+
+for perm in perms:
+    key = perm.split('android.permission.')[1].split('"')[0]
+    if key not in text:
+        text = text.replace('<manifest', '<manifest\n' + perm, 1)
+        changed = True
+        print(f"Added {key}")
+
+if changed:
     p.write_text(text)
+    print("Patched AndroidManifest.xml")
+else:
+    print("AndroidManifest already has required permissions")
 PY
-  echo "Patched Android location permissions"
-fi

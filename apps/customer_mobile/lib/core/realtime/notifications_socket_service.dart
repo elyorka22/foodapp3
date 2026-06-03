@@ -18,4 +18,4 @@ class NotificationsSocketServiceStub implements NotificationsSocketService {
   Future<void> disconnect() async {}
 }
 
-String get notificationsSocketUrl => '${AppConfig.wsBaseUrl}/notifications';
+String get notificationsSocketUrl => '${AppConfig.normalizedWsBaseUrl}/notifications';

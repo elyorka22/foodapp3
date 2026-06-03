@@ -27,4 +27,4 @@ class OrdersSocketServiceStub implements OrdersSocketService {
   Future<void> disconnect() async {}
 }
 
-String get ordersSocketUrl => '${AppConfig.wsBaseUrl}/orders';
+String get ordersSocketUrl => '${AppConfig.normalizedWsBaseUrl}/orders';

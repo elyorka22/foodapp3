@@ -89,6 +89,11 @@ class ProfileScreen extends ConsumerWidget {
           _MenuTile(icon: Icons.language, title: AppStrings.language, onTap: () {}),
           _MenuTile(icon: Icons.help_outline, title: AppStrings.help, onTap: () {}),
           _MenuTile(icon: Icons.description_outlined, title: AppStrings.terms, onTap: () {}),
+          _MenuTile(
+            icon: Icons.network_check,
+            title: 'Tarmoq diagnostikasi (temp)',
+            onTap: () => context.push(AppRoutes.networkHealth),
+          ),
         ],
       ),
     );
