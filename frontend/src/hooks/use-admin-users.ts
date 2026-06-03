@@ -17,8 +17,17 @@ export type StaffUser = {
   fullName: string | null;
   role: StaffRole;
   isActive: boolean;
+  adminPasswordNote: string | null;
   createdAt: string;
   restaurant?: { id: string; name: string } | null;
+  business?: { id: string; name: string } | null;
+};
+
+export type UpdateStaffUserForm = {
+  isActive?: boolean;
+  password?: string;
+  fullName?: string;
+  phone?: string;
 };
 
 export type CreateStaffUserForm = {
@@ -52,5 +61,15 @@ export function useAdminUsers(role?: StaffRole) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 
-  return { list, create };
+  const update = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: UpdateStaffUserForm }) =>
+      api<StaffUser>(`/users/${id}`, {
+        method: 'PATCH',
+        token: token ?? undefined,
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  });
+
+  return { list, create, update };
 }

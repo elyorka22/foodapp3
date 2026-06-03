@@ -6,27 +6,37 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash('Admin123!', 12);
 
+  const defaultAdminPassword = 'Admin123!';
+
   const admin = await prisma.user.upsert({
     where: { email: 'admin@foodapp.local' },
-    update: { passwordHash, role: UserRole.SUPER_ADMIN, isActive: true, deletedAt: null },
+    update: {
+      passwordHash,
+      adminPasswordNote: defaultAdminPassword,
+      role: UserRole.SUPER_ADMIN,
+      isActive: true,
+      deletedAt: null,
+    },
     create: {
       email: 'admin@foodapp.local',
       phone: '+998900000001',
       fullName: 'Super Admin',
       role: UserRole.SUPER_ADMIN,
       passwordHash,
+      adminPasswordNote: defaultAdminPassword,
     },
   });
 
   const manager = await prisma.user.upsert({
     where: { email: 'manager@foodapp.local' },
-    update: { passwordHash, isActive: true, deletedAt: null },
+    update: { passwordHash, adminPasswordNote: defaultAdminPassword, isActive: true, deletedAt: null },
     create: {
       email: 'manager@foodapp.local',
       phone: '+998900000002',
       fullName: 'Operations Manager',
       role: UserRole.MANAGER,
       passwordHash,
+      adminPasswordNote: defaultAdminPassword,
     },
   });
   await prisma.manager.upsert({
@@ -94,13 +104,14 @@ async function main() {
 
   const owner = await prisma.user.upsert({
     where: { email: 'owner@foodapp.local' },
-    update: { passwordHash, isActive: true, deletedAt: null },
+    update: { passwordHash, adminPasswordNote: defaultAdminPassword, isActive: true, deletedAt: null },
     create: {
       email: 'owner@foodapp.local',
       phone: '+998900000003',
       fullName: 'Business Owner',
       role: UserRole.BUSINESS,
       passwordHash,
+      adminPasswordNote: defaultAdminPassword,
     },
   });
 
@@ -112,13 +123,14 @@ async function main() {
 
   const courierUser = await prisma.user.upsert({
     where: { email: 'courier@foodapp.local' },
-    update: { passwordHash, isActive: true, deletedAt: null },
+    update: { passwordHash, adminPasswordNote: defaultAdminPassword, isActive: true, deletedAt: null },
     create: {
       email: 'courier@foodapp.local',
       fullName: 'Demo Courier',
       phone: '+998901112233',
       role: UserRole.COURIER,
       passwordHash,
+      adminPasswordNote: defaultAdminPassword,
     },
   });
 

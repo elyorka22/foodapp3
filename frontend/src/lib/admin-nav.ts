@@ -87,7 +87,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     title: t.nav.users,
     items: [
       { href: '/admin/customers', label: t.nav.customers, icon: Users },
-      { href: '/admin/users', label: t.nav.staff, icon: UserCog },
+      { href: '/admin/users', label: t.nav.roles, icon: UserCog },
     ],
   },
   {

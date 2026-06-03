@@ -1,12 +1,15 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { normalizePhone } from '../../common/utils/phone.util';
 
 const BUSINESS_ROLES: UserRole[] = [UserRole.BUSINESS];
@@ -54,6 +57,7 @@ export class UsersService {
         fullName: dto.fullName?.trim() || null,
         role: dto.role,
         passwordHash,
+        adminPasswordNote: dto.password,
         isActive: true,
       },
     });
@@ -99,6 +103,56 @@ export class UsersService {
     return users.map((u) => this.serializeUser(u));
   }
 
+  async update(id: string, dto: UpdateUserDto, actorUserId: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        businessStaff: {
+          where: { deletedAt: null },
+          include: { business: { select: { id: true, name: true } } },
+          take: 1,
+        },
+      },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (dto.isActive === false && user.id === actorUserId) {
+      throw new ForbiddenException('You cannot block your own account');
+    }
+
+    const data: {
+      isActive?: boolean;
+      fullName?: string | null;
+      phone?: string | null;
+      passwordHash?: string;
+      adminPasswordNote?: string;
+    } = {};
+
+    if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    if (dto.fullName !== undefined) data.fullName = dto.fullName.trim() || null;
+    if (dto.phone !== undefined) {
+      data.phone = dto.phone.trim() ? normalizePhone(dto.phone) : null;
+    }
+    if (dto.password) {
+      data.passwordHash = await this.auth.hashPassword(dto.password);
+      data.adminPasswordNote = dto.password;
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data,
+      include: {
+        businessStaff: {
+          where: { deletedAt: null },
+          include: { business: { select: { id: true, name: true } } },
+          take: 1,
+        },
+      },
+    });
+
+    return this.serializeUser(updated);
+  }
+
   private serializeUser(user: {
     id: string;
     email: string | null;
@@ -106,6 +160,7 @@ export class UsersService {
     fullName: string | null;
     role: UserRole;
     isActive: boolean;
+    adminPasswordNote?: string | null;
     createdAt: Date;
     businessStaff?: { business: { id: string; name: string } }[];
   }) {
@@ -118,6 +173,7 @@ export class UsersService {
       fullName: user.fullName,
       role: user.role,
       isActive: user.isActive,
+      adminPasswordNote: user.adminPasswordNote ?? null,
       createdAt: user.createdAt,
       business: merchant,
       restaurant: merchant,
