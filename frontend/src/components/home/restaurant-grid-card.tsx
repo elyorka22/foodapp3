@@ -9,7 +9,6 @@ import { coverObjectPosition } from '@/lib/cover-position';
 import {
   restaurantCategoryLabel,
   restaurantDeliveryLabel,
-  restaurantRatingLabel,
 } from '@/lib/restaurant-card-meta';
 import { restaurantPublicPath } from '@/lib/restaurant-url';
 import { uz } from '@/lib/uz';
@@ -34,14 +33,13 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
     restaurant.coverPositionY,
   );
   const href = restaurantPublicPath(restaurant);
-  const rating = restaurantRatingLabel(restaurant);
   const delivery = restaurantDeliveryLabel(restaurant);
   const categories = restaurantCategoryLabel(restaurant);
   const showGalleryDots = Boolean(restaurant.coverUrl && restaurant.logoUrl);
 
   return (
     <Link href={href} className="block transition active:scale-[0.99]">
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-zinc-200">
+      <div className="relative aspect-[2/1] w-full overflow-hidden rounded-xl bg-zinc-200">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -65,14 +63,14 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
 
         <button
           type="button"
-          className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-zinc-800 shadow-sm"
+          className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-zinc-800 shadow-sm"
           aria-label={uz.favoritesAria}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
           }}
         >
-          <Bookmark size={18} strokeWidth={2} />
+          <Bookmark size={17} strokeWidth={2} />
         </button>
 
         {showGalleryDots ? (
@@ -87,23 +85,17 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
         ) : null}
       </div>
 
-      <div className="mt-2.5">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="min-w-0 flex-1 text-[17px] font-bold leading-snug text-zinc-900">
-            {restaurant.name}
-          </h3>
-          {rating ? (
-            <span className="shrink-0 text-sm font-semibold text-zinc-900">{rating}</span>
-          ) : null}
-        </div>
-
-        <div className="mt-1 flex items-start justify-between gap-3">
-          <span className="inline-flex shrink-0 items-center gap-1 text-sm text-zinc-500">
+      <div className="mt-1.5">
+        <h3 className="truncate text-[15px] font-bold leading-tight text-zinc-900">
+          {restaurant.name}
+        </h3>
+        <div className="mt-0.5 flex items-center justify-between gap-2">
+          <span className="inline-flex shrink-0 items-center gap-1 text-[13px] text-zinc-500">
             <Footprints size={15} strokeWidth={2} className="text-zinc-600" />
             {delivery}
           </span>
           {categories ? (
-            <p className="min-w-0 flex-1 truncate text-right text-sm text-zinc-400">{categories}</p>
+            <p className="min-w-0 truncate text-right text-[13px] text-zinc-400">{categories}</p>
           ) : null}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_url.dart';
@@ -18,31 +19,31 @@ class FoodAppRestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rating = restaurantRatingLabel(restaurant);
     final delivery = restaurantDeliveryLabel(restaurant);
     final categories = restaurantCategoryLabel(restaurant);
-    final showGalleryDots = (restaurant.coverUrl != null && restaurant.logoUrl != null);
+    final showGalleryDots =
+        restaurant.coverUrl != null && restaurant.logoUrl != null;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AspectRatio(
-              aspectRatio: 16 / 10,
+              aspectRatio: 2 / 1,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                     child: _cover(),
                   ),
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: 6,
+                    right: 6,
                     child: Material(
                       color: Colors.white.withValues(alpha: 0.95),
                       shape: const CircleBorder(),
@@ -51,11 +52,11 @@ class FoodAppRestaurantCard extends StatelessWidget {
                         customBorder: const CircleBorder(),
                         onTap: () {},
                         child: const SizedBox(
-                          width: 36,
-                          height: 36,
+                          width: 32,
+                          height: 32,
                           child: Icon(
-                            Icons.bookmark_border,
-                            size: 20,
+                            LucideIcons.bookmark,
+                            size: 17,
                             color: AppColors.textPrimary,
                           ),
                         ),
@@ -64,10 +65,13 @@ class FoodAppRestaurantCard extends StatelessWidget {
                   ),
                   if (showGalleryDots)
                     Positioned(
-                      right: 8,
-                      bottom: 8,
+                      right: 6,
+                      bottom: 6,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(20),
@@ -87,46 +91,29 @@ class FoodAppRestaurantCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    restaurant.name,
-                    style: AppTypography.subtitle.copyWith(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                if (rating != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    rating,
-                    style: AppTypography.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ],
+            const SizedBox(height: 6),
+            Text(
+              restaurant.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.subtitle.copyWith(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                height: 1.2,
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.directions_walk_outlined,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(delivery, style: AppTypography.bodySmall),
-                  ],
+                const Icon(
+                  LucideIcons.footprints,
+                  size: 15,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  delivery,
+                  style: AppTypography.bodySmall.copyWith(fontSize: 13),
                 ),
                 if (categories.isNotEmpty) ...[
                   const SizedBox(width: 8),
@@ -136,7 +123,7 @@ class FoodAppRestaurantCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.end,
-                      style: AppTypography.caption,
+                      style: AppTypography.caption.copyWith(fontSize: 13),
                     ),
                   ),
                 ],

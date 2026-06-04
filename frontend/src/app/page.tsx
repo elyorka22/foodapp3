@@ -25,12 +25,12 @@ export default function HomePage() {
 
       <section className="mt-6" aria-label={uz.restaurants}>
         {restaurantsQuery.isLoading && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {[1, 2, 3].map((i) => (
               <div key={i}>
-                <Skeleton className="aspect-[16/10] w-full rounded-2xl shadow-none" />
-                <div className="mt-2.5 space-y-2">
-                  <Skeleton className="h-4 w-2/3 rounded-lg shadow-none" />
+                <Skeleton className="aspect-[2/1] w-full rounded-xl shadow-none" />
+                <div className="mt-1.5 space-y-1.5">
+                  <Skeleton className="h-3.5 w-2/3 rounded-lg shadow-none" />
                   <Skeleton className="h-3 w-full rounded-lg shadow-none" />
                 </div>
               </div>
@@ -56,7 +56,7 @@ export default function HomePage() {
         )}
 
         {!restaurantsQuery.isLoading && !hasError && restaurants.length > 0 && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {restaurants.map((r, i) => (
               <RestaurantGridCard key={r.id} restaurant={r} index={i} />
             ))}
