@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
+import 'lucide_restaurant_icons.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_url.dart';
 import '../../core/utils/restaurant_card_meta.dart';
@@ -105,8 +105,7 @@ class FoodAppRestaurantCard extends StatelessWidget {
             const SizedBox(height: 2),
             Row(
               children: [
-                const Icon(
-                  LucideIcons.footprints,
+                const LucideFootprintsIcon(
                   size: 15,
                   color: AppColors.textSecondary,
                 ),
