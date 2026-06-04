@@ -240,41 +240,25 @@ class _GuestBannerGrid extends StatelessWidget {
           title: AppStrings.login,
           subtitle: AppStrings.profileLoginSubtitle,
           onTap: onLogin,
-          bottomRight: Icon(
-            Icons.add,
-            size: 48,
-            color: Colors.white.withValues(alpha: 0.9),
-          ),
+          bottomRight: _bannerAddIcon,
         ),
         ProfileBannerTile(
           title: AppStrings.register,
           subtitle: AppStrings.profileRegisterSubtitle,
           onTap: onRegister,
-          bottomRight: Icon(
-            Icons.person_add_alt_1_outlined,
-            size: 40,
-            color: AppColors.primary.withValues(alpha: 0.85),
-          ),
+          bottomRight: _bannerRegisterIcon,
         ),
         ProfileBannerTile(
           title: AppStrings.telegramLogin,
           subtitle: AppStrings.profileTelegramSubtitle,
           onTap: onTelegram,
-          bottomRight: const Icon(
-            Icons.telegram,
-            size: 44,
-            color: Color(0xFF229ED9),
-          ),
+          bottomRight: _bannerTelegramIcon,
         ),
         ProfileBannerTile(
           title: AppStrings.help,
           subtitle: AppStrings.profileHelpSubtitle,
           onTap: onHelp,
-          bottomRight: const Icon(
-            Icons.help_outline_rounded,
-            size: 40,
-            color: AppColors.textMuted,
-          ),
+          bottomRight: _bannerHelpIcon,
         ),
       ],
     );
@@ -312,64 +296,38 @@ class _LoggedInBannerGrid extends StatelessWidget {
           heroText: unread > 0 ? unreadLabel : null,
           heroColor: ProfileBannerTile.heroGreen,
           onTap: onNotifications,
-          bottomRight: unread > 0
-              ? null
-              : Icon(
-                  Icons.notifications_outlined,
-                  size: 40,
-                  color: AppColors.textMuted.withValues(alpha: 0.6),
-                ),
+          bottomRight: unread > 0 ? null : _bannerNotificationIcon,
         ),
         ProfileBannerTile(
           variant: ProfileBannerVariant.accent,
           title: AppStrings.promotionsTitle,
           subtitle: AppStrings.profilePromotionsSubtitle,
           onTap: onPromotions,
-          bottomRight: Icon(
-            Icons.add,
-            size: 48,
-            color: Colors.white.withValues(alpha: 0.9),
-          ),
+          bottomRight: _bannerAddIcon,
         ),
         ProfileBannerTile(
           title: AppStrings.language,
           subtitle: AppStrings.profileLanguageSubtitle,
           onTap: onLanguage,
-          bottomRight: const Icon(
-            Icons.language,
-            size: 40,
-            color: AppColors.textSecondary,
-          ),
+          bottomRight: _bannerLanguageIcon,
         ),
         ProfileBannerTile(
           title: AppStrings.help,
           subtitle: AppStrings.profileHelpSubtitle,
           onTap: onHelp,
-          bottomRight: const Icon(
-            Icons.help_outline_rounded,
-            size: 40,
-            color: AppColors.textMuted,
-          ),
+          bottomRight: _bannerHelpIcon,
         ),
         ProfileBannerTile(
           title: AppStrings.terms,
           subtitle: AppStrings.profileTermsSubtitle,
           onTap: onTerms,
-          bottomRight: const Icon(
-            Icons.description_outlined,
-            size: 40,
-            color: AppColors.textMuted,
-          ),
+          bottomRight: _bannerTermsIcon,
         ),
         ProfileBannerTile(
           title: AppStrings.telegramLogin,
           subtitle: AppStrings.profileTelegramSubtitle,
           onTap: onTelegram,
-          bottomRight: const Icon(
-            Icons.telegram,
-            size: 44,
-            color: Color(0xFF229ED9),
-          ),
+          bottomRight: _bannerTelegramIcon,
         ),
       ],
     );
