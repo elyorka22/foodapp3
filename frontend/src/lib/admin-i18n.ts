@@ -208,7 +208,7 @@ export const adminI18n = {
     marketingTitle: 'Bannerlar',
     homeGridTitle: 'Bosh sahifa — bannerlar',
     homeGridHint:
-      'Chapda katta banner va o‘ngda ikkita kichik banner. Har bir joylashuv uchun bitta faol banner.',
+      'Chapda katta banner va o‘ngda ikkita kichik. Bir joylashuvga bir nechta banner qo‘ysangiz, ular avtomatik almashadi (5 s).',
     heroTitle: 'Bosh sahifa — karusel (eski)',
     promoTitle: 'Bosh sahifa — promo (eski)',
     heroHint: 'Eski aylanuvchi format. Yangi bosh sahifa uchun «Bosh sahifa — bannerlar».',

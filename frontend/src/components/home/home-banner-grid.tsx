@@ -1,11 +1,10 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { HomeBanner } from '@/hooks/use-home-data';
+import { BannerSlotCarousel } from './banner-slot-carousel';
 
 type Placement = 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
 
@@ -14,53 +13,8 @@ type Props = {
   isLoading?: boolean;
 };
 
-function pickBanner(banners: HomeBanner[], placement: Placement) {
-  return banners.find((b) => (b.placement ?? 'HERO') === placement && resolveImageUrl(b.imageUrl));
-}
-
-function BannerTile({
-  banner,
-  className,
-  tall,
-}: {
-  banner: HomeBanner;
-  className?: string;
-  tall?: boolean;
-}) {
-  const src = resolveImageUrl(banner.imageUrl);
-  if (!src) return null;
-
-  const href = banner.linkUrl?.trim() || undefined;
-  const title = banner.title?.trim();
-
-  const inner = (
-    <div
-      className={clsx(
-        'relative w-full overflow-hidden rounded-3xl bg-zinc-200 shadow-card',
-        tall ? 'h-full min-h-[280px]' : 'min-h-[132px] flex-1',
-        className,
-      )}
-    >
-      <Image src={src} alt={title || 'Banner'} fill className="object-cover" sizes="50vw" unoptimized />
-      {title ? (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-          <p className="absolute bottom-3 left-3 right-3 text-base font-bold leading-snug text-white drop-shadow-sm">
-            {title}
-          </p>
-        </>
-      ) : null}
-    </div>
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className={clsx('block h-full active:scale-[0.98]', className)}>
-        {inner}
-      </Link>
-    );
-  }
-  return <div className={clsx('h-full', className)}>{inner}</div>;
+function listBanners(banners: HomeBanner[], placement: Placement): HomeBanner[] {
+  return banners.filter((b) => (b.placement ?? 'HERO') === placement && resolveImageUrl(b.imageUrl));
 }
 
 function Placeholder({ tall }: { tall?: boolean }) {
@@ -74,19 +28,36 @@ function Placeholder({ tall }: { tall?: boolean }) {
   );
 }
 
-export function HomeBannerGrid({ banners, isLoading }: Props) {
-  const main = pickBanner(banners, 'HOME_MAIN');
-  const top = pickBanner(banners, 'HOME_SIDE_TOP');
-  const bottom = pickBanner(banners, 'HOME_SIDE_BOTTOM');
+function Slot({
+  banners,
+  tall,
+  className,
+}: {
+  banners: HomeBanner[];
+  tall?: boolean;
+  className?: string;
+}) {
+  if (!banners.length) {
+    return <Placeholder tall={tall} />;
+  }
+  return <BannerSlotCarousel banners={banners} tall={tall} className={className} />;
+}
 
-  // Fallback: legacy HERO/PROMO until admin assigns grid placements
+export function HomeBannerGrid({ banners, isLoading }: Props) {
   const legacyHero = banners.filter((b) => {
     const p = b.placement ?? 'HERO';
     return (p === 'HERO' || p === 'PROMO') && resolveImageUrl(b.imageUrl);
   });
-  const fallbackMain = main ?? legacyHero[0];
-  const fallbackTop = top ?? legacyHero[1];
-  const fallbackBottom = bottom ?? legacyHero[2];
+
+  const mainList = listBanners(banners, 'HOME_MAIN');
+  const topList = listBanners(banners, 'HOME_SIDE_TOP');
+  const bottomList = listBanners(banners, 'HOME_SIDE_BOTTOM');
+
+  const mainBanners = mainList.length > 0 ? mainList : legacyHero;
+  const topBanners = topList.length > 0 ? topList : [];
+  const bottomBanners = bottomList.length > 0 ? bottomList : [];
+
+  const hasContent = mainBanners.length > 0 || topBanners.length > 0 || bottomBanners.length > 0;
 
   if (isLoading) {
     return (
@@ -98,7 +69,7 @@ export function HomeBannerGrid({ banners, isLoading }: Props) {
     );
   }
 
-  if (!fallbackMain && !fallbackTop && !fallbackBottom) {
+  if (!hasContent) {
     return null;
   }
 
@@ -106,13 +77,13 @@ export function HomeBannerGrid({ banners, isLoading }: Props) {
     <section className="mt-5" aria-label="Bosh sahifa bannerlari">
       <div className="grid h-[280px] grid-cols-2 grid-rows-2 gap-3">
         <div className="row-span-2 min-h-0">
-          {fallbackMain ? <BannerTile banner={fallbackMain} tall /> : <Placeholder tall />}
+          <Slot banners={mainBanners} tall />
         </div>
         <div className="flex min-h-0 flex-col">
-          {fallbackTop ? <BannerTile banner={fallbackTop} /> : <Placeholder />}
+          <Slot banners={topBanners} />
         </div>
         <div className="flex min-h-0 flex-col">
-          {fallbackBottom ? <BannerTile banner={fallbackBottom} /> : <Placeholder />}
+          <Slot banners={bottomBanners} />
         </div>
       </div>
     </section>

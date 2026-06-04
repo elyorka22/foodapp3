@@ -1,24 +1,19 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
+import 'banner_slot_carousel.dart';
 
 class HomeBannerGrid extends StatelessWidget {
   const HomeBannerGrid({super.key, required this.banners});
 
   final List<BannerModel> banners;
 
-  BannerModel? _pick(String placement) {
-    for (final b in banners) {
-      if (b.placement == placement && resolveImageUrl(b.imageUrl) != null) {
-        return b;
-      }
-    }
-    return null;
+  List<BannerModel> _list(String placement) {
+    return banners
+        .where((b) => (b.placement ?? 'HERO') == placement && resolveImageUrl(b.imageUrl) != null)
+        .toList();
   }
 
   List<BannerModel> get _legacyHero {
@@ -30,12 +25,15 @@ class HomeBannerGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final legacy = _legacyHero;
-    final main = _pick('HOME_MAIN') ?? (legacy.isNotEmpty ? legacy[0] : null);
-    final top = _pick('HOME_SIDE_TOP') ?? (legacy.length > 1 ? legacy[1] : null);
-    final bottom = _pick('HOME_SIDE_BOTTOM') ?? (legacy.length > 2 ? legacy[2] : null);
+    final mainList = _list('HOME_MAIN');
+    final topList = _list('HOME_SIDE_TOP');
+    final bottomList = _list('HOME_SIDE_BOTTOM');
 
-    if (main == null && top == null && bottom == null) {
+    final mainBanners = mainList.isNotEmpty ? mainList : _legacyHero;
+    final topBanners = topList;
+    final bottomBanners = bottomList;
+
+    if (mainBanners.isEmpty && topBanners.isEmpty && bottomBanners.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -46,63 +44,20 @@ class HomeBannerGrid extends StatelessWidget {
         children: [
           Expanded(
             flex: 1,
-            child: _tile(context, main, tall: true),
+            child: BannerSlotCarousel(banners: mainBanners, tall: true),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             flex: 1,
             child: Column(
               children: [
-                Expanded(child: _tile(context, top)),
+                Expanded(child: BannerSlotCarousel(banners: topBanners)),
                 const SizedBox(height: AppSpacing.sm),
-                Expanded(child: _tile(context, bottom)),
+                Expanded(child: BannerSlotCarousel(banners: bottomBanners)),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _tile(BuildContext context, BannerModel? banner, {bool tall = false}) {
-    if (banner == null) {
-      return DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.border,
-          borderRadius: BorderRadius.circular(24),
-        ),
-      );
-    }
-    final url = resolveImageUrl(banner.imageUrl);
-    return Material(
-      color: AppColors.border,
-      borderRadius: BorderRadius.circular(24),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: banner.linkUrl != null && banner.linkUrl!.isNotEmpty
-            ? () => context.push(banner.linkUrl!)
-            : null,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (url != null)
-              CachedNetworkImage(imageUrl: url, fit: BoxFit.cover)
-            else
-              const ColoredBox(color: AppColors.primarySoft),
-            if (banner.title.isNotEmpty)
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
-                child: Text(
-                  banner.title,
-                  style: AppTypography.subtitle.copyWith(color: Colors.white),
-                  maxLines: tall ? 3 : 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }
