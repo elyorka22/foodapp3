@@ -56,7 +56,7 @@ class RestaurantModel {
   final List<ProductModel>? products;
 
   factory RestaurantModel.fromJson(Map<String, dynamic> json) {
-    final cats = json['categories'];
+    final cats = json['productCategories'] ?? json['categories'];
     final prods = json['products'];
     return RestaurantModel(
       id: json['id'] as String,
@@ -95,6 +95,7 @@ class ProductModel {
     required this.id,
     required this.name,
     required this.price,
+    this.comparePrice,
     this.description,
     this.imageUrl,
     this.categoryId,
@@ -104,6 +105,7 @@ class ProductModel {
   final String id;
   final String name;
   final num price;
+  final num? comparePrice;
   final String? description;
   final String? imageUrl;
   final String? categoryId;
@@ -122,6 +124,7 @@ class ProductModel {
       id: json['id'] as String,
       name: json['name'] as String,
       price: parseNum(json['price']),
+      comparePrice: json['comparePrice'] != null ? parseNum(json['comparePrice']) : null,
       description: parseString(json['description']),
       imageUrl: imageUrl,
       categoryId: parseString(json['dishCategoryId'] ?? json['productCategoryId'] ?? json['categoryId']),

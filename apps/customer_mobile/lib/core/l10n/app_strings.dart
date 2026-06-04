@@ -43,6 +43,8 @@ abstract final class AppStrings {
   static const addToCart = "Savatga qo'shish";
   static const open = 'Ochiq';
   static const closed = 'Yopiq';
+  static const restaurantClosed = 'Restoran hozir yopiq';
+  static const menuEmpty = 'Menyu hozircha bo\'sh';
 
   static const completeProfile = "Profilni to'ldirish";
   static const completeProfileHint =

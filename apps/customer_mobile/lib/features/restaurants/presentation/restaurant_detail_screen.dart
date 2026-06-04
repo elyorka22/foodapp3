@@ -1,26 +1,42 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/restaurant_model.dart';
+import '../../../shared/widgets/menu_product_card.dart';
+import '../../../shared/widgets/restaurant_category_tabs.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../providers/restaurants_provider.dart';
 
-class RestaurantDetailScreen extends ConsumerWidget {
+class RestaurantDetailScreen extends ConsumerStatefulWidget {
   const RestaurantDetailScreen({super.key, required this.slug});
 
   final String slug;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final restaurant = ref.watch(restaurantDetailProvider(slug));
+  ConsumerState<RestaurantDetailScreen> createState() => _RestaurantDetailScreenState();
+}
+
+class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen> {
+  String _activeCategoryId = 'all';
+
+  @override
+  Widget build(BuildContext context) {
+    final restaurant = ref.watch(restaurantDetailProvider(widget.slug));
 
     return restaurant.when(
-      data: (r) => _RestaurantDetailBody(restaurant: r),
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      data: (r) => _RestaurantDetailBody(
+        restaurant: r,
+        activeCategoryId: _activeCategoryId,
+        onCategoryChanged: (id) => setState(() => _activeCategoryId = id),
+      ),
+      loading: () => const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: CircularProgressIndicator()),
+      ),
       error: (e, _) => Scaffold(
         appBar: AppBar(),
         body: Center(child: Text('$e')),
@@ -30,90 +46,141 @@ class RestaurantDetailScreen extends ConsumerWidget {
 }
 
 class _RestaurantDetailBody extends ConsumerWidget {
-  const _RestaurantDetailBody({required this.restaurant});
+  const _RestaurantDetailBody({
+    required this.restaurant,
+    required this.activeCategoryId,
+    required this.onCategoryChanged,
+  });
 
   final RestaurantModel restaurant;
+  final String activeCategoryId;
+  final ValueChanged<String> onCategoryChanged;
+
+  List<ProductModel> _filterProducts(List<ProductModel> products) {
+    if (activeCategoryId == 'all') return products;
+    return products.where((p) => p.categoryId == activeCategoryId).toList();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productsAsync = ref.watch(restaurantProductsProvider(restaurant.id));
-    final products = restaurant.products ?? productsAsync.value ?? [];
+    final allProducts = restaurant.products ?? productsAsync.value ?? [];
+    final products = _filterProducts(allProducts);
+    final categories = restaurant.categories ?? [];
+    final closed = restaurant.isOpen == false;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(restaurant.name),
-              background: _cover(),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (restaurant.description != null)
-                    Text(restaurant.description!, style: AppTypography.bodySmall),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(AppStrings.categories, style: AppTypography.subtitle),
-                ],
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.sm,
+                  AppSpacing.lg,
+                  0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _IconCircleButton(
+                          icon: Icons.arrow_back,
+                          onTap: () => context.pop(),
+                        ),
+                        const Spacer(),
+                        _IconCircleButton(icon: Icons.search, onTap: () {}),
+                        const SizedBox(width: AppSpacing.sm),
+                        _IconCircleButton(
+                          icon: Icons.favorite_border,
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      restaurant.name,
+                      style: AppTypography.title.copyWith(fontSize: 26),
+                    ),
+                    if (closed) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF7ED),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          AppStrings.restaurantClosed,
+                          style: AppTypography.bodySmall.copyWith(
+                            color: const Color(0xFF92400E),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: AppSpacing.lg),
+                    RestaurantCategoryTabs(
+                      categories: categories,
+                      activeId: activeCategoryId,
+                      onChanged: onCategoryChanged,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final p = products[index];
-                final qty = ref.watch(
-                  cartProvider.select(
-                    (items) => items
-                        .where((i) => i.productId == p.id)
-                        .fold(0, (s, i) => s + i.quantity),
+            if (products.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Text(
+                    AppStrings.menuEmpty,
+                    style: AppTypography.bodySmall,
                   ),
-                );
-                return ListTile(
-                  leading: p.imageUrl != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            imageUrl: p.imageUrl!,
-                            width: 48,
-                            height: 48,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : const Icon(Icons.fastfood_outlined),
-                  title: Text(p.name),
-                  subtitle: Text('${p.price} UZS'),
-                  trailing: qty > 0
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: () => ref.read(cartProvider.notifier).decrement(p.id),
-                            ),
-                            Text('$qty'),
-                            IconButton(
-                              icon: const Icon(Icons.add_circle_outline),
-                              onPressed: () => _add(ref, p),
-                            ),
-                          ],
-                        )
-                      : IconButton(
-                          icon: const Icon(Icons.add_shopping_cart),
-                          onPressed: () => _add(ref, p),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  0,
+                  AppSpacing.lg,
+                  AppSpacing.xxxl,
+                ),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 20,
+                    mainAxisExtent: 268,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final p = products[index];
+                      final qty = ref.watch(
+                        cartProvider.select(
+                          (items) => items
+                              .where((i) => i.productId == p.id)
+                              .fold(0, (s, i) => s + i.quantity),
                         ),
-                );
-              },
-              childCount: products.length,
-            ),
-          ),
-        ],
+                      );
+                      return MenuProductCard(
+                        product: p,
+                        quantity: qty,
+                        disabled: closed,
+                        onAdd: () => _add(ref, p),
+                        onRemove: () => ref.read(cartProvider.notifier).decrement(p.id),
+                      );
+                    },
+                    childCount: products.length,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -127,12 +194,30 @@ class _RestaurantDetailBody extends ConsumerWidget {
           businessName: restaurant.name,
         );
   }
+}
 
-  Widget _cover() {
-    final url = restaurant.coverUrl ?? restaurant.logoUrl;
-    if (url != null) {
-      return CachedNetworkImage(imageUrl: url, fit: BoxFit.cover);
-    }
-    return Container(color: AppColors.primarySoft);
+class _IconCircleButton extends StatelessWidget {
+  const _IconCircleButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      elevation: 1,
+      shadowColor: Colors.black26,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, size: 22, color: AppColors.textPrimary),
+        ),
+      ),
+    );
   }
 }
