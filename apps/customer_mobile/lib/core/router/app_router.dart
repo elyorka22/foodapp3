@@ -70,6 +70,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           trackingToken: state.pathParameters['token']!,
         ),
       ),
+      GoRoute(
+        path: AppRoutes.stores,
+        builder: (_, __) => const StoresScreen(),
+        routes: [
+          GoRoute(
+            path: ':slug',
+            builder: (_, state) => StoreDetailScreen(
+              slug: state.pathParameters['slug']!,
+            ),
+          ),
+        ],
+      ),
       StatefulShellRoute.indexedStack(
         builder: (_, __, navigationShell) =>
             MainShellScreen(navigationShell: navigationShell),
@@ -83,22 +95,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':slug',
                     builder: (_, state) => RestaurantDetailScreen(
-                      slug: state.pathParameters['slug']!,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.stores,
-                builder: (_, __) => const StoresScreen(),
-                routes: [
-                  GoRoute(
-                    path: ':slug',
-                    builder: (_, state) => StoreDetailScreen(
                       slug: state.pathParameters['slug']!,
                     ),
                   ),

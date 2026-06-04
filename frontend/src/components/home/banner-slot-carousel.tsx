@@ -12,13 +12,23 @@ type Props = {
   banners: HomeBanner[];
   tall?: boolean;
   className?: string;
+  /** Used when a banner has no linkUrl (e.g. shops entry tile). */
+  defaultHref?: string;
 };
 
-function BannerSlide({ banner, tall }: { banner: HomeBanner; tall?: boolean }) {
+function BannerSlide({
+  banner,
+  tall,
+  defaultHref,
+}: {
+  banner: HomeBanner;
+  tall?: boolean;
+  defaultHref?: string;
+}) {
   const src = resolveImageUrl(banner.imageUrl);
   if (!src) return null;
 
-  const href = banner.linkUrl?.trim() || undefined;
+  const href = banner.linkUrl?.trim() || defaultHref;
   const title = banner.title?.trim();
 
   const inner = (
@@ -50,7 +60,7 @@ function BannerSlide({ banner, tall }: { banner: HomeBanner; tall?: boolean }) {
   return <div className="h-full">{inner}</div>;
 }
 
-export function BannerSlotCarousel({ banners, tall, className }: Props) {
+export function BannerSlotCarousel({ banners, tall, className, defaultHref }: Props) {
   const [index, setIndex] = useState(0);
   const withImages = banners.filter((b) => resolveImageUrl(b.imageUrl));
 
@@ -76,7 +86,7 @@ export function BannerSlotCarousel({ banners, tall, className }: Props) {
   return (
     <div className={clsx('relative flex h-full min-h-0 flex-col', className)}>
       <div className="relative min-h-0 flex-1">
-        <BannerSlide banner={withImages[index]} tall={tall} />
+        <BannerSlide banner={withImages[index]} tall={tall} defaultHref={defaultHref} />
       </div>
       {showDots ? (
         <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">

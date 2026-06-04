@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, ShoppingBasket, User, UtensilsCrossed } from 'lucide-react';
+import { Home, ShoppingBasket, User } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useCartStore } from '@/store/cart';
 import { uz } from '@/lib/uz';
@@ -10,16 +10,10 @@ import { uz } from '@/lib/uz';
 const tabs = [
   {
     href: '/',
-    label: uz.navRestaurants,
-    icon: UtensilsCrossed,
+    label: uz.navHome,
+    icon: Home,
     match: (path: string) =>
       path === '/' || path.startsWith('/restaurants/'),
-  },
-  {
-    href: '/shops',
-    label: uz.navShops,
-    icon: ShoppingBag,
-    match: (path: string) => path === '/shops' || path.startsWith('/shops/'),
   },
   {
     href: '/cart',
@@ -48,7 +42,7 @@ export function BottomNav() {
       className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-surface pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-1px_0_rgba(0,0,0,0.06)]"
       aria-label="Asosiy navigatsiya"
     >
-      <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1 pt-2 pb-2">
+      <ul className="mx-auto flex max-w-lg items-stretch justify-around px-4 pt-2 pb-2">
         {tabs.map(({ href, label, icon: Icon, match }) => {
           const active = match(pathname);
           const showBadge = href === '/cart' && cartCount > 0;
@@ -57,29 +51,22 @@ export function BottomNav() {
             <li key={href} className="flex-1">
               <Link
                 href={href}
+                aria-label={label}
                 className={clsx(
-                  'relative flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 transition active:scale-95',
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-2xl transition active:scale-95',
                   active ? 'text-primary' : 'text-foreground-subtle',
                 )}
               >
                 <span
                   className={clsx(
-                    'flex h-9 w-9 items-center justify-center rounded-2xl transition',
+                    'flex h-11 w-11 items-center justify-center rounded-2xl transition',
                     active && 'bg-primary-soft',
                   )}
                 >
-                  <Icon size={22} strokeWidth={active ? 2.25 : 1.75} />
-                </span>
-                <span
-                  className={clsx(
-                    'text-[10px] leading-tight',
-                    active ? 'font-semibold' : 'font-medium',
-                  )}
-                >
-                  {label}
+                  <Icon size={24} strokeWidth={active ? 2.25 : 1.75} />
                 </span>
                 {showBadge && (
-                  <span className="absolute right-2 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+                  <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}

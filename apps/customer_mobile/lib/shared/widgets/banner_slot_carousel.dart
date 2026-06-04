@@ -14,10 +14,12 @@ class BannerSlotCarousel extends StatefulWidget {
     super.key,
     required this.banners,
     this.tall = false,
+    this.defaultRoute,
   });
 
   final List<BannerModel> banners;
   final bool tall;
+  final String? defaultRoute;
 
   @override
   State<BannerSlotCarousel> createState() => _BannerSlotCarouselState();
@@ -94,7 +96,11 @@ class _BannerSlotCarouselState extends State<BannerSlotCarousel> {
     }
 
     if (items.length == 1) {
-      return _BannerTile(banner: items[0], tall: widget.tall);
+      return _BannerTile(
+        banner: items[0],
+        tall: widget.tall,
+        defaultRoute: widget.defaultRoute,
+      );
     }
 
     return Stack(
@@ -103,7 +109,11 @@ class _BannerSlotCarouselState extends State<BannerSlotCarousel> {
         PageView.builder(
           controller: _controller,
           itemCount: items.length,
-          itemBuilder: (_, i) => _BannerTile(banner: items[i], tall: widget.tall),
+          itemBuilder: (_, i) => _BannerTile(
+            banner: items[i],
+            tall: widget.tall,
+            defaultRoute: widget.defaultRoute,
+          ),
         ),
         Positioned(
           left: 0,
@@ -128,22 +138,28 @@ class _BannerSlotCarouselState extends State<BannerSlotCarousel> {
 }
 
 class _BannerTile extends StatelessWidget {
-  const _BannerTile({required this.banner, this.tall = false});
+  const _BannerTile({
+    required this.banner,
+    this.tall = false,
+    this.defaultRoute,
+  });
 
   final BannerModel banner;
   final bool tall;
+  final String? defaultRoute;
 
   @override
   Widget build(BuildContext context) {
     final url = resolveImageUrl(banner.imageUrl);
+    final link = banner.linkUrl?.trim();
+    final route = (link != null && link.isNotEmpty) ? link : defaultRoute;
+
     return Material(
       color: AppColors.border,
       borderRadius: BorderRadius.circular(24),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: banner.linkUrl != null && banner.linkUrl!.isNotEmpty
-            ? () => context.push(banner.linkUrl!)
-            : null,
+        onTap: route != null ? () => context.push(route) : null,
         child: Stack(
           fit: StackFit.expand,
           children: [

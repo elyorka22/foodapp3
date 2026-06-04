@@ -134,6 +134,7 @@ export const uz = {
   yourReferral: 'Referral kodingiz',
   platformAdmin: 'Platforma admini?',
   openStaffLogin: 'Xodimlar kirishini ochish',
+  navHome: 'Bosh sahifa',
   navRestaurants: 'Restoranlar',
   navProducts: 'Mahsulotlar',
   navShops: "Do'konlar",

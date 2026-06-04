@@ -1,12 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { Skeleton } from '@/components/ui/skeleton';
+import { uz } from '@/lib/uz';
 import type { HomeBanner } from '@/hooks/use-home-data';
 import { BannerSlotCarousel } from './banner-slot-carousel';
 
 type Placement = 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
+
+const SHOPS_ENTRY_HREF = '/shops';
 
 type Props = {
   banners: HomeBanner[];
@@ -17,30 +21,67 @@ function listBanners(banners: HomeBanner[], placement: Placement): HomeBanner[] 
   return banners.filter((b) => (b.placement ?? 'HERO') === placement && resolveImageUrl(b.imageUrl));
 }
 
-function Placeholder({ tall }: { tall?: boolean }) {
-  return (
+function Placeholder({
+  tall,
+  href,
+  label,
+}: {
+  tall?: boolean;
+  href?: string;
+  label?: string;
+}) {
+  const inner = (
     <div
       className={clsx(
-        'rounded-3xl bg-gradient-to-br from-zinc-100 to-zinc-200',
+        'flex items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-100',
         tall ? 'min-h-[280px] h-full' : 'min-h-[132px] flex-1',
       )}
-    />
+    >
+      {label ? (
+        <span className="px-3 text-center text-sm font-semibold text-emerald-800">{label}</span>
+      ) : null}
+    </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className={clsx('block h-full active:scale-[0.98]', tall ? 'min-h-0' : '')}>
+        {inner}
+      </Link>
+    );
+  }
+  return inner;
 }
 
 function Slot({
   banners,
   tall,
-  className,
+  defaultHref,
+  placeholderHref,
+  placeholderLabel,
 }: {
   banners: HomeBanner[];
   tall?: boolean;
-  className?: string;
+  defaultHref?: string;
+  placeholderHref?: string;
+  placeholderLabel?: string;
 }) {
   if (!banners.length) {
-    return <Placeholder tall={tall} />;
+    return (
+      <Placeholder
+        tall={tall}
+        href={placeholderHref}
+        label={placeholderLabel}
+      />
+    );
   }
-  return <BannerSlotCarousel banners={banners} tall={tall} className={className} />;
+  return (
+    <BannerSlotCarousel
+      banners={banners}
+      tall={tall}
+      defaultHref={defaultHref}
+    />
+  );
 }
 
 export function HomeBannerGrid({ banners, isLoading }: Props) {
@@ -83,7 +124,12 @@ export function HomeBannerGrid({ banners, isLoading }: Props) {
           <Slot banners={topBanners} />
         </div>
         <div className="flex min-h-0 flex-col">
-          <Slot banners={bottomBanners} />
+          <Slot
+            banners={bottomBanners}
+            defaultHref={SHOPS_ENTRY_HREF}
+            placeholderHref={SHOPS_ENTRY_HREF}
+            placeholderLabel={uz.navShops}
+          />
         </div>
       </div>
     </section>

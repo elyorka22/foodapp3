@@ -2,8 +2,11 @@
 abstract final class AppStrings {
   static const appName = 'FoodApp';
 
+  static const navHome = 'Bosh sahifa';
   static const navRestaurants = 'Restoranlar';
   static const navStores = "Do'konlar";
+  static const storesSubtitle = "Shahardagi barcha do'konlar va xizmatlar";
+  static const storesEmpty = "Do'konlar topilmadi";
   static const navCart = 'Savat';
   static const navProfile = 'Profil';
 
