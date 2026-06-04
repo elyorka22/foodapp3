@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../shared/widgets/food_app_button.dart' show FoodAppButton, FoodAppButtonVariant;
-import '../../../shared/widgets/food_app_card.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
+import 'profile_banner_tile.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -19,119 +19,350 @@ class ProfileScreen extends ConsumerWidget {
     final unreadAsync = ref.watch(notificationsUnreadProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.navProfile, style: AppTypography.title)),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          auth.when(
-            data: (user) {
-              if (user == null) {
-                return FoodAppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(AppStrings.guestBrowse, style: AppTypography.body),
-                      const SizedBox(height: AppSpacing.lg),
-                      FoodAppButton(
-                        label: AppStrings.login,
-                        onPressed: () => context.push('/profile/login'),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: auth.when(
+          data: (user) {
+            final unread = unreadAsync.valueOrNull ?? 0;
+            final displayName = user?.fullName ?? AppStrings.profileGuestName;
+            final initial = displayName.isNotEmpty
+                ? displayName.trim()[0].toUpperCase()
+                : '?';
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(authStateProvider);
+                ref.invalidate(notificationsUnreadProvider);
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xxxl,
+                ),
+                child: Column(
+                  children: [
+                    _ProfileHeader(
+                      initial: initial,
+                      name: displayName,
+                      badgeCount: user != null && unread > 0 ? unread : null,
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    if (user == null)
+                      _GuestBannerGrid(
+                        onLogin: () => context.push('/profile/login'),
+                        onRegister: () => context.push('/profile/register'),
+                        onTelegram: () => context.push('/profile/telegram'),
+                        onHelp: () {},
+                      )
+                    else
+                      _LoggedInBannerGrid(
+                        unread: unread,
+                        onNotifications: () =>
+                            context.push(AppRoutes.notifications),
+                        onPromotions: () => context.push(AppRoutes.promotions),
+                        onLanguage: () {},
+                        onHelp: () {},
+                        onTerms: () {},
+                        onTelegram: () => context.push('/profile/telegram'),
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      FoodAppButton(
-                        label: AppStrings.register,
-                        variant: FoodAppButtonVariant.secondary,
-                        onPressed: () => context.push('/profile/register'),
+                    if (user != null) ...[
+                      const SizedBox(height: AppSpacing.xl),
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(authStateProvider.notifier).logout(),
+                        child: Text(
+                          AppStrings.logout,
+                          style: AppTypography.body.copyWith(
+                            color: AppColors.danger,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                );
-              }
-              return FoodAppCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(user.fullName, style: AppTypography.title),
-                    if (user.phone != null)
-                      Text(user.phone!, style: AppTypography.bodySmall),
-                    const SizedBox(height: AppSpacing.md),
-                    FoodAppButton(
-                      label: AppStrings.logout,
-                      variant: FoodAppButtonVariant.secondary,
-                      onPressed: () => ref.read(authStateProvider.notifier).logout(),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextButton(
+                      onPressed: () => context.push(AppRoutes.networkHealth),
+                      child: Text(
+                        'Tarmoq diagnostikasi',
+                        style: AppTypography.caption,
+                      ),
                     ),
                   ],
                 ),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('$e'),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          auth.when(
-            data: (user) {
-              if (user == null) return const SizedBox.shrink();
-              final unread = unreadAsync.valueOrNull ?? 0;
-              return _MenuTile(
-                icon: Icons.notifications_outlined,
-                title: AppStrings.notificationsTitle,
-                badge: unread > 0 ? unread : null,
-                onTap: () => context.push(AppRoutes.notifications),
-              );
-            },
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
-          _MenuTile(
-            icon: Icons.telegram,
-            title: AppStrings.telegramLogin,
-            onTap: () => context.push('/profile/telegram'),
-          ),
-          _MenuTile(icon: Icons.language, title: AppStrings.language, onTap: () {}),
-          _MenuTile(icon: Icons.help_outline, title: AppStrings.help, onTap: () {}),
-          _MenuTile(icon: Icons.description_outlined, title: AppStrings.terms, onTap: () {}),
-          _MenuTile(
-            icon: Icons.network_check,
-            title: 'Tarmoq diagnostikasi (temp)',
-            onTap: () => context.push(AppRoutes.networkHealth),
-          ),
-        ],
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('$e', style: AppTypography.body)),
+        ),
       ),
     );
   }
 }
 
-class _MenuTile extends StatelessWidget {
-  const _MenuTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.badge,
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({
+    required this.initial,
+    required this.name,
+    this.badgeCount,
   });
 
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  final int? badge;
+  final String initial;
+  final String name;
+  final int? badgeCount;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: badge != null
-            ? CircleAvatar(
-                radius: 12,
-                backgroundColor: const Color(0xFFE85D04),
-                child: Text(
-                  badge! > 99 ? '99+' : '$badge',
-                  style: const TextStyle(color: Colors.white, fontSize: 11),
+    return Column(
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            CircleAvatar(
+              radius: 44,
+              backgroundColor: AppColors.primarySoft,
+              child: Text(
+                initial,
+                style: AppTypography.display.copyWith(
+                  fontSize: 32,
+                  color: AppColors.primary,
                 ),
-              )
-            : const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
+              ),
+            ),
+            if (badgeCount != null)
+              Positioned(
+                top: -2,
+                right: -2,
+                child: Container(
+                  minWidth: 22,
+                  height: 22,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFC107),
+                    borderRadius: BorderRadius.circular(11),
+                    border: Border.all(color: AppColors.surface, width: 2),
+                  ),
+                  child: Text(
+                    badgeCount! > 99 ? '99+' : '$badgeCount',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          AppStrings.profileAccount,
+          style: AppTypography.caption.copyWith(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          name,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            height: 1.15,
+            color: AppColors.textPrimary,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GuestBannerGrid extends StatelessWidget {
+  const _GuestBannerGrid({
+    required this.onLogin,
+    required this.onRegister,
+    required this.onTelegram,
+    required this.onHelp,
+  });
+
+  final VoidCallback onLogin;
+  final VoidCallback onRegister;
+  final VoidCallback onTelegram;
+  final VoidCallback onHelp;
+
+  @override
+  Widget build(BuildContext context) {
+    return _BannerGrid(
+      children: [
+        ProfileBannerTile(
+          variant: ProfileBannerVariant.accent,
+          title: AppStrings.login,
+          subtitle: AppStrings.profileLoginSubtitle,
+          onTap: onLogin,
+          bottomRight: Icon(
+            Icons.add,
+            size: 48,
+            color: Colors.white.withValues(alpha: 0.9),
+          ),
+        ),
+        ProfileBannerTile(
+          title: AppStrings.register,
+          subtitle: AppStrings.profileRegisterSubtitle,
+          onTap: onRegister,
+          bottomRight: Icon(
+            Icons.person_add_alt_1_outlined,
+            size: 40,
+            color: AppColors.primary.withValues(alpha: 0.85),
+          ),
+        ),
+        ProfileBannerTile(
+          title: AppStrings.telegramLogin,
+          subtitle: AppStrings.profileTelegramSubtitle,
+          onTap: onTelegram,
+          bottomRight: Icon(
+            Icons.telegram,
+            size: 44,
+            color: const Color(0xFF229ED9),
+          ),
+        ),
+        ProfileBannerTile(
+          title: AppStrings.help,
+          subtitle: AppStrings.profileHelpSubtitle,
+          onTap: onHelp,
+          bottomRight: Icon(
+            Icons.help_outline_rounded,
+            size: 40,
+            color: AppColors.textMuted,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LoggedInBannerGrid extends StatelessWidget {
+  const _LoggedInBannerGrid({
+    required this.unread,
+    required this.onNotifications,
+    required this.onPromotions,
+    required this.onLanguage,
+    required this.onHelp,
+    required this.onTerms,
+    required this.onTelegram,
+  });
+
+  final int unread;
+  final VoidCallback onNotifications;
+  final VoidCallback onPromotions;
+  final VoidCallback onLanguage;
+  final VoidCallback onHelp;
+  final VoidCallback onTerms;
+  final VoidCallback onTelegram;
+
+  @override
+  Widget build(BuildContext context) {
+    final unreadLabel = unread > 99 ? '99+' : '$unread';
+
+    return _BannerGrid(
+      children: [
+        ProfileBannerTile(
+          title: AppStrings.notificationsTitle,
+          subtitle: AppStrings.profileNotificationsSubtitle,
+          heroText: unread > 0 ? unreadLabel : null,
+          heroColor: ProfileBannerTile.heroGreen,
+          onTap: onNotifications,
+          bottomRight: unread > 0
+              ? null
+              : Icon(
+                  Icons.notifications_outlined,
+                  size: 40,
+                  color: AppColors.textMuted.withValues(alpha: 0.6),
+                ),
+        ),
+        ProfileBannerTile(
+          variant: ProfileBannerVariant.accent,
+          title: AppStrings.promotionsTitle,
+          subtitle: AppStrings.profilePromotionsSubtitle,
+          onTap: onPromotions,
+          bottomRight: Icon(
+            Icons.add,
+            size: 48,
+            color: Colors.white.withValues(alpha: 0.9),
+          ),
+        ),
+        ProfileBannerTile(
+          title: AppStrings.language,
+          subtitle: AppStrings.profileLanguageSubtitle,
+          onTap: onLanguage,
+          bottomRight: const Icon(
+            Icons.language,
+            size: 40,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        ProfileBannerTile(
+          title: AppStrings.help,
+          subtitle: AppStrings.profileHelpSubtitle,
+          onTap: onHelp,
+          bottomRight: Icon(
+            Icons.help_outline_rounded,
+            size: 40,
+            color: AppColors.textMuted,
+          ),
+        ),
+        ProfileBannerTile(
+          title: AppStrings.terms,
+          subtitle: AppStrings.profileTermsSubtitle,
+          onTap: onTerms,
+          bottomRight: Icon(
+            Icons.description_outlined,
+            size: 40,
+            color: AppColors.textMuted,
+          ),
+        ),
+        ProfileBannerTile(
+          title: AppStrings.telegramLogin,
+          subtitle: AppStrings.profileTelegramSubtitle,
+          onTap: onTelegram,
+          bottomRight: const Icon(
+            Icons.telegram,
+            size: 44,
+            color: Color(0xFF229ED9),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BannerGrid extends StatelessWidget {
+  const _BannerGrid({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: AppSpacing.md,
+      crossAxisSpacing: AppSpacing.md,
+      childAspectRatio: 0.92,
+      children: children
+          .map(
+            (child) => SizedBox(
+              height: 148,
+              child: child,
+            ),
+          )
+          .toList(),
     );
   }
 }

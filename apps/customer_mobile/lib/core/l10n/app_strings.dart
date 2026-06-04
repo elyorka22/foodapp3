@@ -9,6 +9,16 @@ abstract final class AppStrings {
   static const storesEmpty = "Do'konlar topilmadi";
   static const navCart = 'Savat';
   static const navProfile = 'Profil';
+  static const profileAccount = 'Hisob';
+  static const profileGuestName = 'Mehmon';
+  static const profileLoginSubtitle = 'akkauntga kiring';
+  static const profileRegisterSubtitle = "yangi hisob oching";
+  static const profileTelegramSubtitle = 'tez kirish';
+  static const profilePromotionsSubtitle = "maxsus takliflar";
+  static const profileNotificationsSubtitle = "yangi xabarlar";
+  static const profileHelpSubtitle = 'savollar va yordam';
+  static const profileTermsSubtitle = "qoidalar va maxfiylik";
+  static const profileLanguageSubtitle = "o'zbek / русский";
 
   static const searchRestaurants = 'Restoran qidirish';
   static const searchStores = "Do'kon qidirish";

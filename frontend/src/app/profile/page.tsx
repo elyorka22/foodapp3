@@ -1,15 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { LogOut, MessageCircle, UserCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { GuestProfileView } from '@/components/profile/guest-profile-view';
 import { ProfileAccountMenu } from '@/components/profile/profile-account-menu';
-import { ProfileInfoHelpSection } from '@/components/profile/profile-info-help-section';
+import { ProfilePageHeader } from '@/components/profile/profile-page-header';
 import { ProfileStaffLoginButton } from '@/components/profile/profile-staff-login-button';
+import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
 import { api } from '@/lib/api';
 import {
   clearCustomer,
@@ -32,6 +32,8 @@ function displayTelegramName(c: CustomerProfile): string {
 export default function ProfilePage() {
   const [customer, setCustomerState] = useState<CustomerProfile | null>(null);
   const [message, setMessage] = useState('');
+  const { unread } = useCustomerNotifications();
+  const unreadCount = unread.data?.count ?? 0;
 
   useEffect(() => {
     const local = getCustomer();
@@ -67,8 +69,12 @@ export default function ProfilePage() {
     const showTelegram = customer.isTelegramVerified || customer.telegramId;
 
     return (
-      <main className="customer-page mx-auto min-h-screen max-w-lg px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{uz.profile}</h1>
+      <main className="customer-page mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+        <ProfilePageHeader
+          name={customer.fullName}
+          photoUrl={customer.telegramPhotoUrl}
+          badgeCount={unreadCount}
+        />
 
         {customerNeedsPhone() && (
           <Card className="mt-4 border-amber-200 bg-amber-50 p-4">
@@ -81,91 +87,54 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        <Card className="mt-6 p-5">
-          <div className="flex items-center gap-4">
-            {customer.telegramPhotoUrl ? (
-              <Image
-                src={customer.telegramPhotoUrl}
-                alt={tgName}
-                width={56}
-                height={56}
-                className="h-14 w-14 rounded-2xl object-cover"
-                unoptimized
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-                <UserCircle size={32} strokeWidth={1.5} />
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
-                {uz.customer}
-              </p>
-              <p className="truncate text-lg font-bold text-foreground">{customer.fullName}</p>
-              {customer.phone ? (
-                <p className="text-sm text-foreground-muted">{customer.phone}</p>
-              ) : (
-                <p className="text-sm text-amber-600">{uz.phoneRequiredForOrders}</p>
-              )}
-            </div>
-          </div>
-
-          {showTelegram && (
-            <div className="mt-4 rounded-xl bg-[#E8F7FD] px-4 py-3">
-              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-[#229ED9]">
-                <MessageCircle size={14} />
-                {uz.telegramProfile}
-              </p>
-              <p className="mt-1 font-medium text-foreground">{tgName}</p>
-              {customer.telegramUsername && (
-                <p className="text-sm text-foreground-muted">
-                  {uz.telegramUsernameLabel}: @{customer.telegramUsername}
-                </p>
-              )}
-            </div>
-          )}
-
-          {customer.email && <p className="mt-3 text-sm text-foreground-muted">{customer.email}</p>}
-          {customer.referralCode && (
-            <div className="mt-4 rounded-xl bg-background px-4 py-3">
-              <p className="text-xs text-foreground-muted">{uz.yourReferral}</p>
-              <p className="font-mono text-base font-semibold text-primary">
-                {customer.referralCode}
-              </p>
-            </div>
-          )}
-          {customer.loyalty && (
-            <p className="mt-3 text-sm text-foreground-muted">
-              {uz.loyalty(customer.loyalty.level, customer.loyalty.points)}
-            </p>
-          )}
-          <Button
-            type="button"
-            variant="secondary"
-            className="mt-5 w-full gap-2"
-            onClick={logoutCustomer}
-          >
-            <LogOut size={18} />
-            {uz.signOut}
-          </Button>
-        </Card>
-
         <ProfileAccountMenu />
 
-        <ProfileInfoHelpSection />
+        {showTelegram && (
+          <Card className="mt-4 rounded-2xl border-0 bg-[#E8F7FD] p-4 shadow-none">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-[#229ED9]">
+              <MessageCircle size={14} />
+              {uz.telegramProfile}
+            </p>
+            <p className="mt-1 font-medium text-foreground">{tgName}</p>
+            {customer.telegramUsername && (
+              <p className="text-sm text-foreground-muted">
+                {uz.telegramUsernameLabel}: @{customer.telegramUsername}
+              </p>
+            )}
+          </Card>
+        )}
 
-        <ProfileStaffLoginButton className="mt-6" />
+        {customer.referralCode && (
+          <Card className="mt-4 rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+            <p className="text-xs text-foreground-muted">{uz.yourReferral}</p>
+            <p className="font-mono text-base font-semibold text-primary">{customer.referralCode}</p>
+          </Card>
+        )}
+
+        <div className="mt-6 text-center">
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-red-600 hover:text-red-700"
+            onClick={logoutCustomer}
+          >
+            {uz.signOut}
+          </Button>
+        </div>
+
+        <ProfileStaffLoginButton className="mt-4" />
 
         {message && (
-          <p className="mt-4 rounded-xl bg-primary-soft px-4 py-3 text-sm text-primary-dark">{message}</p>
+          <p className="mt-4 rounded-xl bg-primary-soft px-4 py-3 text-sm text-primary-dark">
+            {message}
+          </p>
         )}
       </main>
     );
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-white px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">{uz.profile}</h1>
+    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <GuestProfileView onAuthSuccess={handleAuthSuccess} />
     </main>
   );

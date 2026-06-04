@@ -1,10 +1,11 @@
 'use client';
 
-import { Bell, Heart, Package } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { ProfileMenuRow } from '@/components/profile/profile-menu-row';
+import { Bell, FileText, Globe, Heart, HelpCircle, Package, Plus, Sparkles } from 'lucide-react';
+import { ProfileBannerGrid } from '@/components/profile/profile-banner-grid';
+import { ProfileBannerTile } from '@/components/profile/profile-banner-tile';
 import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
 import { useNotificationsSocket } from '@/hooks/use-notifications-socket';
+import { getLocale, setLocale, type AppLocale } from '@/lib/locale';
 import { isCustomerLoggedIn } from '@/lib/customer';
 import { uz } from '@/lib/uz';
 
@@ -14,28 +15,64 @@ export function ProfileAccountMenu() {
   useNotificationsSocket(!!token && loggedIn);
   const unreadCount = unread.data?.count ?? 0;
 
+  const toggleLocale = () => {
+    const next: AppLocale = getLocale() === 'uz' ? 'ru' : 'uz';
+    setLocale(next);
+  };
+
   return (
-    <section className="mt-6" aria-label={uz.guestFeaturesSectionTitle}>
-      <Card className="overflow-hidden rounded-2xl p-0 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-        <ProfileMenuRow
-          icon={Package}
-          label={uz.guestFeatureOrdersTitle}
-          hint={uz.guestFeatureOrdersDesc}
-          href="/orders"
-        />
-        <ProfileMenuRow
-          icon={Heart}
-          label={uz.guestFeatureFavoritesTitle}
-          hint={uz.guestFeatureFavoritesDesc}
-          href="/favorites"
-        />
-        <ProfileMenuRow
-          icon={Bell}
-          label={uz.notificationsTitle}
-          href="/notifications"
-          badge={loggedIn ? unreadCount : undefined}
-        />
-      </Card>
-    </section>
+    <ProfileBannerGrid>
+      <ProfileBannerTile
+        title={uz.notificationsTitle}
+        subtitle={uz.profileNotificationsSubtitle}
+        heroText={unreadCount > 0 ? (unreadCount > 99 ? '99+' : String(unreadCount)) : undefined}
+        href="/notifications"
+        icon={unreadCount > 0 ? undefined : Bell}
+      />
+      <ProfileBannerTile
+        variant="accent"
+        title={uz.promotionsTitle}
+        subtitle={uz.profilePromotionsSubtitle}
+        href="/promotions"
+        icon={Plus}
+      />
+      <ProfileBannerTile
+        title={uz.guestFeatureOrdersTitle}
+        subtitle={uz.guestFeatureOrdersDesc}
+        href="/orders"
+        icon={Package}
+      />
+      <ProfileBannerTile
+        title={uz.guestFeatureFavoritesTitle}
+        subtitle={uz.guestFeatureFavoritesDesc}
+        href="/favorites"
+        icon={Heart}
+      />
+      <ProfileBannerTile
+        title={uz.changeLanguage}
+        subtitle={uz.profileLanguageSubtitle}
+        icon={Globe}
+        onClick={toggleLocale}
+      />
+      <ProfileBannerTile
+        title={uz.profileHelp}
+        subtitle={uz.profileHelpSubtitle}
+        href="/notifications"
+        icon={HelpCircle}
+      />
+      <ProfileBannerTile
+        title={uz.termsOfUse}
+        subtitle={uz.profileTermsSubtitle}
+        href="#"
+        icon={FileText}
+      />
+      <ProfileBannerTile
+        title={uz.guestFeatureBonusesTitle}
+        subtitle={uz.guestPromoBanner}
+        href="/promotions"
+        icon={Sparkles}
+        heroClassName="text-[#C9A227]"
+      />
+    </ProfileBannerGrid>
   );
 }
