@@ -8,7 +8,6 @@ BoxDecoration? imageFramingDecoration({
   int? imagePositionY,
 }) {
   if (imageUrl == null || imageUrl.isEmpty) return null;
-  final scale = _clamp(imageScale ?? 100, 50, 200) / 100;
   final x = _clamp(imagePositionX ?? 50, 0, 100) / 100;
   final y = _clamp(imagePositionY ?? 50, 0, 100) / 100;
   return BoxDecoration(
