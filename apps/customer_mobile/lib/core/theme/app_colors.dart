@@ -9,6 +9,8 @@ abstract final class AppColors {
 
   static const Color surface = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFF7F8FA);
+  /// Customer cart/checkout pages (web `bg-[#F5F5F7]`).
+  static const Color pageBackground = Color(0xFFF5F5F7);
   static const Color border = Color(0xFFEAEAEA);
 
   static const Color textPrimary = Color(0xFF1A1A1A);

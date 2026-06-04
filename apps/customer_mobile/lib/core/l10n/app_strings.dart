@@ -28,7 +28,31 @@ abstract final class AppStrings {
 
   static const cartEmpty = "Savat bo'sh";
   static const cartTitle = 'Savat';
+  static const browseRestaurants = "Restoranlarni ko'rish";
+  static const remove = "O'chirish";
+  static const subtotal = 'Jami';
+  static const clear = 'Tozalash';
   static const checkout = 'Buyurtma berish';
+  static const checkoutTitle = 'Buyurtmani rasmiylashtirish';
+  static const noAccountRequired = "Ro'yxatdan o'tish shart emas";
+  static const promoCode = 'Promo kod';
+  static const apply = "Qo'llash";
+  static const invalidPromo = "Promo kod noto'g'ri";
+  static const promoValidateFailed = 'Promo tekshirilmadi';
+  static String promoDiscount(String amount) => 'Chegirma: $amount';
+  static const phonePlaceholder = 'Telefon (+998901234567)';
+  static const commentOptional = 'Izoh (ixtiyoriy)';
+  static const placingOrder = 'Buyurtma yuborilmoqda...';
+  static const deliveryFee = 'yetkazish';
+  static const sendLocation = 'Joylashuvni yuborish';
+  static const locationSent = 'Joylashuv qabul qilindi';
+  static const detectingLocation = 'Aniqlanmoqda...';
+  static const deliveryAddressRequired = 'Yetkazish manzilini kiriting.';
+  static const locationRequired =
+      'Yetkazish uchun «Joylashuvni yuborish» tugmasini bosing.';
+  static const locationSendFailed =
+      "Joylashuvni yuborib bo'lmadi. Ruxsat bering yoki qayta urinib ko'ring.";
+  static const orderFailed = 'Buyurtma amalga oshmadi';
   static const total = 'Jami';
   static const quantity = 'Miqdor';
 

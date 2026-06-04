@@ -3,6 +3,7 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
+import 'lucide_nav_icons.dart';
 
 /// Bottom bar: home, cart, profile — icons only (matches web).
 class FoodAppBottomNav extends StatelessWidget {
@@ -17,17 +18,9 @@ class FoodAppBottomNav extends StatelessWidget {
   final ValueChanged<int> onTap;
   final int cartCount;
 
-  static const _icons = [
-    Icons.home_outlined,
-    Icons.shopping_bag_outlined,
-    Icons.person_outline,
-  ];
-
-  static const _iconsActive = [
-    Icons.home,
-    Icons.shopping_bag,
-    Icons.person,
-  ];
+  static const _iconSize = 28.0;
+  static const _tapSize = 52.0;
+  static const _bgSize = 48.0;
 
   static const _labels = [
     AppStrings.navHome,
@@ -58,23 +51,23 @@ class FoodAppBottomNav extends StatelessWidget {
                   onTap: () => onTap(index),
                   borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
                   child: SizedBox(
-                    width: 48,
-                    height: 48,
+                    width: _tapSize,
+                    height: _tapSize,
                     child: Stack(
                       clipBehavior: Clip.none,
                       alignment: Alignment.center,
                       children: [
                         Container(
-                          width: 44,
-                          height: 44,
+                          width: _bgSize,
+                          height: _bgSize,
                           decoration: BoxDecoration(
                             color: active ? AppColors.primarySoft : Colors.transparent,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           alignment: Alignment.center,
-                          child: Icon(
-                            active ? _iconsActive[index] : _icons[index],
-                            size: 26,
+                          child: _navIcon(
+                            index: index,
+                            active: active,
                             color: active ? AppColors.primary : AppColors.textMuted,
                           ),
                         ),
@@ -110,5 +103,20 @@ class FoodAppBottomNav extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _navIcon({
+    required int index,
+    required bool active,
+    required Color color,
+  }) {
+    switch (index) {
+      case 0:
+        return LucideHomeNavIcon(size: _iconSize, color: color, active: active);
+      case 1:
+        return LucideShoppingBasketNavIcon(size: _iconSize, color: color, active: active);
+      default:
+        return LucideUserNavIcon(size: _iconSize, color: color, active: active);
+    }
   }
 }

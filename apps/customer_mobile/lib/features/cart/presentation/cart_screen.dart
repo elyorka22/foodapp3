@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format_sum.dart';
+import '../../../shared/widgets/customer_page.dart';
 import '../../../shared/widgets/food_app_button.dart';
-import '../../../shared/widgets/food_app_card.dart';
 import '../providers/cart_provider.dart';
 
 class CartScreen extends ConsumerWidget {
@@ -17,77 +19,92 @@ class CartScreen extends ConsumerWidget {
     final items = ref.watch(cartProvider);
     final total = ref.watch(cartProvider.notifier).total;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.cartTitle, style: AppTypography.title)),
-      body: items.isEmpty
-          ? Center(
-              child: Text(AppStrings.cartEmpty, style: AppTypography.body),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-                    itemBuilder: (_, i) {
-                      final item = items[i];
-                      return FoodAppCard(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(item.name, style: AppTypography.subtitle),
-                                  Text('${item.price} UZS', style: AppTypography.caption),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: () =>
-                                  ref.read(cartProvider.notifier).decrement(item.productId),
-                            ),
-                            Text('${item.quantity}', style: AppTypography.subtitle),
-                            IconButton(
-                              icon: const Icon(Icons.add_circle_outline),
-                              onPressed: () => ref.read(cartProvider.notifier).addItem(
-                                    productId: item.productId,
-                                    name: item.name,
-                                    price: item.price,
-                                    businessId: item.businessId,
-                                    businessName: item.businessName,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(AppStrings.total, style: AppTypography.subtitle),
-                          Text('${total.toStringAsFixed(0)} UZS', style: AppTypography.title),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      FoodAppButton(
-                        label: AppStrings.checkout,
-                        onPressed: () => context.push(AppRoutes.checkout),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    if (items.isEmpty) {
+      return CustomerPage(
+        child: Column(
+          children: [
+            const SizedBox(height: 32),
+            Text(AppStrings.cartEmpty, style: AppTypography.subtitle),
+            const SizedBox(height: AppSpacing.lg),
+            GestureDetector(
+              onTap: () => context.go(AppRoutes.restaurants),
+              child: Text(
+                AppStrings.browseRestaurants,
+                style: AppTypography.body.copyWith(color: AppColors.primary),
+              ),
             ),
+          ],
+        ),
+      );
+    }
+
+    return CustomerPage(
+      title: AppStrings.cartTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final item in items) ...[
+            CustomerCard(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.name, style: AppTypography.subtitle.copyWith(fontWeight: FontWeight.w500)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${item.quantity} × ${formatSum(item.price)}',
+                          style: AppTypography.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => ref.read(cartProvider.notifier).remove(item.productId),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.danger,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      AppStrings.remove,
+                      style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          Text(
+            '${AppStrings.subtotal}: ${formatSum(total)}',
+            style: AppTypography.subtitle.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Expanded(
+                child: FoodAppButton(
+                  label: AppStrings.clear,
+                  variant: FoodAppButtonVariant.secondary,
+                  onPressed: () => ref.read(cartProvider.notifier).clear(),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                flex: 2,
+                child: FoodAppButton(
+                  label: AppStrings.checkout,
+                  onPressed: () => context.push(AppRoutes.checkout),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

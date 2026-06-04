@@ -24,6 +24,7 @@ class ApiPaths {
 
   static const authTelegram = '/auth/telegram';
   static const ordersGuest = '/orders/guest';
+  static const promoCodesValidate = '/promo-codes/validate';
 
   static String orderTrack(String token) => '/orders/track/$token';
 

@@ -41,10 +41,6 @@ function StoreSlide({ store }: { store: ShopBusiness }) {
           sizes="50vw"
           unoptimized
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        <p className="absolute bottom-3 left-3 right-3 truncate text-sm font-bold text-white drop-shadow-sm">
-          {store.name}
-        </p>
       </div>
     </Link>
   );

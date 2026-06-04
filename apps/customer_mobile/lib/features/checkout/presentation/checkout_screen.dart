@@ -2,21 +2,19 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../../core/l10n/app_strings.dart';
-import '../../../core/location/delivery_location.dart';
-import '../../../core/location/location_failure.dart';
 import '../../../core/location/location_providers.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/cart_item_model.dart';
 import '../../../shared/models/order_model.dart';
+import '../../../shared/widgets/customer_page.dart';
+import '../../../shared/widgets/delivery_location_field.dart';
 import '../../../shared/widgets/food_app_button.dart';
-import '../../../shared/widgets/food_app_card.dart';
-import '../../../shared/widgets/food_app_input.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../data/orders_repository.dart';
@@ -31,56 +29,141 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _phone = TextEditingController();
   final _address = TextEditingController();
-  DeliveryLocation? _location;
-  bool _locating = false;
-  String? _locationError;
-  LocationFailure? _locationFailure;
-  String _deliveryMethod = 'courier';
-  String _paymentMethod = 'cash';
-  bool _loading = false;
+  final _comment = TextEditingController();
+  final _promoCode = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadLocation(forceRefresh: false));
-  }
+  double? _lat;
+  double? _lng;
+  bool _sendingLocation = false;
+  num _promoDiscount = 0;
+  String _promoMessage = '';
+  bool _validatingPromo = false;
+  bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
     _phone.dispose();
     _address.dispose();
+    _comment.dispose();
+    _promoCode.dispose();
     super.dispose();
   }
 
-  Future<void> _loadLocation({required bool forceRefresh}) async {
+  bool get _locationSent => _lat != null && _lng != null;
+
+  Future<void> _sendLocation() async {
     setState(() {
-      _locating = true;
-      _locationError = null;
-      _locationFailure = null;
+      _sendingLocation = true;
+      _error = null;
     });
     final result = await ref.read(locationServiceProvider).resolveForCheckout(
-          forceRefresh: forceRefresh,
+          forceRefresh: true,
         );
     if (!mounted) return;
     setState(() {
-      _locating = false;
-      _location = result.location;
-      _locationFailure = result.failure;
-      if (result.location == null) {
-        _locationError = _messageForLocationFailure(result.failure);
+      _sendingLocation = false;
+      final loc = result.location;
+      if (loc != null && loc.isValid) {
+        _lat = loc.latitude;
+        _lng = loc.longitude;
+      } else {
+        _lat = null;
+        _lng = null;
+        _error = AppStrings.locationSendFailed;
       }
     });
   }
 
-  String _messageForLocationFailure(LocationFailure? failure) {
-    return switch (failure) {
-      LocationFailure.permissionDenied => AppStrings.locationPermissionDenied,
-      LocationFailure.permissionPermanentlyDenied =>
-        AppStrings.locationPermissionSettings,
-      LocationFailure.serviceDisabled => AppStrings.locationServiceDisabled,
-      LocationFailure.timeout => AppStrings.locationTimeout,
-      _ => AppStrings.locationUnavailable,
-    };
+  Future<void> _applyPromo(String businessId, num subtotal, String? customerId) async {
+    final code = _promoCode.text.trim();
+    if (code.isEmpty) return;
+    setState(() {
+      _validatingPromo = true;
+      _promoMessage = '';
+    });
+    try {
+      final res = await ref.read(ordersRepositoryProvider).validatePromoCode(
+            code: code,
+            restaurantId: businessId,
+            subtotal: subtotal,
+            customerId: customerId,
+          );
+      if (!mounted) return;
+      setState(() {
+        if (res.valid) {
+          _promoDiscount = res.discount;
+          _promoMessage = AppStrings.promoDiscount(formatSum(res.discount));
+        } else {
+          _promoDiscount = 0;
+          _promoMessage = res.message ?? AppStrings.invalidPromo;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _promoDiscount = 0;
+        _promoMessage = AppStrings.promoValidateFailed;
+      });
+    } finally {
+      if (mounted) setState(() => _validatingPromo = false);
+    }
+  }
+
+  Future<void> _submit(List<CartItemModel> items, String? customerId) async {
+    final businessId = ref.read(cartProvider.notifier).businessId;
+    if (businessId == null) return;
+
+    final locationError = validateDeliveryLocation(
+      address: _address.text,
+      lat: _lat,
+      lng: _lng,
+    );
+    if (locationError != null) {
+      setState(() => _error = locationError);
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final res = await ref.read(ordersRepositoryProvider).createGuestOrder(
+            CreateGuestOrderModel(
+              restaurantId: businessId,
+              phone: _phone.text.trim(),
+              deliveryAddress: _address.text.trim(),
+              latitude: _lat!,
+              longitude: _lng!,
+              customerId: customerId,
+              comment: _comment.text.trim().isEmpty ? null : _comment.text.trim(),
+              promoCode: _promoCode.text.trim().isEmpty ? null : _promoCode.text.trim(),
+              items: [
+                for (final i in items)
+                  GuestOrderItemModel(productId: i.productId, quantity: i.quantity),
+              ],
+            ),
+          );
+      ref.read(cartProvider.notifier).clear();
+      if (!mounted) return;
+
+      final token = res.trackingToken;
+      if (token != null && token.isNotEmpty) {
+        context.go('${AppRoutes.orderTrack}/$token');
+      } else {
+        context.go(AppRoutes.restaurants);
+      }
+    } on DioException catch (e) {
+      final err = e.error;
+      final msg = err is ApiException ? err.message : e.message;
+      if (mounted) setState(() => _error = msg ?? AppStrings.orderFailed);
+    } catch (_) {
+      if (mounted) setState(() => _error = AppStrings.orderFailed);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -96,180 +179,138 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       _address.text = user!.defaultDeliveryAddress!;
     }
 
-    final canSubmit = cart.isNotEmpty &&
-        _location != null &&
-        _location!.isValid &&
-        _address.text.trim().length >= 3 &&
-        _phone.text.trim().length >= 9;
+    if (cart.isEmpty) {
+      return CustomerPage(
+        child: Column(
+          children: [
+            const SizedBox(height: 32),
+            Text(AppStrings.cartEmpty, style: AppTypography.subtitle),
+            const SizedBox(height: AppSpacing.lg),
+            GestureDetector(
+              onTap: () => context.go(AppRoutes.restaurants),
+              child: Text(
+                AppStrings.browseRestaurants,
+                style: AppTypography.body.copyWith(color: AppColors.primary),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
-    return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.checkout, style: AppTypography.title)),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+    final businessId = ref.read(cartProvider.notifier).businessId;
+
+    return CustomerPage(
+      title: AppStrings.checkoutTitle,
+      subtitle: AppStrings.noAccountRequired,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          FoodAppInput(
-            label: AppStrings.phone,
-            controller: _phone,
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          FoodAppInput(
-            label: AppStrings.deliveryAddress,
-            controller: _address,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          FoodAppCard(
+          CustomerCard(
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(AppStrings.deliveryLocation, style: AppTypography.subtitle),
-                const SizedBox(height: AppSpacing.sm),
-                if (_locating)
-                  const Row(
+                for (var i = 0; i < cart.length; i++) ...[
+                  if (i > 0) const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                      Expanded(
+                        child: Text(
+                          '${cart[i].name} × ${cart[i].quantity}',
+                          style: AppTypography.bodySmall,
+                        ),
                       ),
-                      SizedBox(width: 12),
-                      Text('GPS...'),
+                      Text(
+                        formatSum(cart[i].price * cart[i].quantity),
+                        style: AppTypography.bodySmall,
+                      ),
                     ],
-                  )
-                else if (_location != null)
-                  Text(
-                    '${_locationLabel(_location!)}\n'
-                    '${_location!.latitude.toStringAsFixed(5)}, '
-                    '${_location!.longitude.toStringAsFixed(5)}',
-                    style: AppTypography.bodySmall,
-                  )
-                else if (_locationError != null) ...[
-                  Text(_locationError!, style: AppTypography.bodySmall.copyWith(color: AppColors.danger)),
-                  if (_locationFailure == LocationFailure.permissionPermanentlyDenied) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    const _OpenAppSettingsButton(),
-                  ],
+                  ),
                 ],
-                const SizedBox(height: AppSpacing.md),
-                FoodAppButton(
-                  label: AppStrings.detectLocation,
-                  variant: FoodAppButtonVariant.secondary,
-                  expanded: false,
-                  onPressed: _locating ? null : () => _loadLocation(forceRefresh: true),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text.rich(
+            TextSpan(
+              style: AppTypography.subtitle.copyWith(fontWeight: FontWeight.w600),
+              children: [
+                TextSpan(text: '${AppStrings.subtotal}: ${formatSum(total)}'),
+                if (_promoDiscount > 0)
+                  TextSpan(
+                    text: ' −${formatSum(_promoDiscount)}',
+                    style: const TextStyle(color: AppColors.success),
+                  ),
+                TextSpan(
+                  text: ' + ${AppStrings.deliveryFee}',
+                  style: AppTypography.bodySmall,
                 ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          Text(AppStrings.deliveryMethod, style: AppTypography.subtitle),
-          RadioGroup<String>(
-            groupValue: _deliveryMethod,
-            onChanged: (v) {
-              if (v != null) setState(() => _deliveryMethod = v);
-            },
-            child: const RadioListTile<String>(
-              value: 'courier',
-              title: Text('Kuryer'),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: CustomerTextField(
+                  controller: _promoCode,
+                  placeholder: AppStrings.promoCode,
+                  textCapitalization: TextCapitalization.characters,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              FoodAppButton(
+                label: _validatingPromo ? '...' : AppStrings.apply,
+                variant: FoodAppButtonVariant.secondary,
+                expanded: false,
+                onPressed: _validatingPromo || businessId == null
+                    ? null
+                    : () => _applyPromo(businessId, total, user?.id),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(AppStrings.paymentMethod, style: AppTypography.subtitle),
-          RadioGroup<String>(
-            groupValue: _paymentMethod,
-            onChanged: (v) {
-              if (v != null) setState(() => _paymentMethod = v);
-            },
-            child: const RadioListTile<String>(
-              value: 'cash',
-              title: Text('Naqd'),
+          if (_promoMessage.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              _promoMessage,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.primary),
             ),
-          ),
+          ],
           const SizedBox(height: AppSpacing.xxl),
-          Text('${AppStrings.total}: ${total.toStringAsFixed(0)} UZS', style: AppTypography.title),
+          CustomerTextField(
+            controller: _phone,
+            placeholder: AppStrings.phonePlaceholder,
+            keyboardType: TextInputType.phone,
+          ),
           const SizedBox(height: AppSpacing.lg),
+          DeliveryLocationField(
+            addressController: _address,
+            locationSent: _locationSent,
+            sending: _sendingLocation,
+            onSendLocation: _sendLocation,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          CustomerTextField(
+            controller: _comment,
+            placeholder: AppStrings.commentOptional,
+            maxLines: 2,
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              _error!,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.xxl),
           FoodAppButton(
-            label: AppStrings.placeOrder,
+            label: _loading ? AppStrings.placingOrder : AppStrings.placeOrder,
             isLoading: _loading,
-            onPressed: canSubmit ? () => _submit(cart, user?.id) : null,
+            onPressed: _loading ? null : () => _submit(cart, user?.id),
           ),
         ],
       ),
-    );
-  }
-
-  String _locationLabel(DeliveryLocation loc) {
-    return switch (loc.source) {
-      LocationSource.gps => AppStrings.locationGps,
-      LocationSource.cached => AppStrings.locationCached,
-      LocationSource.profile => AppStrings.locationProfile,
-      LocationSource.manual => AppStrings.locationManual,
-    };
-  }
-
-  Future<void> _submit(List<CartItemModel> items, String? customerId) async {
-    final businessId = ref.read(cartProvider.notifier).businessId;
-    final loc = _location;
-    if (businessId == null || loc == null) return;
-
-    await ref.read(locationServiceProvider).saveManual(
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          address: _address.text.trim(),
-        );
-
-    setState(() => _loading = true);
-    try {
-      final order = CreateGuestOrderModel(
-        restaurantId: businessId,
-        phone: _phone.text.trim(),
-        deliveryAddress: _address.text.trim(),
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        customerId: customerId,
-        items: [
-          for (final i in items)
-            GuestOrderItemModel(productId: i.productId, quantity: i.quantity),
-        ],
-      );
-      final res = await ref.read(ordersRepositoryProvider).createGuestOrder(order);
-      ref.read(cartProvider.notifier).clear();
-      if (!mounted) return;
-
-      final token = res.trackingToken;
-      if (token != null && token.isNotEmpty) {
-        context.go('${AppRoutes.orderTrack}/$token');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.orderNumber}: ${res.orderNumber}')),
-        );
-        context.go(AppRoutes.restaurants);
-      }
-    } on DioException catch (e) {
-      final err = e.error;
-      final msg = err is ApiException ? err.message : e.message;
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg ?? AppStrings.errorGeneric)),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-}
-
-class _OpenAppSettingsButton extends StatelessWidget {
-  const _OpenAppSettingsButton();
-
-  static void _onPressed() => openAppSettings();
-
-  @override
-  Widget build(BuildContext context) {
-    return const FoodAppButton(
-      label: AppStrings.openSettings,
-      variant: FoodAppButtonVariant.secondary,
-      expanded: false,
-      onPressed: _onPressed,
     );
   }
 }
