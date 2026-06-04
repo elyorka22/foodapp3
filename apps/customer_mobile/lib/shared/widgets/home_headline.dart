@@ -31,7 +31,7 @@ class HomeHeadline extends ConsumerWidget {
           const _BellButton(),
         ],
       ),
-      error: (_, __) => _HeadlineRow(
+      error: (_, __) => const _HeadlineRow(
         title: AppStrings.navRestaurants,
         subtitle: null,
       ),
