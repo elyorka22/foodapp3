@@ -10,6 +10,42 @@ import '../../auth/providers/auth_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
 import 'profile_banner_tile.dart';
 
+const _bannerAddIcon = Icon(
+  Icons.add,
+  size: 48,
+  color: Color(0xE6FFFFFF),
+);
+const _bannerRegisterIcon = Icon(
+  Icons.person_add_alt_1_outlined,
+  size: 40,
+  color: Color(0xD9FF6B00),
+);
+const _bannerTelegramIcon = Icon(
+  Icons.telegram,
+  size: 44,
+  color: Color(0xFF229ED9),
+);
+const _bannerHelpIcon = Icon(
+  Icons.help_outline_rounded,
+  size: 40,
+  color: AppColors.textMuted,
+);
+const _bannerTermsIcon = Icon(
+  Icons.description_outlined,
+  size: 40,
+  color: AppColors.textMuted,
+);
+const _bannerLanguageIcon = Icon(
+  Icons.language,
+  size: 40,
+  color: AppColors.textSecondary,
+);
+const _bannerNotificationIcon = Icon(
+  Icons.notifications_outlined,
+  size: 40,
+  color: Color(0x999CA3AF),
+);
+
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -224,17 +260,17 @@ class _GuestBannerGrid extends StatelessWidget {
           title: AppStrings.telegramLogin,
           subtitle: AppStrings.profileTelegramSubtitle,
           onTap: onTelegram,
-          bottomRight: Icon(
+          bottomRight: const Icon(
             Icons.telegram,
             size: 44,
-            color: const Color(0xFF229ED9),
+            color: Color(0xFF229ED9),
           ),
         ),
         ProfileBannerTile(
           title: AppStrings.help,
           subtitle: AppStrings.profileHelpSubtitle,
           onTap: onHelp,
-          bottomRight: Icon(
+          bottomRight: const Icon(
             Icons.help_outline_rounded,
             size: 40,
             color: AppColors.textMuted,
@@ -309,7 +345,7 @@ class _LoggedInBannerGrid extends StatelessWidget {
           title: AppStrings.help,
           subtitle: AppStrings.profileHelpSubtitle,
           onTap: onHelp,
-          bottomRight: Icon(
+          bottomRight: const Icon(
             Icons.help_outline_rounded,
             size: 40,
             color: AppColors.textMuted,
@@ -319,7 +355,7 @@ class _LoggedInBannerGrid extends StatelessWidget {
           title: AppStrings.terms,
           subtitle: AppStrings.profileTermsSubtitle,
           onTap: onTerms,
-          bottomRight: Icon(
+          bottomRight: const Icon(
             Icons.description_outlined,
             size: 40,
             color: AppColors.textMuted,
