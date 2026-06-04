@@ -16,6 +16,9 @@ export type HomeRestaurant = {
   coverPositionY?: number;
   createdAt?: string;
   avgPrepMinutes?: number;
+  deliveryMinutes?: number;
+  averageRating?: number;
+  reviewCount?: number;
   minOrderAmount?: string | number | null;
   categories?: HomeCategory[];
   productCategories?: HomeCategory[];

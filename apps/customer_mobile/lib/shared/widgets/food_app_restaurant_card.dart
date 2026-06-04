@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../core/utils/image_url.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/image_url.dart';
+import '../../core/utils/restaurant_card_meta.dart';
 import '../../shared/models/restaurant_model.dart';
-import 'food_app_card.dart';
 
 class FoodAppRestaurantCard extends StatelessWidget {
   const FoodAppRestaurantCard({
@@ -19,51 +19,143 @@ class FoodAppRestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FoodAppCard(
-      onTap: onTap,
-      borderRadius: 24,
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: _cover(),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(restaurant.name, style: AppTypography.subtitle),
-                if (restaurant.description != null &&
-                    restaurant.description!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      restaurant.description!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodySmall,
+    final rating = restaurantRatingLabel(restaurant);
+    final delivery = restaurantDeliveryLabel(restaurant);
+    final categories = restaurantCategoryLabel(restaurant);
+    final showGalleryDots = (restaurant.coverUrl != null && restaurant.logoUrl != null);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 10,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _cover(),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Material(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      shape: const CircleBorder(),
+                      elevation: 1,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () {},
+                        child: const SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: Icon(
+                            Icons.bookmark_border,
+                            size: 20,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                if (restaurant.minOrderAmount != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                  if (showGalleryDots)
+                    Positioned(
+                      right: 8,
+                      bottom: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _dot(active: true),
+                            const SizedBox(width: 3),
+                            _dot(active: false),
+                            const SizedBox(width: 3),
+                            _dot(active: false),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    restaurant.name,
+                    style: AppTypography.subtitle.copyWith(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (rating != null) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    rating,
+                    style: AppTypography.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.directions_walk_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(delivery, style: AppTypography.bodySmall),
+                  ],
+                ),
+                if (categories.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: Text(
-                      'Min: ${restaurant.minOrderAmount} UZS',
+                      categories,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
                       style: AppTypography.caption,
                     ),
                   ),
+                ],
               ],
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _dot({required bool active}) {
+    return Container(
+      width: 4,
+      height: 4,
+      decoration: BoxDecoration(
+        color: active ? Colors.white : Colors.white.withValues(alpha: 0.5),
+        shape: BoxShape.circle,
       ),
     );
   }

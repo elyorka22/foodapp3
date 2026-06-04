@@ -54,7 +54,7 @@ class RestaurantsScreen extends ConsumerWidget {
                           restaurant: r,
                           onTap: () => context.go('/restaurants/${r.slug}'),
                         ),
-                        const SizedBox(height: AppSpacing.md),
+                        const SizedBox(height: AppSpacing.lg),
                       ],
                     ],
                   );

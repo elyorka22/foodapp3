@@ -32,6 +32,9 @@ class RestaurantModel {
     this.coverPositionY,
     this.minOrderAmount,
     this.avgPrepMinutes,
+    this.deliveryMinutes,
+    this.averageRating,
+    this.reviewCount,
     this.isOpen,
     this.catalogMode,
     this.phone,
@@ -49,6 +52,9 @@ class RestaurantModel {
   final int? coverPositionY;
   final num? minOrderAmount;
   final int? avgPrepMinutes;
+  final int? deliveryMinutes;
+  final double? averageRating;
+  final int? reviewCount;
   final bool? isOpen;
   final String? catalogMode;
   final String? phone;
@@ -69,6 +75,10 @@ class RestaurantModel {
       coverPositionY: (json['coverPositionY'] as num?)?.toInt(),
       minOrderAmount: json['minOrderAmount'] as num?,
       avgPrepMinutes: (json['avgPrepMinutes'] as num?)?.toInt(),
+      deliveryMinutes: (json['deliveryMinutes'] as num?)?.toInt() ??
+          (json['avgPrepMinutes'] as num?)?.toInt(),
+      averageRating: (json['averageRating'] as num?)?.toDouble(),
+      reviewCount: (json['reviewCount'] as num?)?.toInt(),
       isOpen: json['isOpen'] as bool?,
       catalogMode: json['catalogMode'] as String?,
       phone: json['phone'] as String?,
