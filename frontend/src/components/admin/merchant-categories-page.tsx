@@ -8,6 +8,7 @@ import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useAdminAccess } from '@/hooks/use-admin-access';
 import { CategoryPanel } from '@/components/admin/category-panel';
+import { StoreCategoryPanel } from '@/components/admin/store-category-panel';
 import { EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 
@@ -92,6 +93,8 @@ export function MerchantCategoriesPage({ title, vertical, listHref }: Props) {
 
       {!merchantId ? (
         <EmptyState title="Tanlang" description="Kategoriyalarni ko'rish uchun savdo nuqtasini tanlang." />
+      ) : vertical === 'store' && selected ? (
+        <StoreCategoryPanel businessId={merchantId} businessName={selected.name} />
       ) : (
         <CategoryPanel />
       )}

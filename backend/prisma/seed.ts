@@ -76,6 +76,7 @@ async function main() {
     create: {
       name: 'Demo Pizza',
       slug: 'demo-pizza',
+      kind: 'RESTAURANT',
       description: 'Best pizza in town',
       commissionRate: 10,
       isActive: true,

@@ -84,6 +84,12 @@ enum BusinessCatalogMode {
   CONTACT
 }
 
+/// Restaurant (global dish menu) vs store (own product categories).
+enum BusinessKind {
+  RESTAURANT
+  STORE
+}
+
 enum DeliveryProviderType {
   INTERNAL
   COURIER_NETWORK
@@ -163,6 +169,7 @@ model BusinessType {
 model Business {
   id              String    @id @default(uuid()) @db.Uuid
   businessTypeId  String?   @map("business_type_id") @db.Uuid
+  kind            BusinessKind @default(STORE)
   name            String
   slug            String    @unique
   description     String?

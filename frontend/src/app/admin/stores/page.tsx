@@ -6,7 +6,6 @@ import { useAdminAccess } from '@/hooks/use-admin-access';
 import { adminI18n as t } from '@/lib/admin-i18n';
 import { LoadingState } from '@/components/admin/ui';
 import { uploadImage } from '@/lib/upload';
-import { catalogModeLabel } from '@/lib/business-catalog-mode';
 import { useAdminBusinessTypes } from '@/hooks/use-admin-business-types';
 import { useAdminRestaurants, type RestaurantForm } from '@/hooks/use-admin-restaurants';
 import { ActiveBadge } from '@/components/admin/active-badge';
@@ -65,9 +64,6 @@ export default function AdminStoresPage() {
   });
 
   const rows = list.data?.data ?? [];
-
-  const selectedType = marketplaceTypes.find((t) => t.id === form.businessTypeId);
-  const isContactType = selectedType?.catalogMode === 'CONTACT';
 
   const uploadField = async (file: File, field: 'logoUrl' | 'coverUrl') => {
     try {
@@ -141,7 +137,7 @@ export default function AdminStoresPage() {
   if (!ready) return <LoadingState label={t.loading} />;
   if (!authorized) return null;
 
-  if (list.isLoading) return <TableSkeleton rows={8} cols={6} />;
+  if (list.isLoading) return <TableSkeleton rows={8} cols={5} />;
 
   const formFields = (
     <div className="space-y-3">
@@ -155,18 +151,11 @@ export default function AdminStoresPage() {
           <option value="">Tanlang…</option>
           {marketplaceTypes.map((t) => (
             <option key={t.id} value={t.id}>
-              {t.name} — {catalogModeLabel(t.catalogMode)}
+              {t.name}
             </option>
           ))}
         </select>
       </label>
-      {selectedType && (
-        <p className="rounded-lg bg-zinc-100 px-3 py-2 text-xs dark:bg-zinc-800">
-          {isContactType
-            ? 'Kontakt rejimi: mijozlar logotip va telefonni ko‘radi (menyu va savat yo‘q).'
-            : 'Katalog rejimi: mahsulotlar va savat (restoran kabi).'}
-        </p>
-      )}
       <Input
         placeholder="Nom"
         value={form.name}
@@ -205,7 +194,7 @@ export default function AdminStoresPage() {
         imageUrl={form.coverUrl}
         onFile={(f) => uploadField(f, 'coverUrl')}
       />
-      {!isContactType && <CoverPositionControls form={form} setForm={setForm} />}
+      <CoverPositionControls form={form} setForm={setForm} />
       <Input
         type="number"
         placeholder="Komissiya %"
@@ -229,7 +218,7 @@ export default function AdminStoresPage() {
         <div>
           <h1 className="text-lg font-semibold">Do&apos;konlar</h1>
           <p className="text-sm opacity-60">
-            Marketplace do&apos;konlari — katalog (menyu) yoki kontakt (telefon)
+            Marketplace do&apos;konlari — mahsulotlar va menyu (har do&apos;konda o&apos;z kategoriyalari)
           </p>
         </div>
         <Button
@@ -257,7 +246,6 @@ export default function AdminStoresPage() {
               <tr>
                 <th className="px-4 py-3">Nom</th>
                 <th className="px-4 py-3">Kategoriya</th>
-                <th className="px-4 py-3">Rejim</th>
                 <th className="px-4 py-3">Telefon</th>
                 <th className="px-4 py-3">Holat</th>
                 <th className="px-4 py-3 text-right">Amallar</th>
@@ -265,10 +253,7 @@ export default function AdminStoresPage() {
             </thead>
             <tbody>
               {rows.map((r: Record<string, unknown>) => {
-                const bt = r.businessType as {
-                  name?: string;
-                  catalogMode?: string;
-                } | null;
+                const bt = r.businessType as { name?: string } | null;
                 return (
                   <tr key={String(r.id)} className="border-t dark:border-white/10">
                     <td className="px-4 py-3">
@@ -276,7 +261,6 @@ export default function AdminStoresPage() {
                       <p className="text-xs opacity-50">{String(r.slug)}</p>
                     </td>
                     <td className="px-4 py-3">{bt?.name ?? '—'}</td>
-                    <td className="px-4 py-3 text-xs">{catalogModeLabel(bt?.catalogMode)}</td>
                     <td className="px-4 py-3">{String(r.phone ?? '—')}</td>
                     <td className="px-4 py-3">
                       <ActiveBadge active={Boolean(r.isActive)} />

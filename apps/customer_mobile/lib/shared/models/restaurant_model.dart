@@ -37,7 +37,9 @@ class RestaurantModel {
     this.reviewCount,
     this.isOpen,
     this.catalogMode,
+    this.kind,
     this.phone,
+    this.address,
     this.categories,
     this.products,
   });
@@ -57,7 +59,9 @@ class RestaurantModel {
   final int? reviewCount;
   final bool? isOpen;
   final String? catalogMode;
+  final String? kind;
   final String? phone;
+  final String? address;
   final List<RestaurantCategoryModel>? categories;
   final List<ProductModel>? products;
 
@@ -80,8 +84,10 @@ class RestaurantModel {
       averageRating: (json['averageRating'] as num?)?.toDouble(),
       reviewCount: (json['reviewCount'] as num?)?.toInt(),
       isOpen: json['isOpen'] as bool?,
-      catalogMode: json['catalogMode'] as String?,
+      catalogMode: json['catalogMode'] as String? ?? 'CATALOG',
+      kind: json['kind'] as String?,
       phone: json['phone'] as String?,
+      address: json['address'] as String?,
       categories: cats is List
           ? cats
               .whereType<Map>()

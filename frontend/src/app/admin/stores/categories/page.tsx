@@ -1,5 +1,14 @@
-import { redirect } from 'next/navigation';
+'use client';
 
-export default function StoreCategoriesRedirect() {
-  redirect('/admin/dish-categories');
+import { MerchantCategoriesPage } from '@/components/admin/merchant-categories-page';
+import { adminI18n } from '@/lib/admin-i18n';
+
+export default function AdminStoreCategoriesPage() {
+  return (
+    <MerchantCategoriesPage
+      title="Do'kon mahsulot kategoriyalari"
+      vertical="store"
+      listHref="/admin/stores"
+    />
+  );
 }

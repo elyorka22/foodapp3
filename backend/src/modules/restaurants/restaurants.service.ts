@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { RestaurantScheduleService } from './restaurant-schedule.service';
-import { OrderStatus, Prisma, BusinessApprovalStatus, UserRole } from '@prisma/client';
+import {
+  BusinessKind,
+  OrderStatus,
+  Prisma,
+  BusinessApprovalStatus,
+  UserRole,
+} from '@prisma/client';
+import { isRestaurantKind, resolveBusinessKind } from '../../common/utils/business-kind.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { AdminNotificationsService } from '../admin-notifications/admin-notifications.service';
@@ -146,25 +153,32 @@ export class RestaurantsService {
     id: string;
     name: string;
     slug: string;
+    kind?: BusinessKind;
     description: string | null;
     logoUrl: string | null;
     coverUrl: string | null;
+    phone?: string | null;
+    commissionRate: Prisma.Decimal;
     minOrderAmount: Prisma.Decimal | null;
     avgPrepMinutes: number;
     averageRating: Prisma.Decimal | null;
     reviewCount: number;
     businessType?: { id: string; name: string; slug: string; icon: string | null } | null;
-    branches?: { latitude: Prisma.Decimal; longitude: Prisma.Decimal }[];
+    branches?: { address?: string; latitude: Prisma.Decimal; longitude: Prisma.Decimal }[];
     productCategories?: { id: string; name: string; slug: string }[];
   }) {
     const branch = r.branches?.[0];
+    const kind = resolveBusinessKind(r);
     return {
       id: r.id,
       name: r.name,
       slug: r.slug,
+      kind,
       description: r.description,
       logoUrl: r.logoUrl,
       coverUrl: r.coverUrl,
+      phone: r.phone,
+      commissionRate: Number(r.commissionRate),
       minOrderAmount: r.minOrderAmount ? Number(r.minOrderAmount) : null,
       deliveryMinutes: r.avgPrepMinutes,
       averageRating: r.averageRating ? Number(r.averageRating) : 4.5,
@@ -173,7 +187,8 @@ export class RestaurantsService {
       category: r.businessType?.name ?? null,
       latitude: branch ? Number(branch.latitude) : null,
       longitude: branch ? Number(branch.longitude) : null,
-      productCategories: r.productCategories ?? [],
+      address: branch?.address ?? null,
+      productCategories: isRestaurantKind(r) ? [] : (r.productCategories ?? []),
     };
   }
 
@@ -194,30 +209,49 @@ export class RestaurantsService {
         },
         products: {
           where: { isAvailable: true, deletedAt: null },
-          include: { images: { orderBy: { sortOrder: 'asc' } } },
+          include: {
+            images: { orderBy: { sortOrder: 'asc' } },
+            dishCategory: true,
+            productCategory: true,
+          },
           orderBy: { sortOrder: 'asc' },
         },
       },
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
     const isOpen = await this.schedule.isOpen(restaurant.id);
-    const catalogMode = restaurant.businessType?.catalogMode ?? 'CATALOG';
-    const products =
-      catalogMode === 'CONTACT'
-        ? []
-        : restaurant.products.map((p) => ({
+    const kind = resolveBusinessKind(restaurant);
+    const branch = restaurant.branches?.[0];
+    const products = restaurant.products.map((p) => ({
       ...p,
       price: Number(p.price),
       comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
     }));
+
+    const dishCategories = isRestaurantKind(restaurant)
+      ? [
+          ...new Map(
+            products
+              .filter((p) => p.dishCategory)
+              .map((p) => [p.dishCategory!.id, p.dishCategory!]),
+          ).values(),
+        ].map((c) => ({ id: c.id, name: c.name, slug: c.slug }))
+      : [];
+
     return {
       ...restaurant,
+      kind,
       products,
       isOpen,
-      catalogMode,
+      catalogMode: 'CATALOG',
       phone: restaurant.phone,
       logoUrl: restaurant.logoUrl,
       description: restaurant.description,
+      commissionRate: Number(restaurant.commissionRate),
+      address: branch?.address ?? null,
+      productCategories: isRestaurantKind(restaurant)
+        ? dishCategories
+        : restaurant.productCategories,
     };
   }
 
@@ -386,17 +420,20 @@ export class RestaurantsService {
       isTaken: (s) => this.isBusinessSlugTaken(s),
     });
 
+    let kind: BusinessKind = BusinessKind.STORE;
     if (dto.businessTypeId) {
       const type = await this.prisma.businessType.findUnique({
         where: { id: dto.businessTypeId },
       });
       if (!type) throw new NotFoundException('Business type not found');
+      if (type.slug === 'restaurant') kind = BusinessKind.RESTAURANT;
     }
 
     const restaurant = await this.prisma.business.create({
       data: {
         name: dto.name,
         slug,
+        kind,
         businessTypeId: dto.businessTypeId,
         description: dto.description,
         logoUrl: dto.logoUrl,

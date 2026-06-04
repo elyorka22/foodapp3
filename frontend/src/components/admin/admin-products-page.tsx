@@ -17,6 +17,7 @@ import { useAdminProducts, type ProductForm } from '@/hooks/use-admin-products';
 import { adminI18n } from '@/lib/admin-i18n';
 import Link from 'next/link';
 import { useAdminDishCategories } from '@/hooks/use-admin-dish-categories';
+import { useAdminProductCategories } from '@/hooks/use-admin-product-categories';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 import { Modal } from '@/components/admin/modal';
@@ -77,7 +78,12 @@ export function AdminProductsPage({ vertical }: Props) {
     vertical,
   });
 
-  const { list: categories } = useAdminDishCategories();
+  const { list: dishCategories } = useAdminDishCategories();
+  const { list: storeCategories } = useAdminProductCategories(
+    vertical === 'store' ? form.restaurantId || restaurantId : undefined,
+  );
+  const categoryOptions =
+    vertical === 'store' ? (storeCategories.data ?? []) : (dishCategories.data ?? []);
 
   useEffect(() => {
     if (!token) return;
@@ -238,7 +244,9 @@ export function AdminProductsPage({ vertical }: Props) {
     try {
       const created: any = await create.mutateAsync({
         ...form,
-        categoryId: form.categoryId || undefined,
+        ...(vertical === 'store'
+          ? { productCategoryId: form.categoryId || undefined, categoryId: undefined }
+          : { categoryId: form.categoryId || undefined, dishCategoryId: form.categoryId || undefined }),
         isAvailable: form.isAvailable ?? true,
       });
       if (imageFile && created?.id) await saveWithImage(created.id);
@@ -258,7 +266,9 @@ export function AdminProductsPage({ vertical }: Props) {
         id: editRow.id,
         body: {
           ...form,
-          categoryId: form.categoryId || undefined,
+          ...(vertical === 'store'
+            ? { productCategoryId: form.categoryId || undefined, categoryId: undefined }
+            : { categoryId: form.categoryId || undefined, dishCategoryId: form.categoryId || undefined }),
         },
       });
       if (imageFile) await saveWithImage(editRow.id);
@@ -308,26 +318,31 @@ export function AdminProductsPage({ vertical }: Props) {
         ))}
       </select>
       <div className="space-y-2">
-        <label className="text-xs font-medium opacity-70">Taom kategoriyasi</label>
+        <label className="text-xs font-medium opacity-70">
+          {vertical === 'store' ? 'Do‘kon kategoriyasi' : 'Taom kategoriyasi (umumiy)'}
+        </label>
         <select
           className="w-full rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
           value={form.categoryId ?? ''}
           onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+          disabled={vertical === 'store' && !form.restaurantId}
         >
-          <option value="">Kategoriyani tanlang (ixtiyoriy)</option>
-          {(categories.data ?? []).map((c: any) => (
+          <option value="">Kategoriyani tanlang</option>
+          {categoryOptions.map((c: { id: string; name: string }) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
         </select>
-        {!(categories.data ?? []).length && (
+        {!categoryOptions.length && (
           <p className="text-xs text-amber-700 dark:text-amber-400">
             Kategoriyalar yo‘q —{' '}
-            <Link href="/admin/dish-categories" className="font-semibold underline">
+            <Link
+              href={vertical === 'store' ? '/admin/stores/categories' : '/admin/dish-categories'}
+              className="font-semibold underline"
+            >
               admin panelda yarating
             </Link>
-            .
           </p>
         )}
       </div>
@@ -433,7 +448,7 @@ export function AdminProductsPage({ vertical }: Props) {
             disabled={!restaurantId}
           >
             <option value="">All categories</option>
-            {(categories.data ?? []).map((c: any) => (
+            {categoryOptions.map((c: { id: string; name: string }) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>

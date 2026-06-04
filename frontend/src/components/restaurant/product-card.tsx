@@ -16,6 +16,8 @@ export type MenuProduct = {
   description?: string | null;
   dishCategoryId?: string | null;
   productCategoryId?: string | null;
+  dishCategory?: { id: string; name: string } | null;
+  productCategory?: { id: string; name: string } | null;
   images?: { url: string; isPrimary?: boolean }[];
 };
 

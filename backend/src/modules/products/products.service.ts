@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, UserRole } from '@prisma/client';
+import { BusinessKind, Prisma, UserRole } from '@prisma/client';
+import { isRestaurantKind, isStoreKind } from '../../common/utils/business-kind.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
@@ -179,19 +180,34 @@ export class ProductsService {
     if (!businessId) throw new NotFoundException('businessId is required');
     this.assertAccess(businessId, user);
 
+    const business = await this.prisma.business.findFirst({
+      where: { id: businessId, deletedAt: null },
+      include: { businessType: true },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+
     const dishCategoryId = dto.dishCategoryId ?? dto.categoryId;
+    const productCategoryId = dto.productCategoryId;
+    this.assertCategoryFields(business, dishCategoryId, productCategoryId);
+
     if (dishCategoryId) {
       const cat = await this.prisma.dishCategory.findFirst({
         where: { id: dishCategoryId, deletedAt: null, isActive: true },
       });
       if (!cat) throw new NotFoundException('Dish category not found');
     }
+    if (productCategoryId) {
+      const cat = await this.prisma.productCategory.findFirst({
+        where: { id: productCategoryId, businessId, deletedAt: null, isActive: true },
+      });
+      if (!cat) throw new NotFoundException('Store category not found');
+    }
 
     const product = await this.prisma.product.create({
       data: {
         businessId,
         dishCategoryId: dishCategoryId ?? undefined,
-        productCategoryId: dto.productCategoryId,
+        productCategoryId: productCategoryId ?? undefined,
         name: dto.name,
         slug: dto.slug,
         description: dto.description,
@@ -222,17 +238,43 @@ export class ProductsService {
     if (!existing || existing.deletedAt) throw new NotFoundException();
     this.assertAccess(existing.businessId, user);
 
+    const business = await this.prisma.business.findFirst({
+      where: { id: existing.businessId, deletedAt: null },
+      include: { businessType: true },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+
     const nextDishCategoryId =
       dto.dishCategoryId !== undefined
         ? dto.dishCategoryId
         : dto.categoryId !== undefined
           ? dto.categoryId
           : undefined;
+    const nextProductCategoryId =
+      dto.productCategoryId !== undefined ? dto.productCategoryId : undefined;
+
+    this.assertCategoryFields(
+      business,
+      nextDishCategoryId ?? existing.dishCategoryId,
+      nextProductCategoryId ?? existing.productCategoryId,
+    );
+
     if (nextDishCategoryId) {
       const cat = await this.prisma.dishCategory.findFirst({
         where: { id: nextDishCategoryId, deletedAt: null, isActive: true },
       });
       if (!cat) throw new NotFoundException('Dish category not found');
+    }
+    if (nextProductCategoryId) {
+      const cat = await this.prisma.productCategory.findFirst({
+        where: {
+          id: nextProductCategoryId,
+          businessId: existing.businessId,
+          deletedAt: null,
+          isActive: true,
+        },
+      });
+      if (!cat) throw new NotFoundException('Store category not found');
     }
 
     const product = await this.prisma.product.update({
@@ -345,5 +387,29 @@ export class ProductsService {
   private assertAccess(businessId: string, user: JwtPayload) {
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER) return;
     if (userBusinessId(user) !== businessId) throw new ForbiddenException();
+  }
+
+  private assertCategoryFields(
+    business: { kind: BusinessKind; businessType?: { slug?: string | null } | null },
+    dishCategoryId?: string | null,
+    productCategoryId?: string | null,
+  ) {
+    if (isRestaurantKind(business)) {
+      if (productCategoryId) {
+        throw new BadRequestException('Restaurants use global dish categories only');
+      }
+      if (!dishCategoryId) {
+        throw new BadRequestException('Dish category is required for restaurant menu items');
+      }
+      return;
+    }
+    if (isStoreKind(business)) {
+      if (dishCategoryId) {
+        throw new BadRequestException('Stores use their own product categories only');
+      }
+      if (!productCategoryId) {
+        throw new BadRequestException('Store category is required for store products');
+      }
+    }
   }
 }

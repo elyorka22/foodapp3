@@ -1,9 +1,10 @@
-export type BusinessCatalogMode = 'CATALOG' | 'CONTACT';
+/** All merchants use catalog menu (products + cart). */
+export type BusinessCatalogMode = 'CATALOG';
 
-export function isCatalogMode(mode?: string | null): boolean {
-  return mode !== 'CONTACT';
+export function isCatalogMode(_mode?: string | null): boolean {
+  return true;
 }
 
-export function catalogModeLabel(mode?: string | null): string {
-  return mode === 'CONTACT' ? 'Kontakt (logo + telefon)' : 'Katalog (menyu + savat)';
+export function catalogModeLabel(_mode?: string | null): string {
+  return 'Menyu (mahsulotlar + savat)';
 }

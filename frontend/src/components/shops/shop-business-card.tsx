@@ -2,11 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Clock, MapPin, Phone, Star } from 'lucide-react';
-import { isCatalogMode } from '@/lib/business-catalog-mode';
+import { Clock, MapPin, Star } from 'lucide-react';
 import { resolveImageUrl } from '@/lib/image-url';
 import { formatSum } from '@/lib/format-sum';
-import { restaurantPublicPath } from '@/lib/restaurant-url';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
 
 export function ShopBusinessCard({
@@ -18,8 +16,7 @@ export function ShopBusinessCard({
 }) {
   const cover = resolveImageUrl(business.coverUrl);
   const logo = resolveImageUrl(business.logoUrl);
-  const href = restaurantPublicPath(business);
-  const contactOnly = !isCatalogMode(business.businessType?.catalogMode);
+  const href = `/shops/${encodeURIComponent(business.slug)}`;
 
   return (
     <Link
@@ -55,13 +52,7 @@ export function ShopBusinessCard({
             2.5 km
           </span>
         </div>
-        {contactOnly && business.phone && (
-          <p className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-600">
-            <Phone size={14} />
-            {business.phone}
-          </p>
-        )}
-        {!contactOnly && business.minOrderAmount != null && business.minOrderAmount > 0 && (
+        {business.minOrderAmount != null && business.minOrderAmount > 0 && (
           <p className="mt-1 text-xs text-brand-600">
             Min: {formatSum(business.minOrderAmount)}
           </p>

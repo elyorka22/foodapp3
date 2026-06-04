@@ -6,7 +6,6 @@ import { ArrowLeft } from 'lucide-react';
 import { ShopBusinessCard } from '@/components/shops/shop-business-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBusinessTypes, useShops } from '@/hooks/use-shops-data';
-import { isCatalogMode } from '@/lib/business-catalog-mode';
 import { uz } from '@/lib/uz';
 
 export default function ShopCategoryPage() {
@@ -31,13 +30,7 @@ export default function ShopCategoryPage() {
         {uz.shopsTitle}
       </Link>
       <h1 className="mt-4 text-xl font-bold text-zinc-900">{category?.name ?? slug}</h1>
-      {category && (
-        <p className="text-sm text-zinc-500">
-          {isCatalogMode(category.catalogMode)
-            ? 'Menyu va buyurtma mavjud'
-            : 'Kontakt maʼlumotlari'}
-        </p>
-      )}
+      {category && <p className="text-sm text-zinc-500">Menyu va buyurtma</p>}
 
       {shopsQuery.isLoading || typesQuery.isLoading ? (
         <div className="mt-6 space-y-3">
