@@ -119,7 +119,7 @@ class FoodAppRestaurantCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.directions_walk_outlined,
                       size: 16,
                       color: AppColors.textSecondary,
