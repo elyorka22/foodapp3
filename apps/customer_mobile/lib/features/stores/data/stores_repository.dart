@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_paths.dart';
 import '../../../core/network/dio_client.dart';
+import '../../../core/utils/business_kind.dart';
 import '../../../shared/models/business_model.dart';
 import '../../../shared/models/paginated_response.dart';
 import '../../../shared/models/restaurant_model.dart';
@@ -31,15 +32,20 @@ class StoresRepository {
       ApiPaths.businesses,
       queryParameters: {
         'limit': 50,
-        'excludeType': 'restaurant',
+        'vertical': 'store',
         if (search != null && search.isNotEmpty) 'search': search,
         if (typeSlug != null) 'type': typeSlug,
       },
     );
-    return PaginatedResponse.fromJson(
+    final list = PaginatedResponse.fromJson(
       res.data!,
       BusinessModel.fromJson,
     ).data;
+    return filterStoreBusinesses(
+      list,
+      kindOf: (b) => b.kind,
+      typeSlugOf: (b) => b.businessType?.slug,
+    );
   }
 
   Future<BusinessModel> fetchStoreDetail(String idOrSlug) async {

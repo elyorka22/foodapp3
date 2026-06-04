@@ -3,6 +3,7 @@ import { BusinessApprovalStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { paginate } from '../../common/dto/pagination.dto';
 import { toBusinessPublicDto } from './business.mapper';
+import { businessWhereForVertical } from './merchant-vertical';
 
 /**
  * Data access for merchants. Maps Prisma `Business` model (DB table: restaurants).
@@ -61,6 +62,7 @@ export class BusinessRepository {
     search?: string;
     type?: string;
     excludeType?: string;
+    vertical?: 'restaurant' | 'store';
     sort?: 'popular' | 'nearest' | 'rating' | 'fastest';
   }) {
     const { skip, take } = paginate(query.page, query.limit);
@@ -72,6 +74,12 @@ export class BusinessRepository {
 
     if (query.type) {
       where.businessType = { slug: query.type, isActive: true };
+    } else if (query.vertical) {
+      const verticalFilter = businessWhereForVertical(query.vertical);
+      if (verticalFilter) Object.assign(where, verticalFilter);
+    } else if (query.excludeType === 'restaurant') {
+      const storeFilter = businessWhereForVertical('store');
+      if (storeFilter) Object.assign(where, storeFilter);
     } else if (query.excludeType) {
       where.NOT = { businessType: { slug: query.excludeType } };
     }

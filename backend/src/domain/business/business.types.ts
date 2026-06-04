@@ -1,4 +1,4 @@
-import { BusinessApprovalStatus } from '@prisma/client';
+import { BusinessApprovalStatus, BusinessKind } from '@prisma/client';
 
 /** Domain entity for any merchant (restaurant, grocery, flower shop, …). */
 export type BusinessEntity = {
@@ -22,6 +22,7 @@ export type BusinessEntity = {
 /** Public API shape — stable for web + mobile clients. */
 export type BusinessPublicDto = {
   id: string;
+  kind: BusinessKind;
   name: string;
   slug: string;
   description: string | null;

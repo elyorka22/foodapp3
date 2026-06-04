@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/router/routes.dart';
+import '../../core/utils/business_kind.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_framing.dart';
@@ -31,8 +32,16 @@ class _HomeStoreSlotCarouselState extends State<HomeStoreSlotCarousel> {
   Timer? _timer;
   int _count = 0;
 
+  List<BusinessModel> get _storeOnly {
+    return filterStoreBusinesses(
+      widget.stores,
+      kindOf: (s) => s.kind,
+      typeSlugOf: (s) => s.businessType?.slug,
+    );
+  }
+
   List<BusinessModel> get _withImages {
-    return widget.stores
+    return _storeOnly
         .where((s) => resolveImageUrl(s.coverUrl ?? s.logoUrl) != null)
         .toList();
   }

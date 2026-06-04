@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { BusinessType as ApiBusinessType, BusinessPublic } from '@/lib/api/business';
+import { filterStoreBusinesses } from '@/lib/business-kind';
 import { unwrapList } from '@/lib/list-utils';
 
 export type BusinessType = ApiBusinessType & {
@@ -37,7 +38,7 @@ export function useShops(params: {
   sp.set('page', String(params.page ?? 1));
   if (params.search?.trim()) sp.set('search', params.search.trim());
   if (params.type) sp.set('type', params.type);
-  else sp.set('excludeType', 'restaurant');
+  else sp.set('vertical', 'store');
   if (params.sort) sp.set('sort', params.sort);
 
   return useQuery({
@@ -46,7 +47,7 @@ export function useShops(params: {
       const res = await api<{ data: ShopBusiness[]; meta?: unknown }>(
         `/businesses?${sp.toString()}`,
       );
-      return { data: unwrapList(res), meta: res.meta };
+      return { data: filterStoreBusinesses(unwrapList(res)), meta: res.meta };
     },
   });
 }

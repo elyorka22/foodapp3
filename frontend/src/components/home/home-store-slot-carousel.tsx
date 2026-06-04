@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
+import { isStoreKind } from '@/lib/business-kind';
 import { shopPublicPath } from '@/lib/shop-url';
 import { uz } from '@/lib/uz';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
@@ -55,7 +56,8 @@ export function HomeStoreSlotCarousel({
   fallbackHref = '/shops',
   fallbackLabel,
 }: Props) {
-  const withImages = stores.filter((s) => resolveImageUrl(s.coverUrl ?? s.logoUrl));
+  const storeOnly = stores.filter((s) => isStoreKind(s.kind, s.businessType?.slug));
+  const withImages = storeOnly.filter((s) => resolveImageUrl(s.coverUrl ?? s.logoUrl));
   const [index, setIndex] = useState(0);
 
   const advance = useCallback(() => {

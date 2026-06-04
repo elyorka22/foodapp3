@@ -1,4 +1,5 @@
-import { Prisma } from '@prisma/client';
+import { BusinessKind, Prisma } from '@prisma/client';
+import { resolveBusinessKind } from '../../common/utils/business-kind.util';
 import { BusinessPublicDto } from './business.types';
 
 type BusinessWithRelations = {
@@ -30,6 +31,7 @@ export function toBusinessPublicDto(row: BusinessWithRelations): BusinessPublicD
   const branch = row.branches?.[0];
   return {
     id: row.id,
+    kind: resolveBusinessKind(row),
     name: row.name,
     slug: row.slug,
     description: row.description,

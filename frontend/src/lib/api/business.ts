@@ -7,6 +7,7 @@ import { api } from '@/lib/api';
 
 export type BusinessPublic = {
   id: string;
+  kind?: 'RESTAURANT' | 'STORE';
   name: string;
   slug: string;
   description?: string | null;

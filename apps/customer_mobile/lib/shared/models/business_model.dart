@@ -39,6 +39,7 @@ class BusinessTypeModel {
 class BusinessModel {
   const BusinessModel({
     required this.id,
+    this.kind,
     required this.name,
     required this.slug,
     this.description,
@@ -60,6 +61,7 @@ class BusinessModel {
   });
 
   final String id;
+  final String? kind;
   final String name;
   final String slug;
   final String? description;
@@ -85,6 +87,7 @@ class BusinessModel {
     final cats = json['productCategories'];
     return BusinessModel(
       id: json['id'] as String,
+      kind: json['kind'] as String?,
       name: json['name'] as String,
       slug: json['slug'] as String,
       description: json['description'] as String?,

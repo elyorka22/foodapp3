@@ -22,4 +22,9 @@ export class BusinessesQueryDto extends PaginationDto {
   @IsOptional()
   @IsString()
   excludeType?: string;
+
+  @ApiPropertyOptional({ enum: ['restaurant', 'store'], description: 'Merchant vertical' })
+  @IsOptional()
+  @IsIn(['restaurant', 'store'])
+  vertical?: 'restaurant' | 'store';
 }

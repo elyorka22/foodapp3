@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
+import { filterStoreBusinesses } from '@/lib/business-kind';
 import { unwrapList } from '@/lib/list-utils';
 import { resolveImageUrl } from '@/lib/image-url';
 
@@ -68,9 +69,9 @@ export function useHomeFeaturedStores() {
     queryKey: ['shops-businesses', 'home-featured'],
     queryFn: async () => {
       const res = await api<{ data: ShopBusiness[]; meta?: unknown }>(
-        '/businesses?limit=20&excludeType=restaurant',
+        '/businesses?limit=20&vertical=store',
       );
-      return unwrapList(res);
+      return filterStoreBusinesses(unwrapList(res));
     },
     staleTime: 60_000,
     retry: 2,
