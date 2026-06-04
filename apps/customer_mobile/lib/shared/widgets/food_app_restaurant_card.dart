@@ -28,7 +28,7 @@ class FoodAppRestaurantCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
-              top: const Radius.circular(24),
+              top: Radius.circular(24),
             ),
             child: AspectRatio(
               aspectRatio: 16 / 9,
