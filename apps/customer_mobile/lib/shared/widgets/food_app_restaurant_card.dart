@@ -54,10 +54,11 @@ class FoodAppRestaurantCard extends StatelessWidget {
                         child: const SizedBox(
                           width: 32,
                           height: 32,
-                          child: Icon(
-                            LucideIcons.bookmark,
-                            size: 17,
-                            color: AppColors.textPrimary,
+                          child: Center(
+                            child: LucideBookmarkIcon(
+                              size: 17,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       ),
