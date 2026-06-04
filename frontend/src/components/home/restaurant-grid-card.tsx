@@ -2,12 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { coverObjectPosition } from '@/lib/cover-position';
 import { restaurantPublicPath } from '@/lib/restaurant-url';
-import { uz } from '@/lib/uz';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
 const FALLBACK_BACKGROUNDS = [
@@ -22,68 +20,57 @@ type Props = {
   index: number;
 };
 
+function formatMinOrder(value: string | number | null | undefined): string | null {
+  if (value == null || value === '') return null;
+  const n = typeof value === 'number' ? value : Number.parseFloat(String(value));
+  if (Number.isNaN(n)) return null;
+  return `Min: ${Math.round(n).toLocaleString('uz-UZ')} UZS`;
+}
+
 export function RestaurantGridCard({ restaurant, index }: Props) {
   const imageUrl = resolveImageUrl(restaurant.coverUrl ?? restaurant.logoUrl);
   const objectPosition = coverObjectPosition(
     restaurant.coverPositionX,
     restaurant.coverPositionY,
   );
-  const tags =
-    restaurant.categories?.map((c) => c.name).join(', ') ||
-    restaurant.description?.slice(0, 40) ||
-    '';
-  const prepMin = restaurant.avgPrepMinutes ?? 25;
-  const prep = `${Math.max(15, prepMin - 5)}–${prepMin + 5} ${uz.min}`;
+  const minOrder = formatMinOrder(restaurant.minOrderAmount);
   const href = restaurantPublicPath(restaurant);
 
   return (
     <Link
       href={href}
-      className="relative block aspect-[6/5] overflow-hidden rounded-2xl shadow-none ring-0 drop-shadow-none transition active:scale-[0.98]"
+      className="block overflow-hidden rounded-3xl border border-zinc-100/80 bg-white shadow-card transition active:scale-[0.98]"
     >
-      {imageUrl ? (
-        <Image
-          src={imageUrl}
-          alt={restaurant.name}
-          fill
-          className="object-cover brightness-105 saturate-[1.06] contrast-[1.02]"
-          style={{ objectPosition }}
-          sizes="(max-width: 430px) 50vw, 200px"
-          unoptimized
-        />
-      ) : (
-        <div
-          className={clsx(
-            'absolute inset-0 flex items-center justify-center',
-            FALLBACK_BACKGROUNDS[index % FALLBACK_BACKGROUNDS.length],
-          )}
-        >
-          <span className="text-5xl font-black text-white/35">{restaurant.name.charAt(0)}</span>
-        </div>
-      )}
-
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-black/35 to-transparent"
-        aria-hidden
-      />
-
-      <span
-        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center text-white"
-        aria-hidden
-      >
-        <Heart size={18} strokeWidth={2} />
-      </span>
-
-      <div className="absolute left-2 right-10 top-9">
-        <h3 className="line-clamp-2 text-[17px] font-bold leading-snug text-white">{restaurant.name}</h3>
-        {tags ? (
-          <p className="mt-1 line-clamp-2 text-[12px] font-medium leading-snug text-white/90">{tags}</p>
-        ) : null}
+      <div className="relative aspect-video w-full bg-zinc-100">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={restaurant.name}
+            fill
+            className="object-cover"
+            style={{ objectPosition }}
+            sizes="(max-width: 430px) 100vw, 430px"
+            unoptimized
+          />
+        ) : (
+          <div
+            className={clsx(
+              'absolute inset-0 flex items-center justify-center',
+              FALLBACK_BACKGROUNDS[index % FALLBACK_BACKGROUNDS.length],
+            )}
+          >
+            <span className="text-5xl font-black text-white/40">{restaurant.name.charAt(0)}</span>
+          </div>
+        )}
       </div>
 
-      <span className="absolute bottom-2 left-2 inline-flex rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-zinc-900">
-        {prep}
-      </span>
+      <div className="p-4">
+        <h3 className="text-base font-semibold leading-snug text-zinc-900">{restaurant.name}</h3>
+        {restaurant.description?.trim() ? (
+          <p className="mt-1 line-clamp-2 text-sm text-zinc-500">{restaurant.description}</p>
+        ) : null}
+        {minOrder ? <p className="mt-2 text-xs font-medium text-zinc-400">{minOrder}</p> : null}
+      </div>
     </Link>
   );
 }

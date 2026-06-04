@@ -9,20 +9,23 @@ class FoodAppCard extends StatelessWidget {
     required this.child,
     this.padding,
     this.onTap,
+    this.borderRadius = AppSpacing.cardRadius,
   });
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
+  final double borderRadius;
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(borderRadius);
     final content = Container(
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        borderRadius: radius,
         border: Border.all(color: AppColors.border.withValues(alpha: 0.8)),
         boxShadow: AppShadows.card,
       ),
@@ -34,7 +37,7 @@ class FoodAppCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        borderRadius: radius,
         child: content,
       ),
     );

@@ -21,13 +21,14 @@ class FoodAppRestaurantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return FoodAppCard(
       onTap: onTap,
+      borderRadius: 24,
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppSpacing.cardRadius),
+              top: const Radius.circular(24),
             ),
             child: AspectRatio(
               aspectRatio: 16 / 9,
