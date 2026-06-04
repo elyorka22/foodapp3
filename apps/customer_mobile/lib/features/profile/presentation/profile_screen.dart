@@ -137,8 +137,7 @@ class _ProfileHeader extends StatelessWidget {
                 top: -2,
                 right: -2,
                 child: Container(
-                  minWidth: 22,
-                  height: 22,
+                  constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
