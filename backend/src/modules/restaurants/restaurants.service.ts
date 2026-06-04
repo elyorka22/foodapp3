@@ -75,7 +75,50 @@ export class RestaurantsService {
       this.prisma.business.count({ where }),
     ]);
 
-    return paginatedResponse(data, total, query.page ?? 1, query.limit ?? 20);
+    const serialized = data.map((r) => this.serializePublicListItem(r));
+    return paginatedResponse(serialized, total, query.page ?? 1, query.limit ?? 20);
+  }
+
+  private serializePublicListItem(r: {
+    id: string;
+    name: string;
+    slug: string;
+    kind?: BusinessKind;
+    description: string | null;
+    logoUrl: string | null;
+    coverUrl: string | null;
+    coverPositionX: number;
+    coverPositionY: number;
+    phone: string | null;
+    commissionRate: Prisma.Decimal;
+    minOrderAmount: Prisma.Decimal | null;
+    avgPrepMinutes: number;
+    averageRating: Prisma.Decimal | null;
+    reviewCount: number;
+    branches?: { address: string }[];
+    productCategories?: { id: string; name: string; slug: string }[];
+  }) {
+    const branch = r.branches?.[0];
+    return {
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      kind: resolveBusinessKind(r),
+      description: r.description,
+      logoUrl: r.logoUrl,
+      coverUrl: r.coverUrl,
+      coverPositionX: r.coverPositionX,
+      coverPositionY: r.coverPositionY,
+      phone: r.phone,
+      commissionRate: Number(r.commissionRate),
+      minOrderAmount: r.minOrderAmount ? Number(r.minOrderAmount) : null,
+      avgPrepMinutes: r.avgPrepMinutes,
+      deliveryMinutes: r.avgPrepMinutes,
+      averageRating: r.averageRating ? Number(r.averageRating) : null,
+      reviewCount: r.reviewCount,
+      address: branch?.address ?? null,
+      productCategories: r.productCategories ?? [],
+    };
   }
 
   async findAllPublicAsBusinesses(query: {
@@ -248,6 +291,13 @@ export class RestaurantsService {
       logoUrl: restaurant.logoUrl,
       description: restaurant.description,
       commissionRate: Number(restaurant.commissionRate),
+      minOrderAmount: restaurant.minOrderAmount
+        ? Number(restaurant.minOrderAmount)
+        : null,
+      averageRating: restaurant.averageRating
+        ? Number(restaurant.averageRating)
+        : null,
+      deliveryMinutes: restaurant.avgPrepMinutes,
       address: branch?.address ?? null,
       productCategories: isRestaurantKind(restaurant)
         ? dishCategories

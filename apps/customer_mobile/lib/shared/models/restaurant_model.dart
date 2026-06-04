@@ -75,14 +75,14 @@ class RestaurantModel {
       description: json['description'] as String?,
       logoUrl: json['logoUrl'] as String?,
       coverUrl: json['coverUrl'] as String?,
-      coverPositionX: (json['coverPositionX'] as num?)?.toInt(),
-      coverPositionY: (json['coverPositionY'] as num?)?.toInt(),
-      minOrderAmount: json['minOrderAmount'] as num?,
-      avgPrepMinutes: (json['avgPrepMinutes'] as num?)?.toInt(),
-      deliveryMinutes: (json['deliveryMinutes'] as num?)?.toInt() ??
-          (json['avgPrepMinutes'] as num?)?.toInt(),
-      averageRating: (json['averageRating'] as num?)?.toDouble(),
-      reviewCount: (json['reviewCount'] as num?)?.toInt(),
+      coverPositionX: parseIntOrNull(json['coverPositionX']),
+      coverPositionY: parseIntOrNull(json['coverPositionY']),
+      minOrderAmount: parseNumOrNull(json['minOrderAmount']),
+      avgPrepMinutes: parseIntOrNull(json['avgPrepMinutes']),
+      deliveryMinutes: parseIntOrNull(json['deliveryMinutes']) ??
+          parseIntOrNull(json['avgPrepMinutes']),
+      averageRating: parseDoubleOrNull(json['averageRating']),
+      reviewCount: parseIntOrNull(json['reviewCount']),
       isOpen: json['isOpen'] as bool?,
       catalogMode: json['catalogMode'] as String? ?? 'CATALOG',
       kind: json['kind'] as String?,
@@ -167,7 +167,7 @@ class ProductCategoryModel {
       id: json['id'] as String,
       name: json['name'] as String,
       slug: json['slug'] as String,
-      sortOrder: (json['sortOrder'] as num?)?.toInt(),
+      sortOrder: parseIntOrNull(json['sortOrder']),
     );
   }
 }

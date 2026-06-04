@@ -1,3 +1,4 @@
+import '../../core/utils/json_parse.dart';
 import 'restaurant_model.dart';
 
 class BusinessTypeModel {
@@ -30,7 +31,7 @@ class BusinessTypeModel {
       icon: json['icon'] as String?,
       imageUrl: json['imageUrl'] as String?,
       catalogMode: json['catalogMode'] as String?,
-      sortOrder: (json['sortOrder'] as num?)?.toInt(),
+      sortOrder: parseIntOrNull(json['sortOrder']),
     );
   }
 }
@@ -84,10 +85,10 @@ class BusinessModel {
       logoUrl: json['logoUrl'] as String?,
       coverUrl: json['coverUrl'] as String?,
       phone: json['phone'] as String?,
-      minOrderAmount: json['minOrderAmount'] as num?,
-      deliveryMinutes: (json['deliveryMinutes'] as num?)?.toInt(),
-      averageRating: json['averageRating'] as num?,
-      reviewCount: (json['reviewCount'] as num?)?.toInt(),
+      minOrderAmount: parseNumOrNull(json['minOrderAmount']),
+      deliveryMinutes: parseIntOrNull(json['deliveryMinutes']),
+      averageRating: parseNumOrNull(json['averageRating']),
+      reviewCount: parseIntOrNull(json['reviewCount']),
       businessType: bt is Map
           ? BusinessTypeModel.fromJson(Map<String, dynamic>.from(bt))
           : null,
