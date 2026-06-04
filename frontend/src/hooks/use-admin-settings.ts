@@ -6,6 +6,8 @@ import { getToken } from '@/lib/auth';
 
 export type AdminSettings = {
   app_name: string;
+  home_title: string;
+  home_subtitle: string;
   support_phone: string;
   support_telegram: string;
   support_email: string;

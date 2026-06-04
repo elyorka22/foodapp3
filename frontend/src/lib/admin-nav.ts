@@ -105,6 +105,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: 'banners',
     title: t.nav.banners,
     items: [
+      { href: '/admin/banners/home', label: t.banners.homeGridTitle, icon: ImageIcon, permission: 'banners' },
       { href: '/admin/banners/promo', label: t.banners.promoTitle, icon: ImageIcon, permission: 'banners' },
       { href: '/admin/banners/hero', label: t.banners.heroTitle, icon: ImageIcon, permission: 'banners' },
     ],
@@ -168,7 +169,7 @@ const MANAGER_NAV_ORDER: { groupId: string; hrefs: string[] }[] = [
     groupId: 'stores',
     hrefs: ['/admin/stores', '/admin/dish-categories', '/admin/products/store'],
   },
-  { groupId: 'banners', hrefs: ['/admin/banners/promo', '/admin/banners/hero'] },
+  { groupId: 'banners', hrefs: ['/admin/banners/home', '/admin/banners/promo', '/admin/banners/hero'] },
   { groupId: 'promotions', hrefs: ['/admin/promo-codes'] },
   { groupId: 'couriers', hrefs: ['/admin/couriers'] },
   { groupId: 'users', hrefs: ['/admin/customers', '/admin/users'] },
@@ -215,6 +216,6 @@ export const ADMIN_LEGACY_REDIRECTS: Record<string, string> = {
   '/admin/business-types': '/admin/stores/types',
   '/admin/products': '/admin/products/restaurant',
   '/admin/orders': '/admin/orders/all',
-  '/admin/banners': '/admin/banners/promo',
+  '/admin/banners': '/admin/banners/home',
   '/manager': '/admin',
 };

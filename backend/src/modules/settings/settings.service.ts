@@ -13,6 +13,8 @@ export interface DeliveryPricing {
 
 export interface AdminSettings {
   app_name: string;
+  home_title: string;
+  home_subtitle: string;
   support_phone: string;
   support_telegram: string;
   support_email: string;
@@ -20,6 +22,12 @@ export interface AdminSettings {
   free_delivery_threshold: number;
   default_delivery_fee: number;
   commission_default: number;
+}
+
+export interface PublicSettings {
+  app_name: string;
+  home_title: string;
+  home_subtitle: string;
 }
 
 const DEFAULT_PRICING: DeliveryPricing = {
@@ -32,6 +40,8 @@ const DEFAULT_PRICING: DeliveryPricing = {
 
 const DEFAULT_ADMIN: AdminSettings = {
   app_name: 'Food Delivery',
+  home_title: 'CHUST',
+  home_subtitle: "Shahar bo'ylab yetkazish",
   support_phone: '+998901234567',
   support_telegram: '@support',
   support_email: 'support@foodapp.local',
@@ -62,6 +72,15 @@ export class SettingsService {
       create: { key: 'delivery_pricing', value: data as object, group: 'delivery' },
       update: { value: data as object },
     });
+  }
+
+  async getPublicSettings(): Promise<PublicSettings> {
+    const admin = await this.getAdminSettings();
+    return {
+      app_name: admin.app_name,
+      home_title: admin.home_title,
+      home_subtitle: admin.home_subtitle,
+    };
   }
 
   async getAdminSettings(): Promise<AdminSettings> {

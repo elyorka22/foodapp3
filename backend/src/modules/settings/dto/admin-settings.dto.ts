@@ -7,6 +7,16 @@ export class AdminSettingsDto {
   @IsString()
   app_name?: string;
 
+  @ApiPropertyOptional({ description: 'Homepage headline above banners' })
+  @IsOptional()
+  @IsString()
+  home_title?: string;
+
+  @ApiPropertyOptional({ description: 'Optional subtitle under homepage headline' })
+  @IsOptional()
+  @IsString()
+  home_subtitle?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

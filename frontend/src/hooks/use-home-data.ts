@@ -28,7 +28,7 @@ export type HomeBanner = {
   description?: string | null;
   imageUrl: string;
   linkUrl?: string | null;
-  placement?: 'HERO' | 'PROMO';
+  placement?: 'HERO' | 'PROMO' | 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
   restaurantId?: string | null;
   sortOrder?: number;
 };

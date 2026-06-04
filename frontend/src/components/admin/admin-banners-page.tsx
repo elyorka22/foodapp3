@@ -23,7 +23,7 @@ type BannerRow = {
   description?: string | null;
   imageUrl: string;
   linkUrl?: string | null;
-  placement?: 'HERO' | 'PROMO';
+  placement?: 'HERO' | 'PROMO' | 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
   sortOrder?: number;
   isActive: boolean;
   businessId?: string | null;
@@ -34,11 +34,18 @@ function merchantId(b: BannerRow) {
   return b.businessId ?? b.restaurantId ?? null;
 }
 
+const HOME_PLACEMENTS = ['HOME_MAIN', 'HOME_SIDE_TOP', 'HOME_SIDE_BOTTOM'] as const;
+type HomePlacement = (typeof HOME_PLACEMENTS)[number];
+
 function placementLabel(placement?: string) {
-  return placement === 'PROMO' ? t.banners.placementPromo : t.banners.placementHero;
+  if (placement === 'HOME_MAIN') return t.banners.placementHomeMain;
+  if (placement === 'HOME_SIDE_TOP') return t.banners.placementHomeSideTop;
+  if (placement === 'HOME_SIDE_BOTTOM') return t.banners.placementHomeSideBottom;
+  if (placement === 'PROMO') return t.banners.placementPromo;
+  return t.banners.placementHero;
 }
 
-const emptyBanner = (placement: 'HERO' | 'PROMO'): BannerForm => ({
+const emptyBanner = (placement: BannerForm['placement']): BannerForm => ({
   title: '',
   description: '',
   imageUrl: '',
@@ -55,7 +62,7 @@ type Props = {
   /** Homepage global banners only (no restaurant/store link) */
   homepageOnly?: boolean;
   /** Lock list and create form to one placement */
-  placementMode?: 'HERO' | 'PROMO';
+  placementMode?: 'HERO' | 'PROMO' | 'HOME_GRID';
 };
 
 export function AdminBannersPage({
@@ -74,10 +81,11 @@ export function AdminBannersPage({
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState<BannerForm>(emptyBanner(placementMode ?? 'HERO'));
-  const [preview, setPreview] = useState(false);
+  const defaultPlacement: BannerForm['placement'] =
+    placementMode === 'HOME_GRID' ? 'HOME_MAIN' : placementMode ?? 'HERO';
 
-  const defaultPlacement = placementMode ?? 'HERO';
+  const [form, setForm] = useState<BannerForm>(() => emptyBanner(defaultPlacement));
+  const [preview, setPreview] = useState(false);
 
   useEffect(() => {
     if (!token || !vertical) return;
@@ -95,7 +103,12 @@ export function AdminBannersPage({
       if (placementMode === 'PROMO' && homepageOnly) {
         return (b.placement ?? 'HERO') === 'PROMO' || (b.placement ?? 'HERO') === 'HERO';
       }
-      if (placementMode && (b.placement ?? 'HERO') !== placementMode) return false;
+      if (placementMode === 'HOME_GRID') {
+        return HOME_PLACEMENTS.includes((b.placement ?? 'HERO') as HomePlacement);
+      }
+      if (placementMode === 'HERO' || placementMode === 'PROMO') {
+        if ((b.placement ?? 'HERO') !== placementMode) return false;
+      }
       if (vertical) {
         const mid = merchantId(b);
         return mid != null && merchantIds.has(mid);
@@ -121,7 +134,12 @@ export function AdminBannersPage({
       description: b.description ?? '',
       imageUrl: b.imageUrl,
       link: b.linkUrl ?? '',
-      placement: placementMode ?? b.placement ?? 'HERO',
+      placement:
+        placementMode === 'HOME_GRID'
+          ? ((b.placement as HomePlacement) ?? 'HOME_MAIN')
+          : placementMode === 'HERO' || placementMode === 'PROMO'
+            ? placementMode
+            : (b.placement ?? 'HERO'),
       sortOrder: b.sortOrder,
       isActive: b.isActive,
     });
@@ -145,7 +163,12 @@ export function AdminBannersPage({
     }
     const body: BannerForm = {
       ...form,
-      placement: placementMode ?? form.placement ?? 'HERO',
+      placement:
+        placementMode === 'HOME_GRID'
+          ? form.placement ?? 'HOME_MAIN'
+          : placementMode === 'HERO' || placementMode === 'PROMO'
+            ? placementMode
+            : form.placement ?? 'HERO',
     };
     try {
       if (editId) {
@@ -330,18 +353,31 @@ export function AdminBannersPage({
         onClose={() => setModalOpen(false)}
       >
         <div className="space-y-3">
-          {!placementMode && (
+          {(!placementMode || placementMode === 'HOME_GRID') && (
             <label className="block text-xs font-medium opacity-70">
               Joylashuv
               <select
                 className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
-                value={form.placement ?? 'HERO'}
+                value={form.placement ?? defaultPlacement}
                 onChange={(e) =>
-                  setForm({ ...form, placement: e.target.value as 'HERO' | 'PROMO' })
+                  setForm({
+                    ...form,
+                    placement: e.target.value as BannerForm['placement'],
+                  })
                 }
               >
-                <option value="HERO">{t.banners.placementHero}</option>
-                <option value="PROMO">{t.banners.placementPromo}</option>
+                {placementMode === 'HOME_GRID' ? (
+                  <>
+                    <option value="HOME_MAIN">{t.banners.placementHomeMain}</option>
+                    <option value="HOME_SIDE_TOP">{t.banners.placementHomeSideTop}</option>
+                    <option value="HOME_SIDE_BOTTOM">{t.banners.placementHomeSideBottom}</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="HERO">{t.banners.placementHero}</option>
+                    <option value="PROMO">{t.banners.placementPromo}</option>
+                  </>
+                )}
               </select>
             </label>
           )}

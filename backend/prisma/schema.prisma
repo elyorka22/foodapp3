@@ -363,6 +363,9 @@ model ProductImage {
 enum BannerPlacement {
   HERO
   PROMO
+  HOME_MAIN
+  HOME_SIDE_TOP
+  HOME_SIDE_BOTTOM
 }
 
 model Banner {

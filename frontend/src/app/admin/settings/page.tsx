@@ -64,6 +64,19 @@ function AdminSettingsContent() {
         />
       </Section>
 
+      <Section title="Bosh sahifa">
+        <Input
+          placeholder="Sarlavha (masalan: CHUST)"
+          value={form.home_title ?? ''}
+          onChange={(e) => setForm({ ...form, home_title: e.target.value })}
+        />
+        <Input
+          placeholder="Pastki qator (ixtiyoriy)"
+          value={form.home_subtitle ?? ''}
+          onChange={(e) => setForm({ ...form, home_subtitle: e.target.value })}
+        />
+      </Section>
+
       <Section title="Delivery">
         <Input
           type="number"
