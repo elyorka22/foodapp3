@@ -8,6 +8,9 @@ type BusinessWithRelations = {
   description: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
+  coverScale?: number;
+  coverPositionX?: number;
+  coverPositionY?: number;
   phone: string | null;
   minOrderAmount: Prisma.Decimal | null;
   avgPrepMinutes: number;
@@ -32,6 +35,9 @@ export function toBusinessPublicDto(row: BusinessWithRelations): BusinessPublicD
     description: row.description,
     logoUrl: row.logoUrl,
     coverUrl: row.coverUrl,
+    coverScale: row.coverScale ?? 100,
+    coverPositionX: row.coverPositionX ?? 50,
+    coverPositionY: row.coverPositionY ?? 50,
     phone: row.phone,
     minOrderAmount: row.minOrderAmount ? Number(row.minOrderAmount) : null,
     deliveryMinutes: row.avgPrepMinutes,

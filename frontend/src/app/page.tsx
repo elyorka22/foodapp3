@@ -7,11 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { HomeBannerGrid } from '@/components/home/home-banner-grid';
 import { HomeHeadline } from '@/components/home/home-headline';
 import { RestaurantGridCard } from '@/components/home/restaurant-grid-card';
-import { useHomeBanners, useHomeRestaurants } from '@/hooks/use-home-data';
+import { useHomeBanners, useHomeFeaturedStores, useHomeRestaurants } from '@/hooks/use-home-data';
 import { uz } from '@/lib/uz';
 
 export default function HomePage() {
   const bannersQuery = useHomeBanners();
+  const storesQuery = useHomeFeaturedStores();
   const restaurantsQuery = useHomeRestaurants();
 
   const restaurants = restaurantsQuery.data?.data ?? [];
@@ -21,7 +22,11 @@ export default function HomePage() {
     <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
       <HomeHeadline />
 
-      <HomeBannerGrid banners={bannersQuery.data ?? []} isLoading={bannersQuery.isLoading} />
+      <HomeBannerGrid
+        banners={bannersQuery.data ?? []}
+        featuredStores={storesQuery.data}
+        isLoading={bannersQuery.isLoading || storesQuery.isLoading}
+      />
 
       <section className="mt-6" aria-label={uz.restaurants}>
         {restaurantsQuery.isLoading && (

@@ -34,3 +34,9 @@ final storeDetailProvider =
     FutureProvider.autoDispose.family<BusinessModel, String>((ref, slug) {
   return ref.watch(storesRepositoryProvider).fetchStoreDetail(slug);
 });
+
+/// Active stores for the home bottom-right banner slot.
+final homeFeaturedStoresProvider =
+    FutureProvider.autoDispose<List<BusinessModel>>((ref) {
+  return ref.watch(storesRepositoryProvider).fetchStores();
+});

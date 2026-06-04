@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../core/l10n/app_strings.dart';
-import '../../core/router/routes.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
+import '../models/business_model.dart';
 import 'banner_slot_carousel.dart';
+import 'home_store_slot_carousel.dart';
 
 class HomeBannerGrid extends StatelessWidget {
-  const HomeBannerGrid({super.key, required this.banners});
+  const HomeBannerGrid({
+    super.key,
+    required this.banners,
+    this.featuredStores = const [],
+  });
 
   final List<BannerModel> banners;
+  final List<BusinessModel> featuredStores;
 
   List<BannerModel> _list(String placement) {
     return banners
@@ -27,41 +29,16 @@ class HomeBannerGrid extends StatelessWidget {
     }).toList();
   }
 
-  Widget _bottomSlot(BuildContext context, List<BannerModel> bottomBanners) {
-    if (bottomBanners.isNotEmpty) {
-      return BannerSlotCarousel(
-        banners: bottomBanners,
-        defaultRoute: AppRoutes.stores,
-      );
-    }
-    return Material(
-      color: AppColors.border,
-      borderRadius: BorderRadius.circular(24),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(AppRoutes.stores),
-        child: Center(
-          child: Text(
-            AppStrings.navStores,
-            style: AppTypography.subtitle.copyWith(color: AppColors.success),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final mainList = _list('HOME_MAIN');
     final topList = _list('HOME_SIDE_TOP');
-    final bottomList = _list('HOME_SIDE_BOTTOM');
 
     final mainBanners = mainList.isNotEmpty ? mainList : _legacyHero;
     final topBanners = topList;
-    final bottomBanners = bottomList;
+    final hasStores = featuredStores.isNotEmpty;
 
-    if (mainBanners.isEmpty && topBanners.isEmpty && bottomBanners.isEmpty) {
+    if (mainBanners.isEmpty && topBanners.isEmpty && !hasStores) {
       return const SizedBox.shrink();
     }
 
@@ -81,7 +58,9 @@ class HomeBannerGrid extends StatelessWidget {
               children: [
                 Expanded(child: BannerSlotCarousel(banners: topBanners)),
                 const SizedBox(height: AppSpacing.sm),
-                Expanded(child: _bottomSlot(context, bottomBanners)),
+                Expanded(
+                  child: HomeStoreSlotCarousel(stores: featuredStores),
+                ),
               ],
             ),
           ),

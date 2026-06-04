@@ -2,6 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import type { ShopBusiness } from '@/hooks/use-shops-data';
+import { unwrapList } from '@/lib/list-utils';
+import { resolveImageUrl } from '@/lib/image-url';
 
 export type HomeCategory = { id: string; name: string; slug: string };
 
@@ -55,6 +58,21 @@ export function useHomeRestaurants() {
     queryFn: () =>
       api<{ data: HomeRestaurant[]; meta?: { total: number } }>('/restaurants?limit=50'),
     staleTime: 30_000,
+    retry: 2,
+  });
+}
+
+/** Active marketplace stores for the home bottom-right slot (cover/logo carousel). */
+export function useHomeFeaturedStores() {
+  return useQuery({
+    queryKey: ['shops-businesses', 'home-featured'],
+    queryFn: async () => {
+      const res = await api<{ data: ShopBusiness[]; meta?: unknown }>(
+        '/businesses?limit=20&excludeType=restaurant',
+      );
+      return unwrapList(res);
+    },
+    staleTime: 60_000,
     retry: 2,
   });
 }

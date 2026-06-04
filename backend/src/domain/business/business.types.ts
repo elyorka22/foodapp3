@@ -27,6 +27,9 @@ export type BusinessPublicDto = {
   description: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
+  coverScale: number;
+  coverPositionX: number;
+  coverPositionY: number;
   phone: string | null;
   minOrderAmount: number | null;
   deliveryMinutes: number;

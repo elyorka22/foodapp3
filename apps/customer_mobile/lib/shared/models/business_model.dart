@@ -44,6 +44,9 @@ class BusinessModel {
     this.description,
     this.logoUrl,
     this.coverUrl,
+    this.coverPositionX,
+    this.coverPositionY,
+    this.coverScale,
     this.phone,
     this.minOrderAmount,
     this.deliveryMinutes,
@@ -62,6 +65,9 @@ class BusinessModel {
   final String? description;
   final String? logoUrl;
   final String? coverUrl;
+  final int? coverPositionX;
+  final int? coverPositionY;
+  final int? coverScale;
   final String? phone;
   final num? minOrderAmount;
   final int? deliveryMinutes;
@@ -84,6 +90,9 @@ class BusinessModel {
       description: json['description'] as String?,
       logoUrl: json['logoUrl'] as String?,
       coverUrl: json['coverUrl'] as String?,
+      coverPositionX: parseIntOrNull(json['coverPositionX']),
+      coverPositionY: parseIntOrNull(json['coverPositionY']),
+      coverScale: parseIntOrNull(json['coverScale']),
       phone: json['phone'] as String?,
       minOrderAmount: parseNumOrNull(json['minOrderAmount']),
       deliveryMinutes: parseIntOrNull(json['deliveryMinutes']),

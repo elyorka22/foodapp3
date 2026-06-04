@@ -6,14 +6,18 @@ import { resolveImageUrl } from '@/lib/image-url';
 import { Skeleton } from '@/components/ui/skeleton';
 import { uz } from '@/lib/uz';
 import type { HomeBanner } from '@/hooks/use-home-data';
+import type { ShopBusiness } from '@/hooks/use-shops-data';
+import { resolveImageUrl as imgUrl } from '@/lib/image-url';
 import { BannerSlotCarousel } from './banner-slot-carousel';
+import { HomeStoreSlotCarousel } from './home-store-slot-carousel';
 
-type Placement = 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
+type Placement = 'HOME_MAIN' | 'HOME_SIDE_TOP';
 
 const SHOPS_ENTRY_HREF = '/shops';
 
 type Props = {
   banners: HomeBanner[];
+  featuredStores?: ShopBusiness[];
   isLoading?: boolean;
 };
 
@@ -84,7 +88,11 @@ function Slot({
   );
 }
 
-export function HomeBannerGrid({ banners, isLoading }: Props) {
+function storesWithImages(stores: ShopBusiness[] | undefined): ShopBusiness[] {
+  return (stores ?? []).filter((s) => imgUrl(s.coverUrl ?? s.logoUrl));
+}
+
+export function HomeBannerGrid({ banners, featuredStores, isLoading }: Props) {
   const legacyHero = banners.filter((b) => {
     const p = b.placement ?? 'HERO';
     return (p === 'HERO' || p === 'PROMO') && resolveImageUrl(b.imageUrl);
@@ -92,13 +100,16 @@ export function HomeBannerGrid({ banners, isLoading }: Props) {
 
   const mainList = listBanners(banners, 'HOME_MAIN');
   const topList = listBanners(banners, 'HOME_SIDE_TOP');
-  const bottomList = listBanners(banners, 'HOME_SIDE_BOTTOM');
 
   const mainBanners = mainList.length > 0 ? mainList : legacyHero;
   const topBanners = topList.length > 0 ? topList : [];
-  const bottomBanners = bottomList.length > 0 ? bottomList : [];
+  const storeSlides = storesWithImages(featuredStores);
 
-  const hasContent = mainBanners.length > 0 || topBanners.length > 0 || bottomBanners.length > 0;
+  const hasContent =
+    mainBanners.length > 0 ||
+    topBanners.length > 0 ||
+    storeSlides.length > 0 ||
+    (featuredStores?.length ?? 0) > 0;
 
   if (isLoading) {
     return (
@@ -124,11 +135,10 @@ export function HomeBannerGrid({ banners, isLoading }: Props) {
           <Slot banners={topBanners} />
         </div>
         <div className="flex min-h-0 flex-col">
-          <Slot
-            banners={bottomBanners}
-            defaultHref={SHOPS_ENTRY_HREF}
-            placeholderHref={SHOPS_ENTRY_HREF}
-            placeholderLabel={uz.navShops}
+          <HomeStoreSlotCarousel
+            stores={featuredStores ?? []}
+            fallbackHref={SHOPS_ENTRY_HREF}
+            fallbackLabel={uz.navShops}
           />
         </div>
       </div>

@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/food_app_restaurant_card.dart';
 import '../../../shared/widgets/home_banner_grid.dart';
 import '../../../shared/widgets/home_headline.dart';
+import '../../stores/providers/stores_provider.dart';
 import '../providers/restaurants_provider.dart';
 
 class RestaurantsScreen extends ConsumerWidget {
@@ -16,6 +17,7 @@ class RestaurantsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final banners = ref.watch(bannersProvider);
+    final featuredStores = ref.watch(homeFeaturedStoresProvider);
     final restaurants = ref.watch(restaurantsListProvider(null));
 
     return Scaffold(
@@ -24,6 +26,7 @@ class RestaurantsScreen extends ConsumerWidget {
           onRefresh: () async {
             ref.invalidate(publicSettingsProvider);
             ref.invalidate(bannersProvider);
+            ref.invalidate(homeFeaturedStoresProvider);
             ref.invalidate(restaurantsListProvider);
           },
           child: ListView(
@@ -32,12 +35,35 @@ class RestaurantsScreen extends ConsumerWidget {
               const HomeHeadline(),
               const SizedBox(height: AppSpacing.lg),
               banners.when(
-                data: (items) => HomeBannerGrid(banners: items),
+                data: (items) => featuredStores.when(
+                  data: (stores) => HomeBannerGrid(
+                    banners: items,
+                    featuredStores: stores,
+                  ),
+                  loading: () => const SizedBox(
+                    height: 280,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (_, __) => HomeBannerGrid(
+                    banners: items,
+                    featuredStores: const [],
+                  ),
+                ),
                 loading: () => const SizedBox(
                   height: 280,
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, __) => featuredStores.when(
+                  data: (stores) => HomeBannerGrid(
+                    banners: const [],
+                    featuredStores: stores,
+                  ),
+                  loading: () => const SizedBox(
+                    height: 280,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(AppStrings.popular, style: AppTypography.subtitle),
