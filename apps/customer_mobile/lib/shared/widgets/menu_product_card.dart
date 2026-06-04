@@ -110,7 +110,7 @@ class MenuProductCard extends StatelessWidget {
         ),
         if (hasDiscount)
           Text(
-            formatSum(compare!),
+            formatSum(compare),
             style: AppTypography.bodySmall.copyWith(
               decoration: TextDecoration.lineThrough,
               color: AppColors.textMuted,
