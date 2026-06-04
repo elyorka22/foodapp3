@@ -16,6 +16,8 @@ import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminI18n as t } from '@/lib/admin-i18n';
+import { categoryImageStyle } from '@/lib/category-image-style';
+import { ImageFramingControls } from '@/components/admin/image-framing-controls';
 
 type BannerRow = {
   id: string;
@@ -26,6 +28,9 @@ type BannerRow = {
   placement?: 'HERO' | 'PROMO' | 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
   sortOrder?: number;
   isActive: boolean;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
   businessId?: string | null;
   restaurantId?: string | null;
 };
@@ -53,6 +58,9 @@ const emptyBanner = (placement: BannerForm['placement']): BannerForm => ({
   placement,
   sortOrder: 0,
   isActive: true,
+  imageScale: 100,
+  imagePositionX: 50,
+  imagePositionY: 50,
 });
 
 type Props = {
@@ -142,6 +150,9 @@ export function AdminBannersPage({
             : (b.placement ?? 'HERO'),
       sortOrder: b.sortOrder,
       isActive: b.isActive,
+      imageScale: b.imageScale ?? 100,
+      imagePositionX: b.imagePositionX ?? 50,
+      imagePositionY: b.imagePositionY ?? 50,
     });
     setModalOpen(true);
   };
@@ -276,7 +287,19 @@ export function AdminBannersPage({
           <div className="flex gap-3 overflow-x-auto">
             {items.filter((b) => b.isActive).map((b) => (
               <div key={b.id} className="min-w-[200px] shrink-0">
-                <img src={b.imageUrl} alt={b.title} className="h-24 w-full rounded-lg object-cover" />
+                <div className="relative aspect-[2/1] overflow-hidden rounded-lg bg-zinc-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={b.imageUrl}
+                    alt={b.title}
+                    className="h-full w-full"
+                    style={categoryImageStyle({
+                      imageScale: b.imageScale ?? 100,
+                      imagePositionX: b.imagePositionX ?? 50,
+                      imagePositionY: b.imagePositionY ?? 50,
+                    })}
+                  />
+                </div>
                 <p className="mt-1 text-xs font-medium">{b.title}</p>
               </div>
             ))}
@@ -411,7 +434,26 @@ export function AdminBannersPage({
             />
           </label>
           {form.imageUrl && (
-            <img src={form.imageUrl} alt="Preview" className="h-24 w-full rounded-lg object-cover" />
+            <ImageFramingControls
+              label="Banner rasm — joylashuv va masshtab"
+              imageUrl={form.imageUrl}
+              previewAspectClass={
+                form.placement === 'HOME_MAIN' ? 'aspect-[5/6] max-h-[200px]' : 'aspect-[2/1]'
+              }
+              values={{
+                imageScale: form.imageScale ?? 100,
+                imagePositionX: form.imagePositionX ?? 50,
+                imagePositionY: form.imagePositionY ?? 50,
+              }}
+              onChange={(v) =>
+                setForm({
+                  ...form,
+                  imageScale: v.imageScale ?? 100,
+                  imagePositionX: v.imagePositionX ?? 50,
+                  imagePositionY: v.imagePositionY ?? 50,
+                })
+              }
+            />
           )}
           <label className="flex items-center gap-2 text-sm">
             <input

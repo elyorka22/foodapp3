@@ -63,4 +63,11 @@ export class CreateRestaurantDto {
   @Min(0)
   @Max(100)
   coverPositionY?: number;
+
+  @ApiPropertyOptional({ description: 'Cover zoom 50–200 for homepage card' })
+  @IsOptional()
+  @IsInt()
+  @Min(50)
+  @Max(200)
+  coverScale?: number;
 }

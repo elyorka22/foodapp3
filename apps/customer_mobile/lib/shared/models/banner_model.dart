@@ -8,6 +8,9 @@ class BannerModel {
     this.placement,
     this.restaurantId,
     this.sortOrder,
+    this.imageScale,
+    this.imagePositionX,
+    this.imagePositionY,
   });
 
   final String id;
@@ -18,6 +21,9 @@ class BannerModel {
   final String? placement;
   final String? restaurantId;
   final int? sortOrder;
+  final int? imageScale;
+  final int? imagePositionX;
+  final int? imagePositionY;
 
   factory BannerModel.fromJson(Map<String, dynamic> json) {
     return BannerModel(
@@ -29,6 +35,9 @@ class BannerModel {
       placement: json['placement'] as String?,
       restaurantId: json['restaurantId'] as String?,
       sortOrder: (json['sortOrder'] as num?)?.toInt(),
+      imageScale: (json['imageScale'] as num?)?.toInt(),
+      imagePositionX: (json['imagePositionX'] as num?)?.toInt(),
+      imagePositionY: (json['imagePositionY'] as num?)?.toInt(),
     );
   }
 }

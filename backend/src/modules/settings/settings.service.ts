@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { AdminSettingsDto } from './dto/admin-settings.dto';
+import {
+  DEFAULT_IMAGE_FRAMING,
+  type ImageFramingDefaults,
+  pickImageFramingDefaults,
+} from '../../common/utils/image-framing.util';
 
 export interface DeliveryPricing {
   baseFee: number;
@@ -11,7 +16,7 @@ export interface DeliveryPricing {
   courierMinFee: number;
 }
 
-export interface AdminSettings {
+export interface AdminSettings extends ImageFramingDefaults {
   app_name: string;
   home_title: string;
   home_subtitle: string;
@@ -28,6 +33,12 @@ export interface PublicSettings {
   app_name: string;
   home_title: string;
   home_subtitle: string;
+  banner_default_image_scale: number;
+  banner_default_image_position_x: number;
+  banner_default_image_position_y: number;
+  restaurant_card_default_image_scale: number;
+  restaurant_card_default_cover_position_x: number;
+  restaurant_card_default_cover_position_y: number;
 }
 
 const DEFAULT_PRICING: DeliveryPricing = {
@@ -39,6 +50,7 @@ const DEFAULT_PRICING: DeliveryPricing = {
 };
 
 const DEFAULT_ADMIN: AdminSettings = {
+  ...DEFAULT_IMAGE_FRAMING,
   app_name: 'Food Delivery',
   home_title: 'CHUST',
   home_subtitle: "Shahar bo'ylab yetkazish",
@@ -76,11 +88,25 @@ export class SettingsService {
 
   async getPublicSettings(): Promise<PublicSettings> {
     const admin = await this.getAdminSettings();
+    const framing = pickImageFramingDefaults(admin);
     return {
       app_name: admin.app_name,
       home_title: admin.home_title,
       home_subtitle: admin.home_subtitle,
+      banner_default_image_scale: framing.banner_default_image_scale,
+      banner_default_image_position_x: framing.banner_default_image_position_x,
+      banner_default_image_position_y: framing.banner_default_image_position_y,
+      restaurant_card_default_image_scale: framing.restaurant_card_default_image_scale,
+      restaurant_card_default_cover_position_x:
+        framing.restaurant_card_default_cover_position_x,
+      restaurant_card_default_cover_position_y:
+        framing.restaurant_card_default_cover_position_y,
     };
+  }
+
+  async getImageFramingDefaults(): Promise<ImageFramingDefaults> {
+    const admin = await this.getAdminSettings();
+    return pickImageFramingDefaults(admin);
   }
 
   async getAdminSettings(): Promise<AdminSettings> {

@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsEmail, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class AdminSettingsDto {
   @ApiPropertyOptional()
@@ -55,4 +55,46 @@ export class AdminSettingsDto {
   @IsNumber()
   @Min(0)
   commission_default?: number;
+
+  @ApiPropertyOptional({ description: 'Default banner zoom % (50–200)' })
+  @IsOptional()
+  @IsInt()
+  @Min(50)
+  @Max(200)
+  banner_default_image_scale?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  banner_default_image_position_x?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  banner_default_image_position_y?: number;
+
+  @ApiPropertyOptional({ description: 'Default restaurant card zoom % (50–200)' })
+  @IsOptional()
+  @IsInt()
+  @Min(50)
+  @Max(200)
+  restaurant_card_default_image_scale?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  restaurant_card_default_cover_position_x?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  restaurant_card_default_cover_position_y?: number;
 }

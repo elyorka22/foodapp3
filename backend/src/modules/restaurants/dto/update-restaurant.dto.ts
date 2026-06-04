@@ -61,4 +61,11 @@ export class UpdateRestaurantDto {
   @Min(0)
   @Max(100)
   coverPositionY?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(50)
+  @Max(200)
+  coverScale?: number;
 }

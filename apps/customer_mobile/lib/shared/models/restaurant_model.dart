@@ -30,6 +30,7 @@ class RestaurantModel {
     this.coverUrl,
     this.coverPositionX,
     this.coverPositionY,
+    this.coverScale,
     this.minOrderAmount,
     this.avgPrepMinutes,
     this.deliveryMinutes,
@@ -52,6 +53,7 @@ class RestaurantModel {
   final String? coverUrl;
   final int? coverPositionX;
   final int? coverPositionY;
+  final int? coverScale;
   final num? minOrderAmount;
   final int? avgPrepMinutes;
   final int? deliveryMinutes;
@@ -77,6 +79,7 @@ class RestaurantModel {
       coverUrl: json['coverUrl'] as String?,
       coverPositionX: parseIntOrNull(json['coverPositionX']),
       coverPositionY: parseIntOrNull(json['coverPositionY']),
+      coverScale: parseIntOrNull(json['coverScale']),
       minOrderAmount: parseNumOrNull(json['minOrderAmount']),
       avgPrepMinutes: parseIntOrNull(json['avgPrepMinutes']),
       deliveryMinutes: parseIntOrNull(json['deliveryMinutes']) ??

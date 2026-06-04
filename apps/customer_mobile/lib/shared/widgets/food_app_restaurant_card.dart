@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'lucide_restaurant_icons.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/image_framing.dart';
 import '../../core/utils/image_url.dart';
 import '../../core/utils/restaurant_card_meta.dart';
 import '../../shared/models/restaurant_model.dart';
@@ -149,10 +150,19 @@ class FoodAppRestaurantCard extends StatelessWidget {
   Widget _cover() {
     final resolved = resolveImageUrl(restaurant.coverUrl ?? restaurant.logoUrl);
     if (resolved != null && resolved.isNotEmpty) {
-      return CachedNetworkImage(
-        imageUrl: resolved,
-        fit: BoxFit.cover,
-        errorWidget: (_, __, ___) => _placeholder(),
+      return applyImageFraming(
+        imageScale: restaurant.coverScale,
+        imagePositionX: restaurant.coverPositionX,
+        imagePositionY: restaurant.coverPositionY,
+        child: CachedNetworkImage(
+          imageUrl: resolved,
+          fit: BoxFit.cover,
+          alignment: Alignment(
+            ((restaurant.coverPositionX ?? 50) / 50) - 1,
+            ((restaurant.coverPositionY ?? 50) / 50) - 1,
+          ),
+          errorWidget: (_, __, ___) => _placeholder(),
+        ),
       );
     }
     return _placeholder();

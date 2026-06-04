@@ -12,6 +12,9 @@ export type BannerForm = {
   placement?: 'HERO' | 'PROMO' | 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
   sortOrder?: number;
   isActive?: boolean;
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
 };
 
 export function useAdminBanners() {

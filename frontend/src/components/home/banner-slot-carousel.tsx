@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
+import { categoryImageStyle } from '@/lib/category-image-style';
 import { uz } from '@/lib/uz';
 import type { HomeBanner } from '@/hooks/use-home-data';
 
@@ -38,7 +39,19 @@ function BannerSlide({
         tall ? 'h-full min-h-[280px]' : 'min-h-[132px] h-full flex-1',
       )}
     >
-      <Image src={src} alt={title || 'Banner'} fill className="object-cover" sizes="50vw" unoptimized />
+      <Image
+        src={src}
+        alt={title || 'Banner'}
+        fill
+        className="h-full w-full"
+        style={categoryImageStyle({
+          imageScale: banner.imageScale,
+          imagePositionX: banner.imagePositionX,
+          imagePositionY: banner.imagePositionY,
+        })}
+        sizes="50vw"
+        unoptimized
+      />
       {title ? (
         <>
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />

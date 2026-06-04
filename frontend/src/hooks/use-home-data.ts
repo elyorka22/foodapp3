@@ -14,6 +14,7 @@ export type HomeRestaurant = {
   coverUrl?: string | null;
   coverPositionX?: number;
   coverPositionY?: number;
+  coverScale?: number;
   createdAt?: string;
   avgPrepMinutes?: number;
   deliveryMinutes?: number;
@@ -34,6 +35,9 @@ export type HomeBanner = {
   placement?: 'HERO' | 'PROMO' | 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
   restaurantId?: string | null;
   sortOrder?: number;
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
 };
 
 export function useHomeBanners() {

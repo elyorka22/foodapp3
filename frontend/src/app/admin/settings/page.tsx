@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { AdminPageGuard } from '@/components/admin/admin-page-guard';
 import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminSettings, type AdminSettings } from '@/hooks/use-admin-settings';
+import { AdminImageFramingSettings } from '@/components/admin/admin-image-framing-settings';
 import { LoadingState, EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +77,14 @@ function AdminSettingsContent() {
           onChange={(e) => setForm({ ...form, home_subtitle: e.target.value })}
         />
       </Section>
+
+      <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+        <p className="mb-3 text-sm font-semibold">Rasmlar — banner va restoran kartochkalari</p>
+        <p className="mb-4 text-xs text-zinc-500">
+          Standart masshtab va joylashuv. Har bir banner yoki restoranda alohida sozlash mumkin.
+        </p>
+        <AdminImageFramingSettings form={form} setForm={setForm} />
+      </div>
 
       <Section title="Delivery">
         <Input

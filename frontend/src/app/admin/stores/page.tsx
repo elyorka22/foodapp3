@@ -39,6 +39,7 @@ const emptyForm: RestaurantForm = {
   isActive: true,
   coverPositionX: 50,
   coverPositionY: 50,
+  coverScale: 100,
 };
 
 export default function AdminStoresPage() {
@@ -131,6 +132,7 @@ export default function AdminStoresPage() {
       isActive: Boolean(row.isActive),
       coverPositionX: Number(row.coverPositionX ?? 50),
       coverPositionY: Number(row.coverPositionY ?? 50),
+      coverScale: Number(row.coverScale ?? 100),
     });
   };
 

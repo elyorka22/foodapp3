@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { resolveBannerFraming } from '../../common/utils/image-framing.util';
 import { AuditService } from '../audit/audit.service';
+import { SettingsService } from '../settings/settings.service';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
@@ -11,11 +13,22 @@ export class BannersService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
 
-  findActive() {
+  private async mapBanner<T extends {
+    imageScale?: number | null;
+    imagePositionX?: number | null;
+    imagePositionY?: number | null;
+  }>(row: T) {
+    const defaults = await this.settings.getImageFramingDefaults();
+    const framing = resolveBannerFraming(row, defaults);
+    return { ...row, ...framing };
+  }
+
+  async findActive() {
     const now = new Date();
-    return this.prisma.banner.findMany({
+    const rows = await this.prisma.banner.findMany({
       where: {
         isActive: true,
         deletedAt: null,
@@ -24,6 +37,11 @@ export class BannersService {
       },
       orderBy: { sortOrder: 'asc' },
     });
+    const defaults = await this.settings.getImageFramingDefaults();
+    return rows.map((row) => ({
+      ...row,
+      ...resolveBannerFraming(row, defaults),
+    }));
   }
 
   findAllAdmin() {
@@ -44,6 +62,9 @@ export class BannersService {
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
         businessId: dto.restaurantId,
+        imageScale: dto.imageScale ?? null,
+        imagePositionX: dto.imagePositionX ?? null,
+        imagePositionY: dto.imagePositionY ?? null,
       },
     });
     await this.audit.log({
@@ -53,7 +74,7 @@ export class BannersService {
       entityId: banner.id,
       metadata: { title: banner.title },
     });
-    return banner;
+    return this.mapBanner(banner);
   }
 
   async update(id: string, dto: UpdateBannerDto, user?: JwtPayload) {
@@ -70,6 +91,9 @@ export class BannersService {
     if (dto.link !== undefined) data.linkUrl = dto.link;
     if (dto.sortOrder !== undefined) data.sortOrder = dto.sortOrder;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    if (dto.imageScale !== undefined) data.imageScale = dto.imageScale;
+    if (dto.imagePositionX !== undefined) data.imagePositionX = dto.imagePositionX;
+    if (dto.imagePositionY !== undefined) data.imagePositionY = dto.imagePositionY;
     if (dto.restaurantId !== undefined) {
       data.business = dto.restaurantId
         ? { connect: { id: dto.restaurantId } }
@@ -84,7 +108,7 @@ export class BannersService {
       entityId: id,
       metadata: dto,
     });
-    return updated;
+    return this.mapBanner(updated);
   }
 
   async softDelete(id: string, user?: JwtPayload) {

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Bookmark, Footprints } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
-import { coverObjectPosition } from '@/lib/cover-position';
+import { categoryImageStyle } from '@/lib/category-image-style';
 import {
   restaurantCategoryLabel,
   restaurantDeliveryLabel,
@@ -28,10 +28,11 @@ type Props = {
 
 export function RestaurantGridCard({ restaurant, index }: Props) {
   const imageUrl = resolveImageUrl(restaurant.coverUrl ?? restaurant.logoUrl);
-  const objectPosition = coverObjectPosition(
-    restaurant.coverPositionX,
-    restaurant.coverPositionY,
-  );
+  const coverStyle = categoryImageStyle({
+    imageScale: restaurant.coverScale,
+    imagePositionX: restaurant.coverPositionX,
+    imagePositionY: restaurant.coverPositionY,
+  });
   const href = restaurantPublicPath(restaurant);
   const delivery = restaurantDeliveryLabel(restaurant);
   const categories = restaurantCategoryLabel(restaurant);
@@ -45,8 +46,8 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
             src={imageUrl}
             alt={restaurant.name}
             fill
-            className="object-cover"
-            style={{ objectPosition }}
+            className="h-full w-full"
+            style={coverStyle}
             sizes="(max-width: 430px) 100vw, 430px"
             unoptimized
           />

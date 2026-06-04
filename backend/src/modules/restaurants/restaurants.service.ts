@@ -19,6 +19,11 @@ import { AdminRestaurantsQueryDto } from './dto/admin-restaurants-query.dto';
 import { userBusinessId } from '../../domain/business/business-id.util';
 import { businessWhereForVertical } from '../../domain/business/merchant-vertical';
 import { resolveSlugForCreate, resolveSlugForUpdate } from '../../common/utils/slug.util';
+import { SettingsService } from '../settings/settings.service';
+import {
+  resolveRestaurantCoverFraming,
+  type ImageFramingDefaults,
+} from '../../common/utils/image-framing.util';
 
 @Injectable()
 export class RestaurantsService {
@@ -27,6 +32,7 @@ export class RestaurantsService {
     private audit: AuditService,
     private adminNotifications: AdminNotificationsService,
     private schedule: RestaurantScheduleService,
+    private settings: SettingsService,
   ) {}
 
   /** Homepage / food delivery — restaurants only, not marketplace shops (grocery, pharmacy, …). */
@@ -75,11 +81,15 @@ export class RestaurantsService {
       this.prisma.business.count({ where }),
     ]);
 
-    const serialized = data.map((r) => this.serializePublicListItem(r));
+    const framingDefaults = await this.settings.getImageFramingDefaults();
+    const serialized = data.map((r) =>
+      this.serializePublicListItem(r, framingDefaults),
+    );
     return paginatedResponse(serialized, total, query.page ?? 1, query.limit ?? 20);
   }
 
-  private serializePublicListItem(r: {
+  private serializePublicListItem(
+    r: {
     id: string;
     name: string;
     slug: string;
@@ -89,6 +99,7 @@ export class RestaurantsService {
     coverUrl: string | null;
     coverPositionX: number;
     coverPositionY: number;
+    coverScale?: number;
     phone: string | null;
     commissionRate: Prisma.Decimal;
     minOrderAmount: Prisma.Decimal | null;
@@ -97,8 +108,11 @@ export class RestaurantsService {
     reviewCount: number;
     branches?: { address: string }[];
     productCategories?: { id: string; name: string; slug: string }[];
-  }) {
+  },
+    framingDefaults: ImageFramingDefaults,
+  ) {
     const branch = r.branches?.[0];
+    const cover = resolveRestaurantCoverFraming(r, framingDefaults);
     return {
       id: r.id,
       name: r.name,
@@ -107,8 +121,9 @@ export class RestaurantsService {
       description: r.description,
       logoUrl: r.logoUrl,
       coverUrl: r.coverUrl,
-      coverPositionX: r.coverPositionX,
-      coverPositionY: r.coverPositionY,
+      coverPositionX: cover.coverPositionX,
+      coverPositionY: cover.coverPositionY,
+      coverScale: cover.coverScale,
       phone: r.phone,
       commissionRate: Number(r.commissionRate),
       minOrderAmount: r.minOrderAmount ? Number(r.minOrderAmount) : null,
@@ -490,6 +505,7 @@ export class RestaurantsService {
         coverUrl: dto.coverUrl,
         coverPositionX: dto.coverPositionX ?? 50,
         coverPositionY: dto.coverPositionY ?? 50,
+        coverScale: dto.coverScale ?? 100,
         phone: dto.phone,
         commissionRate: dto.commissionRate,
         approvalStatus: publishOnSite

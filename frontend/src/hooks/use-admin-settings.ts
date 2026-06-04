@@ -15,6 +15,12 @@ export type AdminSettings = {
   free_delivery_threshold: number;
   default_delivery_fee: number;
   commission_default: number;
+  banner_default_image_scale: number;
+  banner_default_image_position_x: number;
+  banner_default_image_position_y: number;
+  restaurant_card_default_image_scale: number;
+  restaurant_card_default_cover_position_x: number;
+  restaurant_card_default_cover_position_y: number;
 };
 
 export function useAdminSettings() {

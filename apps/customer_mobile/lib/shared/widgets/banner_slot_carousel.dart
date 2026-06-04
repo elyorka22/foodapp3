@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/image_framing.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
 
@@ -164,7 +165,19 @@ class _BannerTile extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (url != null)
-              CachedNetworkImage(imageUrl: url, fit: BoxFit.cover)
+              applyImageFraming(
+                imageScale: banner.imageScale,
+                imagePositionX: banner.imagePositionX,
+                imagePositionY: banner.imagePositionY,
+                child: CachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.cover,
+                  alignment: Alignment(
+                    ((banner.imagePositionX ?? 50) / 50) - 1,
+                    ((banner.imagePositionY ?? 50) / 50) - 1,
+                  ),
+                ),
+              )
             else
               const ColoredBox(color: AppColors.primarySoft),
             if (banner.title.isNotEmpty)

@@ -21,6 +21,7 @@ export type RestaurantForm = {
   coverUrl?: string;
   coverPositionX?: number;
   coverPositionY?: number;
+  coverScale?: number;
   phone?: string;
   commissionRate?: number;
   isActive?: boolean;
