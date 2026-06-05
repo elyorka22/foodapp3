@@ -132,6 +132,18 @@ export default function AdminRestaurantDetailPage() {
             <dd>{r.phone || '—'}</dd>
           </div>
           <div>
+            <dt className="opacity-60">Coordinates</dt>
+            <dd>
+              {r.latitude != null && r.longitude != null
+                ? `${Number(r.latitude).toFixed(6)}, ${Number(r.longitude).toFixed(6)}`
+                : '—'}
+            </dd>
+          </div>
+          <div>
+            <dt className="opacity-60">Branch address</dt>
+            <dd>{r.branchAddress || r.address || '—'}</dd>
+          </div>
+          <div>
             <dt className="opacity-60">Logo</dt>
             <dd>{r.logoUrl ? <img src={r.logoUrl} alt="" className="mt-1 h-12 w-12 rounded object-cover" /> : '—'}</dd>
           </div>

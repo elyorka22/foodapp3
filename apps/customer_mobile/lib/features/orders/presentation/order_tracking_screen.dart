@@ -118,6 +118,39 @@ class _TrackingBody extends StatelessWidget {
                 ),
         ),
         const SizedBox(height: AppSpacing.lg),
+        if (order.courierName != null || order.deliveryFee != null || order.distanceKm != null)
+          FoodAppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (order.courierName != null) ...[
+                  Text(AppStrings.assignedCourier, style: AppTypography.bodySmall),
+                  Text(order.courierName!, style: AppTypography.subtitle),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                if (order.courierPhone != null) ...[
+                  Text(AppStrings.courierPhone, style: AppTypography.bodySmall),
+                  Text(order.courierPhone!, style: AppTypography.body),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                if (order.deliveryFee != null)
+                  Text(
+                    '${AppStrings.deliveryFee}: ${order.deliveryFee} UZS',
+                    style: AppTypography.body,
+                  ),
+                if (order.distanceKm != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      AppStrings.distanceKm(order.distanceKm!),
+                      style: AppTypography.bodySmall,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        if (order.courierName != null || order.deliveryFee != null || order.distanceKm != null)
+          const SizedBox(height: AppSpacing.lg),
         FoodAppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

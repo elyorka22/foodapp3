@@ -7,6 +7,13 @@ import { StatusBadge } from '@/components/admin/ui';
 import { DeliveryCoords } from '@/components/shared/delivery-coords';
 import { OrderLineItems } from '@/components/orders/order-line-items';
 
+type CourierOption = {
+  id: string;
+  isOnline?: boolean;
+  user?: { fullName?: string; phone?: string };
+  stats?: { activeOrders?: number };
+};
+
 export function OrderDrawer({
   orderId,
   open,
@@ -14,6 +21,11 @@ export function OrderDrawer({
   load,
   loadHistory,
   onChangeStatus,
+  couriers = [],
+  onAssignCourier,
+  onReassignCourier,
+  onRemoveCourier,
+  courierActionPending = false,
 }: {
   orderId: string | null;
   open: boolean;
@@ -21,18 +33,22 @@ export function OrderDrawer({
   load: (id: string) => Promise<any>;
   loadHistory?: (id: string) => Promise<any[]>;
   onChangeStatus: (id: string, status: string) => Promise<void> | void;
+  couriers?: CourierOption[];
+  onAssignCourier?: (orderId: string, courierId: string) => Promise<void>;
+  onReassignCourier?: (orderId: string, courierId: string) => Promise<void>;
+  onRemoveCourier?: (orderId: string) => Promise<void>;
+  courierActionPending?: boolean;
 }) {
   const [data, setData] = useState<any | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedCourierId, setSelectedCourierId] = useState('');
 
-  useEffect(() => {
-    if (!open || !orderId) return;
+  const refresh = () => {
+    if (!orderId) return;
     setLoading(true);
     setError('');
-    setData(null);
-    setHistory([]);
     Promise.all([
       load(orderId),
       loadHistory ? loadHistory(orderId) : Promise.resolve([]),
@@ -40,9 +56,15 @@ export function OrderDrawer({
       .then(([order, hist]) => {
         setData(order);
         setHistory(hist);
+        setSelectedCourierId(order?.courier?.id ?? '');
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load order'))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (!open || !orderId) return;
+    refresh();
   }, [open, orderId, load, loadHistory]);
 
   const timeline = useMemo(() => {
@@ -61,6 +83,22 @@ export function OrderDrawer({
       ...(data.deliveredAt ? [{ label: 'DELIVERED', at: data.deliveredAt }] : []),
     ];
   }, [data, history]);
+
+  const hasCourier = !!data?.courier?.id;
+  const canAssign =
+    data &&
+    ['PREPARING', 'COURIER_ASSIGNED'].includes(data.status);
+
+  const handleCourierAction = async () => {
+    if (!orderId || !selectedCourierId || !data) return;
+    if (hasCourier && data.courier?.id === selectedCourierId) return;
+    if (hasCourier && onReassignCourier) {
+      await onReassignCourier(orderId, selectedCourierId);
+    } else if (!hasCourier && onAssignCourier) {
+      await onAssignCourier(orderId, selectedCourierId);
+    }
+    refresh();
+  };
 
   if (!open) return null;
 
@@ -148,9 +186,54 @@ export function OrderDrawer({
             </Section>
 
             <Section title="Courier">
-              <p className="text-sm">
-                {data.courier?.user?.fullName ?? 'Not assigned'}
+              <p className="text-sm font-medium">
+                {data.courier?.name ?? data.courier?.user?.fullName ?? 'Not assigned'}
               </p>
+              {(data.courier?.phone ?? data.courier?.user?.phone) && (
+                <p className="text-sm opacity-70">{data.courier?.phone ?? data.courier?.user?.phone}</p>
+              )}
+              {canAssign && onAssignCourier && (
+                <div className="mt-3 space-y-2">
+                  <select
+                    className="w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
+                    value={selectedCourierId}
+                    onChange={(e) => setSelectedCourierId(e.target.value)}
+                  >
+                    <option value="">Select courier</option>
+                    {couriers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.user?.fullName ?? 'Courier'}
+                        {c.isOnline ? ' · online' : ' · offline'}
+                        {c.stats?.activeOrders != null ? ` · ${c.stats.activeOrders} active` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!selectedCourierId || courierActionPending}
+                      onClick={handleCourierAction}
+                    >
+                      {hasCourier ? 'Reassign courier' : 'Assign courier'}
+                    </Button>
+                    {hasCourier && onRemoveCourier && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        disabled={courierActionPending}
+                        onClick={async () => {
+                          await onRemoveCourier(orderId!);
+                          refresh();
+                        }}
+                      >
+                        Remove courier
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </Section>
 
             <Section title="Status history">
@@ -177,7 +260,15 @@ export function OrderDrawer({
 
             <Section title="Quick actions">
               <div className="flex flex-wrap gap-2">
-                {['ACCEPTED', 'PREPARING', 'COURIER_ASSIGNED', 'PICKED_UP', 'DELIVERING', 'DELIVERED'].map((s) => (
+                {[
+                  'ACCEPTED',
+                  'PREPARING',
+                  'COURIER_ASSIGNED',
+                  'ARRIVED_AT_RESTAURANT',
+                  'PICKED_UP',
+                  'DELIVERING',
+                  'DELIVERED',
+                ].map((s) => (
                   <Button
                     key={s}
                     type="button"
@@ -205,4 +296,3 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     </section>
   );
 }
-

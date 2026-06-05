@@ -5,9 +5,19 @@ abstract final class OrderStatusSteps {
     OrderStep(id: 'accepted', backendStatuses: ['ACCEPTED'], label: 'Tasdiqlandi'),
     OrderStep(id: 'preparing', backendStatuses: ['PREPARING'], label: 'Tayyorlanmoqda'),
     OrderStep(
+      id: 'assigned',
+      backendStatuses: ['COURIER_ASSIGNED'],
+      label: 'Kuryer biriktirildi',
+    ),
+    OrderStep(
+      id: 'at_restaurant',
+      backendStatuses: ['ARRIVED_AT_RESTAURANT'],
+      label: 'Restoranga yetib bordi',
+    ),
+    OrderStep(
       id: 'ready',
-      backendStatuses: ['COURIER_ASSIGNED', 'PICKED_UP'],
-      label: 'Tayyor',
+      backendStatuses: ['PICKED_UP'],
+      label: 'Olib ketildi',
     ),
     OrderStep(id: 'delivering', backendStatuses: ['DELIVERING'], label: "Yo'lda"),
     OrderStep(id: 'completed', backendStatuses: ['DELIVERED'], label: 'Yetkazildi'),
@@ -24,18 +34,14 @@ abstract final class OrderStatusSteps {
       'ACCEPTED',
       'PREPARING',
       'COURIER_ASSIGNED',
+      'ARRIVED_AT_RESTAURANT',
       'PICKED_UP',
       'DELIVERING',
       'DELIVERED',
     ];
     final idx = order.indexOf(status);
     if (idx < 0) return 0;
-    if (idx <= 0) return 0;
-    if (idx <= 1) return 1;
-    if (idx <= 2) return 2;
-    if (idx <= 4) return 3;
-    if (idx == 5) return 4;
-    return 5;
+    return idx.clamp(0, steps.length - 1);
   }
 
   static bool isTerminal(String status) =>

@@ -1,6 +1,10 @@
 'use client';
 
+import { useState } from 'react';
+import { MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { MapLocationPicker } from '@/components/admin/map-location-picker';
 
 type LocationForm = {
   branchAddress?: string;
@@ -15,6 +19,7 @@ export function MerchantLocationFields<T extends LocationForm>({
   form: T;
   setForm: (f: T) => void;
 }) {
+  const [mapOpen, setMapOpen] = useState(false);
   const lat = form.latitude ?? '';
   const lng = form.longitude ?? '';
 
@@ -24,7 +29,7 @@ export function MerchantLocationFields<T extends LocationForm>({
         Delivery location (required for automatic delivery fee)
       </p>
       <p className="text-xs text-zinc-500">
-        Enter coordinates manually or copy from a map. Used to calculate distance to the customer.
+        Enter coordinates manually or pick on the map. Used to calculate distance to the customer.
       </p>
       <Input
         placeholder="Branch address"
@@ -57,16 +62,29 @@ export function MerchantLocationFields<T extends LocationForm>({
           }
         />
       </div>
-      {form.latitude != null && form.longitude != null && (
-        <a
-          href={`https://www.openstreetmap.org/?mlat=${form.latitude}&mlon=${form.longitude}#map=16/${form.latitude}/${form.longitude}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-brand-600 hover:underline"
-        >
-          Preview on map
-        </a>
-      )}
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="secondary" size="sm" onClick={() => setMapOpen(true)}>
+          <MapPin size={14} className="mr-1" />
+          Open map picker
+        </Button>
+        {form.latitude != null && form.longitude != null && (
+          <a
+            href={`https://www.openstreetmap.org/?mlat=${form.latitude}&mlon=${form.longitude}#map=16/${form.latitude}/${form.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-xs text-brand-600 hover:underline"
+          >
+            Preview on map
+          </a>
+        )}
+      </div>
+      <MapLocationPicker
+        open={mapOpen}
+        latitude={form.latitude}
+        longitude={form.longitude}
+        onClose={() => setMapOpen(false)}
+        onSave={(latitude, longitude) => setForm({ ...form, latitude, longitude })}
+      />
     </div>
   );
 }

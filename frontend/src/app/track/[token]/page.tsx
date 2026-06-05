@@ -9,12 +9,32 @@ import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
 import { OrderLineItems } from '@/components/orders/order-line-items';
 
+type TrackCourier = {
+  name?: string | null;
+  phone?: string | null;
+  user?: { fullName?: string | null; phone?: string | null } | null;
+};
+
 type Order = {
   orderNumber: string;
   status: string;
+  subtotal?: number;
+  deliveryFee?: number;
+  distanceKm?: number | null;
   total: number;
   items: { name: string; description?: string | null; quantity: number }[];
+  courier?: TrackCourier | null;
 };
+
+function courierName(courier: TrackCourier | null | undefined): string | null {
+  if (!courier) return null;
+  return courier.name ?? courier.user?.fullName ?? null;
+}
+
+function courierPhone(courier: TrackCourier | null | undefined): string | null {
+  if (!courier) return null;
+  return courier.phone ?? courier.user?.phone ?? null;
+}
 
 export default function TrackPage() {
   const { token } = useParams<{ token: string }>();
@@ -45,6 +65,8 @@ export default function TrackPage() {
   if (!order) return <main className="p-4 text-zinc-500">{uz.loading}</main>;
 
   const statusLabel = uz.orderStatus[order.status] ?? order.status;
+  const name = courierName(order.courier);
+  const phone = courierPhone(order.courier);
 
   return (
     <main className="mx-auto max-w-lg px-4 py-8">
@@ -53,11 +75,54 @@ export default function TrackPage() {
         <p className="text-2xl font-semibold text-brand-600">{statusLabel}</p>
         <p className="mt-2 text-sm text-zinc-500">{uz.liveUpdates}</p>
       </div>
+
+      {(name || phone || order.deliveryFee != null || order.distanceKm != null) && (
+        <div className="mt-4 rounded-2xl border bg-white p-4 text-sm shadow-card">
+          {name && (
+            <p>
+              <span className="text-zinc-500">Kuryer: </span>
+              <span className="font-medium">{name}</span>
+            </p>
+          )}
+          {phone && (
+            <p className="mt-1">
+              <span className="text-zinc-500">Telefon: </span>
+              <span>{phone}</span>
+            </p>
+          )}
+          {order.deliveryFee != null && (
+            <p className="mt-1">
+              <span className="text-zinc-500">{uz.deliveryLabel}: </span>
+              <span>{formatSum(order.deliveryFee)}</span>
+            </p>
+          )}
+          {order.distanceKm != null && (
+            <p className="mt-1">
+              <span className="text-zinc-500">Masofa: </span>
+              <span>{order.distanceKm} km</span>
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="mt-6">
         <OrderLineItems items={order.items ?? []} />
       </div>
-      <p className="mt-4 font-bold">
-        {uz.total}: {formatSum(order.total)}
+      {order.subtotal != null && (
+        <p className="mt-4 flex justify-between text-sm">
+          <span>Mahsulotlar</span>
+          <span>{formatSum(order.subtotal)}</span>
+        </p>
+      )}
+      {order.deliveryFee != null && (
+        <p className="mt-1 flex justify-between text-sm text-zinc-600">
+          <span>{uz.deliveryLabel}</span>
+          <span>{formatSum(order.deliveryFee)}</span>
+        </p>
+      )}
+      <p className="mt-2 flex justify-between font-bold">
+        <span>{uz.total}</span>
+        <span>{formatSum(order.total)}</span>
       </p>
     </main>
   );

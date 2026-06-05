@@ -235,4 +235,34 @@ export class NotificationService {
       },
     });
   }
+
+  async notifyManagersCourierDeclined(params: {
+    orderId: string;
+    orderNumber: string;
+    courierName?: string;
+    reason?: string;
+  }) {
+    const managers = await this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        isActive: true,
+        role: { in: ['SUPER_ADMIN', 'MANAGER'] },
+      },
+      select: { id: true },
+    });
+    const metadata = {
+      orderId: params.orderId,
+      orderNumber: params.orderNumber,
+      courierName: params.courierName,
+      reason: params.reason,
+    };
+    await this.sendToMany(
+      managers.map((m) => ({
+        userId: m.id,
+        accountType: NotificationAccountType.STAFF,
+      })),
+      'ORDER_PROBLEM',
+      metadata,
+    );
+  }
 }

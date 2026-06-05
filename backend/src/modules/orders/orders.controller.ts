@@ -16,6 +16,7 @@ import { OrdersService } from './orders.service';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { DeliveryQuoteDto } from './dto/delivery-quote.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { AssignCourierDto } from './dto/assign-courier.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -109,6 +110,51 @@ export class OrdersController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.ordersService.updateStatus(id, dto, user);
+  }
+
+  @Post(':id/assign-courier')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Manager assigns courier to order' })
+  assignCourier(
+    @Param('id') id: string,
+    @Body() dto: AssignCourierDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.ordersService.assignCourierByManager(
+      id,
+      dto.courierId,
+      user.sub,
+      dto.note,
+    );
+  }
+
+  @Patch(':id/reassign-courier')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Manager reassigns courier on order' })
+  reassignCourier(
+    @Param('id') id: string,
+    @Body() dto: AssignCourierDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.ordersService.reassignCourier(
+      id,
+      dto.courierId,
+      user.sub,
+      dto.note,
+    );
+  }
+
+  @Patch(':id/remove-courier')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Manager removes courier from order' })
+  removeCourier(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.ordersService.removeCourier(id, user.sub);
   }
 
   @Post(':id/accept')

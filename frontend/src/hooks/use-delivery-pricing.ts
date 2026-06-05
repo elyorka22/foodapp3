@@ -5,10 +5,9 @@ import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 
 export type DeliveryPricing = {
-  baseFee: number;
-  pricePerKm: number;
-  minDeliveryFee: number;
-  roadDistanceFactor: number;
+  baseDeliveryFee: number;
+  perKmFee: number;
+  maxDeliveryDistance: number;
   courierPricePerKm: number;
   courierMinFee: number;
 };
@@ -40,7 +39,8 @@ export type DeliveryQuote = {
   distanceKm: number;
   billableDistanceKm: number;
   deliveryFee: number;
-  pricePerKm: number;
+  perKmFee: number;
+  baseDeliveryFee: number;
   restaurantLatitude: number;
   restaurantLongitude: number;
   customerLatitude: number;

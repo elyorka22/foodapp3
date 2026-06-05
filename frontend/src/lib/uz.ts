@@ -259,6 +259,7 @@ export const uz = {
     ACCEPTED: 'Buyurtma qabul qilindi',
     PREPARING: 'Taom tayyorlanmoqda',
     COURIER_ASSIGNED: 'Kuryer biriktirildi',
+    ARRIVED_AT_RESTAURANT: 'Restoranga yetib bordi',
     PICKED_UP: 'Olib ketildi',
     DELIVERING: "Yo'lda",
     DELIVERED: 'Yetkazildi',

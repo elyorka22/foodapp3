@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { SettingsService } from '../../modules/settings/settings.service';
 import { Coordinates, defaultDistanceCalculator } from './distance-calculator';
 import {
@@ -10,7 +10,8 @@ export type DeliveryQuote = {
   distanceKm: number;
   billableDistanceKm: number;
   deliveryFee: number;
-  pricePerKm: number;
+  perKmFee: number;
+  baseDeliveryFee: number;
   restaurantLatitude: number;
   restaurantLongitude: number;
   customerLatitude: number;
@@ -26,23 +27,30 @@ export class DeliveryPricingService {
     customer: Coordinates;
   }): Promise<DeliveryQuote> {
     const pricing = await this.settings.getDeliveryPricing();
-    const distanceKm = defaultDistanceCalculator.distanceKm(
+    const straightLineKm = defaultDistanceCalculator.distanceKm(
       params.restaurant,
       params.customer,
     );
-    const roadFactor = pricing.roadDistanceFactor ?? 1.35;
-    const billableDistanceKm = calculateBillableDistanceKm(distanceKm, roadFactor);
-    const deliveryFee = calculateCustomerDeliveryFee(distanceKm, pricing.pricePerKm, {
-      roadDistanceFactor: roadFactor,
-      minDeliveryFee: pricing.minDeliveryFee,
-      baseFee: pricing.baseFee,
-    });
+    const billableDistanceKm = calculateBillableDistanceKm(straightLineKm);
+
+    if (billableDistanceKm > pricing.maxDeliveryDistance) {
+      throw new BadRequestException(
+        `Delivery distance ${billableDistanceKm} km exceeds maximum ${pricing.maxDeliveryDistance} km`,
+      );
+    }
+
+    const deliveryFee = calculateCustomerDeliveryFee(
+      straightLineKm,
+      pricing.perKmFee,
+      pricing.baseDeliveryFee,
+    );
 
     return {
-      distanceKm,
+      distanceKm: billableDistanceKm,
       billableDistanceKm,
       deliveryFee,
-      pricePerKm: pricing.pricePerKm,
+      perKmFee: pricing.perKmFee,
+      baseDeliveryFee: pricing.baseDeliveryFee,
       restaurantLatitude: params.restaurant.latitude,
       restaurantLongitude: params.restaurant.longitude,
       customerLatitude: params.customer.latitude,

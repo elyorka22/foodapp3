@@ -63,6 +63,32 @@ export default function CheckoutPage() {
     }
   }, [router]);
 
+  useEffect(() => {
+    if (!restaurantId || deliveryLocation.lat == null || deliveryLocation.lng == null) {
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setDeliveryLoading(true);
+      setDeliveryError(null);
+      try {
+        const quote = await fetchDeliveryQuote({
+          restaurantId,
+          latitude: deliveryLocation.lat!,
+          longitude: deliveryLocation.lng!,
+        });
+        setDeliveryFee(quote.deliveryFee);
+        setBillableDistanceKm(quote.billableDistanceKm);
+      } catch (err) {
+        setDeliveryFee(null);
+        setBillableDistanceKm(null);
+        setDeliveryError(err instanceof Error ? err.message : uz.orderFailed);
+      } finally {
+        setDeliveryLoading(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [restaurantId, deliveryLocation.lat, deliveryLocation.lng]);
+
   const calculateDelivery = async (payload: {
     address: string;
     lat: number;

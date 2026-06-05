@@ -60,6 +60,9 @@ abstract final class AppStrings {
   static const deliveryPriceRequired =
       'Buyurtma berishdan oldin yetkazish narxini hisoblang (joylashuvni yuboring).';
   static String distanceKm(num km) => 'Masofa: $km km';
+  static const assignedCourier = 'Kuryer';
+  static const courierPhone = 'Kuryer telefoni';
+  static const orderStatusLabel = 'Holat';
   static const locationSent = 'Joylashuv qabul qilindi — narx hisoblanmoqda';
   static const detectingLocation = 'Aniqlanmoqda...';
   static const deliveryAddressRequired = 'Yetkazish manzilini kiriting.';

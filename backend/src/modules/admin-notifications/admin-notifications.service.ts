@@ -40,6 +40,37 @@ export class AdminNotificationsService {
     });
   }
 
+  notifyCourierDeclined(params: {
+    orderId: string;
+    orderNumber: string;
+    courierName?: string;
+    reason?: string;
+  }) {
+    return this.create({
+      type: AdminNotificationType.COURIER_DECLINED,
+      title: 'Courier declined order',
+      body: `${params.courierName ?? 'Courier'} declined order ${params.orderNumber}`,
+      metadata: {
+        orderId: params.orderId,
+        orderNumber: params.orderNumber,
+        reason: params.reason,
+      },
+    });
+  }
+
+  notifyOrderDelivered(order: {
+    id: string;
+    orderNumber: string;
+    businessName?: string | null;
+  }) {
+    return this.create({
+      type: AdminNotificationType.ORDER_DELIVERED,
+      title: 'Order delivered',
+      body: `Order ${order.orderNumber} from ${order.businessName ?? 'merchant'} was delivered`,
+      metadata: { orderId: order.id, orderNumber: order.orderNumber },
+    });
+  }
+
   notifyRestaurantSuspended(restaurant: { id: string; name: string }) {
     return this.create({
       type: AdminNotificationType.RESTAURANT_SUSPENDED,

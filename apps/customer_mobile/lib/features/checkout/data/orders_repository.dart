@@ -14,20 +14,20 @@ class DeliveryQuoteModel {
     required this.distanceKm,
     required this.billableDistanceKm,
     required this.deliveryFee,
-    required this.pricePerKm,
+    this.perKmFee,
   });
 
   final num distanceKm;
   final num billableDistanceKm;
   final num deliveryFee;
-  final num pricePerKm;
+  final num? perKmFee;
 
   factory DeliveryQuoteModel.fromJson(Map<String, dynamic> json) {
     return DeliveryQuoteModel(
       distanceKm: json['distanceKm'] as num,
       billableDistanceKm: (json['billableDistanceKm'] ?? json['distanceKm']) as num,
       deliveryFee: json['deliveryFee'] as num,
-      pricePerKm: json['pricePerKm'] as num,
+      perKmFee: (json['perKmFee'] ?? json['pricePerKm']) as num?,
     );
   }
 }

@@ -9,8 +9,11 @@ class OrderTrackModel {
     required this.total,
     this.subtotal,
     this.deliveryFee,
+    this.distanceKm,
     this.items = const [],
     this.restaurantName,
+    this.courierName,
+    this.courierPhone,
   });
 
   final String id;
@@ -20,14 +23,31 @@ class OrderTrackModel {
   final num total;
   final num? subtotal;
   final num? deliveryFee;
+  final num? distanceKm;
   final List<OrderTrackItemModel> items;
   final String? restaurantName;
+  final String? courierName;
+  final String? courierPhone;
 
   factory OrderTrackModel.fromJson(Map<String, dynamic> json) {
     final restaurant = json['restaurant'] ?? json['business'];
     String? restaurantName;
     if (restaurant is Map) {
       restaurantName = parseString(restaurant['name']);
+    }
+
+    String? courierName;
+    String? courierPhone;
+    final courier = json['courier'];
+    if (courier is Map) {
+      courierName = parseString(courier['name']) ??
+          (courier['user'] is Map
+              ? parseString((courier['user'] as Map)['fullName'])
+              : null);
+      courierPhone = parseString(courier['phone']) ??
+          (courier['user'] is Map
+              ? parseString((courier['user'] as Map)['phone'])
+              : null);
     }
 
     final rawItems = json['items'];
@@ -46,8 +66,11 @@ class OrderTrackModel {
       total: parseNum(json['total']),
       subtotal: json['subtotal'] != null ? parseNum(json['subtotal']) : null,
       deliveryFee: json['deliveryFee'] != null ? parseNum(json['deliveryFee']) : null,
+      distanceKm: json['distanceKm'] != null ? parseNum(json['distanceKm']) : null,
       items: items,
       restaurantName: restaurantName,
+      courierName: courierName,
+      courierPhone: courierPhone,
     );
   }
 }

@@ -16,6 +16,7 @@ import { CouriersService } from './couriers.service';
 import { CreateCourierDto } from './dto/create-courier.dto';
 import { UpdateCourierDto } from './dto/update-courier.dto';
 import { CourierStatusDto } from './dto/courier-status.dto';
+import { DeclineCourierOrderDto } from '../orders/dto/assign-courier.dto';
 import { AdminCouriersQueryDto } from './dto/admin-couriers-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -78,11 +79,30 @@ export class CouriersController {
 
   @Patch('me/location')
   @Roles(UserRole.COURIER)
+  updateMeLocation(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { latitude: number; longitude: number },
+  ) {
+    return this.couriers.updateLocation(user.sub, body.latitude, body.longitude);
+  }
+
+  @Patch('location')
+  @Roles(UserRole.COURIER)
   updateLocation(
     @CurrentUser() user: JwtPayload,
     @Body() body: { latitude: number; longitude: number },
   ) {
     return this.couriers.updateLocation(user.sub, body.latitude, body.longitude);
+  }
+
+  @Post('orders/:orderId/decline')
+  @Roles(UserRole.COURIER)
+  declineOrder(
+    @Param('orderId') orderId: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() body: DeclineCourierOrderDto,
+  ) {
+    return this.couriers.declineOrder(user.sub, orderId, body.reason);
   }
 
   @Get(':id/history')

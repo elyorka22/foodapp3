@@ -9,13 +9,16 @@ import {
 } from '../../common/utils/image-framing.util';
 
 export interface DeliveryPricing {
-  baseFee: number;
-  pricePerKm: number;
-  minDeliveryFee: number;
-  /** Multiplier on straight-line km to approximate road distance (default 1.35). */
-  roadDistanceFactor: number;
+  baseDeliveryFee: number;
+  perKmFee: number;
+  maxDeliveryDistance: number;
   courierPricePerKm: number;
   courierMinFee: number;
+  /** @deprecated legacy keys — normalized on read */
+  baseFee?: number;
+  pricePerKm?: number;
+  minDeliveryFee?: number;
+  roadDistanceFactor?: number;
 }
 
 export interface AdminSettings extends ImageFramingDefaults {
@@ -44,10 +47,9 @@ export interface PublicSettings {
 }
 
 const DEFAULT_PRICING: DeliveryPricing = {
-  baseFee: 0,
-  pricePerKm: 3000,
-  minDeliveryFee: 0,
-  roadDistanceFactor: 1.35,
+  baseDeliveryFee: 8000,
+  perKmFee: 1500,
+  maxDeliveryDistance: 10,
   courierPricePerKm: 1500,
   courierMinFee: 5000,
 };
@@ -78,7 +80,16 @@ export class SettingsService {
       where: { key: 'delivery_pricing' },
     });
     if (!setting?.value) return DEFAULT_PRICING;
-    return { ...DEFAULT_PRICING, ...(setting.value as object) } as DeliveryPricing;
+    const stored = setting.value as Partial<DeliveryPricing>;
+    return {
+      ...DEFAULT_PRICING,
+      ...stored,
+      baseDeliveryFee:
+        stored.baseDeliveryFee ?? stored.baseFee ?? DEFAULT_PRICING.baseDeliveryFee,
+      perKmFee: stored.perKmFee ?? stored.pricePerKm ?? DEFAULT_PRICING.perKmFee,
+      maxDeliveryDistance:
+        stored.maxDeliveryDistance ?? DEFAULT_PRICING.maxDeliveryDistance,
+    };
   }
 
   async setDeliveryPricing(data: DeliveryPricing) {
@@ -123,7 +134,7 @@ export class SettingsService {
     return {
       ...DEFAULT_ADMIN,
       ...stored,
-      default_delivery_fee: stored.default_delivery_fee ?? pricing.baseFee,
+      default_delivery_fee: stored.default_delivery_fee ?? pricing.baseDeliveryFee,
       commission_default: stored.commission_default ?? commission,
     };
   }
@@ -143,7 +154,10 @@ export class SettingsService {
 
     if (dto.default_delivery_fee !== undefined) {
       const pricing = await this.getDeliveryPricing();
-      await this.setDeliveryPricing({ ...pricing, baseFee: dto.default_delivery_fee });
+      await this.setDeliveryPricing({
+        ...pricing,
+        baseDeliveryFee: dto.default_delivery_fee,
+      });
     }
 
     if (dto.commission_default !== undefined) {

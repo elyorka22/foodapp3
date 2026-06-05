@@ -20,9 +20,9 @@ function AdminSettingsContent() {
   const { settings, save } = useAdminSettings();
   const { pricing, save: savePricing } = useDeliveryPricing();
   const [form, setForm] = useState<AdminSettings | null>(null);
-  const [pricePerKm, setPricePerKm] = useState('');
-  const [minDeliveryFee, setMinDeliveryFee] = useState('');
-  const [roadDistanceFactor, setRoadDistanceFactor] = useState('');
+  const [baseDeliveryFee, setBaseDeliveryFee] = useState('');
+  const [perKmFee, setPerKmFee] = useState('');
+  const [maxDeliveryDistance, setMaxDeliveryDistance] = useState('');
   const [minOrderAmount, setMinOrderAmount] = useState('');
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState('');
   const settingsHydrated = useRef(false);
@@ -38,9 +38,9 @@ function AdminSettingsContent() {
 
   useEffect(() => {
     if (!pricing.data || pricingHydrated.current) return;
-    setPricePerKm(String(pricing.data.pricePerKm));
-    setMinDeliveryFee(String(pricing.data.minDeliveryFee ?? 0));
-    setRoadDistanceFactor(String(pricing.data.roadDistanceFactor ?? 1.35));
+    setBaseDeliveryFee(String(pricing.data.baseDeliveryFee ?? 8000));
+    setPerKmFee(String(pricing.data.perKmFee ?? 1500));
+    setMaxDeliveryDistance(String(pricing.data.maxDeliveryDistance ?? 10));
     pricingHydrated.current = true;
   }, [pricing.data]);
 
@@ -56,18 +56,17 @@ function AdminSettingsContent() {
         save.mutateAsync(payload),
         savePricing.mutateAsync({
           ...(pricing.data ?? {}),
-          pricePerKm: parseNumberInput(pricePerKm, 3000),
-          minDeliveryFee: parseNumberInput(minDeliveryFee, 0),
-          roadDistanceFactor: parseNumberInput(roadDistanceFactor, 1.35),
-          baseFee: 0,
+          baseDeliveryFee: parseNumberInput(baseDeliveryFee, 8000),
+          perKmFee: parseNumberInput(perKmFee, 1500),
+          maxDeliveryDistance: parseNumberInput(maxDeliveryDistance, 10),
         }),
       ]);
       setForm(savedSettings);
       setMinOrderAmount(String(savedSettings.min_order_amount ?? ''));
       setFreeDeliveryThreshold(String(savedSettings.free_delivery_threshold ?? ''));
-      setPricePerKm(String(savedPricing.pricePerKm));
-      setMinDeliveryFee(String(savedPricing.minDeliveryFee ?? 0));
-      setRoadDistanceFactor(String(savedPricing.roadDistanceFactor ?? 1.35));
+      setBaseDeliveryFee(String(savedPricing.baseDeliveryFee));
+      setPerKmFee(String(savedPricing.perKmFee));
+      setMaxDeliveryDistance(String(savedPricing.maxDeliveryDistance));
       toast.success('Settings saved');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to save');
@@ -124,44 +123,47 @@ function AdminSettingsContent() {
         />
       </Section>
 
-      <Section title="Delivery">
-        <div className="sm:col-span-2">
+      <Section title="Delivery pricing">
+        <div>
           <label className="mb-1 block text-xs text-zinc-500">
-            Base price per kilometer (UZS) — billable_km × this value, rounded to 500
+            Base delivery fee (UZS)
           </label>
           <Input
             type="number"
             inputMode="numeric"
-            placeholder="3000"
-            value={pricePerKm}
-            onChange={(e) => setPricePerKm(e.target.value)}
+            placeholder="8000"
+            value={baseDeliveryFee}
+            onChange={(e) => setBaseDeliveryFee(e.target.value)}
           />
         </div>
         <div>
           <label className="mb-1 block text-xs text-zinc-500">
-            Road distance factor (1.35 = +35% on straight-line km)
+            Per km fee (UZS)
+          </label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            placeholder="1500"
+            value={perKmFee}
+            onChange={(e) => setPerKmFee(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs text-zinc-500">
+            Max delivery distance (km)
           </label>
           <Input
             type="number"
             inputMode="decimal"
-            step="0.01"
-            placeholder="1.35"
-            value={roadDistanceFactor}
-            onChange={(e) => setRoadDistanceFactor(e.target.value)}
+            step="0.1"
+            placeholder="10"
+            value={maxDeliveryDistance}
+            onChange={(e) => setMaxDeliveryDistance(e.target.value)}
           />
         </div>
-        <div>
-          <label className="mb-1 block text-xs text-zinc-500">
-            Minimum delivery fee (UZS)
-          </label>
-          <Input
-            type="number"
-            inputMode="numeric"
-            placeholder="0"
-            value={minDeliveryFee}
-            onChange={(e) => setMinDeliveryFee(e.target.value)}
-          />
-        </div>
+        <p className="sm:col-span-2 text-xs text-zinc-500">
+          Formula: distance = Haversine × 1.3; fee = base + distance × perKm; rounded to nearest 500 UZS.
+        </p>
         <Input
           type="number"
           inputMode="numeric"

@@ -54,6 +54,35 @@ export function useAdminOrders(query: AdminOrdersQuery) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
   });
 
-  return { list, getOne, getHistory, updateStatus };
+  const assignCourier = useMutation({
+    mutationFn: ({ id, courierId, note }: { id: string; courierId: string; note?: string }) =>
+      api(`/orders/${id}/assign-courier`, {
+        method: 'POST',
+        token: token ?? undefined,
+        body: JSON.stringify({ courierId, note }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
+  });
+
+  const reassignCourier = useMutation({
+    mutationFn: ({ id, courierId, note }: { id: string; courierId: string; note?: string }) =>
+      api(`/orders/${id}/reassign-courier`, {
+        method: 'PATCH',
+        token: token ?? undefined,
+        body: JSON.stringify({ courierId, note }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
+  });
+
+  const removeCourier = useMutation({
+    mutationFn: (id: string) =>
+      api(`/orders/${id}/remove-courier`, {
+        method: 'PATCH',
+        token: token ?? undefined,
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
+  });
+
+  return { list, getOne, getHistory, updateStatus, assignCourier, reassignCourier, removeCourier };
 }
 

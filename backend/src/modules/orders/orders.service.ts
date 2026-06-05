@@ -35,7 +35,8 @@ const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
   ACCEPTED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
   PREPARING: [OrderStatus.COURIER_ASSIGNED, OrderStatus.CANCELLED],
-  COURIER_ASSIGNED: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
+  COURIER_ASSIGNED: [OrderStatus.ARRIVED_AT_RESTAURANT, OrderStatus.CANCELLED],
+  ARRIVED_AT_RESTAURANT: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
   PICKED_UP: [OrderStatus.DELIVERING],
   DELIVERING: [OrderStatus.DELIVERED],
   DELIVERED: [],
@@ -358,6 +359,7 @@ export class OrdersService {
           OrderStatus.ACCEPTED,
           OrderStatus.PREPARING,
           OrderStatus.COURIER_ASSIGNED,
+          OrderStatus.ARRIVED_AT_RESTAURANT,
           OrderStatus.PICKED_UP,
           OrderStatus.DELIVERING,
         ],
@@ -520,6 +522,15 @@ export class OrdersService {
         orderNumber: order.orderNumber,
       });
     }
+
+    if (status === OrderStatus.DELIVERED) {
+      const notification = await this.adminNotifications.notifyOrderDelivered({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        businessName: order.business?.name,
+      });
+      this.gateway.emitAdminEvent('notification', notification);
+    }
   }
 
   async getStatusHistory(orderId: string, user: JwtPayload) {
@@ -533,20 +544,135 @@ export class OrdersService {
     });
   }
 
-  async assignCourier(orderId: string, courierId: string, assignedBy?: string, note?: string) {
+  async assignCourierByManager(
+    orderId: string,
+    courierId: string,
+    assignedBy?: string,
+    note?: string,
+  ) {
+    return this.assignCourier(orderId, courierId, assignedBy, note, {
+      requireOnline: false,
+      allowReassign: false,
+    });
+  }
+
+  async reassignCourier(
+    orderId: string,
+    courierId: string,
+    assignedBy?: string,
+    note?: string,
+  ) {
+    return this.assignCourier(orderId, courierId, assignedBy, note, {
+      requireOnline: false,
+      allowReassign: true,
+    });
+  }
+
+  async removeCourier(orderId: string, removedBy?: string, note?: string) {
     const order = await this.prisma.order.findFirst({
+      where: { id: orderId, deletedAt: null },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    if (!order.courierId) {
+      throw new BadRequestException('Order has no assigned courier');
+    }
+
+    const removableStatuses: OrderStatus[] = [
+      OrderStatus.PREPARING,
+      OrderStatus.COURIER_ASSIGNED,
+    ];
+    if (!removableStatuses.includes(order.status)) {
+      throw new BadRequestException(
+        `Cannot remove courier while order is ${order.status}`,
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.courierAssignment.deleteMany({ where: { orderId } }),
+      this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          courierId: null,
+          status: OrderStatus.PREPARING,
+        },
+      }),
+    ]);
+
+    await this.recordStatusChange(
+      orderId,
+      OrderStatus.PREPARING,
+      removedBy,
+      note ?? 'Courier removed',
+    );
+
+    return this.emitOrderPayload(orderId);
+  }
+
+  private async emitOrderPayload(orderId: string) {
+    const updated = await this.prisma.order.findUnique({
       where: { id: orderId },
+      include: {
+        items: true,
+        guestOrder: true,
+        business: { select: { name: true } },
+        courier: {
+          include: { user: { select: { id: true, fullName: true, phone: true } } },
+        },
+        assignment: true,
+      },
+    });
+    if (!updated) throw new NotFoundException('Order not found');
+    const payload = this.serializeOrder(updated);
+    this.gateway.emitOrderUpdate(updated.trackingToken, payload);
+    this.gateway.emitBusinessOrder(updated.businessId, payload);
+    this.gateway.emitAdminOrderUpdate(payload);
+    return payload;
+  }
+
+  async assignCourier(
+    orderId: string,
+    courierId: string,
+    assignedBy?: string,
+    note?: string,
+    options: { requireOnline?: boolean; allowReassign?: boolean } = {},
+  ) {
+    const { requireOnline = false, allowReassign = false } = options;
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, deletedAt: null },
       include: { branch: true },
     });
     if (!order) throw new NotFoundException('Order not found');
-    if (order.courierId && order.courierId !== courierId) {
+
+    if (
+      order.courierId &&
+      order.courierId !== courierId &&
+      !allowReassign
+    ) {
       throw new BadRequestException('Order already assigned to another courier');
     }
 
+    const allowedStatuses: OrderStatus[] = [
+      OrderStatus.PREPARING,
+      OrderStatus.COURIER_ASSIGNED,
+    ];
+    if (!allowedStatuses.includes(order.status)) {
+      throw new BadRequestException(
+        `Cannot assign courier while order is ${order.status}`,
+      );
+    }
+
     const courier = await this.prisma.courier.findFirst({
-      where: { id: courierId, deletedAt: null, isOnline: true },
+      where: {
+        id: courierId,
+        deletedAt: null,
+        ...(requireOnline ? { isOnline: true } : {}),
+      },
     });
-    if (!courier) throw new BadRequestException('Courier not available');
+    if (!courier) {
+      throw new BadRequestException(
+        requireOnline ? 'Courier not available (must be online)' : 'Courier not found',
+      );
+    }
 
     const deliveryConfig = await this.settings.getDeliveryPricing();
     const dist = Number(order.distanceKm ?? 0);
@@ -555,6 +681,9 @@ export class OrdersService {
       deliveryConfig.courierPricePerKm,
       deliveryConfig.courierMinFee,
     );
+
+    const statusChanged = order.status !== OrderStatus.COURIER_ASSIGNED;
+    const acceptedAt = requireOnline ? new Date() : null;
 
     await this.prisma.$transaction([
       this.prisma.courierAssignment.upsert({
@@ -565,8 +694,14 @@ export class OrdersService {
           assignedBy,
           courierFee,
           distanceKm: dist,
+          acceptedAt,
         },
-        update: { courierId, assignedBy, courierFee },
+        update: {
+          courierId,
+          assignedBy,
+          courierFee,
+          acceptedAt: allowReassign ? null : acceptedAt,
+        },
       }),
       this.prisma.order.update({
         where: { id: orderId },
@@ -577,12 +712,14 @@ export class OrdersService {
       }),
     ]);
 
-    await this.recordStatusChange(
-      orderId,
-      OrderStatus.COURIER_ASSIGNED,
-      assignedBy,
-      note ?? 'Courier assigned',
-    );
+    if (statusChanged || allowReassign) {
+      await this.recordStatusChange(
+        orderId,
+        OrderStatus.COURIER_ASSIGNED,
+        assignedBy,
+        note ?? (allowReassign ? 'Courier reassigned' : 'Courier assigned'),
+      );
+    }
 
     this.gateway.emitCourierAssignment(courierId, { orderId, courierFee });
 
@@ -598,7 +735,9 @@ export class OrdersService {
     const payload = this.serializeOrder(updated!);
     this.gateway.emitOrderUpdate(updated!.trackingToken, payload);
     this.gateway.emitAdminOrderUpdate(payload);
-    await this.emitOrderStatusNotifications(updated!, OrderStatus.COURIER_ASSIGNED);
+    if (statusChanged || allowReassign) {
+      await this.emitOrderStatusNotifications(updated!, OrderStatus.COURIER_ASSIGNED);
+    }
     return payload;
   }
 
@@ -609,13 +748,25 @@ export class OrdersService {
     const order = await this.prisma.order.findFirst({
       where: {
         id: orderId,
+        deletedAt: null,
         status: { in: [OrderStatus.PREPARING, OrderStatus.COURIER_ASSIGNED] },
         OR: [{ courierId: null }, { courierId: courier.id }],
       },
     });
     if (!order) throw new NotFoundException('Order not available');
 
-    return this.assignCourier(orderId, courier.id, userId);
+    if (order.courierId === courier.id) {
+      await this.prisma.courierAssignment.update({
+        where: { orderId },
+        data: { acceptedAt: new Date() },
+      });
+      return this.emitOrderPayload(orderId);
+    }
+
+    return this.assignCourier(orderId, courier.id, userId, 'Courier accepted', {
+      requireOnline: true,
+      allowReassign: false,
+    });
   }
 
   private async assertCanUpdateOrder(
@@ -648,6 +799,25 @@ export class OrdersService {
     return this.prisma.orderStatusHistory.create({
       data: { orderId, status, changedByUserId, note },
     });
+  }
+
+  private serializeCourier(courier: unknown) {
+    if (!courier || typeof courier !== 'object') return courier ?? null;
+    const c = courier as Record<string, unknown>;
+    const user = c.user as Record<string, unknown> | undefined;
+    return {
+      id: c.id,
+      userId: c.userId,
+      name: user?.fullName ?? null,
+      phone: user?.phone ?? null,
+      user: user
+        ? {
+            id: user.id,
+            fullName: user.fullName,
+            phone: user.phone,
+          }
+        : null,
+    };
   }
 
   private serializeGuestOrder(guestOrder: Record<string, unknown> | null | undefined) {
@@ -704,7 +874,7 @@ export class OrdersService {
         : order.items,
       guestOrder: this.serializeGuestOrder(guestOrder),
       restaurant: order.business,
-      courier: order.courier,
+      courier: this.serializeCourier(order.courier),
       assignment: order.assignment,
       address: this.serializeAddress(address),
       payment: order.payment,

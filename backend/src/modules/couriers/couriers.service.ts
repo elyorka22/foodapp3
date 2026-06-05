@@ -10,6 +10,7 @@ import { normalizePhone } from '../../common/utils/phone.util';
 import { AuthService } from '../auth/auth.service';
 import { AuditService } from '../audit/audit.service';
 import { AdminNotificationsService } from '../admin-notifications/admin-notifications.service';
+import { NotificationService } from '../notifications/notifications.service';
 import { OrdersGateway } from '../orders/orders.gateway';
 import { AdminCouriersQueryDto } from './dto/admin-couriers-query.dto';
 import { CreateCourierDto } from './dto/create-courier.dto';
@@ -20,6 +21,7 @@ const ACTIVE_STATUSES: OrderStatus[] = [
   OrderStatus.ACCEPTED,
   OrderStatus.PREPARING,
   OrderStatus.COURIER_ASSIGNED,
+  OrderStatus.ARRIVED_AT_RESTAURANT,
   OrderStatus.PICKED_UP,
   OrderStatus.DELIVERING,
 ];
@@ -31,6 +33,7 @@ export class CouriersService {
     private auth: AuthService,
     private audit: AuditService,
     private adminNotifications: AdminNotificationsService,
+    private notifications: NotificationService,
     private gateway: OrdersGateway,
   ) {}
 
@@ -365,10 +368,112 @@ export class CouriersService {
   }
 
   async updateLocation(userId: string, lat: number, lng: number) {
-    return this.prisma.courier.updateMany({
+    const courier = await this.prisma.courier.findFirst({ where: { userId } });
+    if (!courier) throw new NotFoundException('Courier not found');
+
+    await this.prisma.$transaction([
+      this.prisma.courier.update({
+        where: { id: courier.id },
+        data: { currentLat: lat, currentLng: lng },
+      }),
+      this.prisma.courierLocation.create({
+        data: {
+          courierId: courier.id,
+          latitude: lat,
+          longitude: lng,
+        },
+      }),
+    ]);
+
+    return { ok: true, latitude: lat, longitude: lng, updatedAt: new Date() };
+  }
+
+  async declineOrder(userId: string, orderId: string, reason?: string) {
+    const courier = await this.prisma.courier.findFirst({
       where: { userId },
-      data: { currentLat: lat, currentLng: lng },
+      include: { user: { select: { fullName: true } } },
     });
+    if (!courier) throw new NotFoundException('Courier not found');
+
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id: orderId,
+        deletedAt: null,
+        courierId: courier.id,
+        status: OrderStatus.COURIER_ASSIGNED,
+      },
+      include: { business: { select: { name: true } } },
+    });
+    if (!order) {
+      throw new NotFoundException('Assigned order not found or cannot be declined');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.courierAssignment.deleteMany({ where: { orderId } }),
+      this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          courierId: null,
+          status: OrderStatus.PREPARING,
+        },
+      }),
+      this.prisma.orderStatusHistory.create({
+        data: {
+          orderId,
+          status: OrderStatus.PREPARING,
+          changedByUserId: userId,
+          note: reason ? `Courier declined: ${reason}` : 'Courier declined order',
+        },
+      }),
+    ]);
+
+    const [notification] = await Promise.all([
+      this.adminNotifications.notifyCourierDeclined({
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        courierName: courier.user?.fullName ?? undefined,
+        reason,
+      }),
+      this.notifications.notifyManagersCourierDeclined({
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        courierName: courier.user?.fullName ?? undefined,
+        reason,
+      }),
+    ]);
+    this.gateway.emitAdminEvent('notification', notification);
+
+    const refreshed = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: true,
+        guestOrder: true,
+        business: { select: { name: true } },
+        courier: {
+          include: { user: { select: { fullName: true, phone: true } } },
+        },
+      },
+    });
+
+    const payload = {
+      id: refreshed!.id,
+      orderNumber: refreshed!.orderNumber,
+      trackingToken: refreshed!.trackingToken,
+      status: refreshed!.status,
+      subtotal: Number(refreshed!.subtotal),
+      deliveryFee: Number(refreshed!.deliveryFee),
+      total: Number(refreshed!.total),
+      distanceKm: refreshed!.distanceKm ? Number(refreshed!.distanceKm) : null,
+      restaurant: refreshed!.business,
+      courier: null,
+      items: refreshed!.items,
+    };
+
+    this.gateway.emitOrderUpdate(refreshed!.trackingToken, payload);
+    this.gateway.emitBusinessOrder(refreshed!.businessId, payload);
+    this.gateway.emitAdminOrderUpdate(payload);
+
+    return { ok: true, orderId, status: OrderStatus.PREPARING };
   }
 
   async getAvailableOrders() {

@@ -37,12 +37,19 @@ export function AdminOrdersView({
   const [page, setPage] = useState(1);
   const [openId, setOpenId] = useState<string | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
-  const [courierId, setCourierId] = useState('');
   const [courierList, setCourierList] = useState<any[]>([]);
 
   useAdminSocket();
 
-  const { list, getOne, getHistory, updateStatus: mutateStatus } = useAdminOrders({
+  const {
+    list,
+    getOne,
+    getHistory,
+    updateStatus: mutateStatus,
+    assignCourier: assignCourierMutation,
+    reassignCourier: reassignCourierMutation,
+    removeCourier: removeCourierMutation,
+  } = useAdminOrders({
     page,
     limit: 20,
     search: search || undefined,
@@ -74,11 +81,6 @@ export function AdminOrdersView({
 
   const changeStatus = async (id: string, next: string) => {
     await mutateStatus.mutateAsync({ id, status: next });
-  };
-
-  const assignCourier = async () => {
-    if (!openId || !courierId) return;
-    await mutateStatus.mutateAsync({ id: openId, status: 'COURIER_ASSIGNED', courierId });
   };
 
   const cancelOrder = async () => {
@@ -133,6 +135,7 @@ export function AdminOrdersView({
                 'ACCEPTED',
                 'PREPARING',
                 'COURIER_ASSIGNED',
+                'ARRIVED_AT_RESTAURANT',
                 'PICKED_UP',
                 'DELIVERING',
                 'DELIVERED',
@@ -251,6 +254,21 @@ export function AdminOrdersView({
         onClose={() => setOpenId(null)}
         load={getOne}
         loadHistory={getHistory}
+        couriers={courierList}
+        courierActionPending={
+          assignCourierMutation.isPending ||
+          reassignCourierMutation.isPending ||
+          removeCourierMutation.isPending
+        }
+        onAssignCourier={async (id, courierId) => {
+          await assignCourierMutation.mutateAsync({ id, courierId });
+        }}
+        onReassignCourier={async (id, courierId) => {
+          await reassignCourierMutation.mutateAsync({ id, courierId });
+        }}
+        onRemoveCourier={async (id) => {
+          await removeCourierMutation.mutateAsync(id);
+        }}
         onChangeStatus={async (id, s) => changeStatus(id, s)}
       />
 
@@ -264,28 +282,6 @@ export function AdminOrdersView({
         onConfirm={cancelOrder}
       />
 
-      {openId && (
-        <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-          <p className="text-sm font-semibold">{t.orders.assignCourier}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <select
-              className="rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
-              value={courierId}
-              onChange={(e) => setCourierId(e.target.value)}
-            >
-              <option value="">Kuryer tanlang</option>
-              {courierList.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.user?.fullName} {c.isOnline ? '(onlayn)' : ''}
-                </option>
-              ))}
-            </select>
-            <Button type="button" onClick={assignCourier} disabled={!courierId}>
-              Biriktirish
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

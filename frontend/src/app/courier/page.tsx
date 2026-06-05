@@ -164,6 +164,14 @@ export default function CourierPage() {
                   Accept
                 </Button>
                 {o.status === 'COURIER_ASSIGNED' && (
+                  <Button
+                    size="sm"
+                    onClick={() => updateStatus.mutate({ id: o.id, status: 'ARRIVED_AT_RESTAURANT' })}
+                  >
+                    Arrived at restaurant
+                  </Button>
+                )}
+                {o.status === 'ARRIVED_AT_RESTAURANT' && (
                   <Button size="sm" onClick={() => updateStatus.mutate({ id: o.id, status: 'PICKED_UP' })}>
                     Picked up
                   </Button>

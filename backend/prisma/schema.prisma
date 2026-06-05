@@ -19,6 +19,7 @@ enum OrderStatus {
   ACCEPTED
   PREPARING
   COURIER_ASSIGNED
+  ARRIVED_AT_RESTAURANT
   PICKED_UP
   DELIVERING
   DELIVERED
@@ -100,6 +101,8 @@ enum DeliveryProviderType {
 enum AdminNotificationType {
   NEW_ORDER
   COURIER_OFFLINE
+  COURIER_DECLINED
+  ORDER_DELIVERED
   RESTAURANT_SUSPENDED
   CUSTOMER_BLOCKED
 }
@@ -273,9 +276,23 @@ model Courier {
   user        User                 @relation(fields: [userId], references: [id])
   assignments CourierAssignment[]
   orders      Order[]
+  locations   CourierLocation[]
 
   @@index([isOnline, deletedAt])
   @@map("couriers")
+}
+
+model CourierLocation {
+  id        String   @id @default(uuid()) @db.Uuid
+  courierId String   @map("courier_id") @db.Uuid
+  latitude  Decimal  @db.Decimal(10, 7)
+  longitude Decimal  @db.Decimal(10, 7)
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  courier Courier @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([courierId])
+  @@map("courier_locations")
 }
 
 /// Per-business product menu category (Fruits, Drinks, etc.). NOT a business vertical type.
