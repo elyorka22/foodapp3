@@ -85,6 +85,7 @@ class CartScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: FoodAppButton(
@@ -95,7 +96,6 @@ class CartScreen extends ConsumerWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                flex: 2,
                 child: FoodAppButton(
                   label: AppStrings.checkout,
                   onPressed: () => context.push(AppRoutes.checkout),

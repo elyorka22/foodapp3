@@ -251,6 +251,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: CustomerTextField(
@@ -260,13 +261,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              FoodAppButton(
-                label: _validatingPromo ? '...' : AppStrings.apply,
-                variant: FoodAppButtonVariant.secondary,
-                expanded: false,
-                onPressed: _validatingPromo || businessId == null
-                    ? null
-                    : () => _applyPromo(businessId, total, user?.id),
+              SizedBox(
+                width: 108,
+                child: FoodAppButton(
+                  label: _validatingPromo ? '...' : AppStrings.apply,
+                  variant: FoodAppButtonVariant.secondary,
+                  expanded: true,
+                  onPressed: _validatingPromo || businessId == null
+                      ? null
+                      : () => _applyPromo(businessId, total, user?.id),
+                ),
               ),
             ],
           ),

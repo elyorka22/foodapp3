@@ -24,33 +24,46 @@ class FoodAppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onPressed != null && !isLoading;
+    final labelStyle = AppTypography.button.copyWith(color: _foreground);
+
     final child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             height: 22,
             width: 22,
-            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: _foreground,
+            ),
           )
-        : Text(label, style: AppTypography.button);
+        : Text(
+            label,
+            style: labelStyle,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          );
 
-    final button = Material(
-      color: _background,
-      borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-      elevation: 0,
-      child: InkWell(
-        onTap: isLoading ? null : onPressed,
+    final button = Opacity(
+      opacity: enabled ? 1 : 0.5,
+      child: Material(
+        color: _background,
         borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-            border: variant == FoodAppButtonVariant.secondary
-                ? Border.all(color: AppColors.border)
-                : null,
-            boxShadow: variant == FoodAppButtonVariant.primary ? AppShadows.button : null,
-          ),
-          alignment: Alignment.center,
-          child: DefaultTextStyle(
-            style: AppTypography.button.copyWith(color: _foreground),
+        elevation: 0,
+        child: InkWell(
+          onTap: enabled ? onPressed : null,
+          borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 48),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+              border: variant == FoodAppButtonVariant.secondary
+                  ? Border.all(color: AppColors.border)
+                  : null,
+              boxShadow: variant == FoodAppButtonVariant.primary ? AppShadows.button : null,
+            ),
+            alignment: Alignment.center,
             child: child,
           ),
         ),

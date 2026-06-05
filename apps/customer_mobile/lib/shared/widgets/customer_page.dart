@@ -18,15 +18,20 @@ class CustomerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final bottomSafe = MediaQuery.paddingOf(context).bottom;
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             AppSpacing.lg,
             AppSpacing.md,
             AppSpacing.lg,
-            AppSpacing.xxl,
+            AppSpacing.xxxl + bottomSafe + bottomInset,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
