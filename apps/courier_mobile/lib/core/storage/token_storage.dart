@@ -25,9 +25,9 @@ class TokenStorage {
     }
   }
 
-  Future<String?> getUserJson() => _prefs.getString(_userJsonKey);
+  Future<String?> getUserJson() async => _prefs.getString(_userJsonKey);
 
-  Future<String?> getCourierJson() => _prefs.getString(_courierJsonKey);
+  Future<String?> getCourierJson() async => _prefs.getString(_courierJsonKey);
 
   Future<void> clear() async {
     await _secure.delete(key: _tokenKey);

@@ -48,7 +48,7 @@ jobs:
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('apps/courier_mobile/pubspec.yaml') }}
 
       - name: Create Android platform project
-        run: flutter create . --org com.foodapp --project-name courier_mobile --platforms=android
+        run: flutter create . --org com.foodapp --project-name courier_mobile --platforms=android --no-overwrite
 
       - name: Install dependencies
         run: flutter pub get

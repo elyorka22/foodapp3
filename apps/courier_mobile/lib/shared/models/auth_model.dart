@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class AuthUserModel {
   const AuthUserModel({
     required this.id,

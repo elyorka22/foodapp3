@@ -110,17 +110,31 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
             customerLng: order.customerLng,
           ),
           const SizedBox(height: AppSpacing.lg),
-          FoodAppButton(
-            label: _actionLabel,
-            isLoading: _acting,
-            onPressed: _acting ? null : _onAction,
-          ),
+          if (_needsAcceptance) ...[
+            FoodAppButton(
+              label: AppStrings.accept,
+              isLoading: _acting,
+              onPressed: _acting ? null : _acceptAssignment,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            FoodAppButton(
+              label: AppStrings.decline,
+              variant: FoodAppButtonVariant.secondary,
+              onPressed: _acting ? null : _declineAssignment,
+            ),
+          ] else
+            FoodAppButton(
+              label: _actionLabel,
+              isLoading: _acting,
+              onPressed: _acting ? null : _onAction,
+            ),
         ],
       ),
     );
   }
 
   String _statusLabel(String status) {
+    if (_needsAcceptance) return 'Yangi buyurtma biriktirildi';
     switch (status) {
       case 'COURIER_ASSIGNED':
         return 'Restoranga yo\'l';

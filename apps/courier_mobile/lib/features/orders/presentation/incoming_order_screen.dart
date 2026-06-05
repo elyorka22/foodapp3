@@ -6,7 +6,6 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_order_model.dart';
 import '../../../shared/widgets/food_app_button.dart';

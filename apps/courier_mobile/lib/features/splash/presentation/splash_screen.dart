@@ -23,13 +23,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.delivery_dining, size: 56, color: AppColors.primary),
-            SizedBox(height: 16),
+            const Icon(Icons.delivery_dining, size: 56, color: AppColors.primary),
+            const SizedBox(height: 16),
             Text(AppStrings.appName, style: AppTypography.title),
           ],
         ),
