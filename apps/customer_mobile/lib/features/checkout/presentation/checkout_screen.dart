@@ -492,7 +492,6 @@ class _CheckoutTotals extends StatelessWidget {
     required this.deliveryFee,
     required this.deliveryLoading,
     required this.deliveryError,
-    this.showDeliveryHint = false,
   });
 
   final num subtotal;
@@ -500,7 +499,6 @@ class _CheckoutTotals extends StatelessWidget {
   final num? deliveryFee;
   final bool deliveryLoading;
   final String? deliveryError;
-  final bool showDeliveryHint;
 
   @override
   Widget build(BuildContext context) {
@@ -547,13 +545,6 @@ class _CheckoutTotals extends StatelessWidget {
         if (deliveryError != null) ...[
           const SizedBox(height: 4),
           Text(deliveryError!, style: AppTypography.bodySmall.copyWith(color: AppColors.danger)),
-        ],
-        if (showDeliveryHint && deliveryFee == null && !deliveryLoading) ...[
-          const SizedBox(height: 4),
-          Text(
-            AppStrings.deliveryPriceRequired,
-            style: AppTypography.bodySmall.copyWith(color: const Color(0xFFB45309)),
-          ),
         ],
         if (total != null) ...[
           const SizedBox(height: AppSpacing.sm),
