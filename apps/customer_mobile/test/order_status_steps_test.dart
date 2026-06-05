@@ -7,8 +7,10 @@ void main() {
     expect(OrderStatusSteps.activeIndex('ACCEPTED'), 1);
     expect(OrderStatusSteps.activeIndex('PREPARING'), 2);
     expect(OrderStatusSteps.activeIndex('COURIER_ASSIGNED'), 3);
-    expect(OrderStatusSteps.activeIndex('DELIVERING'), 4);
-    expect(OrderStatusSteps.activeIndex('DELIVERED'), 5);
+    expect(OrderStatusSteps.activeIndex('ARRIVED_AT_RESTAURANT'), 4);
+    expect(OrderStatusSteps.activeIndex('PICKED_UP'), 5);
+    expect(OrderStatusSteps.activeIndex('DELIVERING'), 6);
+    expect(OrderStatusSteps.activeIndex('DELIVERED'), 7);
     expect(OrderStatusSteps.activeIndex('CANCELLED'), -1);
   });
 }
