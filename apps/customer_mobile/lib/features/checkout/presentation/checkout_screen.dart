@@ -80,6 +80,51 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     await _refreshDeliveryQuote(businessId);
   }
 
+  Future<void> _refreshDeliveryQuote(String? businessId) async {
+    if (businessId == null || _lat == null || _lng == null) {
+      setState(() {
+        _deliveryFee = null;
+        _deliveryError = null;
+        _deliveryLoading = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _deliveryLoading = true;
+      _deliveryError = null;
+    });
+
+    try {
+      final quote = await ref.read(ordersRepositoryProvider).fetchDeliveryQuote(
+            restaurantId: businessId,
+            latitude: _lat!,
+            longitude: _lng!,
+          );
+      if (!mounted) return;
+      setState(() {
+        _deliveryFee = quote.deliveryFee;
+        _deliveryLoading = false;
+      });
+    } on DioException catch (e) {
+      final err = e.error;
+      final msg = err is ApiException ? err.message : e.message;
+      if (!mounted) return;
+      setState(() {
+        _deliveryFee = null;
+        _deliveryError = msg ?? AppStrings.orderFailed;
+        _deliveryLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _deliveryFee = null;
+        _deliveryError = AppStrings.orderFailed;
+        _deliveryLoading = false;
+      });
+    }
+  }
+
   Future<void> _applyPromo(String businessId, num subtotal, String? customerId) async {
     final code = _promoCode.text.trim();
     if (code.isEmpty) return;
