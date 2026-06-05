@@ -49,9 +49,12 @@ abstract final class AppStrings {
   static const orderTotal = 'Jami';
   static const locationRequiredShort = 'Joylashuv kerak';
   static const sendLocation = 'Joylashuvni yuborish';
+  static const deliveryAddressOptional =
+      'Manzil (ixtiyoriy — yetkazishni aniqlashtirish uchun)';
   static const calculateDeliveryPrice = 'Yetkazish narxini hisoblash';
+  static const recalculateDeliveryPrice = 'Yetkazish narxini qayta hisoblash';
   static const deliveryPriceHint =
-      'Yetkazish narxini bilish uchun manzilni kiriting va quyidagi tugmani bosing.';
+      'Yetkazish narxini bilish uchun tugmani bosing. Manzil ixtiyoriy.';
   static const deliveryCalculating = 'Yetkazish narxi hisoblanmoqda...';
   static const deliveryPriceCalculated = 'Yetkazish narxi hisoblandi';
   static const deliveryPriceRequired =

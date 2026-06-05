@@ -16,7 +16,6 @@ import {
 } from '@/lib/customer';
 import {
   DeliveryLocation,
-  validateDeliveryLocation,
   type DeliveryLocationValue,
 } from '@/components/checkout/delivery-location';
 import { uz } from '@/lib/uz';
@@ -57,9 +56,12 @@ export default function CompleteProfilePage() {
       return;
     }
 
-    const locationError = deliveryLocation.address.trim()
-      ? validateDeliveryLocation(deliveryLocation)
-      : null;
+    const locationError =
+      deliveryLocation.address.trim() && deliveryLocation.lat != null
+        ? null
+        : deliveryLocation.address.trim() && deliveryLocation.lat == null
+          ? uz.locationRequired
+          : null;
     if (locationError) {
       setError(locationError);
       return;

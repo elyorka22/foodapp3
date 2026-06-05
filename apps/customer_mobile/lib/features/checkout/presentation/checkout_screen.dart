@@ -54,38 +54,44 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
-  bool get _locationSent => _lat != null && _lng != null;
+  bool get _deliveryQuoted =>
+      _deliveryFee != null && !_deliveryLoading && _deliveryError == null;
+
+  bool get _calculateBusy => _sendingLocation || _deliveryLoading;
 
   bool get _canPlaceOrder =>
       !_loading &&
-      !_deliveryLoading &&
-      _deliveryFee != null &&
-      _deliveryError == null &&
-      _phone.text.trim().isNotEmpty &&
-      _address.text.trim().isNotEmpty &&
-      _locationSent;
+      !_calculateBusy &&
+      _deliveryQuoted &&
+      _phone.text.trim().isNotEmpty;
 
-  Future<void> _sendLocation() async {
+  Future<void> _calculateDelivery() async {
     setState(() {
       _sendingLocation = true;
       _error = null;
+      _deliveryError = null;
+      _deliveryFee = null;
+      _billableDistanceKm = null;
     });
     final result = await ref.read(locationServiceProvider).resolveForCheckout(
           forceRefresh: true,
         );
     if (!mounted) return;
     final businessId = ref.read(cartProvider.notifier).businessId;
-    setState(() {
-      _sendingLocation = false;
-      final loc = result.location;
-      if (loc != null && loc.isValid) {
-        _lat = loc.latitude;
-        _lng = loc.longitude;
-      } else {
+    final loc = result.location;
+    if (loc == null || !loc.isValid) {
+      setState(() {
+        _sendingLocation = false;
         _lat = null;
         _lng = null;
         _error = AppStrings.locationSendFailed;
-      }
+      });
+      return;
+    }
+    setState(() {
+      _sendingLocation = false;
+      _lat = loc.latitude;
+      _lng = loc.longitude;
     });
     await _refreshDeliveryQuote(businessId);
   }
@@ -178,11 +184,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final businessId = ref.read(cartProvider.notifier).businessId;
     if (businessId == null) return;
 
-    final locationError = validateDeliveryLocation(
-      address: _address.text,
-      lat: _lat,
-      lng: _lng,
-    );
+    final locationError = validateDeliveryLocation(lat: _lat, lng: _lng);
     if (locationError != null) {
       setState(() => _error = locationError);
       return;
@@ -198,11 +200,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     });
 
     try {
+      final addressText = _address.text.trim();
+      final deliveryAddress = addressText.isNotEmpty
+          ? addressText
+          : 'GPS: ${_lat!}, ${_lng!}';
       final res = await ref.read(ordersRepositoryProvider).createGuestOrder(
             CreateGuestOrderModel(
               restaurantId: businessId,
               phone: _phone.text.trim(),
-              deliveryAddress: _address.text.trim(),
+              deliveryAddress: deliveryAddress,
               latitude: _lat!,
               longitude: _lng!,
               customerId: customerId,
@@ -337,38 +343,37 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             placeholder: AppStrings.phonePlaceholder,
             keyboardType: TextInputType.phone,
           ),
-          if (!_locationSent) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              AppStrings.deliveryPriceHint,
-              style: AppTypography.bodySmall.copyWith(color: const Color(0xFFB45309)),
-            ),
-          ],
           const SizedBox(height: AppSpacing.lg),
           DeliveryLocationField(
             addressController: _address,
-            locationSent: _locationSent,
-            sending: _sendingLocation,
-            onSendLocation: _sendLocation,
+            quoted: _deliveryQuoted,
+            busy: _calculateBusy,
+            onCalculate: _calculateDelivery,
           ),
-          if (_locationSent) ...[
+          if (_deliveryError != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              _deliveryError!,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
+            ),
+          ],
+          if (_deliveryQuoted) ...[
             const SizedBox(height: AppSpacing.md),
             _DeliveryQuoteBanner(
-              loading: _deliveryLoading,
-              error: _deliveryError,
+              loading: false,
+              error: null,
               billableDistanceKm: _billableDistanceKm,
               deliveryFee: _deliveryFee,
             ),
+            const SizedBox(height: AppSpacing.md),
+            _CheckoutTotals(
+              subtotal: total,
+              promoDiscount: _promoDiscount,
+              deliveryFee: _deliveryFee,
+              deliveryLoading: false,
+              deliveryError: null,
+            ),
           ],
-          const SizedBox(height: AppSpacing.md),
-          _CheckoutTotals(
-            subtotal: total,
-            promoDiscount: _promoDiscount,
-            deliveryFee: _deliveryFee,
-            deliveryLoading: _deliveryLoading,
-            deliveryError: _deliveryError,
-            showDeliveryHint: !_locationSent,
-          ),
           const SizedBox(height: AppSpacing.lg),
           CustomerTextField(
             controller: _comment,

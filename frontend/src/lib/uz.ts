@@ -37,10 +37,12 @@ export const uz = {
   invalidPromo: 'Promo kod noto\'g\'ri',
   phone: 'Telefon (+998901234567)',
   deliveryAddress: 'Yetkazish manzili',
+  deliveryAddressOptional: 'Manzil (ixtiyoriy — yetkazishni aniqlashtirish uchun)',
   sendLocation: 'Joylashuvni yuborish',
   calculateDeliveryPrice: 'Yetkazish narxini hisoblash',
+  recalculateDeliveryPrice: 'Yetkazish narxini qayta hisoblash',
   deliveryPriceHint:
-    'Yetkazish narxini bilish uchun manzilni kiriting va quyidagi tugmani bosing.',
+    'Yetkazish narxini bilish uchun tugmani bosing. Manzil ixtiyoriy.',
   deliveryCalculating: 'Yetkazish narxi hisoblanmoqda...',
   deliveryPriceCalculated: 'Yetkazish narxi hisoblandi',
   deliveryPriceRequired:

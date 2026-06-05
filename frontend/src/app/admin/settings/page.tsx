@@ -1,49 +1,73 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AdminPageGuard } from '@/components/admin/admin-page-guard';
-import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminSettings, type AdminSettings } from '@/hooks/use-admin-settings';
 import { useDeliveryPricing } from '@/hooks/use-delivery-pricing';
-import { AdminImageFramingSettings } from '@/components/admin/admin-image-framing-settings';
 import { LoadingState, EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
+function parseNumberInput(value: string, fallback = 0): number {
+  const trimmed = value.trim();
+  if (!trimmed) return fallback;
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : fallback;
+}
 
 function AdminSettingsContent() {
   const { settings, save } = useAdminSettings();
   const { pricing, save: savePricing } = useDeliveryPricing();
   const [form, setForm] = useState<AdminSettings | null>(null);
-  const [pricePerKm, setPricePerKm] = useState(3000);
-  const [minDeliveryFee, setMinDeliveryFee] = useState(0);
-  const [roadDistanceFactor, setRoadDistanceFactor] = useState(1.35);
+  const [pricePerKm, setPricePerKm] = useState('');
+  const [minDeliveryFee, setMinDeliveryFee] = useState('');
+  const [roadDistanceFactor, setRoadDistanceFactor] = useState('');
+  const [minOrderAmount, setMinOrderAmount] = useState('');
+  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState('');
+  const settingsHydrated = useRef(false);
+  const pricingHydrated = useRef(false);
 
   useEffect(() => {
-    if (settings.data) setForm(settings.data);
+    if (!settings.data || settingsHydrated.current) return;
+    setForm(settings.data);
+    setMinOrderAmount(String(settings.data.min_order_amount ?? ''));
+    setFreeDeliveryThreshold(String(settings.data.free_delivery_threshold ?? ''));
+    settingsHydrated.current = true;
   }, [settings.data]);
 
   useEffect(() => {
-    if (pricing.data) {
-      setPricePerKm(pricing.data.pricePerKm);
-      setMinDeliveryFee(pricing.data.minDeliveryFee ?? 0);
-      setRoadDistanceFactor(pricing.data.roadDistanceFactor ?? 1.35);
-    }
+    if (!pricing.data || pricingHydrated.current) return;
+    setPricePerKm(String(pricing.data.pricePerKm));
+    setMinDeliveryFee(String(pricing.data.minDeliveryFee ?? 0));
+    setRoadDistanceFactor(String(pricing.data.roadDistanceFactor ?? 1.35));
+    pricingHydrated.current = true;
   }, [pricing.data]);
 
   const submit = async () => {
     if (!form) return;
     try {
-      await Promise.all([
-        save.mutateAsync(form),
+      const payload: AdminSettings = {
+        ...form,
+        min_order_amount: parseNumberInput(minOrderAmount, form.min_order_amount),
+        free_delivery_threshold: parseNumberInput(freeDeliveryThreshold, form.free_delivery_threshold),
+      };
+      const [savedSettings, savedPricing] = await Promise.all([
+        save.mutateAsync(payload),
         savePricing.mutateAsync({
           ...(pricing.data ?? {}),
-          pricePerKm,
-          minDeliveryFee,
-          roadDistanceFactor,
+          pricePerKm: parseNumberInput(pricePerKm, 3000),
+          minDeliveryFee: parseNumberInput(minDeliveryFee, 0),
+          roadDistanceFactor: parseNumberInput(roadDistanceFactor, 1.35),
           baseFee: 0,
         }),
       ]);
+      setForm(savedSettings);
+      setMinOrderAmount(String(savedSettings.min_order_amount ?? ''));
+      setFreeDeliveryThreshold(String(savedSettings.free_delivery_threshold ?? ''));
+      setPricePerKm(String(savedPricing.pricePerKm));
+      setMinDeliveryFee(String(savedPricing.minDeliveryFee ?? 0));
+      setRoadDistanceFactor(String(savedPricing.roadDistanceFactor ?? 1.35));
       toast.success('Settings saved');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to save');
@@ -100,14 +124,6 @@ function AdminSettingsContent() {
         />
       </Section>
 
-      <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-        <p className="mb-3 text-sm font-semibold">Rasmlar — banner va restoran kartochkalari</p>
-        <p className="mb-4 text-xs text-zinc-500">
-          Standart masshtab va joylashuv. Har bir banner yoki restoranda alohida sozlash mumkin.
-        </p>
-        <AdminImageFramingSettings form={form} setForm={setForm} />
-      </div>
-
       <Section title="Delivery">
         <div className="sm:col-span-2">
           <label className="mb-1 block text-xs text-zinc-500">
@@ -115,9 +131,10 @@ function AdminSettingsContent() {
           </label>
           <Input
             type="number"
+            inputMode="numeric"
             placeholder="3000"
             value={pricePerKm}
-            onChange={(e) => setPricePerKm(Number(e.target.value))}
+            onChange={(e) => setPricePerKm(e.target.value)}
           />
         </div>
         <div>
@@ -126,10 +143,11 @@ function AdminSettingsContent() {
           </label>
           <Input
             type="number"
+            inputMode="decimal"
             step="0.01"
             placeholder="1.35"
             value={roadDistanceFactor}
-            onChange={(e) => setRoadDistanceFactor(Number(e.target.value))}
+            onChange={(e) => setRoadDistanceFactor(e.target.value)}
           />
         </div>
         <div>
@@ -138,31 +156,25 @@ function AdminSettingsContent() {
           </label>
           <Input
             type="number"
+            inputMode="numeric"
             placeholder="0"
             value={minDeliveryFee}
-            onChange={(e) => setMinDeliveryFee(Number(e.target.value))}
+            onChange={(e) => setMinDeliveryFee(e.target.value)}
           />
         </div>
         <Input
           type="number"
+          inputMode="numeric"
           placeholder="Min order amount"
-          value={form.min_order_amount}
-          onChange={(e) => setForm({ ...form, min_order_amount: Number(e.target.value) })}
+          value={minOrderAmount}
+          onChange={(e) => setMinOrderAmount(e.target.value)}
         />
         <Input
           type="number"
+          inputMode="numeric"
           placeholder="Free delivery threshold"
-          value={form.free_delivery_threshold}
-          onChange={(e) => setForm({ ...form, free_delivery_threshold: Number(e.target.value) })}
-        />
-      </Section>
-
-      <Section title="Payments">
-        <Input
-          type="number"
-          placeholder="Default commission %"
-          value={form.commission_default}
-          onChange={(e) => setForm({ ...form, commission_default: Number(e.target.value) })}
+          value={freeDeliveryThreshold}
+          onChange={(e) => setFreeDeliveryThreshold(e.target.value)}
         />
       </Section>
 

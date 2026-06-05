@@ -81,18 +81,11 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: '/admin/stores', label: t.nav.storeList, icon: Store, permission: 'stores' },
       {
-        href: '/admin/dish-categories',
-        label: t.nav.dishCategories,
-        icon: Tags,
-        permission: 'store.categories',
-      },
-      {
         href: '/admin/products/store',
         label: t.nav.storeProducts,
         icon: Package,
         permission: 'store.products',
       },
-      { href: '/admin/stores/types', label: t.nav.storeTypes, icon: Tags, permission: 'store.types' },
       {
         href: '/admin/stores/banners',
         label: t.nav.storeBanners,
@@ -167,7 +160,7 @@ const MANAGER_NAV_ORDER: { groupId: string; hrefs: string[] }[] = [
   },
   {
     groupId: 'stores',
-    hrefs: ['/admin/stores', '/admin/dish-categories', '/admin/products/store'],
+    hrefs: ['/admin/stores', '/admin/products/store'],
   },
   { groupId: 'banners', hrefs: ['/admin/banners/home', '/admin/banners/promo', '/admin/banners/hero'] },
   { groupId: 'promotions', hrefs: ['/admin/promo-codes'] },

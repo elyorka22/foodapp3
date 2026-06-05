@@ -5,86 +5,99 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import 'customer_page.dart';
 
-/// Delivery address + GPS button — matches web `DeliveryLocation`.
+/// Optional address + single button to calculate delivery from GPS.
 class DeliveryLocationField extends StatelessWidget {
   const DeliveryLocationField({
     super.key,
     required this.addressController,
-    required this.locationSent,
-    required this.sending,
-    required this.onSendLocation,
+    required this.quoted,
+    required this.busy,
+    required this.onCalculate,
   });
 
   final TextEditingController addressController;
-  final bool locationSent;
-  final bool sending;
-  final VoidCallback? onSendLocation;
+  final bool quoted;
+  final bool busy;
+  final VoidCallback? onCalculate;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CustomerTextField(
-          controller: addressController,
-          placeholder: AppStrings.deliveryAddress,
-          maxLines: 3,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Material(
-          color: locationSent ? const Color(0xFFF0FDF4) : AppColors.primarySoft,
-          borderRadius: BorderRadius.circular(12),
-          child: InkWell(
-            onTap: sending ? null : onSendLocation,
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(AppStrings.deliveryLabel, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text(
+            AppStrings.deliveryPriceHint,
+            style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          CustomerTextField(
+            controller: addressController,
+            placeholder: AppStrings.deliveryAddressOptional,
+            maxLines: 2,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Material(
+            color: quoted ? const Color(0xFFF0FDF4) : AppColors.primarySoft,
             borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: locationSent
-                      ? const Color(0xFFBBF7D0)
-                      : AppColors.primary.withValues(alpha: 0.35),
+            child: InkWell(
+              onTap: busy ? null : onCalculate,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: quoted
+                        ? const Color(0xFFBBF7D0)
+                        : AppColors.primary.withValues(alpha: 0.35),
+                  ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    size: 18,
-                    color: locationSent ? AppColors.success : AppColors.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    sending
-                        ? AppStrings.detectingLocation
-                        : locationSent
-                            ? AppStrings.locationSent
-                            : AppStrings.calculateDeliveryPrice,
-                    style: AppTypography.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: locationSent
-                          ? const Color(0xFF166534)
-                          : AppColors.primary,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 18,
+                      color: quoted ? AppColors.success : AppColors.primary,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Text(
+                      busy
+                          ? AppStrings.deliveryCalculating
+                          : quoted
+                              ? AppStrings.recalculateDeliveryPrice
+                              : AppStrings.calculateDeliveryPrice,
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: quoted
+                            ? const Color(0xFF166534)
+                            : AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 String? validateDeliveryLocation({
-  required String address,
   required double? lat,
   required double? lng,
 }) {
-  if (address.trim().isEmpty) return AppStrings.deliveryAddressRequired;
-  if (lat == null || lng == null) return AppStrings.locationRequired;
+  if (lat == null || lng == null) return AppStrings.deliveryPriceRequired;
   return null;
 }

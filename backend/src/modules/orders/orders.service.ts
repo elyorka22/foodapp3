@@ -166,6 +166,9 @@ export class OrdersService {
 
     const orderNumber = generateOrderNumber();
     const trackingToken = generateTrackingToken();
+    const deliveryAddress =
+      dto.deliveryAddress?.trim() ||
+      `GPS: ${dto.latitude}, ${dto.longitude}`;
 
     const order = await this.prisma.$transaction(async (tx) => {
       let discountAmount = 0;
@@ -175,7 +178,7 @@ export class OrdersService {
         data: {
           phone,
           customerId,
-          deliveryAddress: dto.deliveryAddress,
+          deliveryAddress,
           latitude: dto.latitude,
           longitude: dto.longitude,
           comment: dto.comment,
@@ -205,7 +208,7 @@ export class OrdersService {
           },
           address: {
             create: {
-              line1: dto.deliveryAddress,
+              line1: deliveryAddress,
               latitude: dto.latitude,
               longitude: dto.longitude,
               notes: dto.comment,

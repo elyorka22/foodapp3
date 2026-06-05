@@ -24,7 +24,6 @@ import { DeliveryQuoteBanner } from '@/components/checkout/delivery-quote-banner
 import { fetchDeliveryQuote } from '@/hooks/use-delivery-pricing';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
-import { isValidCoords } from '@/lib/maps';
 
 const mainClass =
   'mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]';
@@ -64,44 +63,40 @@ export default function CheckoutPage() {
     }
   }, [router]);
 
-  useEffect(() => {
-    if (!restaurantId || !isValidCoords(deliveryLocation.lat, deliveryLocation.lng)) {
-      setDeliveryFee(null);
-      setBillableDistanceKm(null);
-      setDeliveryError(null);
-      return;
-    }
-
-    let cancelled = false;
+  const calculateDelivery = async (payload: {
+    address: string;
+    lat: number;
+    lng: number;
+  }) => {
+    if (!restaurantId) return;
+    setDeliveryLocation((prev) => ({
+      ...prev,
+      address: payload.address,
+      lat: payload.lat,
+      lng: payload.lng,
+    }));
     setDeliveryLoading(true);
     setDeliveryError(null);
+    setError('');
+    setDeliveryFee(null);
+    setBillableDistanceKm(null);
 
-    fetchDeliveryQuote({
-      restaurantId,
-      latitude: deliveryLocation.lat!,
-      longitude: deliveryLocation.lng!,
-    })
-      .then((quote) => {
-        if (!cancelled) {
-          setDeliveryFee(quote.deliveryFee);
-          setBillableDistanceKm(quote.billableDistanceKm);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setDeliveryFee(null);
-          setBillableDistanceKm(null);
-          setDeliveryError(err instanceof Error ? err.message : uz.orderFailed);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setDeliveryLoading(false);
+    try {
+      const quote = await fetchDeliveryQuote({
+        restaurantId,
+        latitude: payload.lat,
+        longitude: payload.lng,
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [restaurantId, deliveryLocation.lat, deliveryLocation.lng]);
+      setDeliveryFee(quote.deliveryFee);
+      setBillableDistanceKm(quote.billableDistanceKm);
+    } catch (err) {
+      setDeliveryFee(null);
+      setBillableDistanceKm(null);
+      setDeliveryError(err instanceof Error ? err.message : uz.orderFailed);
+    } finally {
+      setDeliveryLoading(false);
+    }
+  };
 
   const applyPromo = async () => {
     if (!promoCode.trim() || !restaurantId) return;
@@ -160,6 +155,9 @@ export default function CheckoutPage() {
         router.replace('/complete-profile');
         return;
       }
+      const address =
+        deliveryLocation.address.trim() ||
+        `GPS: ${deliveryLocation.lat}, ${deliveryLocation.lng}`;
       const res = await api<{ order: { trackingToken: string; orderNumber?: string } }>('/orders/guest', {
         method: 'POST',
         token: token ?? undefined,
@@ -167,7 +165,7 @@ export default function CheckoutPage() {
           restaurantId,
           phone: loggedIn?.phone ?? phone,
           customerId: loggedIn?.id,
-          deliveryAddress: deliveryLocation.address.trim(),
+          deliveryAddress: address,
           latitude: deliveryLocation.lat,
           longitude: deliveryLocation.lng,
           comment: comment || undefined,
@@ -185,15 +183,12 @@ export default function CheckoutPage() {
     }
   };
 
-  const locationReady = isValidCoords(deliveryLocation.lat, deliveryLocation.lng);
+  const deliveryQuoted = deliveryFee != null && !deliveryLoading && !deliveryError;
   const canPlaceOrder =
     !loading &&
     !deliveryLoading &&
-    deliveryFee != null &&
-    !deliveryError &&
-    phone.trim().length > 0 &&
-    deliveryLocation.address.trim().length > 0 &&
-    locationReady;
+    deliveryQuoted &&
+    phone.trim().length > 0;
 
   if (!items.length) {
     return (
@@ -223,6 +218,7 @@ export default function CheckoutPage() {
           </li>
         ))}
       </ul>
+
       <div className="mt-4 flex gap-2">
         <Input
           placeholder={uz.promoCode}
@@ -233,7 +229,7 @@ export default function CheckoutPage() {
           {validatingPromo ? '...' : uz.apply}
         </Button>
       </div>
-      {promoMessage && <p className="text-sm text-brand-600">{promoMessage}</p>}
+      {promoMessage && <p className="mt-2 text-sm text-brand-600">{promoMessage}</p>}
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <Input
@@ -243,30 +239,36 @@ export default function CheckoutPage() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
-        {!locationReady && (
-          <p className="text-sm text-amber-700 dark:text-amber-400">{uz.deliveryPriceHint}</p>
-        )}
+
         <DeliveryLocation
           value={deliveryLocation}
           onChange={setDeliveryLocation}
+          onCalculate={calculateDelivery}
+          calculating={deliveryLoading}
+          quoted={deliveryQuoted}
           onError={setError}
         />
-        {locationReady && (
-          <DeliveryQuoteBanner
-            loading={deliveryLoading}
-            error={deliveryError}
-            billableDistanceKm={billableDistanceKm}
-            deliveryFee={deliveryFee}
-          />
+
+        {deliveryError && (
+          <p className="text-sm text-red-500">{deliveryError}</p>
         )}
-        <CheckoutTotals
-          subtotal={total()}
-          deliveryFee={deliveryFee}
-          promoDiscount={promoDiscount}
-          deliveryLoading={deliveryLoading}
-          deliveryError={deliveryError}
-          showDeliveryHint={!locationReady}
-        />
+
+        {deliveryQuoted && (
+          <>
+            <DeliveryQuoteBanner
+              loading={false}
+              error={null}
+              billableDistanceKm={billableDistanceKm}
+              deliveryFee={deliveryFee}
+            />
+            <CheckoutTotals
+              subtotal={total()}
+              deliveryFee={deliveryFee}
+              promoDiscount={promoDiscount}
+            />
+          </>
+        )}
+
         <textarea
           placeholder={uz.commentOptional}
           value={comment}

@@ -40,10 +40,11 @@ export class CreateGuestOrderDto {
   @MaxLength(20)
   phone: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: 'Optional text address; GPS coords are required' })
+  @IsOptional()
   @IsString()
   @MaxLength(500)
-  deliveryAddress: string;
+  deliveryAddress?: string;
 
   @ApiProperty({ example: 41.311081 })
   @IsNumber()
