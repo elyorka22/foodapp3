@@ -11,10 +11,20 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await _storage.getAccessToken();
-    if (token != null && token.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer $token';
+    if (!_isPublicAuthPath(options.path)) {
+      try {
+        final token = await _storage.getAccessToken();
+        if (token != null && token.isNotEmpty) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+      } catch (_) {
+        // Do not block API calls if secure storage is unavailable on device.
+      }
     }
     handler.next(options);
+  }
+
+  bool _isPublicAuthPath(String path) {
+    return path.endsWith('/auth/login') || path.endsWith('/auth/staff/login');
   }
 }
