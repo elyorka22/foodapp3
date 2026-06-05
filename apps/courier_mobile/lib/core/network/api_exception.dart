@@ -79,8 +79,6 @@ class ApiException implements Exception {
           return 'Tarmoq xatosi: $underlying';
         }
         return 'Noma\'lum tarmoq xatosi. API: ${AppConfig.normalizedApiBaseUrl}';
-      default:
-        return 'Tarmoq xatosi: ${err.message ?? err.type.name}';
     }
   }
 
