@@ -102,7 +102,7 @@ export default function AdminCouriersPage() {
   const FormFields = (
     <div className="space-y-3">
       <Input placeholder="Full name" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-      <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+      <Input placeholder="Phone (+998901234567)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
       <Input placeholder="Email" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
       <Input placeholder="Vehicle type" value={form.vehicleType ?? ''} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} />
       {createOpen && (

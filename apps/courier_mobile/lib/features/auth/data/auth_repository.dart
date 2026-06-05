@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_paths.dart';
+import '../../../core/utils/phone_util.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/storage/storage_providers.dart';
 import '../../../core/storage/token_storage.dart';
@@ -26,7 +27,7 @@ class AuthRepository {
   }) async {
     final res = await _dio.post<Map<String, dynamic>>(
       ApiPaths.authLogin,
-      data: {'phone': phone, 'password': password},
+      data: {'phone': normalizePhone(phone), 'password': password},
     );
     final auth = AuthResponseModel.fromJson(res.data!);
     if (auth.user.role != 'COURIER') {

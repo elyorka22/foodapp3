@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BruteForceService } from '../../common/security/brute-force.service';
-import { normalizePhone } from '../../common/utils/phone.util';
+import { normalizePhone, phoneLookupValues } from '../../common/utils/phone.util';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class AuthService {
         isActive: true,
         ...(dto.email
           ? { email: loginId }
-          : { phone: loginId }),
+          : { phone: { in: phoneLookupValues(dto.phone!) } }),
       },
     });
 

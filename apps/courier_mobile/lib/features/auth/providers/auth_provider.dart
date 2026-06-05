@@ -20,6 +20,9 @@ class AuthNotifier extends AsyncNotifier<AuthUserModel?> {
           );
       return res.user;
     });
+    if (state.hasError) {
+      throw state.error!;
+    }
   }
 
   Future<void> logout() async {

@@ -45,7 +45,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               TextField(
                 controller: _phone,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: AppStrings.phone),
+                decoration: const InputDecoration(
+                  labelText: AppStrings.phone,
+                  hintText: '+998901234567',
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(
@@ -70,7 +73,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _phone.text.trim(),
             _password.text,
           );
-      if (mounted) context.go(AppRoutes.home);
+      if (!mounted) return;
+      if (ref.read(authStateProvider).valueOrNull == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.loginFailed)),
+        );
+        return;
+      }
+      context.go(AppRoutes.home);
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.loginFailed;
