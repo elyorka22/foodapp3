@@ -39,7 +39,8 @@ class MenuProductCard extends StatelessWidget {
     final compare = product.comparePrice?.toDouble();
     final hasDiscount = compare != null && compare > price;
     final discountAmount = hasDiscount ? compare - price : null;
-    final weight = parseProductWeight(product.description);
+    final description = product.description?.trim();
+    final weight = parseProductWeight(description);
     final imageUrl = resolveImageUrl(product.imageUrl);
 
     return Column(
@@ -127,7 +128,17 @@ class MenuProductCard extends StatelessWidget {
             fontSize: 14,
           ),
         ),
-        if (weight != null)
+        if (description != null && description.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+            ),
+          )
+        else if (weight != null)
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Text(weight, style: AppTypography.caption),

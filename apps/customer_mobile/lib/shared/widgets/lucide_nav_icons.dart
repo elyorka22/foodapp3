@@ -81,10 +81,12 @@ class LucideShoppingBasketNavIcon extends StatelessWidget {
       strokeWidth: active ? 2.25 : 1.75,
       paths: '''
 <path d="m15 11-1 9"/>
-<path d="m19 11-1-9"/>
+<path d="m19 11-4-7"/>
 <path d="M2 11h20"/>
 <path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/>
-<path d="M9 11V6a3 3 0 0 1 6 0v5"/>
+<path d="M4.5 15.5h15"/>
+<path d="m5 11 4-7"/>
+<path d="m9 11 1 9"/>
 ''',
     );
   }

@@ -149,7 +149,13 @@ export function ProductCard({ product, restaurantId, disabled }: Props) {
         <h3 className="mt-1 line-clamp-2 text-[14px] font-medium leading-snug text-zinc-900">
           {product.name}
         </h3>
-        {weight ? <p className="mt-0.5 text-xs text-zinc-400">{weight}</p> : null}
+        {product.description?.trim() ? (
+          <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-zinc-500">
+            {product.description.trim()}
+          </p>
+        ) : weight ? (
+          <p className="mt-0.5 text-xs text-zinc-400">{weight}</p>
+        ) : null}
       </div>
     </article>
   );

@@ -146,7 +146,7 @@ class _StoreMenuBody extends ConsumerWidget {
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 20,
-                    mainAxisExtent: 268,
+                    mainAxisExtent: 300,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
