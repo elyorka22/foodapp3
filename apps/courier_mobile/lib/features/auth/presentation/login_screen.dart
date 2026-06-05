@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -66,6 +65,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 6),
+        action: SnackBarAction(
+          label: 'OK',
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     setState(() => _loading = true);
     try {
@@ -75,24 +87,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
       if (!mounted) return;
       if (ref.read(authStateProvider).valueOrNull == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.loginFailed)),
-        );
+        _showError(AppStrings.loginFailed);
         return;
       }
       context.go(AppRoutes.home);
-    } on DioException catch (e) {
-      final err = e.error;
-      final msg = err is ApiException ? err.message : AppStrings.loginFailed;
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
+      if (mounted) _showError(ApiException.formatError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
