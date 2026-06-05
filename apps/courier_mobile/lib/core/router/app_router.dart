@@ -13,16 +13,19 @@ import '../../features/splash/presentation/splash_screen.dart';
 import 'routes.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authStateProvider);
-
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: AppRoutes.splash,
     redirect: (context, state) {
+      final auth = ref.read(authStateProvider);
+      if (auth.isLoading) return null;
+
       final loggedIn = auth.valueOrNull != null;
-      final onLogin = state.matchedLocation == AppRoutes.login;
-      final onSplash = state.matchedLocation == AppRoutes.splash;
-      if (!loggedIn && !onLogin && !onSplash) return AppRoutes.login;
+      final location = state.matchedLocation;
+      final onLogin = location == AppRoutes.login;
+      final onSplash = location == AppRoutes.splash;
+
       if (loggedIn && (onLogin || onSplash)) return AppRoutes.home;
+      if (!loggedIn && !onLogin) return AppRoutes.login;
       return null;
     },
     routes: [
@@ -43,4 +46,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.orderHistory, builder: (_, __) => const OrderHistoryScreen()),
     ],
   );
+
+  ref.listen(authStateProvider, (_, __) => router.refresh());
+  ref.onDispose(router.dispose);
+  return router;
 });

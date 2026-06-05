@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/router/routes.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/food_app_button.dart';
@@ -68,6 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _phone.text.trim(),
             _password.text,
           );
+      if (mounted) context.go(AppRoutes.home);
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.loginFailed;
