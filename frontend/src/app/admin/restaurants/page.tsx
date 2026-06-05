@@ -108,6 +108,7 @@ function RestaurantFormFields({
         <p className="text-xs opacity-60">Images attached. Save to apply.</p>
       )}
       <CoverPositionControls form={form} setForm={setForm} />
+      <MerchantLocationFields form={form} setForm={setForm} />
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
