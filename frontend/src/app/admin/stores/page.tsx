@@ -17,6 +17,7 @@ import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
+import { MerchantLocationFields } from '@/components/admin/merchant-location-fields';
 import { BusinessImageUpload } from '@/components/admin/business-image-upload';
 
 function slugify(value: string) {
@@ -40,6 +41,9 @@ const emptyForm: RestaurantForm = {
   coverPositionX: 50,
   coverPositionY: 50,
   coverScale: 100,
+  branchAddress: '',
+  latitude: undefined,
+  longitude: undefined,
 };
 
 export default function AdminStoresPage() {
@@ -133,6 +137,9 @@ export default function AdminStoresPage() {
       coverPositionX: Number(row.coverPositionX ?? 50),
       coverPositionY: Number(row.coverPositionY ?? 50),
       coverScale: Number(row.coverScale ?? 100),
+      branchAddress: String(row.branchAddress ?? ''),
+      latitude: row.latitude != null ? Number(row.latitude) : undefined,
+      longitude: row.longitude != null ? Number(row.longitude) : undefined,
     });
   };
 
@@ -197,6 +204,7 @@ export default function AdminStoresPage() {
         onFile={(f) => uploadField(f, 'coverUrl')}
       />
       <CoverPositionControls form={form} setForm={setForm} />
+      <MerchantLocationFields form={form} setForm={setForm} />
       <Input
         type="number"
         placeholder="Komissiya %"

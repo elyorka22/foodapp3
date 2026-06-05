@@ -168,9 +168,9 @@ async function main() {
       key: 'delivery_pricing',
       group: 'delivery',
       value: {
-        baseFee: 5000,
-        pricePerKm: 2000,
-        minDeliveryFee: 8000,
+        baseFee: 0,
+        pricePerKm: 3000,
+        minDeliveryFee: 0,
         courierPricePerKm: 1500,
         courierMinFee: 5000,
       },

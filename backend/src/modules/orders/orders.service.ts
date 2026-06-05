@@ -21,7 +21,9 @@ import {
   generateOrderNumber,
   generateTrackingToken,
 } from '../../common/utils/order-number.util';
-import { distanceKm, calculateDeliveryFee } from '../../common/utils/geo.util';
+import { calculateDeliveryFee } from '../../common/utils/geo.util';
+import { DeliveryPricingService } from '../../domain/delivery/delivery-pricing.service';
+import { DeliveryQuoteDto } from './dto/delivery-quote.dto';
 import { normalizePhone } from '../../common/utils/phone.util';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
@@ -52,7 +54,36 @@ export class OrdersService {
     private schedule: RestaurantScheduleService,
     private customers: CustomersService,
     private notifications: NotificationService,
+    private deliveryPricing: DeliveryPricingService,
   ) {}
+
+  async quoteDelivery(dto: DeliveryQuoteDto) {
+    const branch = await this.resolveBranch(dto.restaurantId, dto.branchId);
+    return this.deliveryPricing.quote({
+      restaurant: {
+        latitude: Number(branch.latitude),
+        longitude: Number(branch.longitude),
+      },
+      customer: { latitude: dto.latitude, longitude: dto.longitude },
+    });
+  }
+
+  private async resolveBranch(restaurantId: string, branchId?: string) {
+    const branch = branchId
+      ? await this.prisma.businessBranch.findFirst({
+          where: { id: branchId, businessId: restaurantId, isActive: true, deletedAt: null },
+        })
+      : await this.prisma.businessBranch.findFirst({
+          where: { businessId: restaurantId, isActive: true, deletedAt: null },
+          orderBy: { createdAt: 'asc' },
+        });
+    if (!branch) {
+      throw new BadRequestException(
+        'Restaurant location is not configured. Admin must set coordinates.',
+      );
+    }
+    return branch;
+  }
 
   async createGuestOrder(dto: CreateGuestOrderDto) {
     const restaurant = await this.prisma.business.findFirst({
@@ -84,24 +115,21 @@ export class OrdersService {
       throw new BadRequestException('Some products are unavailable');
     }
 
-    const branch = dto.branchId
-      ? await this.prisma.businessBranch.findFirst({
-          where: { id: dto.branchId, businessId: dto.restaurantId },
-        })
-      : restaurant.branches[0];
-    if (!branch) throw new BadRequestException('No active branch');
+    const branch = await this.resolveBranch(dto.restaurantId, dto.branchId);
 
-    const branchLat = Number(branch.latitude);
-    const branchLng = Number(branch.longitude);
-    const dist = distanceKm(branchLat, branchLng, dto.latitude, dto.longitude);
-
-    const deliveryConfig = await this.settings.getDeliveryPricing();
-    const deliveryFee = calculateDeliveryFee(
-      dist,
-      deliveryConfig.pricePerKm,
-      deliveryConfig.minDeliveryFee,
-      deliveryConfig.baseFee,
-    );
+    const quote = await this.deliveryPricing.quote({
+      restaurant: {
+        latitude: Number(branch.latitude),
+        longitude: Number(branch.longitude),
+      },
+      customer: { latitude: dto.latitude, longitude: dto.longitude },
+    });
+    const dist = quote.distanceKm;
+    const deliveryFee = quote.deliveryFee;
+    const restaurantLat = quote.restaurantLatitude;
+    const restaurantLng = quote.restaurantLongitude;
+    const customerLat = quote.customerLatitude;
+    const customerLng = quote.customerLongitude;
 
     let subtotal = 0;
     const orderItems: Prisma.OrderItemCreateWithoutOrderInput[] = [];
@@ -167,6 +195,10 @@ export class OrdersService {
           commissionAmount: 0,
           total: subtotal + deliveryFee,
           distanceKm: dist,
+          restaurantLatitude: restaurantLat,
+          restaurantLongitude: restaurantLng,
+          customerLatitude: customerLat,
+          customerLongitude: customerLng,
           items: { create: orderItems },
           payment: {
             create: { amount: subtotal + deliveryFee, method: 'CASH', status: 'PENDING' },
@@ -646,6 +678,18 @@ export class OrdersService {
       discountAmount: Number((order as { discountAmount?: unknown }).discountAmount ?? 0),
       total: Number(order.total),
       distanceKm: order.distanceKm ? Number(order.distanceKm) : null,
+      restaurantLatitude: order.restaurantLatitude
+        ? Number(order.restaurantLatitude)
+        : null,
+      restaurantLongitude: order.restaurantLongitude
+        ? Number(order.restaurantLongitude)
+        : null,
+      customerLatitude: order.customerLatitude
+        ? Number(order.customerLatitude)
+        : null,
+      customerLongitude: order.customerLongitude
+        ? Number(order.customerLongitude)
+        : null,
       createdAt: order.createdAt,
       deliveredAt: order.deliveredAt,
       items: Array.isArray(order.items)

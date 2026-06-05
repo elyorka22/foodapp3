@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { AdminPageGuard } from '@/components/admin/admin-page-guard';
 import { adminI18n as t } from '@/lib/admin-i18n';
 import { useAdminSettings, type AdminSettings } from '@/hooks/use-admin-settings';
+import { useDeliveryPricing } from '@/hooks/use-delivery-pricing';
 import { AdminImageFramingSettings } from '@/components/admin/admin-image-framing-settings';
 import { LoadingState, EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
@@ -12,16 +13,30 @@ import { Input } from '@/components/ui/input';
 
 function AdminSettingsContent() {
   const { settings, save } = useAdminSettings();
+  const { pricing, save: savePricing } = useDeliveryPricing();
   const [form, setForm] = useState<AdminSettings | null>(null);
+  const [pricePerKm, setPricePerKm] = useState(3000);
 
   useEffect(() => {
     if (settings.data) setForm(settings.data);
   }, [settings.data]);
 
+  useEffect(() => {
+    if (pricing.data) setPricePerKm(pricing.data.pricePerKm);
+  }, [pricing.data]);
+
   const submit = async () => {
     if (!form) return;
     try {
-      await save.mutateAsync(form);
+      await Promise.all([
+        save.mutateAsync(form),
+        savePricing.mutateAsync({
+          ...(pricing.data ?? {}),
+          pricePerKm,
+          baseFee: 0,
+          minDeliveryFee: 0,
+        }),
+      ]);
       toast.success('Settings saved');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to save');
@@ -87,6 +102,17 @@ function AdminSettingsContent() {
       </div>
 
       <Section title="Delivery">
+        <div className="sm:col-span-2">
+          <label className="mb-1 block text-xs text-zinc-500">
+            Base price per kilometer (UZS) — delivery_fee = distance_km × this value, rounded to 500
+          </label>
+          <Input
+            type="number"
+            placeholder="3000"
+            value={pricePerKm}
+            onChange={(e) => setPricePerKm(Number(e.target.value))}
+          />
+        </div>
         <Input
           type="number"
           placeholder="Min order amount"
@@ -98,12 +124,6 @@ function AdminSettingsContent() {
           placeholder="Free delivery threshold"
           value={form.free_delivery_threshold}
           onChange={(e) => setForm({ ...form, free_delivery_threshold: Number(e.target.value) })}
-        />
-        <Input
-          type="number"
-          placeholder="Default delivery fee"
-          value={form.default_delivery_fee}
-          onChange={(e) => setForm({ ...form, default_delivery_fee: Number(e.target.value) })}
         />
       </Section>
 

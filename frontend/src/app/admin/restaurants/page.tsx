@@ -17,6 +17,7 @@ import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
+import { MerchantLocationFields } from '@/components/admin/merchant-location-fields';
 import { adminI18n as t } from '@/lib/admin-i18n';
 
 function slugify(value: string) {
@@ -39,6 +40,9 @@ const emptyForm: RestaurantForm = {
   coverPositionX: 50,
   coverPositionY: 50,
   coverScale: 100,
+  branchAddress: '',
+  latitude: undefined,
+  longitude: undefined,
 };
 
 function RestaurantFormFields({
@@ -215,6 +219,9 @@ export default function AdminRestaurantsPage() {
       coverPositionX: row.coverPositionX ?? 50,
       coverPositionY: row.coverPositionY ?? 50,
       coverScale: row.coverScale ?? 100,
+      branchAddress: row.branchAddress ?? '',
+      latitude: row.latitude ?? undefined,
+      longitude: row.longitude ?? undefined,
     });
   };
 
@@ -274,6 +281,7 @@ export default function AdminRestaurantsPage() {
                 <th className="px-4 py-3">Revenue</th>
                 <th className="px-4 py-3">Products</th>
                 <th className="px-4 py-3">Commission</th>
+                <th className="px-4 py-3">Location</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -306,6 +314,11 @@ export default function AdminRestaurantsPage() {
                   <td className="px-4 py-3">{Number(r.revenue ?? 0).toLocaleString()} UZS</td>
                   <td className="px-4 py-3">{r.productsCount ?? 0}</td>
                   <td className="px-4 py-3">{Number(r.commissionRate ?? 0)}%</td>
+                  <td className="px-4 py-3 text-xs opacity-70">
+                    {r.latitude != null && r.longitude != null
+                      ? `${Number(r.latitude).toFixed(4)}, ${Number(r.longitude).toFixed(4)}`
+                      : '—'}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       <Button type="button" variant="secondary" onClick={() => toggleActive(r)}>

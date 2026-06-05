@@ -44,6 +44,10 @@ abstract final class AppStrings {
   static const commentOptional = 'Izoh (ixtiyoriy)';
   static const placingOrder = 'Buyurtma yuborilmoqda...';
   static const deliveryFee = 'yetkazish';
+  static const deliveryLabel = 'Yetkazish';
+  static const productsSubtotal = 'Mahsulotlar';
+  static const orderTotal = 'Jami';
+  static const locationRequiredShort = 'Joylashuv kerak';
   static const sendLocation = 'Joylashuvni yuborish';
   static const locationSent = 'Joylashuv qabul qilindi';
   static const detectingLocation = 'Aniqlanmoqda...';

@@ -25,6 +25,9 @@ export type RestaurantForm = {
   phone?: string;
   commissionRate?: number;
   isActive?: boolean;
+  branchAddress?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export function useAdminRestaurants(query: AdminRestaurantsQuery) {

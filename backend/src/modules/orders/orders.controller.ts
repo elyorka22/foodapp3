@@ -14,6 +14,7 @@ import { THROTTLE } from '../../common/constants/throttle.constants';
 import { OrderStatus, UserRole } from '@prisma/client';
 import { OrdersService } from './orders.service';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
+import { DeliveryQuoteDto } from './dto/delivery-quote.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -25,6 +26,13 @@ import { OrdersQueryDto } from './dto/orders-query.dto';
 @Controller('orders')
 export class OrdersController {
   constructor(private ordersService: OrdersService) {}
+
+  @Post('delivery-quote')
+  @Throttle({ default: THROTTLE.GUEST_ORDER })
+  @ApiOperation({ summary: 'Preview delivery distance and fee for checkout' })
+  deliveryQuote(@Body() dto: DeliveryQuoteDto) {
+    return this.ordersService.quoteDelivery(dto);
+  }
 
   @Post('guest')
   @Throttle({ default: THROTTLE.GUEST_ORDER })

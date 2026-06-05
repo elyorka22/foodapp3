@@ -1,0 +1,57 @@
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { getToken } from '@/lib/auth';
+
+export type DeliveryPricing = {
+  baseFee: number;
+  pricePerKm: number;
+  minDeliveryFee: number;
+  courierPricePerKm: number;
+  courierMinFee: number;
+};
+
+export function useDeliveryPricing() {
+  const token = getToken();
+  const qc = useQueryClient();
+
+  const pricing = useQuery({
+    queryKey: ['delivery-pricing'],
+    queryFn: () => api<DeliveryPricing>('/settings/delivery-pricing', { token: token ?? undefined }),
+    enabled: !!token,
+  });
+
+  const save = useMutation({
+    mutationFn: (body: Partial<DeliveryPricing>) =>
+      api<DeliveryPricing>('/settings/delivery-pricing', {
+        method: 'PUT',
+        token: token ?? undefined,
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['delivery-pricing'] }),
+  });
+
+  return { pricing, save };
+}
+
+export type DeliveryQuote = {
+  distanceKm: number;
+  deliveryFee: number;
+  pricePerKm: number;
+  restaurantLatitude: number;
+  restaurantLongitude: number;
+  customerLatitude: number;
+  customerLongitude: number;
+};
+
+export async function fetchDeliveryQuote(params: {
+  restaurantId: string;
+  latitude: number;
+  longitude: number;
+}) {
+  return api<DeliveryQuote>('/orders/delivery-quote', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}

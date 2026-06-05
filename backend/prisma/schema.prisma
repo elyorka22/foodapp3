@@ -501,7 +501,11 @@ model Order {
   discountAmount   Decimal     @default(0) @map("discount_amount") @db.Decimal(10, 2)
   promoCodeId      String?     @map("promo_code_id") @db.Uuid
   total            Decimal     @db.Decimal(10, 2)
-  distanceKm       Decimal?    @map("distance_km") @db.Decimal(8, 2)
+  distanceKm            Decimal? @map("distance_km") @db.Decimal(8, 2)
+  restaurantLatitude    Decimal? @map("restaurant_latitude") @db.Decimal(10, 7)
+  restaurantLongitude   Decimal? @map("restaurant_longitude") @db.Decimal(10, 7)
+  customerLatitude      Decimal? @map("customer_latitude") @db.Decimal(10, 7)
+  customerLongitude     Decimal? @map("customer_longitude") @db.Decimal(10, 7)
   cancelReason     String?     @map("cancel_reason")
   estimatedMinutes Int?        @map("estimated_minutes")
   acceptedAt       DateTime?   @map("accepted_at")

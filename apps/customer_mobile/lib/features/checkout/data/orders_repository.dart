@@ -9,6 +9,26 @@ final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
   return OrdersRepository(ref.watch(dioProvider));
 });
 
+class DeliveryQuoteModel {
+  const DeliveryQuoteModel({
+    required this.distanceKm,
+    required this.deliveryFee,
+    required this.pricePerKm,
+  });
+
+  final num distanceKm;
+  final num deliveryFee;
+  final num pricePerKm;
+
+  factory DeliveryQuoteModel.fromJson(Map<String, dynamic> json) {
+    return DeliveryQuoteModel(
+      distanceKm: json['distanceKm'] as num,
+      deliveryFee: json['deliveryFee'] as num,
+      pricePerKm: json['pricePerKm'] as num,
+    );
+  }
+}
+
 class PromoValidateResult {
   const PromoValidateResult({
     required this.valid,
@@ -32,6 +52,22 @@ class OrdersRepository {
       data: order.toJson(),
     );
     return GuestOrderResponseModel.fromJson(res.data!);
+  }
+
+  Future<DeliveryQuoteModel> fetchDeliveryQuote({
+    required String restaurantId,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      ApiPaths.ordersDeliveryQuote,
+      data: {
+        'restaurantId': restaurantId,
+        'latitude': latitude,
+        'longitude': longitude,
+      },
+    );
+    return DeliveryQuoteModel.fromJson(res.data!);
   }
 
   Future<PromoValidateResult> validatePromoCode({

@@ -68,4 +68,23 @@ export class UpdateRestaurantDto {
   @Min(50)
   @Max(200)
   coverScale?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  branchAddress?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
 }

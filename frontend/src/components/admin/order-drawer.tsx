@@ -95,10 +95,35 @@ export function OrderDrawer({
 
             <Section title="Delivery">
               <p className="text-sm">{data.address?.line1 ?? data.guestOrder?.deliveryAddress}</p>
+              {data.distanceKm != null && (
+                <p className="mt-2 text-sm">
+                  Distance: <span className="font-medium">{Number(data.distanceKm)} km</span>
+                </p>
+              )}
+              <p className="mt-1 text-sm">
+                Delivery fee:{' '}
+                <span className="font-medium">
+                  {Number(data.deliveryFee ?? 0).toLocaleString()} UZS
+                </span>
+              </p>
+              <div className="mt-3 space-y-2 text-xs opacity-80">
+                <p>
+                  Restaurant:{' '}
+                  {data.restaurantLatitude != null && data.restaurantLongitude != null
+                    ? `${Number(data.restaurantLatitude).toFixed(5)}, ${Number(data.restaurantLongitude).toFixed(5)}`
+                    : '—'}
+                </p>
+                <p>
+                  Customer:{' '}
+                  {data.customerLatitude != null && data.customerLongitude != null
+                    ? `${Number(data.customerLatitude).toFixed(5)}, ${Number(data.customerLongitude).toFixed(5)}`
+                    : '—'}
+                </p>
+              </div>
               <DeliveryCoords
                 className="mt-2"
-                lat={data.address?.latitude}
-                lng={data.address?.longitude}
+                lat={data.customerLatitude ?? data.address?.latitude}
+                lng={data.customerLongitude ?? data.address?.longitude}
                 guestLat={data.guestOrder?.latitude}
                 guestLng={data.guestOrder?.longitude}
               />

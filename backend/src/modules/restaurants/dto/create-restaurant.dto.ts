@@ -70,4 +70,23 @@ export class CreateRestaurantDto {
   @Min(50)
   @Max(200)
   coverScale?: number;
+
+  @ApiPropertyOptional({ description: 'Primary branch address for delivery distance' })
+  @IsOptional()
+  @IsString()
+  branchAddress?: string;
+
+  @ApiPropertyOptional({ example: 41.002, description: 'Restaurant latitude (delivery origin)' })
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @ApiPropertyOptional({ example: 71.24, description: 'Restaurant longitude (delivery origin)' })
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
 }

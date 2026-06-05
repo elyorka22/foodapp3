@@ -9,6 +9,7 @@ import { GrowthModule } from '../growth/growth.module';
 import { RestaurantsModule } from '../restaurants/restaurants.module';
 import { CustomersModule } from '../customers/customers.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { DeliveryPricingService } from '../../domain/delivery/delivery-pricing.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     NotificationsModule,
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, OrdersGateway],
+  providers: [OrdersService, OrdersGateway, DeliveryPricingService],
   exports: [OrdersService, OrdersGateway],
 })
 export class OrdersModule {}

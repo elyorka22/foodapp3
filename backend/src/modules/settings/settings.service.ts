@@ -42,9 +42,9 @@ export interface PublicSettings {
 }
 
 const DEFAULT_PRICING: DeliveryPricing = {
-  baseFee: 5000,
-  pricePerKm: 2000,
-  minDeliveryFee: 8000,
+  baseFee: 0,
+  pricePerKm: 3000,
+  minDeliveryFee: 0,
   courierPricePerKm: 1500,
   courierMinFee: 5000,
 };

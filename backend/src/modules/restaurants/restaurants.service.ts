@@ -367,7 +367,14 @@ export class RestaurantsService {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        include: { businessType: true },
+        include: {
+          businessType: true,
+          branches: {
+            where: { deletedAt: null, isActive: true },
+            orderBy: { createdAt: 'asc' },
+            take: 1,
+          },
+        },
       }),
       this.prisma.business.count({ where }),
     ]);
@@ -405,13 +412,19 @@ export class RestaurantsService {
     );
     const productCountMap = new Map(productGroups.map((g) => [g.businessId, g._count._all]));
 
-    const data = rows.map((r) => ({
-      ...r,
-      commissionRate: Number(r.commissionRate),
-      ordersCount: orderCountMap.get(r.id) ?? 0,
-      revenue: revenueMap.get(r.id) ?? 0,
-      productsCount: productCountMap.get(r.id) ?? 0,
-    }));
+    const data = rows.map((r) => {
+      const branch = r.branches?.[0];
+      return {
+        ...r,
+        commissionRate: Number(r.commissionRate),
+        ordersCount: orderCountMap.get(r.id) ?? 0,
+        revenue: revenueMap.get(r.id) ?? 0,
+        productsCount: productCountMap.get(r.id) ?? 0,
+        latitude: branch ? Number(branch.latitude) : null,
+        longitude: branch ? Number(branch.longitude) : null,
+        branchAddress: branch?.address ?? null,
+      };
+    });
 
     return paginatedResponse(data, total, query.page ?? 1, query.limit ?? 20);
   }
@@ -515,6 +528,13 @@ export class RestaurantsService {
         approvedAt: publishOnSite ? new Date() : null,
       },
     });
+    await this.upsertPrimaryBranch(restaurant.id, {
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+      address: dto.branchAddress,
+      name: restaurant.name,
+    });
+
     await this.audit.log({
       userId: user?.sub,
       action: 'create',
@@ -533,7 +553,14 @@ export class RestaurantsService {
       });
       if (!type) throw new NotFoundException('Business type not found');
     }
-    const { businessTypeId, slug: slugInput, ...rest } = dto;
+    const {
+      businessTypeId,
+      slug: slugInput,
+      latitude,
+      longitude,
+      branchAddress,
+      ...rest
+    } = dto;
     const data: Prisma.BusinessUpdateInput = { ...rest };
     if (businessTypeId !== undefined) {
       data.businessType = businessTypeId
@@ -550,6 +577,14 @@ export class RestaurantsService {
       });
     }
     const restaurant = await this.prisma.business.update({ where: { id }, data });
+
+    await this.upsertPrimaryBranch(id, {
+      latitude,
+      longitude,
+      address: branchAddress,
+      name: restaurant.name,
+    });
+
     await this.audit.log({
       userId: user.sub,
       action: 'update',
@@ -558,6 +593,53 @@ export class RestaurantsService {
       metadata: dto,
     });
     return restaurant;
+  }
+
+  private async upsertPrimaryBranch(
+    businessId: string,
+    input: {
+      latitude?: number;
+      longitude?: number;
+      address?: string;
+      name?: string;
+    },
+  ) {
+    if (input.latitude == null || input.longitude == null) return;
+
+    const existing = await this.prisma.businessBranch.findFirst({
+      where: { businessId, deletedAt: null },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const address =
+      input.address?.trim() ||
+      existing?.address ||
+      input.name?.trim() ||
+      'Main location';
+
+    if (existing) {
+      await this.prisma.businessBranch.update({
+        where: { id: existing.id },
+        data: {
+          latitude: input.latitude,
+          longitude: input.longitude,
+          address,
+          isActive: true,
+        },
+      });
+      return;
+    }
+
+    await this.prisma.businessBranch.create({
+      data: {
+        businessId,
+        name: 'Main',
+        address,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        isActive: true,
+      },
+    });
   }
 
   async updateApproval(

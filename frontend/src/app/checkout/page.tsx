@@ -19,8 +19,11 @@ import {
   validateDeliveryLocation,
   type DeliveryLocationValue,
 } from '@/components/checkout/delivery-location';
+import { CheckoutTotals } from '@/components/checkout/checkout-totals';
+import { fetchDeliveryQuote } from '@/hooks/use-delivery-pricing';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
+import { isValidCoords } from '@/lib/maps';
 
 const mainClass =
   'mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]';
@@ -41,6 +44,9 @@ export default function CheckoutPage() {
   const [validatingPromo, setValidatingPromo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [deliveryError, setDeliveryError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isCustomerLoggedIn() && customerNeedsPhone()) {
@@ -55,6 +61,40 @@ export default function CheckoutPage() {
       );
     }
   }, [router]);
+
+  useEffect(() => {
+    if (!restaurantId || !isValidCoords(deliveryLocation.lat, deliveryLocation.lng)) {
+      setDeliveryFee(null);
+      setDeliveryError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setDeliveryLoading(true);
+    setDeliveryError(null);
+
+    fetchDeliveryQuote({
+      restaurantId,
+      latitude: deliveryLocation.lat!,
+      longitude: deliveryLocation.lng!,
+    })
+      .then((quote) => {
+        if (!cancelled) setDeliveryFee(quote.deliveryFee);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setDeliveryFee(null);
+          setDeliveryError(err instanceof Error ? err.message : uz.orderFailed);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setDeliveryLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantId, deliveryLocation.lat, deliveryLocation.lng]);
 
   const applyPromo = async () => {
     if (!promoCode.trim() || !restaurantId) return;
@@ -162,14 +202,13 @@ export default function CheckoutPage() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 font-semibold">
-        {uz.subtotal}: {formatSum(total())}
-        {promoDiscount > 0 && (
-          <span className="ml-2 text-green-600">−{formatSum(promoDiscount)}</span>
-        )}
-        {' '}
-        + {uz.deliveryFee}
-      </p>
+      <CheckoutTotals
+        subtotal={total()}
+        deliveryFee={deliveryFee}
+        promoDiscount={promoDiscount}
+        deliveryLoading={deliveryLoading}
+        deliveryError={deliveryError}
+      />
 
       <div className="mt-4 flex gap-2">
         <Input
