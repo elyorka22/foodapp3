@@ -1,0 +1,74 @@
+name: Courier Mobile APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/courier_mobile/**'
+      - '.github/workflows/courier-mobile-apk.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: courier-mobile-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/courier_mobile
+
+    env:
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      WS_BASE_URL: ${{ secrets.WS_BASE_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate build environment
+        run: |
+          set -euo pipefail
+          if [[ -z "${API_BASE_URL:-}" ]]; then
+            echo "ERROR: API_BASE_URL secret is required."
+            exit 1
+          fi
+          if [[ -z "${WS_BASE_URL:-}" ]]; then
+            echo "ERROR: WS_BASE_URL secret is required."
+            exit 1
+          fi
+          echo "Build env OK"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('apps/courier_mobile/pubspec.yaml') }}
+
+      - name: Create Android platform project
+        run: flutter create . --org com.foodapp --project-name courier_mobile --platforms=android
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build release APK
+        run: |
+          flutter build apk --release \
+            --dart-define=API_BASE_URL="${API_BASE_URL}" \
+            --dart-define=WS_BASE_URL="${WS_BASE_URL}"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foodapp-courier-apk
+          path: apps/courier_mobile/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
