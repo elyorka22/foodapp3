@@ -71,7 +71,7 @@ export function DeliveryLocation({ value, onChange, onError }: Props) {
           ? uz.detectingLocation
           : locationSent
             ? uz.locationSent
-            : uz.sendLocation}
+            : uz.calculateDeliveryPrice}
       </button>
     </div>
   );

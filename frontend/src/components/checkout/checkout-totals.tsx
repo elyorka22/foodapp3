@@ -9,6 +9,7 @@ type Props = {
   promoDiscount?: number;
   deliveryLoading?: boolean;
   deliveryError?: string | null;
+  showDeliveryHint?: boolean;
 };
 
 export function CheckoutTotals({
@@ -17,6 +18,7 @@ export function CheckoutTotals({
   promoDiscount = 0,
   deliveryLoading,
   deliveryError,
+  showDeliveryHint = false,
 }: Props) {
   const netSubtotal = Math.max(0, subtotal - promoDiscount);
   const total =
@@ -48,6 +50,9 @@ export function CheckoutTotals({
       </p>
       {deliveryError && (
         <p className="text-xs text-red-500">{deliveryError}</p>
+      )}
+      {showDeliveryHint && deliveryFee == null && !deliveryLoading && (
+        <p className="text-xs text-amber-700 dark:text-amber-400">{uz.deliveryPriceRequired}</p>
       )}
       {total != null && (
         <p className="flex justify-between border-t border-zinc-200 pt-2 text-base font-bold dark:border-white/10">

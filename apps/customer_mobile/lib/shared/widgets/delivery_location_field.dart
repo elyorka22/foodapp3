@@ -61,7 +61,7 @@ class DeliveryLocationField extends StatelessWidget {
                         ? AppStrings.detectingLocation
                         : locationSent
                             ? AppStrings.locationSent
-                            : AppStrings.sendLocation,
+                            : AppStrings.calculateDeliveryPrice,
                     style: AppTypography.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                       color: locationSent

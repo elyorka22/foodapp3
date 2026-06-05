@@ -12,17 +12,20 @@ final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
 class DeliveryQuoteModel {
   const DeliveryQuoteModel({
     required this.distanceKm,
+    required this.billableDistanceKm,
     required this.deliveryFee,
     required this.pricePerKm,
   });
 
   final num distanceKm;
+  final num billableDistanceKm;
   final num deliveryFee;
   final num pricePerKm;
 
   factory DeliveryQuoteModel.fromJson(Map<String, dynamic> json) {
     return DeliveryQuoteModel(
       distanceKm: json['distanceKm'] as num,
+      billableDistanceKm: (json['billableDistanceKm'] ?? json['distanceKm']) as num,
       deliveryFee: json['deliveryFee'] as num,
       pricePerKm: json['pricePerKm'] as num,
     );

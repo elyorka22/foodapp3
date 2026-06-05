@@ -8,6 +8,7 @@ export type DeliveryPricing = {
   baseFee: number;
   pricePerKm: number;
   minDeliveryFee: number;
+  roadDistanceFactor: number;
   courierPricePerKm: number;
   courierMinFee: number;
 };
@@ -37,6 +38,7 @@ export function useDeliveryPricing() {
 
 export type DeliveryQuote = {
   distanceKm: number;
+  billableDistanceKm: number;
   deliveryFee: number;
   pricePerKm: number;
   restaurantLatitude: number;

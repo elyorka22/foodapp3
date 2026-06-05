@@ -12,6 +12,8 @@ export interface DeliveryPricing {
   baseFee: number;
   pricePerKm: number;
   minDeliveryFee: number;
+  /** Multiplier on straight-line km to approximate road distance (default 1.35). */
+  roadDistanceFactor: number;
   courierPricePerKm: number;
   courierMinFee: number;
 }
@@ -45,6 +47,7 @@ const DEFAULT_PRICING: DeliveryPricing = {
   baseFee: 0,
   pricePerKm: 3000,
   minDeliveryFee: 0,
+  roadDistanceFactor: 1.35,
   courierPricePerKm: 1500,
   courierMinFee: 5000,
 };

@@ -20,6 +20,7 @@ import {
   type DeliveryLocationValue,
 } from '@/components/checkout/delivery-location';
 import { CheckoutTotals } from '@/components/checkout/checkout-totals';
+import { DeliveryQuoteBanner } from '@/components/checkout/delivery-quote-banner';
 import { fetchDeliveryQuote } from '@/hooks/use-delivery-pricing';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
@@ -45,6 +46,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
+  const [billableDistanceKm, setBillableDistanceKm] = useState<number | null>(null);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
 
@@ -65,6 +67,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!restaurantId || !isValidCoords(deliveryLocation.lat, deliveryLocation.lng)) {
       setDeliveryFee(null);
+      setBillableDistanceKm(null);
       setDeliveryError(null);
       return;
     }
@@ -79,11 +82,15 @@ export default function CheckoutPage() {
       longitude: deliveryLocation.lng!,
     })
       .then((quote) => {
-        if (!cancelled) setDeliveryFee(quote.deliveryFee);
+        if (!cancelled) {
+          setDeliveryFee(quote.deliveryFee);
+          setBillableDistanceKm(quote.billableDistanceKm);
+        }
       })
       .catch((err) => {
         if (!cancelled) {
           setDeliveryFee(null);
+          setBillableDistanceKm(null);
           setDeliveryError(err instanceof Error ? err.message : uz.orderFailed);
         }
       })
@@ -138,6 +145,10 @@ export default function CheckoutPage() {
       setError(locationError);
       return;
     }
+    if (deliveryFee == null || deliveryLoading || deliveryError) {
+      setError(uz.deliveryPriceRequired);
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -174,6 +185,16 @@ export default function CheckoutPage() {
     }
   };
 
+  const locationReady = isValidCoords(deliveryLocation.lat, deliveryLocation.lng);
+  const canPlaceOrder =
+    !loading &&
+    !deliveryLoading &&
+    deliveryFee != null &&
+    !deliveryError &&
+    phone.trim().length > 0 &&
+    deliveryLocation.address.trim().length > 0 &&
+    locationReady;
+
   if (!items.length) {
     return (
       <main className={mainClass}>
@@ -202,14 +223,6 @@ export default function CheckoutPage() {
           </li>
         ))}
       </ul>
-      <CheckoutTotals
-        subtotal={total()}
-        deliveryFee={deliveryFee}
-        promoDiscount={promoDiscount}
-        deliveryLoading={deliveryLoading}
-        deliveryError={deliveryError}
-      />
-
       <div className="mt-4 flex gap-2">
         <Input
           placeholder={uz.promoCode}
@@ -230,10 +243,29 @@ export default function CheckoutPage() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
+        {!locationReady && (
+          <p className="text-sm text-amber-700 dark:text-amber-400">{uz.deliveryPriceHint}</p>
+        )}
         <DeliveryLocation
           value={deliveryLocation}
           onChange={setDeliveryLocation}
           onError={setError}
+        />
+        {locationReady && (
+          <DeliveryQuoteBanner
+            loading={deliveryLoading}
+            error={deliveryError}
+            billableDistanceKm={billableDistanceKm}
+            deliveryFee={deliveryFee}
+          />
+        )}
+        <CheckoutTotals
+          subtotal={total()}
+          deliveryFee={deliveryFee}
+          promoDiscount={promoDiscount}
+          deliveryLoading={deliveryLoading}
+          deliveryError={deliveryError}
+          showDeliveryHint={!locationReady}
         />
         <textarea
           placeholder={uz.commentOptional}
@@ -243,7 +275,10 @@ export default function CheckoutPage() {
           className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3"
         />
         {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" size="lg" disabled={loading} className="w-full">
+        {!canPlaceOrder && !loading && (
+          <p className="text-xs text-zinc-500">{uz.deliveryPriceRequired}</p>
+        )}
+        <Button type="submit" size="lg" disabled={!canPlaceOrder} className="w-full">
           {loading ? uz.placingOrder : uz.placeOrder}
         </Button>
       </form>

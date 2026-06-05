@@ -49,7 +49,15 @@ abstract final class AppStrings {
   static const orderTotal = 'Jami';
   static const locationRequiredShort = 'Joylashuv kerak';
   static const sendLocation = 'Joylashuvni yuborish';
-  static const locationSent = 'Joylashuv qabul qilindi';
+  static const calculateDeliveryPrice = 'Yetkazish narxini hisoblash';
+  static const deliveryPriceHint =
+      'Yetkazish narxini bilish uchun manzilni kiriting va quyidagi tugmani bosing.';
+  static const deliveryCalculating = 'Yetkazish narxi hisoblanmoqda...';
+  static const deliveryPriceCalculated = 'Yetkazish narxi hisoblandi';
+  static const deliveryPriceRequired =
+      'Buyurtma berishdan oldin yetkazish narxini hisoblang (joylashuvni yuboring).';
+  static String distanceKm(num km) => 'Masofa: $km km';
+  static const locationSent = 'Joylashuv qabul qilindi — narx hisoblanmoqda';
   static const detectingLocation = 'Aniqlanmoqda...';
   static const deliveryAddressRequired = 'Yetkazish manzilini kiriting.';
   static const locationRequired =

@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { SettingsService } from '../../modules/settings/settings.service';
 import { Coordinates, defaultDistanceCalculator } from './distance-calculator';
-import { calculateCustomerDeliveryFee } from './delivery-fee.calculator';
+import {
+  calculateBillableDistanceKm,
+  calculateCustomerDeliveryFee,
+} from './delivery-fee.calculator';
 
 export type DeliveryQuote = {
   distanceKm: number;
+  billableDistanceKm: number;
   deliveryFee: number;
   pricePerKm: number;
   restaurantLatitude: number;
@@ -26,10 +30,17 @@ export class DeliveryPricingService {
       params.restaurant,
       params.customer,
     );
-    const deliveryFee = calculateCustomerDeliveryFee(distanceKm, pricing.pricePerKm);
+    const roadFactor = pricing.roadDistanceFactor ?? 1.35;
+    const billableDistanceKm = calculateBillableDistanceKm(distanceKm, roadFactor);
+    const deliveryFee = calculateCustomerDeliveryFee(distanceKm, pricing.pricePerKm, {
+      roadDistanceFactor: roadFactor,
+      minDeliveryFee: pricing.minDeliveryFee,
+      baseFee: pricing.baseFee,
+    });
 
     return {
       distanceKm,
+      billableDistanceKm,
       deliveryFee,
       pricePerKm: pricing.pricePerKm,
       restaurantLatitude: params.restaurant.latitude,

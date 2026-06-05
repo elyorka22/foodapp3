@@ -9,8 +9,9 @@ Stored in the `settings` table under key `delivery_pricing` (group: `delivery`).
 | Field | Purpose |
 |-------|---------|
 | `pricePerKm` | **Customer** base price per kilometer (UZS). Admin UI: *Base price per kilometer*. Default: **3000**. |
-| `baseFee` | Legacy field; customer formula uses **0** (distance-only pricing). |
-| `minDeliveryFee` | Legacy field; customer formula uses **0**. |
+| `roadDistanceFactor` | Multiplier on straight-line km to approximate road distance. Default: **1.35** (+35%). |
+| `baseFee` | Optional flat fee added before rounding. Default: **0**. |
+| `minDeliveryFee` | Minimum customer delivery fee after rounding. Default: **0**. |
 | `courierPricePerKm` | Courier payout calculation (separate from customer fee). |
 | `courierMinFee` | Minimum courier fee. |
 
@@ -41,10 +42,11 @@ Without valid coordinates, checkout cannot complete and delivery fee is not show
 **Current:** `HaversineDistanceCalculator` in `backend/src/domain/delivery/distance-calculator.ts`.
 
 ```
-distanceKm = haversine(restaurantLat, restaurantLng, customerLat, customerLng)
+straightLineKm = haversine(restaurantLat, restaurantLng, customerLat, customerLng)
+billableDistanceKm = straightLineKm × roadDistanceFactor
 ```
 
-Rounded to 2 decimal places in the utility.
+Straight-line km is stored on the order as `distance_km`. Customer fee uses `billableDistanceKm` (shown in checkout UI).
 
 **Future:** Implement `DistanceCalculator` with OSRM, Google Directions, or Yandex Routing and inject it into `DeliveryPricingService` — checkout and order creation stay unchanged.
 
@@ -53,11 +55,11 @@ Rounded to 2 decimal places in the utility.
 `backend/src/domain/delivery/delivery-fee.calculator.ts`:
 
 ```
-rawFee = distanceKm × pricePerKm
-deliveryFee = roundToNearest500(rawFee)
+rawFee = baseFee + billableDistanceKm × pricePerKm
+deliveryFee = max(minDeliveryFee, roundToNearest500(rawFee))
 ```
 
-Example: 4.3 km × 3000 = 12 900 → **13 000 UZS**.
+Example: 3.2 km straight × 1.35 = 4.32 billable km; 4.32 × 3000 = 12 960 → **13 000 UZS**.
 
 ## APIs
 
@@ -81,13 +83,17 @@ Also stored on `guest_orders` and `addresses` for delivery workflow.
 
 ## Checkout UI
 
+Flow:
+
+1. Customer enters address and taps **Yetkazish narxini hisoblash** (send GPS).
+2. App calls `POST /orders/delivery-quote` and shows distance + delivery fee in a green banner.
+3. **Place order** stays disabled until the quote succeeds.
+
 Web and mobile show:
 
 - Products (subtotal)
 - Delivery (computed amount)
 - Total (subtotal − promo + delivery)
-
-Delivery line updates when GPS coordinates change (`POST /orders/delivery-quote`).
 
 ## Admin order view
 

@@ -36,6 +36,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   double? _lng;
   bool _sendingLocation = false;
   num? _deliveryFee;
+  num? _billableDistanceKm;
   bool _deliveryLoading = false;
   String? _deliveryError;
   num _promoDiscount = 0;
@@ -54,6 +55,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   bool get _locationSent => _lat != null && _lng != null;
+
+  bool get _canPlaceOrder =>
+      !_loading &&
+      !_deliveryLoading &&
+      _deliveryFee != null &&
+      _deliveryError == null &&
+      _phone.text.trim().isNotEmpty &&
+      _address.text.trim().isNotEmpty &&
+      _locationSent;
 
   Future<void> _sendLocation() async {
     setState(() {
@@ -84,6 +94,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (businessId == null || _lat == null || _lng == null) {
       setState(() {
         _deliveryFee = null;
+        _billableDistanceKm = null;
         _deliveryError = null;
         _deliveryLoading = false;
       });
@@ -104,6 +115,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() {
         _deliveryFee = quote.deliveryFee;
+        _billableDistanceKm = quote.billableDistanceKm;
         _deliveryLoading = false;
       });
     } on DioException catch (e) {
@@ -112,6 +124,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() {
         _deliveryFee = null;
+        _billableDistanceKm = null;
         _deliveryError = msg ?? AppStrings.orderFailed;
         _deliveryLoading = false;
       });
@@ -119,6 +132,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() {
         _deliveryFee = null;
+        _billableDistanceKm = null;
         _deliveryError = AppStrings.orderFailed;
         _deliveryLoading = false;
       });
@@ -171,6 +185,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
     if (locationError != null) {
       setState(() => _error = locationError);
+      return;
+    }
+    if (_deliveryFee == null || _deliveryLoading || _deliveryError != null) {
+      setState(() => _error = AppStrings.deliveryPriceRequired);
       return;
     }
 
@@ -281,14 +299,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          _CheckoutTotals(
-            subtotal: total,
-            promoDiscount: _promoDiscount,
-            deliveryFee: _deliveryFee,
-            deliveryLoading: _deliveryLoading,
-            deliveryError: _deliveryError,
-          ),
           const SizedBox(height: AppSpacing.lg),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,12 +337,37 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             placeholder: AppStrings.phonePlaceholder,
             keyboardType: TextInputType.phone,
           ),
+          if (!_locationSent) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              AppStrings.deliveryPriceHint,
+              style: AppTypography.bodySmall.copyWith(color: const Color(0xFFB45309)),
+            ),
+          ],
           const SizedBox(height: AppSpacing.lg),
           DeliveryLocationField(
             addressController: _address,
             locationSent: _locationSent,
             sending: _sendingLocation,
             onSendLocation: _sendLocation,
+          ),
+          if (_locationSent) ...[
+            const SizedBox(height: AppSpacing.md),
+            _DeliveryQuoteBanner(
+              loading: _deliveryLoading,
+              error: _deliveryError,
+              billableDistanceKm: _billableDistanceKm,
+              deliveryFee: _deliveryFee,
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          _CheckoutTotals(
+            subtotal: total,
+            promoDiscount: _promoDiscount,
+            deliveryFee: _deliveryFee,
+            deliveryLoading: _deliveryLoading,
+            deliveryError: _deliveryError,
+            showDeliveryHint: !_locationSent,
           ),
           const SizedBox(height: AppSpacing.lg),
           CustomerTextField(
@@ -347,11 +382,97 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
             ),
           ],
+          if (!_canPlaceOrder && !_loading) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              AppStrings.deliveryPriceRequired,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+            ),
+          ],
           const SizedBox(height: AppSpacing.xxl),
           FoodAppButton(
             label: _loading ? AppStrings.placingOrder : AppStrings.placeOrder,
             isLoading: _loading,
-            onPressed: _loading ? null : () => _submit(cart, user?.id),
+            onPressed: _canPlaceOrder ? () => _submit(cart, user?.id) : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DeliveryQuoteBanner extends StatelessWidget {
+  const _DeliveryQuoteBanner({
+    required this.loading,
+    required this.error,
+    required this.billableDistanceKm,
+    required this.deliveryFee,
+  });
+
+  final bool loading;
+  final String? error;
+  final num? billableDistanceKm;
+  final num? deliveryFee;
+
+  @override
+  Widget build(BuildContext context) {
+    if (error != null) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFECACA)),
+        ),
+        child: Text(error!, style: AppTypography.bodySmall.copyWith(color: AppColors.danger)),
+      );
+    }
+    if (loading) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+        ),
+        child: Text(
+          AppStrings.deliveryCalculating,
+          textAlign: TextAlign.center,
+          style: AppTypography.bodySmall.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.primary,
+          ),
+        ),
+      );
+    }
+    if (deliveryFee == null || billableDistanceKm == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFBBF7D0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.deliveryPriceCalculated,
+            style: AppTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF166534),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            AppStrings.distanceKm(billableDistanceKm!),
+            style: AppTypography.bodySmall.copyWith(color: const Color(0xFF166534)),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${AppStrings.deliveryLabel}: ${formatSum(deliveryFee)}',
+            style: AppTypography.subtitle.copyWith(color: const Color(0xFF166534)),
           ),
         ],
       ),
@@ -366,6 +487,7 @@ class _CheckoutTotals extends StatelessWidget {
     required this.deliveryFee,
     required this.deliveryLoading,
     required this.deliveryError,
+    this.showDeliveryHint = false,
   });
 
   final num subtotal;
@@ -373,6 +495,7 @@ class _CheckoutTotals extends StatelessWidget {
   final num? deliveryFee;
   final bool deliveryLoading;
   final String? deliveryError;
+  final bool showDeliveryHint;
 
   @override
   Widget build(BuildContext context) {
@@ -419,6 +542,13 @@ class _CheckoutTotals extends StatelessWidget {
         if (deliveryError != null) ...[
           const SizedBox(height: 4),
           Text(deliveryError!, style: AppTypography.bodySmall.copyWith(color: AppColors.danger)),
+        ],
+        if (showDeliveryHint && deliveryFee == null && !deliveryLoading) ...[
+          const SizedBox(height: 4),
+          Text(
+            AppStrings.deliveryPriceRequired,
+            style: AppTypography.bodySmall.copyWith(color: const Color(0xFFB45309)),
+          ),
         ],
         if (total != null) ...[
           const SizedBox(height: AppSpacing.sm),

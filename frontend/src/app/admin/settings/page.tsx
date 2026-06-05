@@ -16,13 +16,19 @@ function AdminSettingsContent() {
   const { pricing, save: savePricing } = useDeliveryPricing();
   const [form, setForm] = useState<AdminSettings | null>(null);
   const [pricePerKm, setPricePerKm] = useState(3000);
+  const [minDeliveryFee, setMinDeliveryFee] = useState(0);
+  const [roadDistanceFactor, setRoadDistanceFactor] = useState(1.35);
 
   useEffect(() => {
     if (settings.data) setForm(settings.data);
   }, [settings.data]);
 
   useEffect(() => {
-    if (pricing.data) setPricePerKm(pricing.data.pricePerKm);
+    if (pricing.data) {
+      setPricePerKm(pricing.data.pricePerKm);
+      setMinDeliveryFee(pricing.data.minDeliveryFee ?? 0);
+      setRoadDistanceFactor(pricing.data.roadDistanceFactor ?? 1.35);
+    }
   }, [pricing.data]);
 
   const submit = async () => {
@@ -33,8 +39,9 @@ function AdminSettingsContent() {
         savePricing.mutateAsync({
           ...(pricing.data ?? {}),
           pricePerKm,
+          minDeliveryFee,
+          roadDistanceFactor,
           baseFee: 0,
-          minDeliveryFee: 0,
         }),
       ]);
       toast.success('Settings saved');
@@ -104,13 +111,36 @@ function AdminSettingsContent() {
       <Section title="Delivery">
         <div className="sm:col-span-2">
           <label className="mb-1 block text-xs text-zinc-500">
-            Base price per kilometer (UZS) — delivery_fee = distance_km × this value, rounded to 500
+            Base price per kilometer (UZS) — billable_km × this value, rounded to 500
           </label>
           <Input
             type="number"
             placeholder="3000"
             value={pricePerKm}
             onChange={(e) => setPricePerKm(Number(e.target.value))}
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs text-zinc-500">
+            Road distance factor (1.35 = +35% on straight-line km)
+          </label>
+          <Input
+            type="number"
+            step="0.01"
+            placeholder="1.35"
+            value={roadDistanceFactor}
+            onChange={(e) => setRoadDistanceFactor(Number(e.target.value))}
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs text-zinc-500">
+            Minimum delivery fee (UZS)
+          </label>
+          <Input
+            type="number"
+            placeholder="0"
+            value={minDeliveryFee}
+            onChange={(e) => setMinDeliveryFee(Number(e.target.value))}
           />
         </div>
         <Input

@@ -38,7 +38,14 @@ export const uz = {
   phone: 'Telefon (+998901234567)',
   deliveryAddress: 'Yetkazish manzili',
   sendLocation: 'Joylashuvni yuborish',
-  locationSent: 'Joylashuv qabul qilindi',
+  calculateDeliveryPrice: 'Yetkazish narxini hisoblash',
+  deliveryPriceHint:
+    'Yetkazish narxini bilish uchun manzilni kiriting va quyidagi tugmani bosing.',
+  deliveryCalculating: 'Yetkazish narxi hisoblanmoqda...',
+  deliveryPriceCalculated: 'Yetkazish narxi hisoblandi',
+  deliveryPriceRequired:
+    'Buyurtma berishdan oldin yetkazish narxini hisoblang (joylashuvni yuboring).',
+  locationSent: 'Joylashuv qabul qilindi — narx hisoblanmoqda',
   detectingLocation: 'Aniqlanmoqda...',
   deliveryAddressRequired: 'Yetkazish manzilini kiriting.',
   locationRequired: 'Yetkazish uchun «Joylashuvni yuborish» tugmasini bosing.',
