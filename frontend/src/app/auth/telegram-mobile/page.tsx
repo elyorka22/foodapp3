@@ -21,11 +21,11 @@ export default function TelegramMobileAuthPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f7f8fa] p-6">
+    <main className="flex h-[100dvh] items-center justify-center overflow-hidden bg-[#f7f8fa]">
       {botUsername ? (
         <TelegramLoginButton botUsername={botUsername} onAuth={handleAuth} />
       ) : (
-        <p className="text-center text-sm text-foreground-muted">{uz.telegramNotConfigured}</p>
+        <p className="px-6 text-center text-sm text-foreground-muted">{uz.telegramNotConfigured}</p>
       )}
     </main>
   );

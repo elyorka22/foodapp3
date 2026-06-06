@@ -9,17 +9,27 @@ class MainShellScreen extends ConsumerWidget {
 
   final StatefulNavigationShell navigationShell;
 
+  static const _authSubRoutes = ['/profile/telegram', '/profile/login', '/profile/register'];
+
+  bool _hideBottomNav(BuildContext context) {
+    final path = GoRouterState.of(context).uri.path;
+    return _authSubRoutes.contains(path);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartProvider.select((c) => c.fold(0, (s, i) => s + i.quantity)));
+    final hideBottomNav = _hideBottomNav(context);
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: FoodAppBottomNav(
-        currentIndex: navigationShell.currentIndex,
-        onTap: navigationShell.goBranch,
-        cartCount: cartCount,
-      ),
+      bottomNavigationBar: hideBottomNav
+          ? null
+          : FoodAppBottomNav(
+              currentIndex: navigationShell.currentIndex,
+              onTap: navigationShell.goBranch,
+              cartCount: cartCount,
+            ),
     );
   }
 }

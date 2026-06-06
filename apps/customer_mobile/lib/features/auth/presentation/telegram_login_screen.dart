@@ -97,7 +97,11 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
             )
           : Stack(
               children: [
-                if (_controller != null) WebViewWidget(controller: _controller!),
+                if (_controller != null)
+                  SafeArea(
+                    top: false,
+                    child: WebViewWidget(controller: _controller!),
+                  ),
                 if (_loading) const Center(child: CircularProgressIndicator()),
               ],
             ),
