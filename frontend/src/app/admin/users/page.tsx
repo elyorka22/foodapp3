@@ -18,6 +18,7 @@ import { ActiveBadge } from '@/components/admin/active-badge';
 import { EmptyState, LoadingState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { adminI18n as t } from '@/lib/admin-i18n';
 
 const ALL_ROLES: { value: StaffRole; label: string }[] = [
@@ -281,8 +282,7 @@ export default function AdminUsersPage() {
             value={form.phone ?? ''}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
           />
-          <Input
-            type="password"
+          <PasswordInput
             placeholder="Parol (kamida 6)"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -359,8 +359,7 @@ export default function AdminUsersPage() {
                 </code>
               </p>
             )}
-            <Input
-              type="password"
+            <PasswordInput
               placeholder={t.staff.newPassword}
               value={editPassword}
               onChange={(e) => setEditPassword(e.target.value)}

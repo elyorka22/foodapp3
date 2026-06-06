@@ -40,6 +40,7 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
+        hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -78,6 +79,7 @@ abstract final class AppTheme {
       textTheme: TextTheme(
         titleLarge: AppTypography.title,
         titleMedium: AppTypography.subtitle,
+        bodyLarge: AppTypography.body,
         bodyMedium: AppTypography.body,
         bodySmall: AppTypography.bodySmall,
         labelLarge: AppTypography.subtitle,

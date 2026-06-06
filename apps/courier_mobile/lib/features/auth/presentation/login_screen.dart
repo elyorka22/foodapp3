@@ -6,6 +6,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../../shared/widgets/password_text_field.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -50,10 +51,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              TextField(
+              PasswordTextField(
                 controller: _password,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: AppStrings.password),
+                labelText: AppStrings.password,
               ),
               const SizedBox(height: AppSpacing.xxl),
               FoodAppButton(label: AppStrings.login, isLoading: _loading, onPressed: _submit),

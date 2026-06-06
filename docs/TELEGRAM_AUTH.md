@@ -113,6 +113,21 @@ Staff auth is separate: `POST /auth/login` (users table).
 
 - `lib/customer-auth.ts` — `signInWithTelegram(payload)` (API only)
 - `TelegramLoginButton` — widget loader only; calls `signInWithTelegram` from the login page
+- `/auth/telegram-mobile` — page for the customer mobile app WebView (must be on the BotFather domain)
+
+## Mobile app Telegram login
+
+The Telegram Login Widget only works on domains registered in @BotFather (`/setdomain`).
+
+Do **not** load the widget via `loadHtmlString` in WebView — Telegram shows **Bot domain invalid** because the origin is `about:blank`.
+
+The Flutter app opens `https://<your-domain>/auth/telegram-mobile` (derived from `API_BASE_URL` by stripping `/api/v1`). After auth, the page posts the signed payload to the app via `FoodAppTelegram` JavaScript channel.
+
+**BotFather checklist:**
+
+1. `/setdomain` → your production domain (e.g. `foodapp.uz`)
+2. Bot username matches `TELEGRAM_BOT_USERNAME` / `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` (without `@`)
+3. Backend `TELEGRAM_BOT_TOKEN` matches the same bot
 
 ## Migration
 

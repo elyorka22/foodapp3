@@ -12,7 +12,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/auth_model.dart';
 import '../providers/auth_provider.dart';
 
-/// Production Telegram Login via WebView widget (same HMAC contract as web).
+/// Telegram Login Widget loaded from the registered web domain (not inline HTML).
 class TelegramLoginScreen extends ConsumerStatefulWidget {
   const TelegramLoginScreen({super.key});
 
@@ -21,7 +21,7 @@ class TelegramLoginScreen extends ConsumerStatefulWidget {
 }
 
 class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   bool _loading = true;
   String? _error;
 
@@ -35,7 +35,13 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
       return;
     }
 
-    final html = _buildWidgetHtml(bot);
+    final widgetUrl = AppConfig.telegramLoginWidgetUrl;
+    if (widgetUrl.host.isEmpty) {
+      _error = 'WEB ilova manzili aniqlanmadi (API_BASE_URL tekshiring)';
+      _loading = false;
+      return;
+    }
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
@@ -47,35 +53,9 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
           if (mounted) setState(() => _loading = false);
         }),
       )
-      ..loadHtmlString(html);
+      ..loadRequest(widgetUrl);
 
     _loading = true;
-  }
-
-  String _buildWidgetHtml(String botUsername) {
-    return '''
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f7f8fa; font-family: sans-serif; }
-  </style>
-  <script>
-    function onTelegramAuth(user) {
-      FoodAppTelegram.postMessage(JSON.stringify(user));
-    }
-  </script>
-</head>
-<body>
-  <script async src="https://telegram.org/js/telegram-widget.js?22"
-    data-telegram-login="$botUsername"
-    data-size="large"
-    data-onauth="onTelegramAuth(user)"
-    data-request-access="write"></script>
-</body>
-</html>
-''';
   }
 
   Future<void> _onTelegramPayload(String jsonStr) async {
@@ -117,7 +97,7 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
             )
           : Stack(
               children: [
-                WebViewWidget(controller: _controller),
+                if (_controller != null) WebViewWidget(controller: _controller!),
                 if (_loading) const Center(child: CircularProgressIndicator()),
               ],
             ),

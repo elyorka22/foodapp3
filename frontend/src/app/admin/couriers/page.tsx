@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/admin/ui';
 import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 
 const emptyForm: CourierForm & { password: string } = {
   fullName: '',
@@ -106,8 +107,7 @@ export default function AdminCouriersPage() {
       <Input placeholder="Email" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
       <Input placeholder="Vehicle type" value={form.vehicleType ?? ''} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} />
       {createOpen && (
-        <Input
-          type="password"
+        <PasswordInput
           placeholder="Password"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}

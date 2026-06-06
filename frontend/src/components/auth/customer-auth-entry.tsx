@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import {
   persistCustomerSession,
   signInWithPhone,
@@ -119,9 +120,8 @@ export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
           <label htmlFor="customer-password-login" className="mb-2 block text-sm font-medium text-foreground">
             {uz.password}
           </label>
-          <Input
+          <PasswordInput
             id="customer-password-login"
-            type="password"
             autoComplete="current-password"
             placeholder="••••••••"
             value={password}

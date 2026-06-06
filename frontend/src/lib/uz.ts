@@ -211,6 +211,8 @@ export const uz = {
   loginWithPhone: 'Telefon raqam orqali kirish',
   loginWithPhonePassword: 'Telefon va parol orqali kirish',
   password: 'Parol',
+  showPassword: "Parolni ko'rsatish",
+  hidePassword: "Parolni yashirish",
   confirmPassword: 'Parolni tasdiqlang',
   passwordMismatch: 'Parollar mos kelmaydi',
   passwordTooShort: 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak',

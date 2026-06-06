@@ -38,11 +38,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           children: [
-            FoodAppInput(label: AppStrings.fullName, controller: _name),
+            FoodAppInput(
+              label: AppStrings.fullName,
+              controller: _name,
+              hint: AppStrings.fullName,
+            ),
             const SizedBox(height: AppSpacing.md),
-            FoodAppInput(label: AppStrings.phone, controller: _phone, keyboardType: TextInputType.phone),
+            FoodAppInput(
+              label: AppStrings.phone,
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              hint: AppStrings.phonePlaceholder,
+            ),
             const SizedBox(height: AppSpacing.md),
-            FoodAppInput(label: AppStrings.password, controller: _password, obscureText: true),
+            FoodAppInput(
+              label: AppStrings.password,
+              controller: _password,
+              obscureText: true,
+              hint: AppStrings.password,
+            ),
             const SizedBox(height: AppSpacing.xxl),
             FoodAppButton(
               label: AppStrings.register,

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import {
   persistCustomerSession,
   registerWithPhone,
@@ -97,9 +98,8 @@ export function CustomerRegisterForm({ onSuccess, onSwitchToLogin }: Props) {
           <label htmlFor="register-password" className="mb-2 block text-sm font-medium text-foreground">
             {uz.password}
           </label>
-          <Input
+          <PasswordInput
             id="register-password"
-            type="password"
             autoComplete="new-password"
             placeholder="••••••••"
             value={password}
@@ -111,9 +111,8 @@ export function CustomerRegisterForm({ onSuccess, onSwitchToLogin }: Props) {
           <label htmlFor="register-confirm-password" className="mb-2 block text-sm font-medium text-foreground">
             {uz.confirmPassword}
           </label>
-          <Input
+          <PasswordInput
             id="register-confirm-password"
-            type="password"
             autoComplete="new-password"
             placeholder="••••••••"
             value={confirmPassword}

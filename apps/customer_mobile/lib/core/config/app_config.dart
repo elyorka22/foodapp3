@@ -18,7 +18,21 @@ class AppConfig {
     defaultValue: '',
   );
 
-  static const String wsBaseUrl = String.fromEnvironment('WS_BASE_URL');
+  /// Public web origin for Telegram Login Widget (derived from API base).
+  static String get webAppBaseUrl {
+    var url = normalizedApiBaseUrl;
+    const suffix = '/api/v1';
+    if (url.toLowerCase().endsWith(suffix)) {
+      url = url.substring(0, url.length - suffix.length);
+    }
+    while (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+    return url;
+  }
+
+  static Uri get telegramLoginWidgetUrl =>
+      Uri.parse('$webAppBaseUrl/auth/telegram-mobile');
 
   /// Trimmed API base without trailing slash (used by Dio).
   static String get normalizedApiBaseUrl {
