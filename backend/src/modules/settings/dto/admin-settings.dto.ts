@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsEmail, IsInt, IsNumber, IsOptional, IsString, Max, Min, ValidateIf } from 'class-validator';
 
 export class AdminSettingsDto {
   @ApiPropertyOptional()
@@ -28,7 +28,7 @@ export class AdminSettingsDto {
   support_telegram?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
+  @ValidateIf((o: AdminSettingsDto) => o.support_email != null && String(o.support_email).trim() !== '')
   @IsEmail()
   support_email?: string;
 

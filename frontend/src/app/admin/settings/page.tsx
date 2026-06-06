@@ -17,6 +17,16 @@ function parseNumberInput(value: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/** Must be module-level — defining inside render remounts inputs on every keystroke. */
+function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+      <p className="mb-3 text-sm font-semibold">{title}</p>
+      <div className="grid gap-3 sm:grid-cols-2">{children}</div>
+    </div>
+  );
+}
+
 function NumericField({
   label,
   value,
@@ -36,7 +46,7 @@ function NumericField({
         inputMode="decimal"
         placeholder={placeholder}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value.replace(/[^\d.,]/g, ''))}
       />
     </div>
   );
@@ -51,54 +61,68 @@ function AdminSettingsContent() {
   const [maxDeliveryDistance, setMaxDeliveryDistance] = useState('');
   const [minOrderAmount, setMinOrderAmount] = useState('');
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState('');
-  const settingsHydrated = useRef(false);
-  const pricingHydrated = useRef(false);
+  const settingsLoaded = useRef(false);
+  const pricingLoaded = useRef(false);
 
   useEffect(() => {
-    if (!settings.data || settingsHydrated.current) return;
+    if (!settings.data || settingsLoaded.current) return;
     setForm(settings.data);
     setMinOrderAmount(String(settings.data.min_order_amount ?? ''));
     setFreeDeliveryThreshold(String(settings.data.free_delivery_threshold ?? ''));
-    settingsHydrated.current = true;
+    settingsLoaded.current = true;
   }, [settings.data]);
 
   useEffect(() => {
-    if (!pricing.data || pricingHydrated.current) return;
+    if (!pricing.data || pricingLoaded.current) return;
     setBaseDeliveryFee(String(pricing.data.baseDeliveryFee ?? 8000));
     setPerKmFee(String(pricing.data.perKmFee ?? 1500));
     setMaxDeliveryDistance(String(pricing.data.maxDeliveryDistance ?? 10));
-    pricingHydrated.current = true;
+    pricingLoaded.current = true;
   }, [pricing.data]);
 
   const submit = async () => {
     if (!form) return;
+
+    const settingsPayload: Partial<AdminSettings> = {
+      app_name: form.app_name,
+      home_title: form.home_title,
+      home_subtitle: form.home_subtitle,
+      support_phone: form.support_phone,
+      support_telegram: form.support_telegram,
+      min_order_amount: parseNumberInput(minOrderAmount),
+      free_delivery_threshold: parseNumberInput(freeDeliveryThreshold),
+    };
+    const email = form.support_email?.trim();
+    if (email) settingsPayload.support_email = email;
+
     const pricingPayload = {
       ...(pricing.data ?? {}),
       baseDeliveryFee: parseNumberInput(baseDeliveryFee),
       perKmFee: parseNumberInput(perKmFee),
       maxDeliveryDistance: parseNumberInput(maxDeliveryDistance),
     };
-    const settingsPayload: AdminSettings = {
-      ...form,
-      min_order_amount: parseNumberInput(minOrderAmount),
-      free_delivery_threshold: parseNumberInput(freeDeliveryThreshold),
-    };
 
     try {
-      const [savedSettings, savedPricing] = await Promise.all([
-        save.mutateAsync(settingsPayload),
-        savePricing.mutateAsync(pricingPayload),
-      ]);
+      const savedSettings = await save.mutateAsync(settingsPayload);
       setForm(savedSettings);
       setMinOrderAmount(String(savedSettings.min_order_amount ?? ''));
       setFreeDeliveryThreshold(String(savedSettings.free_delivery_threshold ?? ''));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to save settings');
+      return;
+    }
+
+    try {
+      const savedPricing = await savePricing.mutateAsync(pricingPayload);
       setBaseDeliveryFee(String(savedPricing.baseDeliveryFee));
       setPerKmFee(String(savedPricing.perKmFee));
       setMaxDeliveryDistance(String(savedPricing.maxDeliveryDistance));
-      toast.success('Settings saved');
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to save');
+      toast.error(e instanceof Error ? e.message : 'Failed to save delivery pricing');
+      return;
     }
+
+    toast.success('Settings saved');
   };
 
   if (settings.isLoading || pricing.isLoading || !form) {
@@ -114,13 +138,6 @@ function AdminSettingsContent() {
     );
   }
 
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-      <p className="mb-3 text-sm font-semibold">{title}</p>
-      <div className="grid gap-3 sm:grid-cols-2">{children}</div>
-    </div>
-  );
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -130,15 +147,15 @@ function AdminSettingsContent() {
         </Button>
       </div>
 
-      <Section title="General">
+      <SettingsSection title="General">
         <Input
           placeholder="App name"
           value={form.app_name}
           onChange={(e) => setForm({ ...form, app_name: e.target.value })}
         />
-      </Section>
+      </SettingsSection>
 
-      <Section title="Bosh sahifa">
+      <SettingsSection title="Bosh sahifa">
         <Input
           placeholder="Sarlavha (masalan: CHUST)"
           value={form.home_title ?? ''}
@@ -149,9 +166,9 @@ function AdminSettingsContent() {
           value={form.home_subtitle ?? ''}
           onChange={(e) => setForm({ ...form, home_subtitle: e.target.value })}
         />
-      </Section>
+      </SettingsSection>
 
-      <Section title="Delivery pricing">
+      <SettingsSection title="Delivery pricing">
         <NumericField
           label="Base delivery fee (UZS)"
           placeholder="8000"
@@ -185,9 +202,9 @@ function AdminSettingsContent() {
           value={freeDeliveryThreshold}
           onChange={setFreeDeliveryThreshold}
         />
-      </Section>
+      </SettingsSection>
 
-      <Section title="Support">
+      <SettingsSection title="Support">
         <Input
           placeholder="Support phone"
           value={form.support_phone}
@@ -203,7 +220,7 @@ function AdminSettingsContent() {
           value={form.support_email}
           onChange={(e) => setForm({ ...form, support_email: e.target.value })}
         />
-      </Section>
+      </SettingsSection>
     </div>
   );
 }
