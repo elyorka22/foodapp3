@@ -109,6 +109,36 @@ if 'com.google.gms.google-services' not in app:
     app_path.write_text(app)
     print('Patched app/build.gradle.kts: google-services plugin')
 
+# flutter_local_notifications requires core library desugaring (Gradle kts)
+if 'isCoreLibraryDesugaringEnabled' not in app:
+    if 'compileOptions {' in app:
+        app = app.replace(
+            'compileOptions {',
+            'compileOptions {\n        isCoreLibraryDesugaringEnabled = true',
+            1,
+        )
+        print('Patched app/build.gradle.kts: core library desugaring enabled')
+    else:
+        print('WARN: compileOptions block not found — desugaring not patched')
+
+if 'multiDexEnabled' not in app and 'defaultConfig {' in app:
+    app = app.replace(
+        'defaultConfig {',
+        'defaultConfig {\n        multiDexEnabled = true',
+        1,
+    )
+    print('Patched app/build.gradle.kts: multiDexEnabled')
+
+if 'coreLibraryDesugaring' not in app:
+    app = app.rstrip() + (
+        '\n\ndependencies {\n'
+        '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n'
+        '}\n'
+    )
+    print('Patched app/build.gradle.kts: desugar_jdk_libs dependency')
+
+app_path.write_text(app)
+
 manifest = manifest_path.read_text()
 required_perms = [
     'android.permission.POST_NOTIFICATIONS',
