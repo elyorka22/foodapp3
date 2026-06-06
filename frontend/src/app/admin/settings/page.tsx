@@ -9,11 +9,37 @@ import { LoadingState, EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-function parseNumberInput(value: string, fallback = 0): number {
-  const trimmed = value.trim();
-  if (!trimmed) return fallback;
+/** Parse numeric text field; empty string becomes 0. */
+function parseNumberInput(value: string): number {
+  const trimmed = value.trim().replace(',', '.');
+  if (!trimmed) return 0;
   const n = Number(trimmed);
-  return Number.isFinite(n) ? n : fallback;
+  return Number.isFinite(n) ? n : 0;
+}
+
+function NumericField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs text-zinc-500">{label}</label>
+      <Input
+        type="text"
+        inputMode="decimal"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
 }
 
 function AdminSettingsContent() {
@@ -46,20 +72,22 @@ function AdminSettingsContent() {
 
   const submit = async () => {
     if (!form) return;
+    const pricingPayload = {
+      ...(pricing.data ?? {}),
+      baseDeliveryFee: parseNumberInput(baseDeliveryFee),
+      perKmFee: parseNumberInput(perKmFee),
+      maxDeliveryDistance: parseNumberInput(maxDeliveryDistance),
+    };
+    const settingsPayload: AdminSettings = {
+      ...form,
+      min_order_amount: parseNumberInput(minOrderAmount),
+      free_delivery_threshold: parseNumberInput(freeDeliveryThreshold),
+    };
+
     try {
-      const payload: AdminSettings = {
-        ...form,
-        min_order_amount: parseNumberInput(minOrderAmount, form.min_order_amount),
-        free_delivery_threshold: parseNumberInput(freeDeliveryThreshold, form.free_delivery_threshold),
-      };
       const [savedSettings, savedPricing] = await Promise.all([
-        save.mutateAsync(payload),
-        savePricing.mutateAsync({
-          ...(pricing.data ?? {}),
-          baseDeliveryFee: parseNumberInput(baseDeliveryFee, 8000),
-          perKmFee: parseNumberInput(perKmFee, 1500),
-          maxDeliveryDistance: parseNumberInput(maxDeliveryDistance, 10),
-        }),
+        save.mutateAsync(settingsPayload),
+        savePricing.mutateAsync(pricingPayload),
       ]);
       setForm(savedSettings);
       setMinOrderAmount(String(savedSettings.min_order_amount ?? ''));
@@ -73,7 +101,7 @@ function AdminSettingsContent() {
     }
   };
 
-  if (settings.isLoading || !form) {
+  if (settings.isLoading || pricing.isLoading || !form) {
     return <LoadingState label="Loading settings..." />;
   }
 
@@ -97,8 +125,8 @@ function AdminSettingsContent() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-lg font-semibold">Settings</h1>
-        <Button type="button" onClick={submit} disabled={save.isPending}>
-          {save.isPending ? 'Saving...' : 'Save changes'}
+        <Button type="button" onClick={submit} disabled={save.isPending || savePricing.isPending}>
+          {save.isPending || savePricing.isPending ? 'Saving...' : 'Save changes'}
         </Button>
       </div>
 
@@ -124,59 +152,38 @@ function AdminSettingsContent() {
       </Section>
 
       <Section title="Delivery pricing">
-        <div>
-          <label className="mb-1 block text-xs text-zinc-500">
-            Base delivery fee (UZS)
-          </label>
-          <Input
-            type="number"
-            inputMode="numeric"
-            placeholder="8000"
-            value={baseDeliveryFee}
-            onChange={(e) => setBaseDeliveryFee(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-zinc-500">
-            Per km fee (UZS)
-          </label>
-          <Input
-            type="number"
-            inputMode="numeric"
-            placeholder="1500"
-            value={perKmFee}
-            onChange={(e) => setPerKmFee(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-zinc-500">
-            Max delivery distance (km)
-          </label>
-          <Input
-            type="number"
-            inputMode="decimal"
-            step="0.1"
-            placeholder="10"
-            value={maxDeliveryDistance}
-            onChange={(e) => setMaxDeliveryDistance(e.target.value)}
-          />
-        </div>
+        <NumericField
+          label="Base delivery fee (UZS)"
+          placeholder="8000"
+          value={baseDeliveryFee}
+          onChange={setBaseDeliveryFee}
+        />
+        <NumericField
+          label="Per km fee (UZS)"
+          placeholder="1500"
+          value={perKmFee}
+          onChange={setPerKmFee}
+        />
+        <NumericField
+          label="Max delivery distance (km)"
+          placeholder="10"
+          value={maxDeliveryDistance}
+          onChange={setMaxDeliveryDistance}
+        />
         <p className="sm:col-span-2 text-xs text-zinc-500">
           Formula: distance = Haversine × 1.3; fee = base + distance × perKm; rounded to nearest 500 UZS.
         </p>
-        <Input
-          type="number"
-          inputMode="numeric"
-          placeholder="Min order amount"
+        <NumericField
+          label="Min order amount (UZS)"
+          placeholder="30000"
           value={minOrderAmount}
-          onChange={(e) => setMinOrderAmount(e.target.value)}
+          onChange={setMinOrderAmount}
         />
-        <Input
-          type="number"
-          inputMode="numeric"
-          placeholder="Free delivery threshold"
+        <NumericField
+          label="Free delivery threshold (UZS)"
+          placeholder="100000"
           value={freeDeliveryThreshold}
-          onChange={(e) => setFreeDeliveryThreshold(e.target.value)}
+          onChange={setFreeDeliveryThreshold}
         />
       </Section>
 

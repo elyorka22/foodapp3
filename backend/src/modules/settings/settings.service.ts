@@ -93,11 +93,12 @@ export class SettingsService {
   }
 
   async setDeliveryPricing(data: DeliveryPricing) {
-    return this.prisma.setting.upsert({
+    await this.prisma.setting.upsert({
       where: { key: 'delivery_pricing' },
       create: { key: 'delivery_pricing', value: data as object, group: 'delivery' },
       update: { value: data as object },
     });
+    return this.getDeliveryPricing();
   }
 
   async getPublicSettings(): Promise<PublicSettings> {

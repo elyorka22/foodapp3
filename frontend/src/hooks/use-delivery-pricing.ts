@@ -29,7 +29,9 @@ export function useDeliveryPricing() {
         token: token ?? undefined,
         body: JSON.stringify(body),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['delivery-pricing'] }),
+    onSuccess: (data) => {
+      qc.setQueryData(['delivery-pricing'], data);
+    },
   });
 
   return { pricing, save };
