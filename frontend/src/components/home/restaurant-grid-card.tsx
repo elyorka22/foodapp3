@@ -36,7 +36,6 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   const href = restaurantPublicPath(restaurant);
   const delivery = restaurantDeliveryLabel(restaurant);
   const categories = restaurantCategoryLabel(restaurant);
-  const showGalleryDots = Boolean(restaurant.coverUrl && restaurant.logoUrl);
 
   return (
     <Link href={href} className="block transition active:scale-[0.99]">
@@ -64,7 +63,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
 
         <button
           type="button"
-          className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-zinc-800 shadow-sm"
+          className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]"
           aria-label={uz.favoritesAria}
           onClick={(e) => {
             e.preventDefault();
@@ -73,17 +72,6 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
         >
           <Bookmark size={17} strokeWidth={2} />
         </button>
-
-        {showGalleryDots ? (
-          <span
-            className="absolute bottom-2 right-2 flex items-center gap-0.5 rounded-full bg-black/45 px-2 py-1"
-            aria-hidden
-          >
-            <span className="h-1 w-1 rounded-full bg-white" />
-            <span className="h-1 w-1 rounded-full bg-white/50" />
-            <span className="h-1 w-1 rounded-full bg-white/50" />
-          </span>
-        ) : null}
       </div>
 
       <div className="mt-1.5">

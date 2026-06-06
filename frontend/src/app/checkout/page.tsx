@@ -37,7 +37,6 @@ export default function CheckoutPage() {
     lat: null,
     lng: null,
   });
-  const [comment, setComment] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoMessage, setPromoMessage] = useState('');
@@ -56,11 +55,6 @@ export default function CheckoutPage() {
     }
     const c = getCustomer();
     if (c?.phone) setPhone(c.phone);
-    if (c?.defaultDeliveryAddress) {
-      setDeliveryLocation((prev) =>
-        prev.address ? prev : { ...prev, address: c.defaultDeliveryAddress! },
-      );
-    }
   }, [router]);
 
   useEffect(() => {
@@ -194,7 +188,6 @@ export default function CheckoutPage() {
           deliveryAddress: address,
           latitude: deliveryLocation.lat,
           longitude: deliveryLocation.lng,
-          comment: comment || undefined,
           promoCode: promoCode.trim() || undefined,
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         }),
@@ -295,13 +288,6 @@ export default function CheckoutPage() {
           </>
         )}
 
-        <textarea
-          placeholder={uz.commentOptional}
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          rows={2}
-          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3"
-        />
         {error && <p className="text-sm text-red-500">{error}</p>}
         {!canPlaceOrder && !loading && (
           <p className="text-xs text-zinc-500">{uz.deliveryPriceRequired}</p>

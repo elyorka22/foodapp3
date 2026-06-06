@@ -24,6 +24,8 @@ type Props = {
   calculating?: boolean;
   quoted?: boolean;
   onError?: (message: string) => void;
+  /** Show optional address textarea (e.g. complete-profile). Hidden on checkout. */
+  showAddressInput?: boolean;
 };
 
 export function DeliveryLocation({
@@ -33,6 +35,7 @@ export function DeliveryLocation({
   calculating = false,
   quoted = false,
   onError,
+  showAddressInput = false,
 }: Props) {
   const [gettingGps, setGettingGps] = useState(false);
   const busy = gettingGps || calculating;
@@ -70,13 +73,15 @@ export function DeliveryLocation({
         <p className="mt-1 text-xs text-zinc-500">{uz.deliveryPriceHint}</p>
       </div>
 
-      <textarea
-        placeholder={uz.deliveryAddressOptional}
-        value={value.address}
-        onChange={(e) => onChange({ ...value, address: e.target.value })}
-        rows={2}
-        className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm"
-      />
+      {showAddressInput && (
+        <textarea
+          placeholder={uz.deliveryAddressOptional}
+          value={value.address}
+          onChange={(e) => onChange({ ...value, address: e.target.value })}
+          rows={2}
+          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm"
+        />
+      )}
 
       <button
         type="button"

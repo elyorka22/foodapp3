@@ -3,19 +3,16 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
-import 'customer_page.dart';
 
-/// Optional address + single button to calculate delivery from GPS.
+/// GPS button to calculate delivery fee (no manual address field on checkout).
 class DeliveryLocationField extends StatelessWidget {
   const DeliveryLocationField({
     super.key,
-    required this.addressController,
     required this.quoted,
     required this.busy,
     required this.onCalculate,
   });
 
-  final TextEditingController addressController;
   final bool quoted;
   final bool busy;
   final VoidCallback? onCalculate;
@@ -37,12 +34,6 @@ class DeliveryLocationField extends StatelessWidget {
           Text(
             AppStrings.deliveryPriceHint,
             style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          CustomerTextField(
-            controller: addressController,
-            placeholder: AppStrings.deliveryAddressOptional,
-            maxLines: 2,
           ),
           const SizedBox(height: AppSpacing.md),
           Material(

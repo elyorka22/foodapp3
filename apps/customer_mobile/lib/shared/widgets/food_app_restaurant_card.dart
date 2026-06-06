@@ -22,8 +22,6 @@ class FoodAppRestaurantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final delivery = restaurantDeliveryLabel(restaurant);
     final categories = restaurantCategoryLabel(restaurant);
-    final showGalleryDots =
-        restaurant.coverUrl != null && restaurant.logoUrl != null;
 
     return Material(
       color: Colors.transparent,
@@ -46,50 +44,27 @@ class FoodAppRestaurantCard extends StatelessWidget {
                     top: 6,
                     right: 6,
                     child: Material(
-                      color: Colors.white.withValues(alpha: 0.95),
-                      shape: const CircleBorder(),
-                      elevation: 1,
+                      color: Colors.transparent,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                       child: InkWell(
                         customBorder: const CircleBorder(),
                         onTap: () {},
+                        splashColor: Colors.white24,
+                        highlightColor: Colors.white12,
                         child: const SizedBox(
                           width: 32,
                           height: 32,
                           child: Center(
                             child: LucideBookmarkIcon(
                               size: 17,
-                              color: AppColors.textPrimary,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  if (showGalleryDots)
-                    Positioned(
-                      right: 6,
-                      bottom: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _dot(active: true),
-                            const SizedBox(width: 3),
-                            _dot(active: false),
-                            const SizedBox(width: 3),
-                            _dot(active: false),
-                          ],
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -132,17 +107,6 @@ class FoodAppRestaurantCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _dot({required bool active}) {
-    return Container(
-      width: 4,
-      height: 4,
-      decoration: BoxDecoration(
-        color: active ? Colors.white : Colors.white.withValues(alpha: 0.5),
-        shape: BoxShape.circle,
       ),
     );
   }

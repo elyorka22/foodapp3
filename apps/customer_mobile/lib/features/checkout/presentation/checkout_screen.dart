@@ -28,8 +28,6 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _phone = TextEditingController();
-  final _address = TextEditingController();
-  final _comment = TextEditingController();
   final _promoCode = TextEditingController();
 
   double? _lat;
@@ -48,8 +46,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   void dispose() {
     _phone.dispose();
-    _address.dispose();
-    _comment.dispose();
     _promoCode.dispose();
     super.dispose();
   }
@@ -200,10 +196,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     });
 
     try {
-      final addressText = _address.text.trim();
-      final deliveryAddress = addressText.isNotEmpty
-          ? addressText
-          : 'GPS: ${_lat!}, ${_lng!}';
+      final deliveryAddress = 'GPS: ${_lat!}, ${_lng!}';
       final res = await ref.read(ordersRepositoryProvider).createGuestOrder(
             CreateGuestOrderModel(
               restaurantId: businessId,
@@ -212,7 +205,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               latitude: _lat!,
               longitude: _lng!,
               customerId: customerId,
-              comment: _comment.text.trim().isEmpty ? null : _comment.text.trim(),
               promoCode: _promoCode.text.trim().isEmpty ? null : _promoCode.text.trim(),
               items: [
                 for (final i in items)
@@ -248,9 +240,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     if (user?.phone != null && _phone.text.isEmpty) {
       _phone.text = user!.phone!;
-    }
-    if (user?.defaultDeliveryAddress != null && _address.text.isEmpty) {
-      _address.text = user!.defaultDeliveryAddress!;
     }
 
     if (cart.isEmpty) {
@@ -345,7 +334,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
           DeliveryLocationField(
-            addressController: _address,
             quoted: _deliveryQuoted,
             busy: _calculateBusy,
             onCalculate: _calculateDelivery,
@@ -374,12 +362,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               deliveryError: null,
             ),
           ],
-          const SizedBox(height: AppSpacing.lg),
-          CustomerTextField(
-            controller: _comment,
-            placeholder: AppStrings.commentOptional,
-            maxLines: 2,
-          ),
           if (_error != null) ...[
             const SizedBox(height: AppSpacing.md),
             Text(

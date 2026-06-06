@@ -110,7 +110,7 @@ export default function CompleteProfilePage() {
             <p className="mb-2 text-sm font-medium text-zinc-700">
               {uz.deliveryAddress} ({uz.optional})
             </p>
-            <DeliveryLocation value={deliveryLocation} onChange={setDeliveryLocation} />
+            <DeliveryLocation value={deliveryLocation} onChange={setDeliveryLocation} showAddressInput />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
