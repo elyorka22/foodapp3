@@ -11,13 +11,15 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, NotificationAccountType, DeviceRole } from '@prisma/client';
 import { CouriersService } from './couriers.service';
 import { CreateCourierDto } from './dto/create-courier.dto';
 import { UpdateCourierDto } from './dto/update-courier.dto';
 import { CourierStatusDto } from './dto/courier-status.dto';
 import { DeclineCourierOrderDto } from '../orders/dto/assign-courier.dto';
 import { AdminCouriersQueryDto } from './dto/admin-couriers-query.dto';
+import { RegisterDeviceDto } from '../notifications/dto/register-device.dto';
+import { PushDeliveryService } from '../notifications/push/push-delivery.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -28,7 +30,10 @@ import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.de
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class CouriersController {
-  constructor(private couriers: CouriersService) {}
+  constructor(
+    private couriers: CouriersService,
+    private pushDelivery: PushDeliveryService,
+  ) {}
 
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
@@ -75,6 +80,30 @@ export class CouriersController {
   @Roles(UserRole.COURIER)
   setOnline(@CurrentUser() user: JwtPayload, @Body() body: { isOnline: boolean }) {
     return this.couriers.setOnline(user.sub, body.isOnline);
+  }
+
+  @Post('devices/register')
+  @Roles(UserRole.COURIER)
+  registerDevice(@CurrentUser() user: JwtPayload, @Body() dto: RegisterDeviceDto) {
+    return this.pushDelivery.registerDevice({
+      userId: user.sub,
+      accountType: NotificationAccountType.STAFF,
+      role: DeviceRole.COURIER,
+      deviceId: dto.deviceId,
+      platform: dto.platform,
+      pushToken: dto.pushToken,
+      appVersion: dto.appVersion,
+    });
+  }
+
+  @Post('devices/unregister')
+  @Roles(UserRole.COURIER)
+  unregisterDevice(@CurrentUser() user: JwtPayload, @Body() dto: RegisterDeviceDto) {
+    return this.pushDelivery.clearDevicePushToken({
+      userId: user.sub,
+      accountType: NotificationAccountType.STAFF,
+      deviceId: dto.deviceId,
+    });
   }
 
   @Patch('me/location')

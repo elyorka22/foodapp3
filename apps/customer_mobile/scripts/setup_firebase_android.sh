@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# Configures Firebase / google-services for Android after `flutter create`.
+# Requires GOOGLE_SERVICES_JSON env (full JSON contents) for release builds.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ANDROID_DIR="${ROOT}/android"
+APP_GRADLE="${ANDROID_DIR}/app/build.gradle.kts"
+SETTINGS_GRADLE="${ANDROID_DIR}/settings.gradle.kts"
+MANIFEST="${ANDROID_DIR}/app/src/main/AndroidManifest.xml"
+
+if [[ ! -d "${ANDROID_DIR}" ]]; then
+  echo "ERROR: ${ANDROID_DIR} not found — run flutter create first"
+  exit 1
+fi
+
+if [[ -n "${GOOGLE_SERVICES_JSON:-}" ]]; then
+  printf '%s' "${GOOGLE_SERVICES_JSON}" > "${ANDROID_DIR}/app/google-services.json"
+  echo "Wrote android/app/google-services.json from GOOGLE_SERVICES_JSON"
+elif [[ -f "${ROOT}/google-services.json" ]]; then
+  cp "${ROOT}/google-services.json" "${ANDROID_DIR}/app/google-services.json"
+  echo "Copied google-services.json → android/app/google-services.json"
+elif [[ -f "${ROOT}/google-services.json.example" ]]; then
+  cp "${ROOT}/google-services.json.example" "${ANDROID_DIR}/app/google-services.json"
+  echo "Copied google-services.json.example → android/app/google-services.json (dev placeholder)"
+else
+  echo "WARN: GOOGLE_SERVICES_JSON not set — release APK build will fail without google-services.json"
+fi
+
+python3 - "${SETTINGS_GRADLE}" "${APP_GRADLE}" "${MANIFEST}" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+settings_path, app_path, manifest_path = map(Path, sys.argv[1:4])
+
+GSV = '4.4.2'
+settings = settings_path.read_text()
+if 'com.google.gms.google-services' not in settings:
+    if 'plugins {' in settings:
+        settings = settings.replace(
+            'plugins {',
+            f'plugins {{\n    id("com.google.gms.google-services") version "{GSV}" apply false',
+            1,
+        )
+    else:
+        settings += f'\nplugins {{\n    id("com.google.gms.google-services") version "{GSV}" apply false\n}}\n'
+    settings_path.write_text(settings)
+    print('Patched settings.gradle.kts: google-services plugin')
+
+app = app_path.read_text()
+if 'com.google.gms.google-services' not in app:
+    if 'plugins {' in app:
+        app = app.replace(
+            'plugins {',
+            'plugins {\n    id("com.google.gms.google-services")',
+            1,
+        )
+    else:
+        app = 'plugins {\n    id("com.google.gms.google-services")\n}\n' + app
+    app_path.write_text(app)
+    print('Patched app/build.gradle.kts: google-services plugin')
+
+manifest = manifest_path.read_text()
+required_perms = [
+    'android.permission.POST_NOTIFICATIONS',
+    'android.permission.INTERNET',
+    'android.permission.WAKE_LOCK',
+    'android.permission.VIBRATE',
+]
+missing = [p for p in required_perms if p not in manifest]
+if missing:
+    match = re.search(r'<manifest[^>]*>', manifest)
+    if match:
+        block = '\n' + '\n'.join(f'    <uses-permission android:name="{p}"/>' for p in missing) + '\n'
+        manifest = manifest[: match.end()] + block + manifest[match.end() :]
+        print('Patched AndroidManifest permissions:', ', '.join(missing))
+
+fcm_meta = '''        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="foodapp_default" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />'''
+
+if 'com.google.firebase.messaging.default_notification_channel_id' not in manifest:
+    app_match = re.search(r'<application[^>]*>', manifest)
+    if app_match:
+        manifest = (
+            manifest[: app_match.end()]
+            + '\n'
+            + fcm_meta
+            + '\n'
+            + manifest[app_match.end() :]
+        )
+        print('Patched AndroidManifest: FCM default notification channel')
+
+manifest_path.write_text(manifest)
+PY
+
+echo "Firebase Android setup complete"

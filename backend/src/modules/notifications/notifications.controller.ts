@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { NotificationAccountType } from '@prisma/client';
+import { NotificationAccountType, DeviceRole } from '@prisma/client';
 import { CustomerJwtAuthGuard } from '../../common/guards/customer-jwt-auth.guard';
 import { CurrentCustomer } from '../../common/decorators/current-customer.decorator';
 import { CustomerJwtPayload } from '../customers/customer-token.service';
@@ -84,9 +84,28 @@ export class NotificationsController {
     @CurrentCustomer() customer: CustomerJwtPayload,
     @Body() dto: RegisterDeviceDto,
   ) {
+    return this.registerCustomerDevice(customer, dto);
+  }
+
+  @Post('devices/register')
+  @UseGuards(CustomerJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Register device (alias)' })
+  registerDeviceAlias(
+    @CurrentCustomer() customer: CustomerJwtPayload,
+    @Body() dto: RegisterDeviceDto,
+  ) {
+    return this.registerCustomerDevice(customer, dto);
+  }
+
+  private registerCustomerDevice(
+    customer: CustomerJwtPayload,
+    dto: RegisterDeviceDto,
+  ) {
     return this.pushDelivery.registerDevice({
       userId: customer.sub,
       accountType: NotificationAccountType.CUSTOMER,
+      role: DeviceRole.CUSTOMER,
       deviceId: dto.deviceId,
       platform: dto.platform,
       pushToken: dto.pushToken,

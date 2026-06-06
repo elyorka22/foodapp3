@@ -1,17 +1,25 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   DevicePlatform,
+  DeviceRole,
   NotificationAccountType,
   NotificationChannelCode,
+  UserRole,
 } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { buildPushDataPayload } from './push-payload.util';
-import { InvalidPushTokenError } from './firebase-push.provider';
-import { PUSH_PROVIDER, PushMessagePayload, PushProvider } from './push-provider.interface';
+import { InvalidPushTokenError } from './invalid-push-token.error';
+import {
+  PUSH_PROVIDER,
+  PushDeviceRole,
+  PushMessagePayload,
+  PushProvider,
+} from './push-provider.interface';
 
 export type DeliverNotificationParams = {
   userId: string;
   accountType: NotificationAccountType;
+  userRole?: UserRole;
   notificationId: string;
   type: NotificationChannelCode;
   title: string;
@@ -29,16 +37,7 @@ export class PushDeliveryService {
   ) {}
 
   async deliverNotification(params: DeliverNotificationParams) {
-    const devices = await this.prisma.userDevice.findMany({
-      where: {
-        userId: params.userId,
-        accountType: params.accountType,
-        pushToken: { not: null },
-      },
-    });
-
-    if (!devices.length) return;
-
+    const role = resolveDeviceRole(params.accountType, params.userRole);
     const data = buildPushDataPayload({
       notificationId: params.notificationId,
       type: params.type,
@@ -53,38 +52,24 @@ export class PushDeliveryService {
       data,
     };
 
-    await Promise.all(
-      devices.map((device) =>
-        this.sendToDevice(device.id, device.pushToken!, message).catch((err) => {
-          this.logger.warn(`Push failed for device ${device.deviceId}: ${err}`);
-        }),
-      ),
-    );
-  }
-
-  private async sendToDevice(
-    deviceRowId: string,
-    pushToken: string,
-    message: PushMessagePayload,
-  ) {
     try {
-      await this.pushProvider.send(pushToken, message);
+      await this.pushProvider.sendToUser(
+        { userId: params.userId, role },
+        message,
+      );
     } catch (err) {
       if (err instanceof InvalidPushTokenError) {
-        await this.prisma.userDevice.update({
-          where: { id: deviceRowId },
-          data: { pushToken: null },
-        });
-        this.logger.log(`Cleared invalid FCM token for device row ${deviceRowId}`);
+        await this.clearTokenByValue(err.pushToken);
         return;
       }
-      throw err;
+      this.logger.warn(`Push delivery failed for ${params.userId}: ${err}`);
     }
   }
 
   async registerDevice(params: {
     userId: string;
     accountType: NotificationAccountType;
+    role: DeviceRole;
     deviceId: string;
     platform: DevicePlatform;
     pushToken?: string;
@@ -101,6 +86,7 @@ export class PushDeliveryService {
       create: {
         userId: params.userId,
         accountType: params.accountType,
+        role: params.role,
         deviceId: params.deviceId,
         platform: params.platform,
         pushToken: params.pushToken,
@@ -108,6 +94,7 @@ export class PushDeliveryService {
         lastSeenAt: new Date(),
       },
       update: {
+        role: params.role,
         pushToken: params.pushToken ?? undefined,
         appVersion: params.appVersion ?? undefined,
         platform: params.platform,
@@ -137,4 +124,29 @@ export class PushDeliveryService {
     });
     return { ok: true };
   }
+
+  private async clearTokenByValue(pushToken: string) {
+    await this.prisma.userDevice.updateMany({
+      where: { pushToken },
+      data: { pushToken: null },
+    });
+    this.logger.log(`Cleared invalid push token ${pushToken.slice(0, 12)}…`);
+  }
+}
+
+export function resolveDeviceRole(
+  accountType: NotificationAccountType,
+  userRole?: UserRole,
+): PushDeviceRole {
+  if (accountType === NotificationAccountType.CUSTOMER) {
+    return 'CUSTOMER';
+  }
+  if (userRole === UserRole.COURIER) {
+    return 'COURIER';
+  }
+  return 'STAFF';
+}
+
+export function deviceRoleForStaffUser(userRole: UserRole | string): DeviceRole {
+  return userRole === UserRole.COURIER ? DeviceRole.COURIER : DeviceRole.STAFF;
 }

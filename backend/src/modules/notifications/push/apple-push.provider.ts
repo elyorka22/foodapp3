@@ -1,13 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PushMessagePayload, PushProvider } from './push-provider.interface';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { BasePushProvider } from './base-push.provider';
+import { PushMessagePayload } from './push-provider.interface';
 
-/** Apple Push Notification service transport (future native iOS). */
+/** APNs transport stub — not enabled in v1. */
 @Injectable()
-export class ApplePushProvider implements PushProvider {
+export class ApplePushProvider extends BasePushProvider {
   readonly name = 'apns';
-  private readonly logger = new Logger(ApplePushProvider.name);
+  protected readonly logger = new Logger(ApplePushProvider.name);
 
-  async send(pushToken: string, message: PushMessagePayload): Promise<void> {
-    this.logger.log(`[APNs stub] ${message.title} → ${pushToken.slice(0, 16)}…`);
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
+
+  protected async deliverToToken(
+    pushToken: string,
+    message: PushMessagePayload,
+  ): Promise<void> {
+    this.logger.debug(
+      `[apns-stub] would send "${message.title}" → ${pushToken.slice(0, 12)}…`,
+    );
   }
 }

@@ -1,116 +1,123 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
-import { PushMessagePayload, PushProvider } from './push-provider.interface';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { BasePushProvider } from './base-push.provider';
+import { InvalidPushTokenError } from './invalid-push-token.error';
+import { PushMessagePayload } from './push-provider.interface';
 
-export class InvalidPushTokenError extends Error {
-  constructor(
-    message: string,
-    readonly pushToken: string,
-  ) {
-    super(message);
-    this.name = 'InvalidPushTokenError';
-  }
-}
+const INVALID_TOKEN_CODES = new Set([
+  'messaging/registration-token-not-registered',
+  'messaging/invalid-registration-token',
+  'messaging/invalid-argument',
+]);
 
-/**
- * Firebase Cloud Messaging transport — delivers title/body/data only.
- * FoodApp NotificationService owns templates, history, and routing metadata.
- */
+/** FCM transport via Firebase Admin SDK. */
 @Injectable()
-export class FirebasePushProvider implements PushProvider, OnModuleInit {
+export class FirebasePushProvider extends BasePushProvider implements OnModuleInit {
   readonly name = 'firebase';
-  private readonly logger = new Logger(FirebasePushProvider.name);
+  protected readonly logger = new Logger(FirebasePushProvider.name);
   private messaging: admin.messaging.Messaging | null = null;
 
-  constructor(private config: ConfigService) {}
+  constructor(
+    prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {
+    super(prisma);
+  }
 
   onModuleInit() {
-    if (admin.apps.length > 0) {
-      this.messaging = admin.messaging();
+    const provider = (this.config.get<string>('PUSH_PROVIDER') ?? 'noop').toLowerCase();
+    if (provider !== 'firebase') {
+      this.logger.log('PUSH_PROVIDER is not firebase — FCM transport idle');
       return;
     }
+    this.initializeFirebase();
+  }
 
-    const projectId = this.config.get<string>('FIREBASE_PROJECT_ID');
-    const rawJson = this.config.get<string>('FIREBASE_SERVICE_ACCOUNT_JSON');
-    const credentialsPath = this.config.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
-
-    if (!projectId && !rawJson && !credentialsPath) {
-      this.logger.warn('FCM not configured — set FIREBASE_PROJECT_ID + credentials');
-      return;
-    }
+  private initializeFirebase() {
+    if (this.messaging) return;
 
     try {
-      if (rawJson?.trim()) {
-        const serviceAccount = JSON.parse(rawJson) as admin.ServiceAccount;
-        admin.initializeApp({
+      const projectId = this.config.get<string>('FIREBASE_PROJECT_ID');
+      const jsonRaw = this.config.get<string>('FIREBASE_SERVICE_ACCOUNT_JSON');
+      const credPath = this.config.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
+
+      let app: admin.app.App;
+
+      if (jsonRaw?.trim()) {
+        const serviceAccount = JSON.parse(jsonRaw) as admin.ServiceAccount;
+        app = admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
           projectId: projectId ?? serviceAccount.projectId,
         });
-      } else if (credentialsPath?.trim()) {
-        admin.initializeApp({
+      } else if (credPath?.trim()) {
+        app = admin.initializeApp({
           credential: admin.credential.applicationDefault(),
-          projectId: projectId,
+          projectId: projectId ?? undefined,
         });
       } else {
-        this.logger.warn('FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS required');
+        this.logger.error(
+          'Firebase Admin not configured: set FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS',
+        );
         return;
       }
-      this.messaging = admin.messaging();
-      this.logger.log('Firebase Admin initialized for FCM delivery');
+
+      this.messaging = admin.messaging(app);
+      this.logger.log(
+        `Firebase Admin SDK initialized (project: ${app.options.projectId ?? 'unknown'})`,
+      );
     } catch (err) {
-      this.logger.error(`Firebase Admin init failed: ${err}`);
+      this.logger.error(`Firebase Admin initialization failed: ${err}`);
     }
   }
 
-  private isReady(): boolean {
-    return this.messaging != null;
-  }
-
-  async send(pushToken: string, message: PushMessagePayload): Promise<void> {
-    if (!this.isReady()) {
-      this.logger.warn(
-        `FCM skipped (not initialized): ${message.title} → ${pushToken.slice(0, 16)}…`,
-      );
+  protected async deliverToToken(
+    pushToken: string,
+    message: PushMessagePayload,
+  ): Promise<void> {
+    if (!this.messaging) {
+      this.logger.warn('FCM send skipped — Firebase Admin not initialized');
       return;
     }
 
-    const data = message.data ?? {};
-    try {
-      await this.messaging!.send({
-        token: pushToken,
+    const fcmMessage: admin.messaging.Message = {
+      token: pushToken,
+      notification: {
+        title: message.title,
+        body: message.body,
+      },
+      data: message.data ?? {},
+      android: {
+        priority: 'high',
         notification: {
-          title: message.title,
-          body: message.body,
+          channelId: 'foodapp_default',
+          sound: 'default',
         },
-        data,
-        android: {
-          priority: 'high',
-          notification: {
-            channelId: 'foodapp_default',
-            priority: 'high' as const,
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
           },
         },
-        apns: {
-          payload: {
-            aps: {
-              alert: { title: message.title, body: message.body },
-              sound: 'default',
-              contentAvailable: true,
-            },
-          },
-        },
-      });
-      this.logger.debug(`FCM sent: ${message.title} → ${pushToken.slice(0, 16)}…`);
+      },
+    };
+
+    try {
+      const messageId = await this.messaging.send(fcmMessage);
+      this.logger.debug(
+        `FCM delivered "${message.title}" → ${pushToken.slice(0, 12)}… (${messageId})`,
+      );
     } catch (err: unknown) {
-      const code = (err as { code?: string })?.code;
-      if (
-        code === 'messaging/registration-token-not-registered' ||
-        code === 'messaging/invalid-registration-token'
-      ) {
-        throw new InvalidPushTokenError(String(err), pushToken);
+      const code = (err as { code?: string }).code;
+      if (code && INVALID_TOKEN_CODES.has(code)) {
+        throw new InvalidPushTokenError(`FCM rejected token (${code})`, pushToken);
       }
-      this.logger.error(`FCM send failed: ${err}`);
+      this.logger.error(
+        `FCM delivery failed for ${pushToken.slice(0, 12)}…: ${err}`,
+      );
       throw err;
     }
   }

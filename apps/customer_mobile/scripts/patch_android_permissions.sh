@@ -14,6 +14,7 @@ text = path.read_text()
 
 required = [
     "android.permission.INTERNET",
+    "android.permission.POST_NOTIFICATIONS",
     "android.permission.ACCESS_FINE_LOCATION",
     "android.permission.ACCESS_COARSE_LOCATION",
 ]

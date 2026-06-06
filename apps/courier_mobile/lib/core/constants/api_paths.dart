@@ -13,4 +13,6 @@ abstract final class ApiPaths {
   static const notificationsStaffUnread = '/notifications/staff/unread-count';
   static String notificationStaffRead(String id) => '/notifications/staff/$id/read';
   static const notificationsStaffReadAll = '/notifications/staff/read-all';
+  static const courierDevicesRegister = '/couriers/devices/register';
+  static const courierDevicesUnregister = '/couriers/devices/unregister';
 }

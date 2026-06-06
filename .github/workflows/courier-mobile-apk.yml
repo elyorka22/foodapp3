@@ -40,14 +40,15 @@ jobs:
       - name: Create Android platform project
         run: |
           flutter create . --org com.foodapp --project-name courier_mobile --platforms=android --no-overwrite
-          chmod +x scripts/patch_android_permissions.sh
+          chmod +x scripts/patch_android_permissions.sh scripts/setup_firebase_android.sh
           ./scripts/patch_android_permissions.sh
+          GOOGLE_SERVICES_JSON="${{ secrets.GOOGLE_SERVICES_JSON_COURIER }}" ./scripts/setup_firebase_android.sh
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --dart-define=ENABLE_FCM=false
 
       - name: Test
         run: flutter test
@@ -58,7 +59,8 @@ jobs:
           WS_URL="$(printf '%s' "${WS_BASE_URL}" | tr -d '[:space:]')"
           flutter build apk --release \
             --dart-define=API_BASE_URL="${API_URL}" \
-            --dart-define=WS_BASE_URL="${WS_URL}"
+            --dart-define=WS_BASE_URL="${WS_URL}" \
+            --dart-define=ENABLE_FCM=true
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

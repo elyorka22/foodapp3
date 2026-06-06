@@ -15,7 +15,10 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
 import { NotificationService } from './notifications.service';
-import { PushDeliveryService } from './push/push-delivery.service';
+import {
+  deviceRoleForStaffUser,
+  PushDeliveryService,
+} from './push/push-delivery.service';
 import { RegisterDeviceDto } from './dto/register-device.dto';
 import { NotificationsQueryDto } from './dto/notifications-query.dto';
 
@@ -62,9 +65,20 @@ export class StaffNotificationsController {
   @Post('devices')
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS, UserRole.COURIER)
   registerDevice(@CurrentUser() user: JwtPayload, @Body() dto: RegisterDeviceDto) {
+    return this.registerStaffDevice(user, dto);
+  }
+
+  @Post('devices/register')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS, UserRole.COURIER)
+  registerDeviceAlias(@CurrentUser() user: JwtPayload, @Body() dto: RegisterDeviceDto) {
+    return this.registerStaffDevice(user, dto);
+  }
+
+  private registerStaffDevice(user: JwtPayload, dto: RegisterDeviceDto) {
     return this.pushDelivery.registerDevice({
       userId: user.sub,
       accountType: NotificationAccountType.STAFF,
+      role: deviceRoleForStaffUser(user.role),
       deviceId: dto.deviceId,
       platform: dto.platform,
       pushToken: dto.pushToken,

@@ -7,21 +7,18 @@ import { StaffNotificationsController } from './staff-notifications.controller';
 import { NotificationsGateway } from './notifications.gateway';
 import { PushDeliveryService } from './push/push-delivery.service';
 import { FirebasePushProvider } from './push/firebase-push.provider';
-import { ApplePushProvider } from './push/apple-push.provider';
 import { NoopPushProvider } from './push/noop-push.provider';
 import { PUSH_PROVIDER } from './push/push-provider.interface';
+import { PushNotificationHooks } from './push/push-notification.hooks';
 
-function pushProviderFactory(config: ConfigService) {
-  const explicit = config.get<string>('PUSH_PROVIDER');
-  const hasFirebase =
-    !!config.get<string>('FIREBASE_PROJECT_ID') ||
-    !!config.get<string>('FIREBASE_SERVICE_ACCOUNT_JSON') ||
-    !!config.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
-
-  const provider = explicit ?? (hasFirebase ? 'firebase' : 'noop');
-  if (provider === 'firebase') return new FirebasePushProvider(config);
-  if (provider === 'apns') return new ApplePushProvider();
-  return new NoopPushProvider();
+function pushProviderFactory(
+  config: ConfigService,
+  noop: NoopPushProvider,
+  firebase: FirebasePushProvider,
+) {
+  const provider = (config.get<string>('PUSH_PROVIDER') ?? 'noop').toLowerCase();
+  if (provider === 'firebase') return firebase;
+  return noop;
 }
 
 @Module({
@@ -31,15 +28,15 @@ function pushProviderFactory(config: ConfigService) {
     NotificationService,
     NotificationsGateway,
     PushDeliveryService,
-    FirebasePushProvider,
-    ApplePushProvider,
+    PushNotificationHooks,
     NoopPushProvider,
+    FirebasePushProvider,
     {
       provide: PUSH_PROVIDER,
       useFactory: pushProviderFactory,
-      inject: [ConfigService],
+      inject: [ConfigService, NoopPushProvider, FirebasePushProvider],
     },
   ],
-  exports: [NotificationService, NotificationsGateway],
+  exports: [NotificationService, NotificationsGateway, PushNotificationHooks],
 })
 export class NotificationsModule {}

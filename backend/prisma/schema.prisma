@@ -67,6 +67,12 @@ enum DevicePlatform {
   web
 }
 
+enum DeviceRole {
+  CUSTOMER
+  COURIER
+  STAFF
+}
+
 enum CustomerAuthProvider {
   TELEGRAM
   PHONE
@@ -689,6 +695,7 @@ model UserDevice {
   id          String                  @id @default(uuid()) @db.Uuid
   userId      String                  @map("user_id") @db.Uuid
   accountType NotificationAccountType @map("account_type")
+  role        DeviceRole
   deviceId    String                  @map("device_id")
   pushToken   String?                 @map("push_token")
   platform    DevicePlatform
@@ -699,6 +706,7 @@ model UserDevice {
 
   @@unique([userId, accountType, deviceId])
   @@index([userId, accountType])
+  @@index([userId, role])
   @@map("user_devices")
 }
 

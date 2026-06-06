@@ -29,6 +29,7 @@ import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { CustomersService } from '../customers/customers.service';
 import { NotificationService } from '../notifications/notifications.service';
+import { PushNotificationHooks } from '../notifications/push/push-notification.hooks';
 import { ORDER_STATUS_TO_CUSTOMER_TEMPLATE } from '../notifications/constants/order-status-notification.map';
 
 const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
@@ -55,6 +56,7 @@ export class OrdersService {
     private schedule: RestaurantScheduleService,
     private customers: CustomersService,
     private notifications: NotificationService,
+    private pushHooks: PushNotificationHooks,
     private deliveryPricing: DeliveryPricingService,
   ) {}
 
@@ -523,6 +525,14 @@ export class OrdersService {
       });
     }
 
+    if (status === OrderStatus.CANCELLED && courierUserId) {
+      await this.pushHooks.courierOrderCancelled({
+        courierUserId,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+      });
+    }
+
     if (status === OrderStatus.DELIVERED) {
       const notification = await this.adminNotifications.notifyOrderDelivered({
         id: order.id,
@@ -571,11 +581,16 @@ export class OrdersService {
   async removeCourier(orderId: string, removedBy?: string, note?: string) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, deletedAt: null },
+      include: {
+        courier: { select: { userId: true } },
+      },
     });
     if (!order) throw new NotFoundException('Order not found');
     if (!order.courierId) {
       throw new BadRequestException('Order has no assigned courier');
     }
+
+    const previousCourierUserId = order.courier?.userId;
 
     const removableStatuses: OrderStatus[] = [
       OrderStatus.PREPARING,
@@ -604,6 +619,14 @@ export class OrdersService {
       removedBy,
       note ?? 'Courier removed',
     );
+
+    if (previousCourierUserId) {
+      await this.pushHooks.courierUnassigned({
+        courierUserId: previousCourierUserId,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+      });
+    }
 
     return this.emitOrderPayload(orderId);
   }
@@ -639,7 +662,10 @@ export class OrdersService {
     const { requireOnline = false, allowReassign = false } = options;
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, deletedAt: null },
-      include: { branch: true },
+      include: {
+        branch: true,
+        courier: { select: { id: true, userId: true } },
+      },
     });
     if (!order) throw new NotFoundException('Order not found');
 
@@ -673,6 +699,13 @@ export class OrdersService {
         requireOnline ? 'Courier not available (must be online)' : 'Courier not found',
       );
     }
+
+    const previousCourierUserId =
+      order.courierId &&
+      order.courierId !== courierId &&
+      order.courier?.userId
+        ? order.courier.userId
+        : null;
 
     const deliveryConfig = await this.settings.getDeliveryPricing();
     const dist = Number(order.distanceKm ?? 0);
@@ -738,6 +771,13 @@ export class OrdersService {
     if (statusChanged || allowReassign) {
       await this.emitOrderStatusNotifications(updated!, OrderStatus.COURIER_ASSIGNED);
     }
+    if (previousCourierUserId) {
+      await this.pushHooks.courierUnassigned({
+        courierUserId: previousCourierUserId,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+      });
+    }
     return payload;
   }
 
@@ -752,6 +792,7 @@ export class OrdersService {
         status: { in: [OrderStatus.PREPARING, OrderStatus.COURIER_ASSIGNED] },
         OR: [{ courierId: null }, { courierId: courier.id }],
       },
+      include: { guestOrder: true },
     });
     if (!order) throw new NotFoundException('Order not available');
 
@@ -760,6 +801,17 @@ export class OrdersService {
         where: { orderId },
         data: { acceptedAt: new Date() },
       });
+
+      const customerId = order.guestOrder?.customerId;
+      if (customerId) {
+        await this.pushHooks.customerCourierAccepted({
+          customerId,
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          trackingToken: order.trackingToken,
+        });
+      }
+
       return this.emitOrderPayload(orderId);
     }
 

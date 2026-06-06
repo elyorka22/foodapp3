@@ -16,3 +16,6 @@ uploads/*
 coverage/
 .idea/
 .vscode/
+
+# Firebase Android config (keep local — use CI secrets in production)
+**/google-services.json

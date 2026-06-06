@@ -3,6 +3,7 @@ import {
   NotificationAccountType,
   NotificationChannelCode,
   Prisma,
+  UserRole,
 } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PushDeliveryService } from './push/push-delivery.service';
@@ -11,6 +12,7 @@ import { NotificationsGateway } from './notifications.gateway';
 export type SendNotificationParams = {
   userId: string;
   accountType: NotificationAccountType;
+  userRole?: UserRole;
   templateCode: string;
   metadata?: Record<string, unknown>;
   titleOverride?: string;
@@ -31,6 +33,7 @@ export class NotificationService {
     await this.pushDelivery.deliverNotification({
       userId: params.userId,
       accountType: params.accountType,
+      userRole: params.userRole,
       notificationId: notification.id,
       type: notification.type,
       title: notification.title,
@@ -42,7 +45,11 @@ export class NotificationService {
   }
 
   async sendToMany(
-    recipients: { userId: string; accountType: NotificationAccountType }[],
+    recipients: {
+      userId: string;
+      accountType: NotificationAccountType;
+      userRole?: UserRole;
+    }[],
     templateCode: string,
     metadata?: Record<string, unknown>,
   ) {
@@ -51,6 +58,7 @@ export class NotificationService {
         this.sendToUser({
           userId: r.userId,
           accountType: r.accountType,
+          userRole: r.userRole,
           templateCode,
           metadata,
         }),
@@ -182,12 +190,14 @@ export class NotificationService {
   /** Staff / manager / courier — same FoodApp notification store. */
   async notifyStaff(params: {
     userId: string;
+    userRole?: UserRole;
     templateCode: string;
     metadata?: Record<string, unknown>;
   }) {
     return this.sendToUser({
       userId: params.userId,
       accountType: NotificationAccountType.STAFF,
+      userRole: params.userRole,
       templateCode: params.templateCode,
       metadata: params.metadata,
     });
@@ -228,6 +238,7 @@ export class NotificationService {
   }) {
     return this.notifyStaff({
       userId: params.courierUserId,
+      userRole: UserRole.COURIER,
       templateCode: 'ORDER_ASSIGNED',
       metadata: {
         orderId: params.orderId,

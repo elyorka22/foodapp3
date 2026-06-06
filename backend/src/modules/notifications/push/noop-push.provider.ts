@@ -1,12 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PushMessagePayload, PushProvider } from './push-provider.interface';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { BasePushProvider } from './base-push.provider';
+import { PushMessagePayload } from './push-provider.interface';
 
 @Injectable()
-export class NoopPushProvider implements PushProvider {
+export class NoopPushProvider extends BasePushProvider {
   readonly name = 'noop';
-  private readonly logger = new Logger(NoopPushProvider.name);
+  protected readonly logger = new Logger(NoopPushProvider.name);
 
-  async send(pushToken: string, message: PushMessagePayload): Promise<void> {
-    this.logger.debug(`[noop] push to ${pushToken.slice(0, 12)}…: ${message.title}`);
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
+
+  protected async deliverToToken(
+    pushToken: string,
+    message: PushMessagePayload,
+  ): Promise<void> {
+    this.logger.debug(
+      `[noop] ${message.title} → ${pushToken.slice(0, 12)}…`,
+    );
   }
 }

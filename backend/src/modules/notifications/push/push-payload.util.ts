@@ -10,6 +10,12 @@ const ORDER_NOTIFICATION_TYPES: NotificationChannelCode[] = [
   NotificationChannelCode.ORDER_CANCELLED,
 ];
 
+const STAFF_ORDER_TYPES: NotificationChannelCode[] = [
+  NotificationChannelCode.ORDER_ASSIGNED,
+  NotificationChannelCode.ORDER_CANCELLED,
+  NotificationChannelCode.NEW_ORDER,
+];
+
 /** Client route for notification tap (web + mobile). */
 export function resolveNotificationRoute(
   type: NotificationChannelCode,
@@ -22,6 +28,15 @@ export function resolveNotificationRoute(
     }
     return '/notifications';
   }
+
+  if (STAFF_ORDER_TYPES.includes(type)) {
+    const orderId = metadata?.orderId;
+    if (typeof orderId === 'string' && orderId.length > 0) {
+      return `/orders/${orderId}`;
+    }
+    return '/notifications';
+  }
+
   if (type === NotificationChannelCode.PROMOTION) {
     return '/promotions';
   }

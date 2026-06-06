@@ -1,0 +1,23 @@
+<!-- FCM manifest additions applied by scripts/setup_firebase_android.sh -->
+<!-- Merge into android/app/src/main/AndroidManifest.xml after `flutter create` -->
+
+<!-- Permissions (inside <manifest>) -->
+<!--
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+-->
+
+<!-- Default FCM channel + icon (inside <application>) -->
+<!--
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_channel_id"
+        android:value="foodapp_default" />
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_icon"
+        android:resource="@mipmap/ic_launcher" />
+-->
+
+<!-- Package: com.foodapp.customer_mobile -->
+<!-- google-services.json: apps/customer_mobile/google-services.json → android/app/ -->
