@@ -22,7 +22,6 @@ import { CheckoutPromoCard } from '@/components/checkout/checkout-promo-card';
 import { CheckoutPhoneCard } from '@/components/checkout/checkout-phone-card';
 import { CheckoutDeliveryCard } from '@/components/checkout/checkout-delivery-card';
 import { CheckoutSummaryCard } from '@/components/checkout/checkout-summary-card';
-import { CheckoutTrustBadges } from '@/components/checkout/checkout-trust-badges';
 import { CheckoutSubmitBar } from '@/components/checkout/checkout-submit-bar';
 import { fetchDeliveryQuote } from '@/hooks/use-delivery-pricing';
 import { formatSum } from '@/lib/format-sum';
@@ -234,7 +233,7 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <main className="mx-auto min-h-screen max-w-lg bg-[#FAF7F2] px-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
+      <main className="mx-auto min-h-screen max-w-lg bg-[#FAF7F2] px-4 pb-[calc(100px+env(safe-area-inset-bottom,0px))]">
         <CheckoutHeader itemCount={itemCount} />
 
         <div className="mt-6 space-y-4">
@@ -293,8 +292,6 @@ export default function CheckoutPage() {
               promoDiscount={promoDiscount}
             />
           ) : null}
-
-          <CheckoutTrustBadges />
 
           {error ? (
             <p className="rounded-2xl bg-red-50 px-4 py-3 text-[13px] font-medium text-red-600">

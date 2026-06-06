@@ -96,17 +96,19 @@ export function CheckoutDeliveryCard({
 
         {quoted && hasCoords ? (
           <div className="mt-4 space-y-3 rounded-[20px] bg-white/70 p-4 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <MapPin size={18} className="mt-0.5 shrink-0 text-green-700" />
-              <div className="min-w-0">
-                <p className="text-[12px] font-semibold uppercase tracking-wide text-green-800/70">
-                  {uz.deliveryAddress}
-                </p>
-                <p className="mt-0.5 text-[14px] font-medium text-green-950">
-                  {value.address.trim() || uz.checkoutDeliveryAddressGps}
-                </p>
+            {value.address.trim() ? (
+              <div className="flex items-start gap-3">
+                <MapPin size={18} className="mt-0.5 shrink-0 text-green-700" />
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold uppercase tracking-wide text-green-800/70">
+                    {uz.deliveryAddress}
+                  </p>
+                  <p className="mt-0.5 text-[14px] font-medium text-green-950">
+                    {value.address.trim()}
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : null}
             <div className="flex items-start gap-3">
               <Sparkles size={18} className="mt-0.5 shrink-0 text-green-700" />
               <div>

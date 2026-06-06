@@ -20,7 +20,7 @@ export function CheckoutSubmitBar({ total, loading, disabled, onSubmit }: Props)
         : uz.placeOrder;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/40 bg-[#FAF7F2]/95 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] pt-3 backdrop-blur-md">
+    <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-white/40 bg-[#FAF7F2]/95 px-4 pb-3 pt-3 backdrop-blur-md">
       <div className="mx-auto max-w-lg">
         <button
           type="button"
