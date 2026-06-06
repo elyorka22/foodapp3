@@ -54,7 +54,6 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
-        hintStyle: AppTypography.bodySmall,
       ),
       listTileTheme: const ListTileThemeData(
         iconColor: AppColors.textSecondary,

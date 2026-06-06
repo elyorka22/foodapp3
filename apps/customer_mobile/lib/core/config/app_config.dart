@@ -34,6 +34,8 @@ class AppConfig {
   static Uri get telegramLoginWidgetUrl =>
       Uri.parse('$webAppBaseUrl/auth/telegram-mobile');
 
+  static const String wsBaseUrl = String.fromEnvironment('WS_BASE_URL');
+
   /// Trimmed API base without trailing slash (used by Dio).
   static String get normalizedApiBaseUrl {
     var url = apiBaseUrl.trim();
