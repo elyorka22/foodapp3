@@ -55,8 +55,12 @@ GitHub Actions workflows build release APKs with FCM enabled:
 |--------|---------|
 | `API_BASE_URL` | Both apps |
 | `WS_BASE_URL` | Both apps |
-| `GOOGLE_SERVICES_JSON_CUSTOMER` | Customer APK |
-| `GOOGLE_SERVICES_JSON_COURIER` | Courier APK |
+| `GOOGLE_SERVICES_JSON_CUSTOMER` | Customer APK (raw JSON — must be complete single line) |
+| `GOOGLE_SERVICES_JSON_COURIER` | Courier APK (raw JSON — must be complete single line) |
+| `GOOGLE_SERVICES_JSON_CUSTOMER_B64` | Optional: base64-encoded customer JSON (more reliable in CI) |
+| `GOOGLE_SERVICES_JSON_COURIER_B64` | Optional: base64-encoded courier JSON |
+
+If secrets are missing or malformed, CI falls back to committed `google-services.json.example` (real Firebase client config for project `foodapp-17385`).
 | `TELEGRAM_BOT_USERNAME` | Customer (optional) |
 
 ### CI build flow

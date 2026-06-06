@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "foodapp-placeholder",
-    "storage_bucket": "foodapp-placeholder.appspot.com"
+    "project_number": "278845357182",
+    "project_id": "foodapp-17385",
+    "storage_bucket": "foodapp-17385.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:278845357182:android:0fe6e523b28582310cac2f",
         "android_client_info": {
           "package_name": "com.foodapp.customer_mobile"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "REPLACE_WITH_FIREBASE_CONSOLE_KEY"
+          "current_key": "AIzaSyBWoHjbK9vAsKdL8l0HAVj0aI3S730kJR8"
         }
       ],
       "services": {

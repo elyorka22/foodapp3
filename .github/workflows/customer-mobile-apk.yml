@@ -44,11 +44,14 @@ jobs:
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('apps/customer_mobile/pubspec.yaml') }}
 
       - name: Create Android platform project
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON_CUSTOMER }}
+          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_CUSTOMER_B64 }}
         run: |
           flutter create . --org com.foodapp --project-name customer_mobile --platforms=android
           chmod +x scripts/patch_android_permissions.sh scripts/setup_firebase_android.sh || true
           ./scripts/patch_android_permissions.sh || true
-          GOOGLE_SERVICES_JSON="${{ secrets.GOOGLE_SERVICES_JSON_CUSTOMER }}" ./scripts/setup_firebase_android.sh
+          ./scripts/setup_firebase_android.sh
 
       - name: Install dependencies
         run: flutter pub get

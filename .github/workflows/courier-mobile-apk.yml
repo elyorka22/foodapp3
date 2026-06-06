@@ -38,11 +38,14 @@ jobs:
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('apps/courier_mobile/pubspec.yaml') }}
 
       - name: Create Android platform project
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON_COURIER }}
+          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_COURIER_B64 }}
         run: |
           flutter create . --org com.foodapp --project-name courier_mobile --platforms=android --no-overwrite
           chmod +x scripts/patch_android_permissions.sh scripts/setup_firebase_android.sh
           ./scripts/patch_android_permissions.sh
-          GOOGLE_SERVICES_JSON="${{ secrets.GOOGLE_SERVICES_JSON_COURIER }}" ./scripts/setup_firebase_android.sh
+          ./scripts/setup_firebase_android.sh
 
       - name: Install dependencies
         run: flutter pub get

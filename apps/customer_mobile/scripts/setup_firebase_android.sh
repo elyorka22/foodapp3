@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Configures Firebase / google-services for Android after `flutter create`.
-# Requires GOOGLE_SERVICES_JSON env (full JSON contents) for release builds.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ANDROID_DIR="${ROOT}/android"
+DEST="${ANDROID_DIR}/app/google-services.json"
 APP_GRADLE="${ANDROID_DIR}/app/build.gradle.kts"
 SETTINGS_GRADLE="${ANDROID_DIR}/settings.gradle.kts"
 MANIFEST="${ANDROID_DIR}/app/src/main/AndroidManifest.xml"
@@ -14,18 +14,66 @@ if [[ ! -d "${ANDROID_DIR}" ]]; then
   exit 1
 fi
 
-if [[ -n "${GOOGLE_SERVICES_JSON:-}" ]]; then
-  printf '%s' "${GOOGLE_SERVICES_JSON}" > "${ANDROID_DIR}/app/google-services.json"
-  echo "Wrote android/app/google-services.json from GOOGLE_SERVICES_JSON"
-elif [[ -f "${ROOT}/google-services.json" ]]; then
-  cp "${ROOT}/google-services.json" "${ANDROID_DIR}/app/google-services.json"
-  echo "Copied google-services.json → android/app/google-services.json"
-elif [[ -f "${ROOT}/google-services.json.example" ]]; then
-  cp "${ROOT}/google-services.json.example" "${ANDROID_DIR}/app/google-services.json"
-  echo "Copied google-services.json.example → android/app/google-services.json (dev placeholder)"
-else
-  echo "WARN: GOOGLE_SERVICES_JSON not set — release APK build will fail without google-services.json"
-fi
+validate_json() {
+  python3 - "$1" <<'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    with open(path, encoding="utf-8") as f:
+        json.load(f)
+    print(f"Valid JSON: {path}")
+except json.JSONDecodeError as exc:
+    print(f"ERROR: invalid JSON in {path}: {exc}", file=sys.stderr)
+    sys.exit(1)
+PY
+}
+
+write_google_services() {
+  mkdir -p "$(dirname "$DEST")"
+
+  # Option 1: base64-encoded secret (recommended for GitHub Actions)
+  if [[ -n "${GOOGLE_SERVICES_JSON_B64:-}" ]]; then
+    printf '%s' "${GOOGLE_SERVICES_JSON_B64}" | base64 --decode > "$DEST"
+    if validate_json "$DEST"; then
+      echo "Wrote google-services.json from GOOGLE_SERVICES_JSON_B64"
+      return 0
+    fi
+    echo "WARN: GOOGLE_SERVICES_JSON_B64 decoded to invalid JSON"
+  fi
+
+  # Option 2: raw JSON env var
+  if [[ -n "${GOOGLE_SERVICES_JSON:-}" ]]; then
+    printf '%s' "${GOOGLE_SERVICES_JSON}" > "$DEST"
+    if validate_json "$DEST"; then
+      echo "Wrote google-services.json from GOOGLE_SERVICES_JSON"
+      return 0
+    fi
+    echo "WARN: GOOGLE_SERVICES_JSON is malformed (check GitHub secret is complete single-line JSON)"
+  fi
+
+  # Option 3: local file (dev, gitignored)
+  if [[ -f "${ROOT}/google-services.json" ]]; then
+    cp "${ROOT}/google-services.json" "$DEST"
+    if validate_json "$DEST"; then
+      echo "Copied google-services.json → android/app/"
+      return 0
+    fi
+    echo "WARN: local google-services.json is invalid"
+  fi
+
+  # Option 4: committed example (CI fallback — client config, not a server secret)
+  if [[ -f "${ROOT}/google-services.json.example" ]]; then
+    cp "${ROOT}/google-services.json.example" "$DEST"
+    validate_json "$DEST"
+    echo "Using google-services.json.example → android/app/"
+    return 0
+  fi
+
+  echo "ERROR: no valid google-services.json source found" >&2
+  exit 1
+}
+
+write_google_services
 
 python3 - "${SETTINGS_GRADLE}" "${APP_GRADLE}" "${MANIFEST}" <<'PY'
 import re
