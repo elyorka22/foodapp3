@@ -24,6 +24,7 @@ export type MenuProduct = {
 type Props = {
   product: MenuProduct;
   restaurantId: string;
+  restaurantName?: string;
   disabled?: boolean;
 };
 
@@ -43,7 +44,7 @@ function discountAmount(price: number, compare: number): number | null {
   return compare - price;
 }
 
-export function ProductCard({ product, restaurantId, disabled }: Props) {
+export function ProductCard({ product, restaurantId, restaurantName, disabled }: Props) {
   const quantity = useCartStore(
     (s) => s.items.find((i) => i.productId === product.id)?.quantity ?? 0,
   );
@@ -66,6 +67,8 @@ export function ProductCard({ product, restaurantId, disabled }: Props) {
       name: product.name,
       price,
       restaurantId,
+      imageUrl: imageUrl ?? null,
+      restaurantName: restaurantName ?? null,
     });
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cart';
@@ -12,25 +12,25 @@ import {
   isCustomerLoggedIn,
   saveTrackingToken,
 } from '@/lib/customer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
-  DeliveryLocation,
   validateDeliveryLocation,
   type DeliveryLocationValue,
 } from '@/components/checkout/delivery-location';
-import { CheckoutTotals } from '@/components/checkout/checkout-totals';
-import { DeliveryQuoteBanner } from '@/components/checkout/delivery-quote-banner';
+import { CheckoutHeader } from '@/components/checkout/checkout-header';
+import { CheckoutProductCard } from '@/components/checkout/checkout-product-card';
+import { CheckoutPromoCard } from '@/components/checkout/checkout-promo-card';
+import { CheckoutPhoneCard } from '@/components/checkout/checkout-phone-card';
+import { CheckoutDeliveryCard } from '@/components/checkout/checkout-delivery-card';
+import { CheckoutSummaryCard } from '@/components/checkout/checkout-summary-card';
+import { CheckoutTrustBadges } from '@/components/checkout/checkout-trust-badges';
+import { CheckoutSubmitBar } from '@/components/checkout/checkout-submit-bar';
 import { fetchDeliveryQuote } from '@/hooks/use-delivery-pricing';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
 
-const mainClass =
-  'mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]';
-
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, restaurantId, total, clear } = useCartStore();
+  const { items, restaurantId, total, clear, addItem, decrementItem, removeItem } = useCartStore();
   const [phone, setPhone] = useState('');
   const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocationValue>({
     address: '',
@@ -47,6 +47,17 @@ export default function CheckoutPage() {
   const [billableDistanceKm, setBillableDistanceKm] = useState<number | null>(null);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
+
+  const itemCount = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items],
+  );
+
+  const subtotal = total();
+  const grandTotal = useMemo(() => {
+    if (deliveryFee == null) return null;
+    return Math.max(0, subtotal - promoDiscount) + deliveryFee;
+  }, [subtotal, promoDiscount, deliveryFee]);
 
   useEffect(() => {
     if (isCustomerLoggedIn() && customerNeedsPhone()) {
@@ -132,7 +143,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           code: promoCode.trim(),
           restaurantId,
-          subtotal: total(),
+          subtotal,
           customerId: getCustomer()?.id,
         }),
       });
@@ -151,8 +162,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async () => {
     if (!restaurantId || !items.length) return;
 
     const locationError = validateDeliveryLocation(deliveryLocation);
@@ -211,10 +221,10 @@ export default function CheckoutPage() {
 
   if (!items.length) {
     return (
-      <main className={mainClass}>
-        <div className="mt-8 text-center">
-          <p className="text-lg font-medium">{uz.cartEmpty}</p>
-          <Link href="/" className="mt-4 inline-block text-brand-600">
+      <main className="mx-auto min-h-screen max-w-lg bg-[#FAF7F2] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+        <div className="mt-12 text-center">
+          <p className="text-lg font-semibold text-zinc-900">{uz.cartEmpty}</p>
+          <Link href="/" className="mt-4 inline-block text-[15px] font-semibold text-[#FF7A00]">
             {uz.browseRestaurants}
           </Link>
         </div>
@@ -223,79 +233,87 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className={mainClass}>
-      <h1 className="text-xl font-bold">{uz.checkoutTitle}</h1>
-      <p className="mt-1 text-sm text-zinc-500">{uz.noAccountRequired}</p>
+    <>
+      <main className="mx-auto min-h-screen max-w-lg bg-[#FAF7F2] px-4 pb-[calc(110px+env(safe-area-inset-bottom,0px))]">
+        <CheckoutHeader itemCount={itemCount} />
 
-      <ul className="mt-4 space-y-2 rounded-2xl border bg-white p-4 shadow-card">
-        {items.map((i) => (
-          <li key={i.productId} className="flex justify-between text-sm">
-            <span>
-              {i.name} × {i.quantity}
-            </span>
-            <span>{formatSum(i.price * i.quantity)}</span>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-4 flex gap-2">
-        <Input
-          placeholder={uz.promoCode}
-          value={promoCode}
-          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-        />
-        <Button type="button" variant="secondary" onClick={applyPromo} disabled={validatingPromo}>
-          {validatingPromo ? '...' : uz.apply}
-        </Button>
-      </div>
-      {promoMessage && <p className="mt-2 text-sm text-brand-600">{promoMessage}</p>}
-
-      <form onSubmit={submit} className="mt-6 space-y-4">
-        <Input
-          required
-          type="tel"
-          placeholder={uz.phone}
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-
-        <DeliveryLocation
-          value={deliveryLocation}
-          onChange={setDeliveryLocation}
-          onCalculate={calculateDelivery}
-          calculating={deliveryLoading}
-          quoted={deliveryQuoted}
-          onError={setError}
-        />
-
-        {deliveryError && (
-          <p className="text-sm text-red-500">{deliveryError}</p>
-        )}
-
-        {deliveryQuoted && (
-          <>
-            <DeliveryQuoteBanner
-              loading={false}
-              error={null}
-              billableDistanceKm={billableDistanceKm}
-              deliveryFee={deliveryFee}
+        <div className="mt-6 space-y-4">
+          {items.map((item) => (
+            <CheckoutProductCard
+              key={item.productId}
+              item={item}
+              onIncrement={() =>
+                addItem(
+                  {
+                    productId: item.productId,
+                    name: item.name,
+                    price: item.price,
+                    restaurantId: item.restaurantId,
+                    imageUrl: item.imageUrl,
+                    restaurantName: item.restaurantName,
+                  },
+                  1,
+                )
+              }
+              onDecrement={() => decrementItem(item.productId)}
+              onRemove={() => removeItem(item.productId)}
             />
-            <CheckoutTotals
-              subtotal={total()}
+          ))}
+
+          <CheckoutPromoCard
+            promoCode={promoCode}
+            onPromoCodeChange={setPromoCode}
+            onApply={applyPromo}
+            validating={validatingPromo}
+            message={promoMessage}
+          />
+
+          <CheckoutPhoneCard phone={phone} onPhoneChange={setPhone} />
+
+          <CheckoutDeliveryCard
+            value={deliveryLocation}
+            onChange={setDeliveryLocation}
+            onCalculate={calculateDelivery}
+            calculating={deliveryLoading}
+            quoted={deliveryQuoted}
+            deliveryFee={deliveryFee}
+            billableDistanceKm={billableDistanceKm}
+            deliveryError={deliveryError}
+            onError={(msg) => {
+              if (msg) setError(msg);
+              else setError('');
+              setDeliveryError(msg || null);
+            }}
+          />
+
+          {deliveryQuoted ? (
+            <CheckoutSummaryCard
+              subtotal={subtotal}
               deliveryFee={deliveryFee}
               promoDiscount={promoDiscount}
             />
-          </>
-        )}
+          ) : null}
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        {!canPlaceOrder && !loading && (
-          <p className="text-xs text-zinc-500">{uz.deliveryPriceRequired}</p>
-        )}
-        <Button type="submit" size="lg" disabled={!canPlaceOrder} className="w-full">
-          {loading ? uz.placingOrder : uz.placeOrder}
-        </Button>
-      </form>
-    </main>
+          <CheckoutTrustBadges />
+
+          {error ? (
+            <p className="rounded-2xl bg-red-50 px-4 py-3 text-[13px] font-medium text-red-600">
+              {error}
+            </p>
+          ) : null}
+
+          {!canPlaceOrder && !loading ? (
+            <p className="text-center text-[12px] text-zinc-500">{uz.deliveryPriceRequired}</p>
+          ) : null}
+        </div>
+      </main>
+
+      <CheckoutSubmitBar
+        total={grandTotal}
+        loading={loading}
+        disabled={!canPlaceOrder}
+        onSubmit={submit}
+      />
+    </>
   );
 }

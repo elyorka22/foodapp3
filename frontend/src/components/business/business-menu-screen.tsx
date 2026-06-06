@@ -148,6 +148,7 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
               key={p.id}
               product={p}
               restaurantId={business.id}
+              restaurantName={business.name}
               disabled={closed}
             />
           ))}

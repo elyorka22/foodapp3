@@ -1,7 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type CartItem = { productId: string; name: string; price: number; quantity: number; restaurantId: string };
+export type CartItem = {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  restaurantId: string;
+  imageUrl?: string | null;
+  restaurantName?: string | null;
+};
 
 type CartState = {
   restaurantId: string | null;
