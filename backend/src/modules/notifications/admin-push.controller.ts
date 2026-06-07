@@ -20,7 +20,7 @@ export class AdminPushController {
   @ApiOperation({ summary: 'Audiences the current admin role may target' })
   audiences(@CurrentUser() user: JwtPayload) {
     return {
-      audiences: this.adminPush.getAllowedAudiences(user.role),
+      audiences: this.adminPush.getAllowedAudiences(user.role as UserRole),
     };
   }
 
@@ -35,6 +35,6 @@ export class AdminPushController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Send in-app notification + push to audience' })
   send(@CurrentUser() user: JwtPayload, @Body() dto: AdminSendPushDto) {
-    return this.adminPush.sendBroadcast(user.sub, user.role, dto);
+    return this.adminPush.sendBroadcast(user.sub, user.role as UserRole, dto);
   }
 }
