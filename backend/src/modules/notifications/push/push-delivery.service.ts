@@ -62,6 +62,15 @@ export class PushDeliveryService {
           phone: params.guestPhone,
           deviceId: params.guestDeviceId,
         });
+        if (!tokens.length) {
+          this.logger.warn(
+            `Customer push skipped — no device tokens (userId=${params.userId ?? 'n/a'}, phone=${params.guestPhone ?? 'n/a'}, device=${params.guestDeviceId ?? 'n/a'}, notification=${params.notificationId})`,
+          );
+          return;
+        }
+        this.logger.log(
+          `Customer push → ${tokens.length} device(s): "${params.title}"`,
+        );
         await this.pushProvider.sendToTokens(tokens, message);
         return;
       }
@@ -101,11 +110,13 @@ export class PushDeliveryService {
       deviceId: params.deviceId,
     });
     if (!tokens.length) {
-      this.logger.debug(
+      this.logger.warn(
         `Guest push skipped — no tokens (phone=${params.phone}, device=${params.deviceId ?? 'n/a'})`,
       );
       return;
     }
+
+    this.logger.log(`Guest push → ${tokens.length} device(s): "${params.title}"`);
 
     await this.pushProvider.sendToTokens(tokens, {
       title: params.title,
@@ -165,6 +176,13 @@ export class PushDeliveryService {
     phone?: string;
   }) {
     const phone = params.phone?.trim() ? normalizePhone(params.phone) : undefined;
+    const token = params.pushToken?.trim() || null;
+
+    if (!token) {
+      this.logger.warn(
+        `Device register without push token (device=${params.deviceId}, account=${params.accountType}, user=${params.userId ?? 'guest'})`,
+      );
+    }
 
     return this.prisma.userDevice.upsert({
       where: {
@@ -179,7 +197,7 @@ export class PushDeliveryService {
         role: params.role,
         deviceId: params.deviceId,
         platform: params.platform,
-        pushToken: params.pushToken,
+        pushToken: token,
         appVersion: params.appVersion,
         phone: phone ?? null,
         lastSeenAt: new Date(),
@@ -187,7 +205,7 @@ export class PushDeliveryService {
       update: {
         ...(params.userId ? { userId: params.userId } : {}),
         role: params.role,
-        pushToken: params.pushToken ?? undefined,
+        ...(token ? { pushToken: token } : {}),
         appVersion: params.appVersion ?? undefined,
         platform: params.platform,
         ...(phone ? { phone } : {}),
@@ -251,6 +269,7 @@ export class PushDeliveryService {
     deviceId?: string;
   }): Promise<string[]> {
     const or: Prisma.UserDeviceWhereInput[] = [];
+    let customerPhone = filters.phone?.trim() ? normalizePhone(filters.phone) : undefined;
 
     if (filters.userId) {
       or.push({
@@ -258,11 +277,21 @@ export class PushDeliveryService {
         role: DeviceRole.CUSTOMER,
         pushToken: { not: null },
       });
+
+      if (!customerPhone) {
+        const customer = await this.prisma.customer.findUnique({
+          where: { id: filters.userId },
+          select: { phone: true },
+        });
+        if (customer?.phone) {
+          customerPhone = normalizePhone(customer.phone);
+        }
+      }
     }
 
-    if (filters.phone) {
+    if (customerPhone) {
       or.push({
-        phone: normalizePhone(filters.phone),
+        phone: customerPhone,
         accountType: NotificationAccountType.CUSTOMER,
         pushToken: { not: null },
       });

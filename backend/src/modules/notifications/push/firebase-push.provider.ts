@@ -86,33 +86,26 @@ export class FirebasePushProvider extends BasePushProvider implements OnModuleIn
       notificationType === 'ORDER_ASSIGNED' || notificationType === 'NEW_ORDER';
     const channelId = isCourierUrgent ? 'foodapp_courier_urgent' : 'foodapp_default';
 
+    const dataPayload: Record<string, string> = {
+      ...(message.data ?? {}),
+      title: message.title,
+      body: message.body,
+      channelId,
+    };
+
+    // Data-only on Android — app shows tray notification via flutter_local_notifications.
+    // iOS uses APNs alert payload for lock-screen display.
     const fcmMessage: admin.messaging.Message = {
       token: pushToken,
-      notification: {
-        title: message.title,
-        body: message.body,
-      },
-      data: {
-        ...(message.data ?? {}),
-        title: message.title,
-        body: message.body,
-      },
+      data: dataPayload,
       android: {
         priority: 'high',
         ttl: 86_400_000,
-        notification: {
-          channelId,
-          sound: 'default',
-          defaultSound: true,
-          defaultVibrateTimings: true,
-          visibility: 'public',
-          priority: 'max',
-          notificationCount: 1,
-        },
       },
       apns: {
         headers: {
           'apns-priority': '10',
+          'apns-push-type': 'alert',
         },
         payload: {
           aps: {
@@ -129,7 +122,7 @@ export class FirebasePushProvider extends BasePushProvider implements OnModuleIn
 
     try {
       const messageId = await this.messaging.send(fcmMessage);
-      this.logger.debug(
+      this.logger.log(
         `FCM delivered "${message.title}" → ${pushToken.slice(0, 12)}… (${messageId})`,
       );
     } catch (err: unknown) {

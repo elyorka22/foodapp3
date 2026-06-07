@@ -6,16 +6,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'local_notification_display.dart';
+import 'firebase_options.dart';
 import 'notification_permissions.dart';
 import 'push_notification_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-
-  if (message.notification == null) {
-    await showRemoteMessageNotification(message);
-  }
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await showRemoteMessageNotification(message);
 }
 
 /// FCM transport for courier app.
@@ -37,7 +35,7 @@ class FirebasePushNotificationService implements PushNotificationService {
     if (_initialized) return;
 
     if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     }
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');

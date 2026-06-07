@@ -50,7 +50,10 @@ class DeviceRegistrationService {
     try {
       await _push.initialize();
       final pushToken = await _resolvePushToken();
-      if (pushToken == null) return;
+      if (pushToken == null) {
+        debugPrint('Guest device registration skipped: no FCM token (enable notifications in settings)');
+        return;
+      }
 
       final deviceId = await _deviceIdStorage.getOrCreate();
       final info = await PackageInfo.fromPlatform();
@@ -75,7 +78,10 @@ class DeviceRegistrationService {
     try {
       await _push.initialize();
       final pushToken = await _resolvePushToken();
-      if (pushToken == null) return;
+      if (pushToken == null) {
+        debugPrint('Auth device registration skipped: no FCM token (enable notifications in settings)');
+        return;
+      }
 
       final deviceId = await _deviceIdStorage.getOrCreate();
       final info = await PackageInfo.fromPlatform();
