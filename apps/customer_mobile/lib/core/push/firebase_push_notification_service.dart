@@ -21,7 +21,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class FirebasePushNotificationService implements PushNotificationService {
   FirebasePushNotificationService();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  bool _initialized = false;
+
+  FirebaseMessaging get _messaging => FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
@@ -146,10 +148,6 @@ class FirebasePushNotificationService implements PushNotificationService {
         ),
       ),
       payload: jsonEncode(data),
-    );
-  }
-}
-onEncode(data),
     );
   }
 }
