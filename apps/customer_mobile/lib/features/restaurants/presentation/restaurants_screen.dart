@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/config/public_settings_provider.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -91,7 +92,10 @@ class RestaurantsScreen extends ConsumerWidget {
                     child: CircularProgressIndicator(),
                   ),
                 ),
-                error: (e, _) => Text('$e', style: AppTypography.bodySmall),
+                error: (e, _) => Text(
+                  ApiException.formatError(e),
+                  style: AppTypography.bodySmall,
+                ),
               ),
             ],
           ),

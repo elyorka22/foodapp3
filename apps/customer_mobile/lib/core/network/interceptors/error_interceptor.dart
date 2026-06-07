@@ -7,7 +7,12 @@ class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     final response = err.response;
-    final message = await _resolveMessage(err);
+    var message = ApiException.fromDio(err);
+
+    if (err.type == DioExceptionType.connectionError) {
+      final online = await hasNetworkConnection();
+      if (!online) message = AppStrings.networkOffline;
+    }
 
     handler.reject(
       DioException(
@@ -21,25 +26,5 @@ class ErrorInterceptor extends Interceptor {
         ),
       ),
     );
-  }
-
-  Future<String> _resolveMessage(DioException err) async {
-    if (err.response?.data != null) {
-      return ApiException.parseMessage(err.response!.data);
-    }
-
-    if (err.type == DioExceptionType.connectionTimeout ||
-        err.type == DioExceptionType.receiveTimeout ||
-        err.type == DioExceptionType.sendTimeout) {
-      return AppStrings.networkTimeout;
-    }
-
-    if (err.type == DioExceptionType.connectionError) {
-      final online = await hasNetworkConnection();
-      if (!online) return AppStrings.networkOffline;
-      return AppStrings.networkError;
-    }
-
-    return AppStrings.networkError;
   }
 }
