@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../router/app_router.dart';
 import 'device_registration_service.dart';
 import 'notification_deep_link.dart';
+import 'notification_permissions.dart';
 import 'push_providers.dart';
 
 class PushBootstrap extends ConsumerStatefulWidget {
@@ -15,6 +17,8 @@ class PushBootstrap extends ConsumerStatefulWidget {
 }
 
 class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindingObserver {
+  bool _permissionPromptShown = false;
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +56,40 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindi
     }
 
     await ref.read(deviceRegistrationServiceProvider).registerAfterAuth();
+
+    if (!mounted) return;
+    await _promptForNotificationPermissionIfNeeded();
+  }
+
+  Future<void> _promptForNotificationPermissionIfNeeded() async {
+    if (_permissionPromptShown || await hasPushNotificationPermission()) return;
+    _permissionPromptShown = true;
+
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Bildirishnomalar'),
+        content: const Text(
+          'Yangi buyurtmalar haqida darhol xabar olish uchun bildirishnomalarni yoqing.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Keyinroq')),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final granted = await requestPushNotificationPermissions();
+              if (granted) {
+                await ref.read(deviceRegistrationServiceProvider).registerAfterAuth();
+                return;
+              }
+              await openAppSettings();
+            },
+            child: const Text('Yoqish'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

@@ -18,7 +18,7 @@ const foodAppAndroidNotificationDetails = AndroidNotificationDetails(
   foodAppNotificationChannelId,
   foodAppNotificationChannelName,
   importance: Importance.max,
-  priority: Priority.high,
+  priority: Priority.max,
   playSound: true,
   enableVibration: true,
   visibility: NotificationVisibility.public,

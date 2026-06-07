@@ -7,6 +7,7 @@ import '../network/dio_client.dart';
 import '../storage/storage_providers.dart';
 import '../storage/token_storage.dart';
 import 'device_id_storage.dart';
+import 'notification_permissions.dart';
 import 'push_notification_service.dart';
 import 'push_providers.dart';
 
@@ -43,8 +44,10 @@ class DeviceRegistrationService {
 
     try {
       await _push.initialize();
+      final pushToken = await _resolvePushToken();
+      if (pushToken == null) return;
+
       final deviceId = await _deviceIdStorage.getOrCreate();
-      final pushToken = await _push.getDeviceToken();
       final platform = _platformName();
 
       await _repository.register(
@@ -79,5 +82,16 @@ class DeviceRegistrationService {
   String _platformName() {
     if (Platform.isIOS) return 'ios';
     return 'android';
+  }
+
+  Future<String?> _resolvePushToken() async {
+    if (!await hasPushNotificationPermission()) {
+      await requestPushNotificationPermissions();
+    }
+    if (!await hasPushNotificationPermission()) return null;
+
+    final token = await _push.getDeviceToken();
+    if (token == null || token.isEmpty) return null;
+    return token;
   }
 }

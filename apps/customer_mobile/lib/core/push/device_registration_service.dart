@@ -8,6 +8,7 @@ import '../network/dio_client.dart';
 import '../storage/storage_providers.dart';
 import '../storage/token_storage.dart';
 import 'device_id_storage.dart';
+import 'notification_permissions.dart';
 import 'push_notification_service.dart';
 import 'push_providers.dart';
 
@@ -48,8 +49,10 @@ class DeviceRegistrationService {
   Future<void> registerOnLaunch() async {
     try {
       await _push.initialize();
+      final pushToken = await _resolvePushToken();
+      if (pushToken == null) return;
+
       final deviceId = await _deviceIdStorage.getOrCreate();
-      final pushToken = await _push.getDeviceToken();
       final info = await PackageInfo.fromPlatform();
       final platform = _platformName();
 
@@ -71,8 +74,10 @@ class DeviceRegistrationService {
 
     try {
       await _push.initialize();
+      final pushToken = await _resolvePushToken();
+      if (pushToken == null) return;
+
       final deviceId = await _deviceIdStorage.getOrCreate();
-      final pushToken = await _push.getDeviceToken();
       final info = await PackageInfo.fromPlatform();
       final platform = _platformName();
 
@@ -92,8 +97,10 @@ class DeviceRegistrationService {
     if (phone.trim().isEmpty) return;
     try {
       await _push.initialize();
+      final pushToken = await _resolvePushToken();
+      if (pushToken == null) return;
+
       final deviceId = await _deviceIdStorage.getOrCreate();
-      final pushToken = await _push.getDeviceToken();
       final info = await PackageInfo.fromPlatform();
       await _repository.registerGuest(
         deviceId: deviceId,
@@ -159,5 +166,17 @@ class DeviceRegistrationService {
     if (kIsWeb) return 'web';
     if (Platform.isIOS) return 'ios';
     return 'android';
+  }
+
+  /// Waits for OS permission, then returns FCM token — null if notifications are blocked.
+  Future<String?> _resolvePushToken() async {
+    if (!await hasPushNotificationPermission()) {
+      await requestPushNotificationPermissions();
+    }
+    if (!await hasPushNotificationPermission()) return null;
+
+    final token = await _push.getDeviceToken();
+    if (token == null || token.isEmpty) return null;
+    return token;
   }
 }

@@ -101,6 +101,32 @@ docker compose up -d --build
 docker compose exec api npx prisma migrate deploy
 ```
 
+### Failed migration (P3009, API crash loop)
+
+If `migrate deploy` succeeded once but API still fails with **P3009** and an old `started_at`, Prisma left a **duplicate failed row** in `_prisma_migrations`. Remove it:
+
+```bash
+docker compose stop api
+
+docker compose exec postgres psql -U foodapp -d foodapp -c \
+  "SELECT migration_name, started_at, finished_at, rolled_back_at FROM _prisma_migrations WHERE migration_name = '20250607180000_guest_device_push' ORDER BY started_at;"
+
+docker compose exec postgres psql -U foodapp -d foodapp -c \
+  "DELETE FROM _prisma_migrations WHERE migration_name = '20250607180000_guest_device_push' AND finished_at IS NULL;"
+
+docker compose up -d api
+curl -sS http://127.0.0.1:4000/api/v1/health
+```
+
+Or run `./scripts/db-fix-failed-migration.sh` (optional migration name as first arg).
+
+Manual re-apply without entrypoint migrations:
+
+```bash
+docker compose run --rm -e SKIP_MIGRATIONS=true api npx prisma migrate resolve --rolled-back MIGRATION_NAME
+docker compose run --rm -e SKIP_MIGRATIONS=true api npx prisma migrate deploy
+```
+
 ## 8. Scaling path (post-MVP)
 
 1. **Managed PostgreSQL** — move `DATABASE_URL` off droplet  

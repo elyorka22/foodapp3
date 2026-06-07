@@ -1,17 +1,22 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'native_notification_channel.dart';
+import 'local_notification_display.dart';
 import 'notification_permissions.dart';
 import 'push_notification_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  debugPrint('FCM background message: ${message.messageId}');
+
+  // Data-only messages need a local notification; notification payload is handled by FCM on Android.
+  if (message.notification == null) {
+    await showRemoteMessageNotification(message);
+  }
 }
 
 /// FCM transport for customer app — tokens registered via FoodApp backend.
@@ -46,12 +51,16 @@ class FirebasePushNotificationService implements PushNotificationService {
       },
     );
 
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(foodAppAndroidNotificationChannel);
-
+    await ensureLocalNotificationsReady();
     await requestPushNotificationPermissions();
+
+    if (Platform.isIOS) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
 
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
@@ -66,6 +75,8 @@ class FirebasePushNotificationService implements PushNotificationService {
   @override
   Future<String?> getDeviceToken() async {
     if (Firebase.apps.isEmpty) return null;
+    if (!await hasPushNotificationPermission()) return null;
+
     try {
       return await _messaging.getToken();
     } catch (e) {
@@ -102,7 +113,7 @@ class FirebasePushNotificationService implements PushNotificationService {
   void _onForegroundMessage(RemoteMessage message) {
     final data = _messageData(message);
     _foregroundHandler?.call(data);
-    _showLocalNotification(message, data);
+    showRemoteMessageNotification(message);
   }
 
   void _onMessageOpenedApp(RemoteMessage message) {
@@ -115,22 +126,5 @@ class FirebasePushNotificationService implements PushNotificationService {
 
   Map<String, dynamic> _messageData(RemoteMessage message) {
     return Map<String, dynamic>.from(message.data);
-  }
-
-  Future<void> _showLocalNotification(
-    RemoteMessage message,
-    Map<String, dynamic> data,
-  ) async {
-    final notification = message.notification;
-    final title = notification?.title ?? 'FoodApp';
-    final body = notification?.body ?? '';
-
-    await _localNotifications.show(
-      message.hashCode,
-      title,
-      body,
-      const NotificationDetails(android: foodAppAndroidNotificationDetails),
-      payload: jsonEncode(data),
-    );
   }
 }

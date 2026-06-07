@@ -81,22 +81,33 @@ export class FirebasePushProvider extends BasePushProvider implements OnModuleIn
       return;
     }
 
+    const notificationType = message.data?.type ?? '';
+    const isCourierUrgent =
+      notificationType === 'ORDER_ASSIGNED' || notificationType === 'NEW_ORDER';
+    const channelId = isCourierUrgent ? 'foodapp_courier_urgent' : 'foodapp_default';
+
     const fcmMessage: admin.messaging.Message = {
       token: pushToken,
       notification: {
         title: message.title,
         body: message.body,
       },
-      data: message.data ?? {},
+      data: {
+        ...(message.data ?? {}),
+        title: message.title,
+        body: message.body,
+      },
       android: {
         priority: 'high',
         ttl: 86_400_000,
         notification: {
-          channelId: 'foodapp_default',
+          channelId,
           sound: 'default',
           defaultSound: true,
           defaultVibrateTimings: true,
           visibility: 'public',
+          priority: 'max',
+          notificationCount: 1,
         },
       },
       apns: {
