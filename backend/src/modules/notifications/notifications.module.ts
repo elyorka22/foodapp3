@@ -37,6 +37,11 @@ function pushProviderFactory(
       inject: [ConfigService, NoopPushProvider, FirebasePushProvider],
     },
   ],
-  exports: [NotificationService, NotificationsGateway, PushNotificationHooks],
+  exports: [
+    NotificationService,
+    NotificationsGateway,
+    PushDeliveryService,
+    PushNotificationHooks,
+  ],
 })
 export class NotificationsModule {}
