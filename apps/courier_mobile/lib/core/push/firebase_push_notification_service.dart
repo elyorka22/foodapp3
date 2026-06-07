@@ -20,7 +20,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class FirebasePushNotificationService implements PushNotificationService {
   FirebasePushNotificationService();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  bool _initialized = false;
+
+  FirebaseMessaging get _messaging => FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
@@ -30,8 +32,11 @@ class FirebasePushNotificationService implements PushNotificationService {
 
   @override
   Future<void> initialize() async {
-    await Firebase.initializeApp();
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    if (_initialized) return;
+
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _localNotifications.initialize(
@@ -60,10 +65,13 @@ class FirebasePushNotificationService implements PushNotificationService {
     _messaging.onTokenRefresh.listen((token) {
       _tokenRefreshHandler?.call(token);
     });
+
+    _initialized = true;
   }
 
   @override
   Future<String?> getDeviceToken() async {
+    if (Firebase.apps.isEmpty) return null;
     try {
       return await _messaging.getToken();
     } catch (e) {

@@ -43,6 +43,7 @@ class DeviceRegistrationService {
     if (accessToken == null || accessToken.isEmpty) return;
 
     try {
+      await _push.initialize();
       final deviceId = await _deviceIdStorage.getOrCreate();
       final pushToken = await _push.getDeviceToken();
       final info = await PackageInfo.fromPlatform();
