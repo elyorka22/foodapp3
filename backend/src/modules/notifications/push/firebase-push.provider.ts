@@ -90,16 +90,27 @@ export class FirebasePushProvider extends BasePushProvider implements OnModuleIn
       data: message.data ?? {},
       android: {
         priority: 'high',
+        ttl: 86_400_000,
         notification: {
           channelId: 'foodapp_default',
           sound: 'default',
+          defaultSound: true,
+          defaultVibrateTimings: true,
+          visibility: 'public',
         },
       },
       apns: {
+        headers: {
+          'apns-priority': '10',
+        },
         payload: {
           aps: {
             sound: 'default',
             badge: 1,
+            alert: {
+              title: message.title,
+              body: message.body,
+            },
           },
         },
       },

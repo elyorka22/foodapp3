@@ -90,7 +90,6 @@ export class StaffNotificationsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS, UserRole.COURIER)
   unregisterDevice(@CurrentUser() user: JwtPayload, @Body() dto: RegisterDeviceDto) {
     return this.pushDelivery.clearDevicePushToken({
-      userId: user.sub,
       accountType: NotificationAccountType.STAFF,
       deviceId: dto.deviceId,
     });

@@ -4,11 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'native_notification_channel.dart';
 import 'notification_permissions.dart';
 import 'push_notification_service.dart';
-
-const foodAppNotificationChannelId = 'foodapp_default';
-const foodAppNotificationChannelName = 'FoodApp notifications';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -48,15 +46,10 @@ class FirebasePushNotificationService implements PushNotificationService {
       },
     );
 
-    const channel = AndroidNotificationChannel(
-      foodAppNotificationChannelId,
-      foodAppNotificationChannelName,
-      importance: Importance.high,
-    );
     await _localNotifications
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+        ?.createNotificationChannel(foodAppAndroidNotificationChannel);
 
     await requestPushNotificationPermissions();
 
@@ -125,14 +118,7 @@ class FirebasePushNotificationService implements PushNotificationService {
       message.hashCode,
       notification?.title ?? 'FoodApp Courier',
       notification?.body ?? '',
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          foodAppNotificationChannelId,
-          foodAppNotificationChannelName,
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-      ),
+      const NotificationDetails(android: foodAppAndroidNotificationDetails),
       payload: jsonEncode(data),
     );
   }

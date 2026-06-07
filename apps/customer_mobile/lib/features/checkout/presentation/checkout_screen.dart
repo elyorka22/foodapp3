@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/location/location_providers.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/push/device_registration_service.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -197,14 +198,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     try {
       final deliveryAddress = 'GPS: ${_lat!}, ${_lng!}';
+      final phone = _phone.text.trim();
+      final deviceId = await ref.read(deviceRegistrationServiceProvider).getDeviceId();
+      await ref.read(deviceRegistrationServiceProvider).syncGuestPhone(phone);
+
       final res = await ref.read(ordersRepositoryProvider).createGuestOrder(
             CreateGuestOrderModel(
               restaurantId: businessId,
-              phone: _phone.text.trim(),
+              phone: phone,
               deliveryAddress: deliveryAddress,
               latitude: _lat!,
               longitude: _lng!,
               customerId: customerId,
+              deviceId: deviceId,
               promoCode: _promoCode.text.trim().isEmpty ? null : _promoCode.text.trim(),
               items: [
                 for (final i in items)

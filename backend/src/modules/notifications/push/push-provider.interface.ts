@@ -16,6 +16,7 @@ export interface PushProvider {
   readonly name: string;
   sendToUser(target: PushUserTarget, message: PushMessagePayload): Promise<void>;
   sendToMany(targets: PushUserTarget[], message: PushMessagePayload): Promise<void>;
+  sendToTokens(tokens: string[], message: PushMessagePayload): Promise<void>;
 }
 
 export const PUSH_PROVIDER = Symbol('PUSH_PROVIDER');

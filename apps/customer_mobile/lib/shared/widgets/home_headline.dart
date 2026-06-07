@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/config/public_settings_provider.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/router/routes.dart';
+import '../../features/auth/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
@@ -73,11 +74,13 @@ class _HeadlineRow extends StatelessWidget {
   }
 }
 
-class _BellButton extends StatelessWidget {
+class _BellButton extends ConsumerWidget {
   const _BellButton();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authStateProvider).valueOrNull;
+
     return Material(
       color: Colors.white,
       elevation: 1,
@@ -85,7 +88,13 @@ class _BellButton extends StatelessWidget {
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
-        onTap: () => context.push(AppRoutes.notifications),
+        onTap: () {
+          if (user == null) {
+            context.push('/profile/login');
+            return;
+          }
+          context.push(AppRoutes.notifications);
+        },
         child: const SizedBox(
           width: 44,
           height: 44,

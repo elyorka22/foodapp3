@@ -6,11 +6,13 @@ import {
 } from '@nestjs/common';
 import {
   NotificationAccountType,
+  NotificationChannelCode,
   UserRole,
 } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from './notifications.service';
+import { PushDeliveryService } from './push/push-delivery.service';
 import {
   AdminSendPushDto,
   PushBroadcastAudience,
@@ -30,6 +32,7 @@ export class AdminPushService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationService,
+    private pushDelivery: PushDeliveryService,
     private audit: AuditService,
   ) {}
 
@@ -83,7 +86,13 @@ export class AdminPushService {
     this.assertAudienceAllowed(senderRole, dto.audience);
 
     const recipients = await this.resolveRecipients(dto);
-    if (!recipients.length) {
+    const guestTokens =
+      dto.audience === PushBroadcastAudience.CUSTOMERS ||
+      dto.audience === PushBroadcastAudience.ALL
+        ? await this.pushDelivery.listGuestPushTokens()
+        : [];
+
+    if (!recipients.length && !guestTokens.length) {
       throw new BadRequestException('No recipients found for this audience');
     }
     if (recipients.length > MAX_RECIPIENTS) {
@@ -105,6 +114,20 @@ export class AdminPushService {
         dto.body,
       );
       delivered += results.filter(Boolean).length;
+    }
+
+    if (guestTokens.length) {
+      await this.pushDelivery.deliverDirectPush({
+        tokens: guestTokens,
+        title: dto.title,
+        body: dto.body,
+        type:
+          templateCode === 'PROMOTION'
+            ? NotificationChannelCode.PROMOTION
+            : NotificationChannelCode.SYSTEM,
+        metadata: { sentByAdmin: senderId, audience: dto.audience },
+      });
+      delivered += guestTokens.length;
     }
 
     await this.audit.log({

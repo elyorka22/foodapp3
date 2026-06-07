@@ -22,4 +22,10 @@ export class RegisterDeviceDto {
   @IsString()
   @MaxLength(32)
   appVersion?: string;
+
+  @ApiPropertyOptional({ description: 'Guest phone for push targeting before login' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  phone?: string;
 }

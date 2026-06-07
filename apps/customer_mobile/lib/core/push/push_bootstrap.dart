@@ -5,7 +5,7 @@ import 'device_registration_service.dart';
 import 'notification_deep_link.dart';
 import 'push_providers.dart';
 
-/// Wires FCM taps, cold-start deep links, and device registration when session exists.
+/// Wires FCM, guest device registration, and auth-linked registration.
 class PushBootstrap extends ConsumerStatefulWidget {
   const PushBootstrap({required this.child, super.key});
 
@@ -15,11 +15,26 @@ class PushBootstrap extends ConsumerStatefulWidget {
   ConsumerState<PushBootstrap> createState() => _PushBootstrapState();
 }
 
-class _PushBootstrapState extends ConsumerState<PushBootstrap> {
+class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _initPush());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(deviceRegistrationServiceProvider).registerOnLaunch();
+      ref.read(deviceRegistrationServiceProvider).registerAfterAuth();
+    }
   }
 
   Future<void> _initPush() async {
@@ -38,7 +53,9 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> {
       navigateFromPushData(router, initial);
     }
 
-    await ref.read(deviceRegistrationServiceProvider).registerAfterAuth();
+    final devices = ref.read(deviceRegistrationServiceProvider);
+    await devices.registerOnLaunch();
+    await devices.registerAfterAuth();
   }
 
   @override

@@ -181,6 +181,7 @@ export class OrdersService {
         data: {
           phone,
           customerId,
+          deviceId: dto.deviceId?.trim() || null,
           deliveryAddress,
           latitude: dto.latitude,
           longitude: dto.longitude,
@@ -281,8 +282,25 @@ export class OrdersService {
           orderId: order.id,
           orderNumber: order.orderNumber,
           trackingToken: order.trackingToken,
+          guestPhone: phone,
+          guestDeviceId: dto.deviceId,
         },
       });
+    } else {
+      await this.notifications.notifyGuestOrderPush({
+        phone,
+        deviceId: dto.deviceId,
+        templateCode: 'ORDER_CREATED',
+        metadata: {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          trackingToken: order.trackingToken,
+        },
+      });
+    }
+
+    if (dto.deviceId?.trim()) {
+      await this.notifications.linkDevicePhone(dto.deviceId.trim(), phone);
     }
 
     return {
@@ -491,7 +509,11 @@ export class OrdersService {
       orderNumber: string;
       trackingToken?: string;
       status: OrderStatus;
-      guestOrder?: { customerId: string | null } | null;
+      guestOrder?: {
+        customerId: string | null;
+        phone?: string;
+        deviceId?: string | null;
+      } | null;
       courier?: { userId: string } | { user?: { id: string } } | null;
       business?: { name: string | null } | null;
     },
@@ -499,17 +521,30 @@ export class OrdersService {
   ) {
     const templateCode = ORDER_STATUS_TO_CUSTOMER_TEMPLATE[status];
     const customerId = order.guestOrder?.customerId;
+    const guestPhone = order.guestOrder?.phone;
+    const guestDeviceId = order.guestOrder?.deviceId ?? undefined;
+    const orderMeta = {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      trackingToken: order.trackingToken,
+      status,
+      businessName: order.business?.name,
+      guestPhone,
+      guestDeviceId,
+    };
+
     if (customerId && templateCode) {
       await this.notifications.notifyCustomerOrderStatus({
         customerId,
         templateCode,
-        metadata: {
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          trackingToken: order.trackingToken,
-          status,
-          businessName: order.business?.name,
-        },
+        metadata: orderMeta,
+      });
+    } else if (guestPhone && templateCode) {
+      await this.notifications.notifyGuestOrderPush({
+        phone: guestPhone,
+        deviceId: guestDeviceId,
+        templateCode,
+        metadata: orderMeta,
       });
     }
 

@@ -19,6 +19,7 @@ class ApiPaths {
   static const notificationsUnread = '/notifications/unread-count';
   static const notificationsReadAll = '/notifications/read-all';
   static const notificationsDevices = '/notifications/devices/register';
+  static const notificationsDevicesGuest = '/notifications/devices/guest';
   static const notificationsDevicesLegacy = '/notifications/devices';
   static const notificationsDevicesUnregister = '/notifications/devices/unregister';
   static String notificationRead(String id) => '/notifications/$id/read';

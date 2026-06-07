@@ -100,7 +100,6 @@ export class CouriersController {
   @Roles(UserRole.COURIER)
   unregisterDevice(@CurrentUser() user: JwtPayload, @Body() dto: RegisterDeviceDto) {
     return this.pushDelivery.clearDevicePushToken({
-      userId: user.sub,
       accountType: NotificationAccountType.STAFF,
       deviceId: dto.deviceId,
     });

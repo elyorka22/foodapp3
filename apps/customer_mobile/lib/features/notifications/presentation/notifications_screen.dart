@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/notifications_provider.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -11,6 +14,33 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authStateProvider).valueOrNull;
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(AppStrings.notificationsTitle, style: AppTypography.title)),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  AppStrings.notificationsLoginRequired,
+                  style: AppTypography.body,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                FoodAppButton(
+                  label: AppStrings.login,
+                  onPressed: () => context.push('/profile/login'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     final listAsync = ref.watch(notificationsListProvider);
 
     return Scaffold(
@@ -109,7 +139,7 @@ class NotificationsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('$e', style: AppTypography.bodySmall),
+                  Text(ApiException.formatError(e), style: AppTypography.bodySmall, textAlign: TextAlign.center),
                   const SizedBox(height: AppSpacing.md),
                   FoodAppButton(
                     label: AppStrings.retry,

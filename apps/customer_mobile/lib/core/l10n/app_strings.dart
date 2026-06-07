@@ -137,6 +137,8 @@ abstract final class AppStrings {
   static const backToRestaurants = 'Restoranlarga qaytish';
 
   static const notificationsTitle = 'Bildirishnomalar';
+  static const notificationsLoginRequired =
+      'Tarixni ko\'rish uchun avval profilingizga kiring. Push xabarlar esa login qilmasdan ham keladi.';
   static const notificationsEmpty = "Hozircha yangi bildirishnomalar yo'q.";
   static const notificationsMarkAll = "Hammasini o'qilgan";
 

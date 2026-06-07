@@ -49,6 +49,28 @@ export abstract class BasePushProvider implements PushProvider {
     await Promise.all(targets.map((target) => this.sendToUser(target, message)));
   }
 
+  async sendToTokens(tokens: string[], message: PushMessagePayload): Promise<void> {
+    const unique = [...new Set(tokens.map((t) => t.trim()).filter(Boolean))];
+    if (!unique.length) {
+      this.logger.debug(`[${this.name}] sendToTokens: no tokens`);
+      return;
+    }
+    this.logger.debug(
+      `[${this.name}] sendToTokens → ${unique.length} device(s): "${message.title}"`,
+    );
+    await Promise.all(
+      unique.map((token) =>
+        this.deliverToToken(token, message).catch(async (err) => {
+          if (err instanceof InvalidPushTokenError) {
+            await this.clearInvalidToken(err.pushToken);
+            return;
+          }
+          this.logger.warn(`[${this.name}] token delivery failed: ${err}`);
+        }),
+      ),
+    );
+  }
+
   private async clearInvalidToken(pushToken: string) {
     await this.prisma.userDevice.updateMany({
       where: { pushToken },

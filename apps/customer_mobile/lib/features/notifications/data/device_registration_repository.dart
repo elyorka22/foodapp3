@@ -6,11 +6,31 @@ class DeviceRegistrationRepository {
 
   final Dio _dio;
 
+  Future<void> registerGuest({
+    required String deviceId,
+    required String platform,
+    String? pushToken,
+    String? appVersion,
+    String? phone,
+  }) async {
+    await _dio.post<void>(
+      ApiPaths.notificationsDevicesGuest,
+      data: {
+        'deviceId': deviceId,
+        'platform': platform,
+        if (pushToken != null && pushToken.isNotEmpty) 'pushToken': pushToken,
+        if (appVersion != null) 'appVersion': appVersion,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+      },
+    );
+  }
+
   Future<void> register({
     required String deviceId,
     required String platform,
     String? pushToken,
     String? appVersion,
+    String? phone,
   }) async {
     await _dio.post<void>(
       ApiPaths.notificationsDevices,
@@ -19,6 +39,7 @@ class DeviceRegistrationRepository {
         'platform': platform,
         if (pushToken != null && pushToken.isNotEmpty) 'pushToken': pushToken,
         if (appVersion != null) 'appVersion': appVersion,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
       },
     );
   }

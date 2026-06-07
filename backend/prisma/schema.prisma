@@ -490,6 +490,7 @@ model GuestOrder {
   id              String   @id @default(uuid()) @db.Uuid
   customerId      String?  @map("customer_id") @db.Uuid
   phone           String
+  deviceId        String?  @map("device_id")
   deliveryAddress String   @map("delivery_address")
   latitude        Decimal  @db.Decimal(10, 7)
   longitude       Decimal  @db.Decimal(10, 7)
@@ -503,6 +504,7 @@ model GuestOrder {
   orders   Order[]
 
   @@index([phone])
+  @@index([deviceId])
   @@index([customerId])
   @@map("guest_orders")
 }
@@ -693,10 +695,11 @@ model Notification {
 
 model UserDevice {
   id          String                  @id @default(uuid()) @db.Uuid
-  userId      String                  @map("user_id") @db.Uuid
+  userId      String?                 @map("user_id") @db.Uuid
   accountType NotificationAccountType @map("account_type")
   role        DeviceRole
   deviceId    String                  @map("device_id")
+  phone       String?
   pushToken   String?                 @map("push_token")
   platform    DevicePlatform
   appVersion  String?                 @map("app_version")
@@ -704,9 +707,11 @@ model UserDevice {
   createdAt   DateTime                @default(now()) @map("created_at")
   updatedAt   DateTime                @updatedAt @map("updated_at")
 
-  @@unique([userId, accountType, deviceId])
+  @@unique([deviceId, accountType])
   @@index([userId, accountType])
   @@index([userId, role])
+  @@index([phone])
+  @@index([pushToken])
   @@map("user_devices")
 }
 

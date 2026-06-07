@@ -9,6 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import { THROTTLE } from '../../common/constants/throttle.constants';
 import { NotificationAccountType, DeviceRole } from '@prisma/client';
 import { CustomerJwtAuthGuard } from '../../common/guards/customer-jwt-auth.guard';
 import { CurrentCustomer } from '../../common/decorators/current-customer.decorator';
@@ -110,6 +112,20 @@ export class NotificationsController {
       platform: dto.platform,
       pushToken: dto.pushToken,
       appVersion: dto.appVersion,
+      phone: dto.phone,
+    });
+  }
+
+  @Post('devices/guest')
+  @Throttle({ default: THROTTLE.GUEST_DEVICE })
+  @ApiOperation({ summary: 'Register device push token before customer login' })
+  registerGuestDevice(@Body() dto: RegisterDeviceDto) {
+    return this.pushDelivery.registerGuestDevice({
+      deviceId: dto.deviceId,
+      platform: dto.platform,
+      pushToken: dto.pushToken,
+      appVersion: dto.appVersion,
+      phone: dto.phone,
     });
   }
 
@@ -122,9 +138,9 @@ export class NotificationsController {
     @Body() dto: RegisterDeviceDto,
   ) {
     return this.pushDelivery.clearDevicePushToken({
-      userId: customer.sub,
       accountType: NotificationAccountType.CUSTOMER,
       deviceId: dto.deviceId,
+      clearUserLink: true,
     });
   }
 }

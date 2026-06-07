@@ -75,6 +75,12 @@ export class CreateGuestOrderDto {
   @MaxLength(32)
   promoCode?: string;
 
+  @ApiPropertyOptional({ description: 'Mobile install id for order push notifications' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  deviceId?: string;
+
   @ApiProperty({ type: [OrderItemDto] })
   @IsArray()
   @ArrayMaxSize(50)

@@ -39,6 +39,14 @@ export class NotificationService {
       title: notification.title,
       body: notification.body,
       metadata: params.metadata,
+      guestPhone:
+        typeof params.metadata?.guestPhone === 'string'
+          ? params.metadata.guestPhone
+          : undefined,
+      guestDeviceId:
+        typeof params.metadata?.guestDeviceId === 'string'
+          ? params.metadata.guestDeviceId
+          : undefined,
     });
     this.gateway.emitToRecipient(params.userId, params.accountType, notification);
     return notification;
@@ -189,6 +197,37 @@ export class NotificationService {
       titleOverride: params.titleOverride,
       bodyOverride: params.bodyOverride,
     });
+  }
+
+  /** Guest / phone-only order push (FCM transport, no in-app history row). */
+  async notifyGuestOrderPush(params: {
+    phone: string;
+    deviceId?: string;
+    templateCode: string;
+    metadata?: Record<string, unknown>;
+  }) {
+    const template = await this.prisma.notificationTemplate.findUnique({
+      where: { code: params.templateCode },
+    });
+    if (!template) {
+      throw new NotFoundException(`Notification template ${params.templateCode} not found`);
+    }
+
+    const title = this.interpolate(template.title, params.metadata);
+    const body = this.interpolate(template.body, params.metadata);
+
+    await this.pushDelivery.deliverGuestPush({
+      phone: params.phone,
+      deviceId: params.deviceId,
+      type: template.type,
+      title,
+      body,
+      metadata: params.metadata,
+    });
+  }
+
+  linkDevicePhone(deviceId: string, phone: string) {
+    return this.pushDelivery.linkDevicePhone(deviceId, phone);
   }
 
   /** Staff / manager / courier — same FoodApp notification store. */
