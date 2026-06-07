@@ -52,6 +52,8 @@ export class NotificationService {
     }[],
     templateCode: string,
     metadata?: Record<string, unknown>,
+    titleOverride?: string,
+    bodyOverride?: string,
   ) {
     const results = await Promise.all(
       recipients.map((r) =>
@@ -61,6 +63,8 @@ export class NotificationService {
           userRole: r.userRole,
           templateCode,
           metadata,
+          titleOverride,
+          bodyOverride,
         }),
       ),
     );

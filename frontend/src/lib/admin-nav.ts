@@ -16,6 +16,7 @@ import {
   Truck,
   UserCog,
   Users,
+  Bell,
 } from 'lucide-react';
 import { adminI18n as t } from '@/lib/admin-i18n';
 import { hasAdminPermission, type AdminPermission } from '@/lib/admin-permissions';
@@ -108,6 +109,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     title: t.nav.promotions,
     items: [
       { href: '/admin/promo-codes', label: t.nav.promoCodes, icon: TicketPercent, permission: 'promotions' },
+      { href: '/admin/notifications/push', label: t.nav.pushNotifications, icon: Bell, permission: 'notifications' },
     ],
   },
   {
@@ -163,7 +165,7 @@ const MANAGER_NAV_ORDER: { groupId: string; hrefs: string[] }[] = [
     hrefs: ['/admin/stores', '/admin/products/store'],
   },
   { groupId: 'banners', hrefs: ['/admin/banners/home', '/admin/banners/promo', '/admin/banners/hero'] },
-  { groupId: 'promotions', hrefs: ['/admin/promo-codes'] },
+  { groupId: 'promotions', hrefs: ['/admin/promo-codes', '/admin/notifications/push'] },
   { groupId: 'couriers', hrefs: ['/admin/couriers'] },
   { groupId: 'users', hrefs: ['/admin/customers', '/admin/users'] },
   { groupId: 'reports', hrefs: ['/admin/analytics'] },

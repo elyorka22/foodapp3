@@ -10,6 +10,8 @@ import { FirebasePushProvider } from './push/firebase-push.provider';
 import { NoopPushProvider } from './push/noop-push.provider';
 import { PUSH_PROVIDER } from './push/push-provider.interface';
 import { PushNotificationHooks } from './push/push-notification.hooks';
+import { AdminPushService } from './admin-push.service';
+import { AdminPushController } from './admin-push.controller';
 
 function pushProviderFactory(
   config: ConfigService,
@@ -23,12 +25,13 @@ function pushProviderFactory(
 
 @Module({
   imports: [SecurityModule],
-  controllers: [NotificationsController, StaffNotificationsController],
+  controllers: [NotificationsController, StaffNotificationsController, AdminPushController],
   providers: [
     NotificationService,
     NotificationsGateway,
     PushDeliveryService,
     PushNotificationHooks,
+    AdminPushService,
     NoopPushProvider,
     FirebasePushProvider,
     {
