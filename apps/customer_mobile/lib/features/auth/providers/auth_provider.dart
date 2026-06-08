@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/auth_model.dart';
 import '../data/auth_repository.dart';
+import '../data/google_auth_service.dart';
 
 final authStateProvider =
     AsyncNotifierProvider<AuthNotifier, CustomerUserModel?>(AuthNotifier.new);
@@ -35,6 +36,15 @@ class AuthNotifier extends AsyncNotifier<CustomerUserModel?> {
           );
       return res.user;
     });
+  }
+
+  Future<CustomerUserModel?> loginGoogle() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final res = await ref.read(authRepositoryProvider).loginGoogle();
+      return res.user;
+    });
+    return state.valueOrNull;
   }
 
   Future<CustomerUserModel?> loginTelegram(TelegramAuthPayload payload) async {

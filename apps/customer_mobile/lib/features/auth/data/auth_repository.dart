@@ -8,12 +8,14 @@ import '../../../core/push/device_registration_service.dart';
 import '../../../core/storage/storage_providers.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../../shared/models/auth_model.dart';
+import 'google_auth_service.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     ref.watch(dioProvider),
     ref.watch(tokenStorageProvider),
     ref.watch(deviceRegistrationServiceProvider),
+    ref.watch(googleAuthServiceProvider),
   );
 });
 
@@ -54,6 +56,17 @@ class AuthRepository {
         if (email != null) 'email': email,
         if (password != null) 'password': password,
       },
+    );
+    final model = AuthResponseModel.fromJson(res.data!);
+    await _persist(model);
+    return model;
+  }
+
+  Future<AuthResponseModel> loginGoogle() async {
+    final idToken = await _googleAuth.signInAndGetIdToken();
+    final res = await _dio.post<Map<String, dynamic>>(
+      ApiPaths.authGoogle,
+      data: {'idToken': idToken},
     );
     final model = AuthResponseModel.fromJson(res.data!);
     await _persist(model);

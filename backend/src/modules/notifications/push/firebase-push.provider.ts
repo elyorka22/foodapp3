@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
+import { FirebaseAdminService } from '../../../common/firebase/firebase-admin.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { BasePushProvider } from './base-push.provider';
 import { InvalidPushTokenError } from './invalid-push-token.error';
@@ -22,6 +23,7 @@ export class FirebasePushProvider extends BasePushProvider implements OnModuleIn
   constructor(
     prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly firebaseAdmin: FirebaseAdminService,
   ) {
     super(prisma);
   }
@@ -32,43 +34,9 @@ export class FirebasePushProvider extends BasePushProvider implements OnModuleIn
       this.logger.log('PUSH_PROVIDER is not firebase — FCM transport idle');
       return;
     }
-    this.initializeFirebase();
-  }
-
-  private initializeFirebase() {
-    if (this.messaging) return;
-
-    try {
-      const projectId = this.config.get<string>('FIREBASE_PROJECT_ID');
-      const jsonRaw = this.config.get<string>('FIREBASE_SERVICE_ACCOUNT_JSON');
-      const credPath = this.config.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
-
-      let app: admin.app.App;
-
-      if (jsonRaw?.trim()) {
-        const serviceAccount = JSON.parse(jsonRaw) as admin.ServiceAccount;
-        app = admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-          projectId: projectId ?? serviceAccount.projectId,
-        });
-      } else if (credPath?.trim()) {
-        app = admin.initializeApp({
-          credential: admin.credential.applicationDefault(),
-          projectId: projectId ?? undefined,
-        });
-      } else {
-        this.logger.error(
-          'Firebase Admin not configured: set FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS',
-        );
-        return;
-      }
-
-      this.messaging = admin.messaging(app);
-      this.logger.log(
-        `Firebase Admin SDK initialized (project: ${app.options.projectId ?? 'unknown'})`,
-      );
-    } catch (err) {
-      this.logger.error(`Firebase Admin initialization failed: ${err}`);
+    this.messaging = this.firebaseAdmin.getMessaging();
+    if (!this.messaging) {
+      this.logger.error('FCM transport idle — Firebase Admin not configured');
     }
   }
 

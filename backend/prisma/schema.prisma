@@ -76,6 +76,8 @@ enum DeviceRole {
 enum CustomerAuthProvider {
   TELEGRAM
   PHONE
+  LOCAL
+  GOOGLE
 }
 
 enum BusinessApprovalStatus {
@@ -469,6 +471,11 @@ model Customer {
   authProvider        CustomerAuthProvider? @map("auth_provider")
   isTelegramVerified  Boolean               @default(false) @map("is_telegram_verified")
   lastTelegramLoginAt DateTime?             @map("last_telegram_login_at")
+
+  googleId            String?               @unique @map("google_id")
+  googlePhotoUrl      String?               @map("google_photo_url")
+  isGoogleVerified    Boolean               @default(false) @map("is_google_verified")
+  lastGoogleLoginAt   DateTime?             @map("last_google_login_at")
 
   defaultDeliveryAddress String?  @map("default_delivery_address")
   defaultLatitude        Decimal? @map("default_latitude") @db.Decimal(10, 7)

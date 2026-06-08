@@ -208,6 +208,11 @@ export const uz = {
   authBenefitsDescription:
     "Buyurtmalar tarixi, saqlangan manzillar va tezkor buyurtma uchun tizimga kiring",
   loginWithTelegram: 'Telegram orqali kirish',
+  continueWithGoogle: 'Google orqali davom etish',
+  googleNotConfigured:
+    'Google kirish sozlanmagan (NEXT_PUBLIC_FIREBASE_API_KEY, AUTH_DOMAIN, PROJECT_ID)',
+  googleSignInCancelled: 'Google kirish bekor qilindi',
+  googleSignInFailed: 'Google orqali kirish amalga oshmadi',
   loginWithPhone: 'Telefon raqam orqali kirish',
   loginWithPhonePassword: 'Telefon va parol orqali kirish',
   password: 'Parol',

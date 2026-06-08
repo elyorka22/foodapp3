@@ -25,6 +25,7 @@ class ApiPaths {
   static String notificationRead(String id) => '/notifications/$id/read';
 
   static const authTelegram = '/auth/telegram';
+  static const authGoogle = '/auth/google';
   static const ordersGuest = '/orders/guest';
   static const ordersDeliveryQuote = '/orders/delivery-quote';
   static const promoCodesValidate = '/promo-codes/validate';

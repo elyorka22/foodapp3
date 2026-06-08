@@ -24,9 +24,13 @@ export type SerializedCustomer = {
   telegramFirstName?: string;
   telegramLastName?: string;
   telegramPhotoUrl?: string;
+  googleId?: string;
+  googlePhotoUrl?: string;
   authProvider?: CustomerAuthProvider;
   isTelegramVerified: boolean;
   lastTelegramLoginAt?: Date;
+  isGoogleVerified: boolean;
+  lastGoogleLoginAt?: Date;
   needsPhone: boolean;
   defaultDeliveryAddress?: string;
 };
@@ -54,9 +58,13 @@ export class CustomerTokenService {
       telegramFirstName: customer.telegramFirstName ?? undefined,
       telegramLastName: customer.telegramLastName ?? undefined,
       telegramPhotoUrl: customer.telegramPhotoUrl ?? undefined,
+      googleId: customer.googleId ?? undefined,
+      googlePhotoUrl: customer.googlePhotoUrl ?? undefined,
       authProvider: customer.authProvider ?? undefined,
       isTelegramVerified: customer.isTelegramVerified,
       lastTelegramLoginAt: customer.lastTelegramLoginAt ?? undefined,
+      isGoogleVerified: customer.isGoogleVerified,
+      lastGoogleLoginAt: customer.lastGoogleLoginAt ?? undefined,
       needsPhone: !customer.phone,
       defaultDeliveryAddress: customer.defaultDeliveryAddress ?? undefined,
     };
@@ -65,7 +73,7 @@ export class CustomerTokenService {
   issueToken(
     customer: Customer & { loyalty?: CustomerLoyalty | null },
   ): { accessToken: string; user: SerializedCustomer } {
-    const authProvider = customer.authProvider ?? CustomerAuthProvider.PHONE;
+    const authProvider = customer.authProvider ?? CustomerAuthProvider.LOCAL;
     const payload: CustomerJwtPayload = {
       sub: customer.id,
       role: CUSTOMER_JWT_ROLE,

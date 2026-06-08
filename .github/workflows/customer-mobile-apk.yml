@@ -68,6 +68,7 @@ jobs:
             "--dart-define=API_BASE_URL=${API_BASE_URL}"
             "--dart-define=WS_BASE_URL=${WS_BASE_URL}"
             "--dart-define=ENABLE_FCM=true"
+            "--dart-define=GOOGLE_WEB_CLIENT_ID=278845357182-7ell2g4o06h42phpkl07jr7pjq2q2gug.apps.googleusercontent.com"
           )
           if [[ -n "${TELEGRAM_BOT_USERNAME:-}" ]]; then
             DART_DEFINES+=("--dart-define=TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}")

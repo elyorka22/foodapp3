@@ -82,6 +82,10 @@ abstract final class AppStrings {
   static const password = 'Parol';
   static const fullName = 'Ism';
   static const telegramLogin = 'Telegram orqali kirish';
+  static const continueWithGoogle = 'Google orqali davom etish';
+  static const googleSignInCancelled = 'Google kirish bekor qilindi';
+  static const googleSignInFailed = 'Google orqali kirish amalga oshmadi';
+  static const or = 'yoki';
   static const language = 'Til';
   static const help = 'Yordam';
   static const terms = 'Foydalanish shartlari';

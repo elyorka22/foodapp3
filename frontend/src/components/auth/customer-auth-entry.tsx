@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import {
   persistCustomerSession,
+  signInWithGoogle,
   signInWithPhone,
   signInWithTelegram,
   type TelegramSignedUser,
   type CustomerAuthResponse,
 } from '@/lib/customer-auth';
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { TelegramLoginButton } from '@/components/auth/telegram-login-button';
+import { GoogleSignInCancelledError } from '@/lib/firebase';
 import { uz } from '@/lib/uz';
 import { clsx } from 'clsx';
 
@@ -33,6 +36,23 @@ export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
   const finishAuth = (res: CustomerAuthResponse) => {
     persistCustomerSession(res);
     onSuccess(res);
+  };
+
+  const handleGoogle = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await signInWithGoogle();
+      finishAuth(res);
+    } catch (err) {
+      if (err instanceof GoogleSignInCancelledError) {
+        setError(uz.googleSignInCancelled);
+      } else {
+        setError(err instanceof Error ? err.message : uz.googleSignInFailed);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTelegram = async (payload: TelegramSignedUser) => {
@@ -82,6 +102,10 @@ export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
             </p>
           )}
         </div>
+      </div>
+
+      <div className="mt-4">
+        <GoogleSignInButton loading={loading} disabled={loading} onClick={handleGoogle} />
       </div>
 
       {loading && (

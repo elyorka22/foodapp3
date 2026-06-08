@@ -10,9 +10,13 @@ export type CustomerProfile = {
   telegramFirstName?: string;
   telegramLastName?: string;
   telegramPhotoUrl?: string;
-  authProvider?: 'TELEGRAM' | 'PHONE';
+  authProvider?: 'TELEGRAM' | 'PHONE' | 'LOCAL' | 'GOOGLE';
   isTelegramVerified?: boolean;
   lastTelegramLoginAt?: string;
+  googleId?: string;
+  googlePhotoUrl?: string;
+  isGoogleVerified?: boolean;
+  lastGoogleLoginAt?: string;
   needsPhone?: boolean;
   defaultDeliveryAddress?: string;
 };

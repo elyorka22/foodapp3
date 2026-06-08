@@ -90,11 +90,12 @@ export class CustomersService {
     }
 
     const updated =
+      customer.authProvider === CustomerAuthProvider.LOCAL ||
       customer.authProvider === CustomerAuthProvider.PHONE
         ? customer
         : await this.prisma.customer.update({
             where: { id: customer.id },
-            data: { authProvider: customer.authProvider ?? CustomerAuthProvider.PHONE },
+            data: { authProvider: customer.authProvider ?? CustomerAuthProvider.LOCAL },
             include: { loyalty: true },
           });
 
@@ -157,7 +158,7 @@ export class CustomersService {
       phone,
       authProvider: current.telegramId
         ? CustomerAuthProvider.TELEGRAM
-        : CustomerAuthProvider.PHONE,
+        : CustomerAuthProvider.LOCAL,
       ...(dto.deliveryAddress && {
         defaultDeliveryAddress: dto.deliveryAddress.trim(),
         defaultLatitude: dto.latitude,

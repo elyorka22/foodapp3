@@ -8,8 +8,11 @@ import { PasswordInput } from '@/components/ui/password-input';
 import {
   persistCustomerSession,
   registerWithPhone,
+  signInWithGoogle,
   type CustomerAuthResponse,
 } from '@/lib/customer-auth';
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
+import { GoogleSignInCancelledError } from '@/lib/firebase';
 import { uz } from '@/lib/uz';
 
 type Props = {
@@ -24,6 +27,24 @@ export function CustomerRegisterForm({ onSuccess, onSwitchToLogin }: Props) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleGoogle = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await signInWithGoogle();
+      persistCustomerSession(res);
+      onSuccess(res);
+    } catch (err) {
+      if (err instanceof GoogleSignInCancelledError) {
+        setError(uz.googleSignInCancelled);
+      } else {
+        setError(err instanceof Error ? err.message : uz.googleSignInFailed);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +85,17 @@ export function CustomerRegisterForm({ onSuccess, onSwitchToLogin }: Props) {
 
   return (
     <section aria-label={uz.register} className="pb-2">
+      <GoogleSignInButton loading={loading} disabled={loading} onClick={handleGoogle} />
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
+        </div>
+        <p className="relative mx-auto w-fit bg-white px-3 text-xs font-medium uppercase tracking-wide text-foreground-subtle">
+          {uz.or}
+        </p>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="register-full-name" className="mb-2 block text-sm font-medium text-foreground">

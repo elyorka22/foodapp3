@@ -18,6 +18,13 @@ class AppConfig {
     defaultValue: '',
   );
 
+  /// Firebase Web client ID (OAuth 2.0) — required for Google Sign-In ID tokens on Android.
+  static const String googleWebClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue:
+        '278845357182-7ell2g4o06h42phpkl07jr7pjq2q2gug.apps.googleusercontent.com',
+  );
+
   /// Public web origin for Telegram Login Widget (derived from API base).
   static String get webAppBaseUrl {
     var url = normalizedApiBaseUrl;
