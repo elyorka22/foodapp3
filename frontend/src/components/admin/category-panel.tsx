@@ -34,7 +34,7 @@ export function CategoryPanel() {
               className="rounded-full border px-3 py-1 text-xs dark:border-white/10"
             >
               {c.name}
-              {!c.isActive ? ' (o‘chirilgan)' : ''}
+              {c.isActive === false ? ' (o‘chirilgan)' : ''}
             </li>
           ))}
         </ul>

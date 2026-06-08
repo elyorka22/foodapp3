@@ -13,6 +13,7 @@ export type DishCategory = {
   imagePositionX?: number;
   imagePositionY?: number;
   sortOrder?: number;
+  isActive?: boolean;
   _count?: { products: number };
 };
 
