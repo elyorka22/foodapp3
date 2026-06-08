@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -22,8 +23,8 @@ import { CategoriesService } from './categories.service';
 import { DishCategoriesService } from '../dish-categories/dish-categories.service';
 
 /**
- * GET /categories — global dish categories (restaurants).
- * GET /categories?restaurantId= — per-store product categories.
+ * GET /categories — global dish categories (no businessId).
+ * GET /categories?businessId= — dish categories for restaurants, store categories for shops.
  */
 @ApiTags('product-categories')
 @Controller('categories')
@@ -41,7 +42,7 @@ export class CategoriesController {
   ) {
     const bid = resolveBusinessId({ businessId, restaurantId });
     if (bid) {
-      return this.productCategories.findByBusiness(bid, includeInactive === 'true');
+      return this.productCategories.findForBusinessMenu(bid, includeInactive === 'true');
     }
     if (includeInactive === 'true') {
       return this.dishCategories.findAllAdmin();
@@ -58,28 +59,23 @@ export class CategoriesController {
       businessId: body.businessId,
       restaurantId: body.restaurantId,
     });
-    if (bid) {
-      return this.productCategories.create(
-        {
-          businessId: bid,
-          name: body.name,
-          slug: body.slug,
-          description: body.description,
-          icon: body.icon,
-          imageUrl: body.imageUrl,
-          sortOrder: body.sortOrder,
-        },
-        user,
+    if (!bid) {
+      throw new BadRequestException(
+        'Global dish categories are managed at POST /dish-categories (admin only)',
       );
     }
-    return this.dishCategories.create({
-      name: body.name,
-      slug: body.slug,
-      description: body.description,
-      icon: body.icon,
-      imageUrl: body.imageUrl,
-      sortOrder: body.sortOrder,
-    });
+    return this.productCategories.create(
+      {
+        businessId: bid,
+        name: body.name,
+        slug: body.slug,
+        description: body.description,
+        icon: body.icon,
+        imageUrl: body.imageUrl,
+        sortOrder: body.sortOrder,
+      },
+      user,
+    );
   }
 
   @Patch(':id')
@@ -91,9 +87,7 @@ export class CategoriesController {
     @Body() dto: UpdateCategoryDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.productCategories.update(id, dto, user).catch(() =>
-      this.dishCategories.update(id, dto),
-    );
+    return this.productCategories.update(id, dto, user);
   }
 
   @Delete(':id')
@@ -101,8 +95,6 @@ export class CategoriesController {
   @ApiBearerAuth()
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-    return this.productCategories.softDelete(id, user).catch(() =>
-      this.dishCategories.softDelete(id),
-    );
+    return this.productCategories.softDelete(id, user);
   }
 }

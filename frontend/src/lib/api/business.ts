@@ -73,10 +73,18 @@ export function fetchBusiness(idOrSlug: string) {
   );
 }
 
-/** Product menu categories for one merchant (NOT business vertical types). */
+/**
+ * Menu categories for a merchant.
+ * Restaurants → global dish categories; stores → per-store product categories.
+ */
 export function fetchProductCategories(businessId: string, token?: string) {
   return api<ProductCategory[]>(
     `/categories?businessId=${encodeURIComponent(businessId)}`,
     token ? { token } : undefined,
   );
+}
+
+/** Global dish categories (all restaurants). */
+export function fetchDishCategories() {
+  return api<ProductCategory[]>('/dish-categories');
 }

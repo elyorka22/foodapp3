@@ -167,6 +167,7 @@ export class ProductsService {
       ...p,
       price: Number(p.price),
       comparePrice: p.comparePrice ? Number(p.comparePrice) : null,
+      category: p.dishCategory ?? p.productCategory ?? null,
     }));
 
     return paginatedResponse(mapped, total, query.page ?? 1, query.limit ?? 20);
@@ -191,10 +192,7 @@ export class ProductsService {
     this.assertCategoryFields(business, dishCategoryId, productCategoryId);
 
     if (dishCategoryId) {
-      const cat = await this.prisma.dishCategory.findFirst({
-        where: { id: dishCategoryId, deletedAt: null, isActive: true },
-      });
-      if (!cat) throw new NotFoundException('Dish category not found');
+      await this.assertDishCategoryExists(dishCategoryId);
     }
     if (productCategoryId) {
       const cat = await this.prisma.productCategory.findFirst({
@@ -260,10 +258,7 @@ export class ProductsService {
     );
 
     if (nextDishCategoryId) {
-      const cat = await this.prisma.dishCategory.findFirst({
-        where: { id: nextDishCategoryId, deletedAt: null, isActive: true },
-      });
-      if (!cat) throw new NotFoundException('Dish category not found');
+      await this.assertDishCategoryExists(nextDishCategoryId);
     }
     if (nextProductCategoryId) {
       const cat = await this.prisma.productCategory.findFirst({
@@ -387,6 +382,23 @@ export class ProductsService {
   private assertAccess(businessId: string, user: JwtPayload) {
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER) return;
     if (userBusinessId(user) !== businessId) throw new ForbiddenException();
+  }
+
+  private async assertDishCategoryExists(dishCategoryId: string) {
+    const cat = await this.prisma.dishCategory.findFirst({
+      where: { id: dishCategoryId, deletedAt: null, isActive: true },
+    });
+    if (cat) return;
+
+    const legacy = await this.prisma.productCategory.findFirst({
+      where: { id: dishCategoryId, deletedAt: null },
+    });
+    if (legacy) {
+      throw new BadRequestException(
+        'Selected category is a per-store category. Choose a global dish category from the list',
+      );
+    }
+    throw new NotFoundException('Dish category not found');
   }
 
   private assertCategoryFields(

@@ -16,6 +16,7 @@ import { uploadImage } from '@/lib/upload';
 import { useAdminProducts, type ProductForm } from '@/hooks/use-admin-products';
 import { adminI18n } from '@/lib/admin-i18n';
 import Link from 'next/link';
+import { useDishCategories } from '@/hooks/use-dish-categories';
 import { useAdminDishCategories } from '@/hooks/use-admin-dish-categories';
 import { useAdminProductCategories } from '@/hooks/use-admin-product-categories';
 import { ActiveBadge } from '@/components/admin/active-badge';
@@ -78,12 +79,17 @@ export function AdminProductsPage({ vertical }: Props) {
     vertical,
   });
 
-  const { list: dishCategories } = useAdminDishCategories();
+  const { data: publicDishCategories } = useDishCategories();
+  const { list: adminDishCategories } = useAdminDishCategories();
   const { list: storeCategories } = useAdminProductCategories(
     vertical === 'store' ? form.restaurantId || restaurantId : undefined,
   );
+  const dishCategoryOptions =
+    adminDishCategories.data?.length
+      ? adminDishCategories.data
+      : (publicDishCategories ?? []);
   const categoryOptions =
-    vertical === 'store' ? (storeCategories.data ?? []) : (dishCategories.data ?? []);
+    vertical === 'store' ? (storeCategories.data ?? []) : dishCategoryOptions;
 
   useEffect(() => {
     if (!token) return;
@@ -163,7 +169,11 @@ export function AdminProductsPage({ vertical }: Props) {
       {
         id: 'category',
         header: 'Category',
-        cell: ({ row }) => row.original.category?.name ?? '—',
+        cell: ({ row }) =>
+          row.original.category?.name ??
+          row.original.dishCategory?.name ??
+          row.original.productCategory?.name ??
+          '—',
       },
       {
         id: 'price',
@@ -232,9 +242,32 @@ export function AdminProductsPage({ vertical }: Props) {
     }
   };
 
+  const buildProductPayload = () => {
+    const base = {
+      restaurantId: form.restaurantId,
+      name: form.name.trim(),
+      slug: form.slug.trim(),
+      description: form.description?.trim() || undefined,
+      price: form.price,
+      isAvailable: form.isAvailable ?? true,
+    };
+    if (vertical === 'store') {
+      return { ...base, productCategoryId: form.categoryId || undefined };
+    }
+    return { ...base, dishCategoryId: form.categoryId || undefined };
+  };
+
   const submitCreate = async () => {
     if (!form.restaurantId) {
       toast.error('Select a restaurant for this product');
+      return;
+    }
+    if (!form.categoryId) {
+      toast.error(
+        vertical === 'store'
+          ? "Do'kon kategoriyasini tanlang"
+          : 'Taom kategoriyasini tanlang (umumiy ro‘yxatdan)',
+      );
       return;
     }
     if (!form.name.trim() || !form.slug.trim()) {
@@ -242,13 +275,7 @@ export function AdminProductsPage({ vertical }: Props) {
       return;
     }
     try {
-      const created: any = await create.mutateAsync({
-        ...form,
-        ...(vertical === 'store'
-          ? { productCategoryId: form.categoryId || undefined, categoryId: undefined }
-          : { categoryId: form.categoryId || undefined, dishCategoryId: form.categoryId || undefined }),
-        isAvailable: form.isAvailable ?? true,
-      });
+      const created: any = await create.mutateAsync(buildProductPayload());
       if (imageFile && created?.id) await saveWithImage(created.id);
       setCreateOpen(false);
       setForm(emptyProduct);
@@ -261,15 +288,36 @@ export function AdminProductsPage({ vertical }: Props) {
 
   const submitEdit = async () => {
     if (!editRow) return;
+    if (!form.categoryId) {
+      toast.error(
+        vertical === 'store'
+          ? "Do'kon kategoriyasini tanlang"
+          : 'Taom kategoriyasini tanlang (umumiy ro‘yxatdan)',
+      );
+      return;
+    }
     try {
+      const body =
+        vertical === 'store'
+          ? {
+              name: form.name.trim(),
+              slug: form.slug.trim(),
+              description: form.description?.trim() || undefined,
+              price: form.price,
+              isAvailable: form.isAvailable,
+              productCategoryId: form.categoryId,
+            }
+          : {
+              name: form.name.trim(),
+              slug: form.slug.trim(),
+              description: form.description?.trim() || undefined,
+              price: form.price,
+              isAvailable: form.isAvailable,
+              dishCategoryId: form.categoryId,
+            };
       await update.mutateAsync({
         id: editRow.id,
-        body: {
-          ...form,
-          ...(vertical === 'store'
-            ? { productCategoryId: form.categoryId || undefined, categoryId: undefined }
-            : { categoryId: form.categoryId || undefined, dishCategoryId: form.categoryId || undefined }),
-        },
+        body,
       });
       if (imageFile) await saveWithImage(editRow.id);
       setEditRow(null);
@@ -336,13 +384,26 @@ export function AdminProductsPage({ vertical }: Props) {
         </select>
         {!categoryOptions.length && (
           <p className="text-xs text-amber-700 dark:text-amber-400">
-            Kategoriyalar yo‘q —{' '}
-            <Link
-              href={vertical === 'store' ? '/admin/stores/categories' : '/admin/dish-categories'}
-              className="font-semibold underline"
-            >
-              admin panelda yarating
-            </Link>
+            {vertical === 'store' ? (
+              <>
+                Kategoriyalar yo‘q —{' '}
+                <Link href="/admin/stores/categories" className="font-semibold underline">
+                  do‘kon kategoriyalarini yarating
+                </Link>
+              </>
+            ) : (
+              <>
+                Taom kategoriyalari yo‘q — super admin yoki menejer{' '}
+                <Link href="/admin/dish-categories" className="font-semibold underline">
+                  umumiy ro‘yxatda yaratadi
+                </Link>
+              </>
+            )}
+          </p>
+        )}
+        {vertical !== 'store' && categoryOptions.length > 0 && (
+          <p className="text-xs text-zinc-500">
+            Restoran o‘z kategoriyasini yaratmaydi — faqat umumiy ro‘yxatdan tanlang.
           </p>
         )}
       </div>
@@ -445,7 +506,7 @@ export function AdminProductsPage({ vertical }: Props) {
             className="rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
             value={categoryId}
             onChange={(e) => { setCategoryId(e.target.value); setPage(1); }}
-            disabled={!restaurantId}
+            disabled={vertical === 'store' && !restaurantId}
           >
             <option value="">All categories</option>
             {categoryOptions.map((c: { id: string; name: string }) => (

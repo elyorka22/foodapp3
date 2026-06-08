@@ -1,14 +1,24 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserRole } from '@prisma/client';
+import { isRestaurantKind } from '../../common/utils/business-kind.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { resolveBusinessId } from '../../domain/business/business-id.util';
+import { DishCategoriesService } from '../dish-categories/dish-categories.service';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
-/** Product menu categories (Fruits, Drinks, …) scoped to a business. */
+/** Store product categories (Fruits, Drinks, …) scoped to a business. */
 @Injectable()
 export class CategoriesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private dishCategories: DishCategoriesService,
+  ) {}
 
   findByBusiness(businessId: string, includeInactive = false) {
     return this.prisma.productCategory.findMany({
@@ -27,7 +37,24 @@ export class CategoriesService {
     return this.findByBusiness(restaurantId, includeInactive);
   }
 
-  create(
+  /** Restaurants → global dish categories; stores → per-business product categories. */
+  async findForBusinessMenu(businessId: string, includeInactive = false) {
+    const business = await this.prisma.business.findFirst({
+      where: { id: businessId, deletedAt: null },
+      include: { businessType: true },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+
+    if (isRestaurantKind(business)) {
+      return includeInactive
+        ? this.dishCategories.findAllAdmin()
+        : this.dishCategories.findAllPublic();
+    }
+
+    return this.findByBusiness(businessId, includeInactive);
+  }
+
+  async create(
     data: {
       businessId?: string;
       restaurantId?: string;
@@ -45,6 +72,7 @@ export class CategoriesService {
       restaurantId: data.restaurantId,
     });
     if (!businessId) throw new NotFoundException('businessId is required');
+    await this.assertStoreBusiness(businessId);
     this.assertAccess(businessId, user);
     return this.prisma.productCategory.create({
       data: {
@@ -78,6 +106,19 @@ export class CategoriesService {
       where: { id },
       data: { deletedAt: new Date(), isActive: false },
     });
+  }
+
+  private async assertStoreBusiness(businessId: string) {
+    const business = await this.prisma.business.findFirst({
+      where: { id: businessId, deletedAt: null },
+      include: { businessType: true },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+    if (isRestaurantKind(business)) {
+      throw new BadRequestException(
+        'Restaurants use global dish categories — select one when creating a menu item',
+      );
+    }
   }
 
   private assertAccess(businessId: string, user: JwtPayload) {

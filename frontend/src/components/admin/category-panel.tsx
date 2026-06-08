@@ -1,15 +1,18 @@
 'use client';
 
 import Link from 'next/link';
+import { useDishCategories } from '@/hooks/use-dish-categories';
 import { useAdminDishCategories } from '@/hooks/use-admin-dish-categories';
 import { EmptyState } from '@/components/admin/ui';
 
 /** Read-only preview of global dish categories with link to admin CRUD. */
 export function CategoryPanel() {
-  const { list } = useAdminDishCategories();
-  const rows = list.data ?? [];
+  const { list: adminList } = useAdminDishCategories();
+  const { data: publicList, isLoading: publicLoading } = useDishCategories();
+  const rows = adminList.data?.length ? adminList.data : (publicList ?? []);
+  const loading = adminList.isLoading || publicLoading;
 
-  if (list.isLoading) {
+  if (loading) {
     return <p className="text-sm opacity-60">Kategoriyalar yuklanmoqda…</p>;
   }
 
