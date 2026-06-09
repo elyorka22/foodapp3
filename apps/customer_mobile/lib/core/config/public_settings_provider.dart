@@ -6,17 +6,26 @@ class PublicSettings {
     required this.appName,
     required this.homeTitle,
     required this.homeSubtitle,
+    this.socialInstagramUrl = '',
+    this.socialTelegramUrl = '',
+    this.socialYoutubeUrl = '',
   });
 
   final String appName;
   final String homeTitle;
   final String homeSubtitle;
+  final String socialInstagramUrl;
+  final String socialTelegramUrl;
+  final String socialYoutubeUrl;
 
   factory PublicSettings.fromJson(Map<String, dynamic> json) {
     return PublicSettings(
       appName: json['app_name'] as String? ?? 'FoodApp',
       homeTitle: json['home_title'] as String? ?? 'FoodApp',
       homeSubtitle: json['home_subtitle'] as String? ?? '',
+      socialInstagramUrl: json['social_instagram_url'] as String? ?? '',
+      socialTelegramUrl: json['social_telegram_url'] as String? ?? '',
+      socialYoutubeUrl: json['social_youtube_url'] as String? ?? '',
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -10,6 +11,7 @@ import '../../../shared/widgets/food_app_input.dart';
 import '../data/google_auth_service.dart';
 import '../providers/auth_provider.dart';
 import 'google_sign_in_button.dart';
+import 'telegram_sign_in_button.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -85,6 +87,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  bool get _telegramEnabled => AppConfig.telegramBotUsername.trim().isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,6 +101,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               isLoading: _googleLoading,
               onPressed: _busy ? null : _submitGoogle,
             ),
+            if (_telegramEnabled) ...[
+              const SizedBox(height: AppSpacing.md),
+              TelegramSignInButton(
+                onPressed: _busy ? null : () => context.push('/profile/telegram'),
+              ),
+            ],
             const AuthOrDivider(),
             FoodAppInput(
               label: AppStrings.fullName,

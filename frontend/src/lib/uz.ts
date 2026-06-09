@@ -143,6 +143,8 @@ export const uz = {
   profileHelpHint: 'FAQ va qo\'llab-quvvatlash',
   profilePartnership: 'Takliflar va hamkorlik',
   profilePartnershipHint: 'Biznes takliflari va hamkorlik',
+  profileSocialTitle: "Bizni ijtimoiy tarmoqlarda kuzatib boring",
+  profileSocialFollow: "obuna bo'ling",
   termsOfUse: 'Foydalanish shartlari',
   privacyPolicy: 'Maxfiylik siyosati',
   close: 'Yopish',

@@ -89,6 +89,9 @@ function AdminSettingsContent() {
       home_subtitle: form.home_subtitle,
       support_phone: form.support_phone,
       support_telegram: form.support_telegram,
+      social_instagram_url: form.social_instagram_url?.trim() ?? '',
+      social_telegram_url: form.social_telegram_url?.trim() ?? '',
+      social_youtube_url: form.social_youtube_url?.trim() ?? '',
       min_order_amount: parseNumberInput(minOrderAmount),
       free_delivery_threshold: parseNumberInput(freeDeliveryThreshold),
     };
@@ -220,6 +223,28 @@ function AdminSettingsContent() {
           value={form.support_email}
           onChange={(e) => setForm({ ...form, support_email: e.target.value })}
         />
+      </SettingsSection>
+
+      <SettingsSection title="Ijtimoiy tarmoqlar (profil)">
+        <Input
+          placeholder="Instagram URL (https://instagram.com/...)"
+          value={form.social_instagram_url ?? ''}
+          onChange={(e) => setForm({ ...form, social_instagram_url: e.target.value })}
+        />
+        <Input
+          placeholder="Telegram URL (https://t.me/...)"
+          value={form.social_telegram_url ?? ''}
+          onChange={(e) => setForm({ ...form, social_telegram_url: e.target.value })}
+        />
+        <Input
+          placeholder="YouTube URL (https://youtube.com/...)"
+          value={form.social_youtube_url ?? ''}
+          onChange={(e) => setForm({ ...form, social_youtube_url: e.target.value })}
+        />
+        <p className="sm:col-span-2 text-xs text-zinc-500">
+          Havolalar mijoz ilovasi va veb-profil sahifasida «Bizni ijtimoiy tarmoqlarda kuzatib boring»
+          bo&apos;limida ko&apos;rinadi. Bo&apos;sh qoldirilgan tarmoq yashiriladi.
+        </p>
       </SettingsSection>
     </div>
   );

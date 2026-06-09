@@ -7,6 +7,7 @@ import { CustomerAuthSheet, type AuthSheetMode } from '@/components/auth/custome
 import { ProfileBannerGrid } from '@/components/profile/profile-banner-grid';
 import { ProfileBannerTile } from '@/components/profile/profile-banner-tile';
 import { ProfilePageHeader } from '@/components/profile/profile-page-header';
+import { ProfileSocialSection } from '@/components/profile/profile-social-section';
 import { ProfileStaffLoginButton } from '@/components/profile/profile-staff-login-button';
 import type { CustomerAuthResponse } from '@/lib/customer-auth';
 import { uz } from '@/lib/uz';
@@ -64,6 +65,8 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
           onClick={toggleLocale}
         />
       </ProfileBannerGrid>
+
+      <ProfileSocialSection />
 
       <ProfileStaffLoginButton className="mt-8" />
 

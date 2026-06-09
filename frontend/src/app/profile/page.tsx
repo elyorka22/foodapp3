@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { GuestProfileView } from '@/components/profile/guest-profile-view';
 import { ProfileAccountMenu } from '@/components/profile/profile-account-menu';
 import { ProfilePageHeader } from '@/components/profile/profile-page-header';
+import { ProfileSocialSection } from '@/components/profile/profile-social-section';
 import { ProfileStaffLoginButton } from '@/components/profile/profile-staff-login-button';
 import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
 import { api } from '@/lib/api';
@@ -88,6 +89,8 @@ export default function ProfilePage() {
         )}
 
         <ProfileAccountMenu />
+
+        <ProfileSocialSection />
 
         {showTelegram && (
           <Card className="mt-4 rounded-2xl border-0 bg-[#E8F7FD] p-4 shadow-none">

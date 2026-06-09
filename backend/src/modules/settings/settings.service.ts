@@ -27,6 +27,9 @@ export interface AdminSettings extends ImageFramingDefaults {
   home_subtitle: string;
   support_phone: string;
   support_telegram: string;
+  social_instagram_url: string;
+  social_telegram_url: string;
+  social_youtube_url: string;
   support_email: string;
   min_order_amount: number;
   free_delivery_threshold: number;
@@ -44,6 +47,9 @@ export interface PublicSettings {
   restaurant_card_default_image_scale: number;
   restaurant_card_default_cover_position_x: number;
   restaurant_card_default_cover_position_y: number;
+  social_instagram_url: string;
+  social_telegram_url: string;
+  social_youtube_url: string;
 }
 
 const DEFAULT_PRICING: DeliveryPricing = {
@@ -61,6 +67,9 @@ const DEFAULT_ADMIN: AdminSettings = {
   home_subtitle: "Shahar bo'ylab yetkazish",
   support_phone: '+998901234567',
   support_telegram: '@support',
+  social_instagram_url: '',
+  social_telegram_url: '',
+  social_youtube_url: '',
   support_email: 'support@foodapp.local',
   min_order_amount: 30000,
   free_delivery_threshold: 100000,
@@ -116,6 +125,9 @@ export class SettingsService {
         framing.restaurant_card_default_cover_position_x,
       restaurant_card_default_cover_position_y:
         framing.restaurant_card_default_cover_position_y,
+      social_instagram_url: admin.social_instagram_url ?? '',
+      social_telegram_url: admin.social_telegram_url ?? '',
+      social_youtube_url: admin.social_youtube_url ?? '',
     };
   }
 

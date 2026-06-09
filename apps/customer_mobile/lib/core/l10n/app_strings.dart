@@ -17,6 +17,10 @@ abstract final class AppStrings {
   static const profilePromotionsSubtitle = "maxsus takliflar";
   static const profileNotificationsSubtitle = "yangi xabarlar";
   static const profileHelpSubtitle = 'savollar va yordam';
+  static const profilePartnershipSubtitle = 'biznes takliflari va hamkorlik';
+  static const profileSocialTitle =
+      "Bizni ijtimoiy tarmoqlarda kuzatib boring";
+  static const profileSocialFollow = "obuna bo'ling";
   static const profileTermsSubtitle = "qoidalar va maxfiylik";
   static const profileLanguageSubtitle = "o'zbek / русский";
 
@@ -92,6 +96,10 @@ abstract final class AppStrings {
   static const or = 'yoki';
   static const language = 'Til';
   static const help = 'Yordam';
+  static const partnership = 'Hamkorlik';
+  static const instagram = 'Instagram';
+  static const telegram = 'Telegram';
+  static const youtube = 'YouTube';
   static const terms = 'Foydalanish shartlari';
 
   static const deliveryAddress = 'Yetkazish manzili';

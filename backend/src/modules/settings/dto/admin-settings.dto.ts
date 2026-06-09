@@ -27,6 +27,21 @@ export class AdminSettingsDto {
   @IsString()
   support_telegram?: string;
 
+  @ApiPropertyOptional({ description: 'Instagram profile URL for customer app profile' })
+  @IsOptional()
+  @IsString()
+  social_instagram_url?: string;
+
+  @ApiPropertyOptional({ description: 'Telegram channel/group URL for customer app profile' })
+  @IsOptional()
+  @IsString()
+  social_telegram_url?: string;
+
+  @ApiPropertyOptional({ description: 'YouTube channel URL for customer app profile' })
+  @IsOptional()
+  @IsString()
+  social_youtube_url?: string;
+
   @ApiPropertyOptional()
   @ValidateIf((o: AdminSettingsDto) => o.support_email != null && String(o.support_email).trim() !== '')
   @IsEmail()

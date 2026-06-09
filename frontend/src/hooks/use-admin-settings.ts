@@ -10,6 +10,9 @@ export type AdminSettings = {
   home_subtitle: string;
   support_phone: string;
   support_telegram: string;
+  social_instagram_url: string;
+  social_telegram_url: string;
+  social_youtube_url: string;
   support_email: string;
   min_order_amount: number;
   free_delivery_threshold: number;

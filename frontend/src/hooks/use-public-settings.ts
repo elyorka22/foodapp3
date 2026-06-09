@@ -7,6 +7,9 @@ export type PublicSettings = {
   app_name: string;
   home_title: string;
   home_subtitle: string;
+  social_instagram_url: string;
+  social_telegram_url: string;
+  social_youtube_url: string;
 };
 
 export function usePublicSettings() {

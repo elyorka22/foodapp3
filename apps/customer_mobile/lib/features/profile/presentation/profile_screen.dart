@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../core/config/public_settings_provider.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
@@ -9,6 +11,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
 import 'profile_banner_tile.dart';
+import 'profile_social_section.dart';
 
 const _bannerAddIcon = Icon(
   Icons.add,
@@ -20,23 +23,13 @@ const _bannerRegisterIcon = Icon(
   size: 40,
   color: Color(0xD9FF6B00),
 );
-const _bannerTelegramIcon = Icon(
-  Icons.telegram,
-  size: 44,
-  color: Color(0xFF229ED9),
-);
 const _bannerHelpIcon = Icon(
   Icons.help_outline_rounded,
   size: 40,
   color: AppColors.textMuted,
 );
-const _bannerTermsIcon = Icon(
-  Icons.description_outlined,
-  size: 40,
-  color: AppColors.textMuted,
-);
-const _bannerLanguageIcon = Icon(
-  Icons.language,
+const _bannerPartnershipIcon = Icon(
+  Icons.handshake_outlined,
   size: 40,
   color: AppColors.textSecondary,
 );
@@ -53,6 +46,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authStateProvider);
     final unreadAsync = ref.watch(notificationsUnreadProvider);
+    final settingsAsync = ref.watch(publicSettingsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -61,14 +55,19 @@ class ProfileScreen extends ConsumerWidget {
           data: (user) {
             final unread = unreadAsync.valueOrNull ?? 0;
             final displayName = user?.fullName ?? AppStrings.profileGuestName;
-            final initial = displayName.isNotEmpty
-                ? displayName.trim()[0].toUpperCase()
-                : '?';
+            final isLoggedIn = user != null;
+            final settings = settingsAsync.valueOrNull;
+            final socialLinks = ProfileSocialLinks(
+              instagramUrl: settings?.socialInstagramUrl ?? '',
+              telegramUrl: settings?.socialTelegramUrl ?? '',
+              youtubeUrl: settings?.socialYoutubeUrl ?? '',
+            );
 
             return RefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(authStateProvider);
                 ref.invalidate(notificationsUnreadProvider);
+                ref.invalidate(publicSettingsProvider);
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -80,17 +79,12 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
-                    _ProfileHeader(
-                      initial: initial,
-                      name: displayName,
-                      badgeCount: user != null && unread > 0 ? unread : null,
-                    ),
+                    _ProfileHeader(name: displayName),
                     const SizedBox(height: AppSpacing.xxl),
-                    if (user == null)
+                    if (!isLoggedIn)
                       _GuestBannerGrid(
                         onLogin: () => context.push('/profile/login'),
                         onRegister: () => context.push('/profile/register'),
-                        onTelegram: () => context.push('/profile/telegram'),
                         onHelp: () {},
                       )
                     else
@@ -98,12 +92,10 @@ class ProfileScreen extends ConsumerWidget {
                         unread: unread,
                         onNotifications: () =>
                             context.push(AppRoutes.notifications),
-                        onPromotions: () => context.push(AppRoutes.promotions),
-                        onLanguage: () {},
                         onHelp: () {},
-                        onTerms: () {},
-                        onTelegram: () => context.push('/profile/telegram'),
+                        onPartnership: () => _openPartnershipEmail(context),
                       ),
+                    ProfileSocialSection(links: socialLinks),
                     if (user != null) ...[
                       const SizedBox(height: AppSpacing.xl),
                       TextButton(
@@ -144,61 +136,25 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({
-    required this.initial,
-    required this.name,
-    this.badgeCount,
-  });
+Future<void> _openPartnershipEmail(BuildContext context) async {
+  final uri = Uri(scheme: 'mailto', path: 'partners@foodapp.uz');
+  if (!await launchUrl(uri)) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('partners@foodapp.uz')),
+    );
+  }
+}
 
-  final String initial;
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.name});
+
   final String name;
-  final int? badgeCount;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            CircleAvatar(
-              radius: 44,
-              backgroundColor: AppColors.primarySoft,
-              child: Text(
-                initial,
-                style: AppTypography.display.copyWith(
-                  fontSize: 32,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-            if (badgeCount != null)
-              Positioned(
-                top: -2,
-                right: -2,
-                child: Container(
-                  constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFC107),
-                    borderRadius: BorderRadius.circular(11),
-                    border: Border.all(color: AppColors.surface, width: 2),
-                  ),
-                  child: Text(
-                    badgeCount! > 99 ? '99+' : '$badgeCount',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
         Text(
           AppStrings.profileAccount,
           style: AppTypography.caption.copyWith(
@@ -227,13 +183,11 @@ class _GuestBannerGrid extends StatelessWidget {
   const _GuestBannerGrid({
     required this.onLogin,
     required this.onRegister,
-    required this.onTelegram,
     required this.onHelp,
   });
 
   final VoidCallback onLogin;
   final VoidCallback onRegister;
-  final VoidCallback onTelegram;
   final VoidCallback onHelp;
 
   @override
@@ -254,12 +208,6 @@ class _GuestBannerGrid extends StatelessWidget {
           bottomRight: _bannerRegisterIcon,
         ),
         ProfileBannerTile(
-          title: AppStrings.telegramLogin,
-          subtitle: AppStrings.profileTelegramSubtitle,
-          onTap: onTelegram,
-          bottomRight: _bannerTelegramIcon,
-        ),
-        ProfileBannerTile(
           title: AppStrings.help,
           subtitle: AppStrings.profileHelpSubtitle,
           onTap: onHelp,
@@ -274,20 +222,14 @@ class _LoggedInBannerGrid extends StatelessWidget {
   const _LoggedInBannerGrid({
     required this.unread,
     required this.onNotifications,
-    required this.onPromotions,
-    required this.onLanguage,
     required this.onHelp,
-    required this.onTerms,
-    required this.onTelegram,
+    required this.onPartnership,
   });
 
   final int unread;
   final VoidCallback onNotifications;
-  final VoidCallback onPromotions;
-  final VoidCallback onLanguage;
   final VoidCallback onHelp;
-  final VoidCallback onTerms;
-  final VoidCallback onTelegram;
+  final VoidCallback onPartnership;
 
   @override
   Widget build(BuildContext context) {
@@ -304,35 +246,16 @@ class _LoggedInBannerGrid extends StatelessWidget {
           bottomRight: unread > 0 ? null : _bannerNotificationIcon,
         ),
         ProfileBannerTile(
-          variant: ProfileBannerVariant.accent,
-          title: AppStrings.promotionsTitle,
-          subtitle: AppStrings.profilePromotionsSubtitle,
-          onTap: onPromotions,
-          bottomRight: _bannerAddIcon,
-        ),
-        ProfileBannerTile(
-          title: AppStrings.language,
-          subtitle: AppStrings.profileLanguageSubtitle,
-          onTap: onLanguage,
-          bottomRight: _bannerLanguageIcon,
-        ),
-        ProfileBannerTile(
           title: AppStrings.help,
           subtitle: AppStrings.profileHelpSubtitle,
           onTap: onHelp,
           bottomRight: _bannerHelpIcon,
         ),
         ProfileBannerTile(
-          title: AppStrings.terms,
-          subtitle: AppStrings.profileTermsSubtitle,
-          onTap: onTerms,
-          bottomRight: _bannerTermsIcon,
-        ),
-        ProfileBannerTile(
-          title: AppStrings.telegramLogin,
-          subtitle: AppStrings.profileTelegramSubtitle,
-          onTap: onTelegram,
-          bottomRight: _bannerTelegramIcon,
+          title: AppStrings.partnership,
+          subtitle: AppStrings.profilePartnershipSubtitle,
+          onTap: onPartnership,
+          bottomRight: _bannerPartnershipIcon,
         ),
       ],
     );
