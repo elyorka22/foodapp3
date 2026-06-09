@@ -468,7 +468,12 @@ export function AdminProductsPage({ vertical }: Props) {
           <Button
             type="button"
             onClick={() => {
-              setForm({ ...emptyProduct, restaurantId: restaurantId || restaurants[0]?.id || '' });
+              setForm({
+                ...emptyProduct,
+                restaurantId: restaurantId || restaurants[0]?.id || '',
+                categoryId: categoryId || '',
+              });
+              setImageFile(null);
               setCreateOpen(true);
             }}
           >

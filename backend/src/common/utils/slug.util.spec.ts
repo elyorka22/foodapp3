@@ -16,6 +16,11 @@ describe('slugifyName', () => {
   it('strips leading and trailing dashes', () => {
     assert.equal(slugifyName('  --Hello--  '), 'hello');
   });
+
+  it('transliterates Cyrillic names', () => {
+    assert.equal(slugifyName('Лаваш'), 'lavash');
+    assert.equal(slugifyName('Пицца'), 'pitstsa');
+  });
 });
 
 describe('generateUniqueSlug', () => {

@@ -3,9 +3,61 @@ import { BadRequestException } from '@nestjs/common';
 export const SLUG_TAKEN_MESSAGE =
   'This URL slug is already in use. Please choose a different one.';
 
+const CYRILLIC_TO_LATIN: Record<string, string> = {
+  а: 'a',
+  б: 'b',
+  в: 'v',
+  г: 'g',
+  д: 'd',
+  е: 'e',
+  ё: 'yo',
+  ж: 'zh',
+  з: 'z',
+  и: 'i',
+  й: 'y',
+  к: 'k',
+  л: 'l',
+  м: 'm',
+  н: 'n',
+  о: 'o',
+  п: 'p',
+  р: 'r',
+  с: 's',
+  т: 't',
+  у: 'u',
+  ф: 'f',
+  х: 'x',
+  ц: 'ts',
+  ч: 'ch',
+  ш: 'sh',
+  щ: 'sh',
+  ъ: '',
+  ы: 'y',
+  ь: '',
+  э: 'e',
+  ю: 'yu',
+  я: 'ya',
+  ў: 'o',
+  қ: 'q',
+  ғ: 'g',
+  ҳ: 'h',
+};
+
+function transliterateToLatin(value: string): string {
+  return Array.from(value)
+    .map((char) => {
+      const lower = char.toLowerCase();
+      if (CYRILLIC_TO_LATIN[lower] !== undefined) {
+        return CYRILLIC_TO_LATIN[lower];
+      }
+      return char;
+    })
+    .join('');
+}
+
 /** Convert a display name (or manual slug input) to a URL-safe slug. */
 export function slugifyName(name: string): string {
-  const base = name
+  const base = transliterateToLatin(name)
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')

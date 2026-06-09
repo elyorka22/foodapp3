@@ -7,6 +7,7 @@ import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { userBusinessId, resolveBusinessId } from '../../domain/business/business-id.util';
 import { businessWhereForVertical } from '../../domain/business/merchant-vertical';
+import { resolveSlugForCreate, resolveSlugForUpdate } from '../../common/utils/slug.util';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AdminProductsQueryDto } from './dto/admin-products-query.dto';
 import { BulkProductAction, BulkProductsDto } from './dto/bulk-products.dto';
@@ -201,13 +202,19 @@ export class ProductsService {
       if (!cat) throw new NotFoundException('Store category not found');
     }
 
+    const slug = await resolveSlugForCreate({
+      name: dto.name,
+      slug: dto.slug,
+      isTaken: (candidate) => this.isProductSlugTaken(businessId, candidate),
+    });
+
     const product = await this.prisma.product.create({
       data: {
         businessId,
         dishCategoryId: dishCategoryId ?? undefined,
         productCategoryId: productCategoryId ?? undefined,
         name: dto.name,
-        slug: dto.slug,
+        slug,
         description: dto.description,
         price: dto.price,
         comparePrice: dto.comparePrice,
@@ -272,11 +279,19 @@ export class ProductsService {
       if (!cat) throw new NotFoundException('Store category not found');
     }
 
+    let nextSlug: string | undefined;
+    if (dto.slug !== undefined) {
+      nextSlug = await resolveSlugForUpdate({
+        slug: dto.slug,
+        isTaken: (candidate) => this.isProductSlugTaken(existing.businessId, candidate, id),
+      });
+    }
+
     const product = await this.prisma.product.update({
       where: { id },
       data: {
         ...(dto.name !== undefined && { name: dto.name }),
-        ...(dto.slug !== undefined && { slug: dto.slug }),
+        ...(nextSlug !== undefined && { slug: nextSlug }),
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.price !== undefined && { price: dto.price }),
         ...(dto.comparePrice !== undefined && { comparePrice: dto.comparePrice }),
@@ -377,6 +392,22 @@ export class ProductsService {
       entityId: id,
     });
     return product;
+  }
+
+  private async isProductSlugTaken(
+    businessId: string,
+    slug: string,
+    excludeId?: string,
+  ): Promise<boolean> {
+    const row = await this.prisma.product.findFirst({
+      where: {
+        businessId,
+        slug,
+        ...(excludeId && { id: { not: excludeId } }),
+      },
+      select: { id: true },
+    });
+    return !!row;
   }
 
   private assertAccess(businessId: string, user: JwtPayload) {
