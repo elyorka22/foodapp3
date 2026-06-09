@@ -50,9 +50,9 @@ text = path.read_text()
 
 RELEASE_SIGNING = 'signingConfig = signingConfigs.getByName("release")'
 DEBUG_SIGNING = 'signingConfig = signingConfigs.getByName("debug")'
-KEYSTORE_MARKER = 'keystorePropertiesFile'
+KEYSTORE_INIT_MARKER = 'val keystoreProperties = Properties()'
 
-if RELEASE_SIGNING in text and KEYSTORE_MARKER in text:
+if RELEASE_SIGNING in text and KEYSTORE_INIT_MARKER in text:
     print('Release signing already configured')
     sys.exit(0)
 
@@ -60,25 +60,40 @@ if 'android {' not in text:
     print('ERROR: android block not found in build.gradle.kts', file=sys.stderr)
     sys.exit(1)
 
+imports_block = '''import java.util.Properties
+import java.io.FileInputStream
+
+'''
+
+keystore_init_block = '''
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
+'''
+
 signing_block = '''
     signingConfigs {
         create("release") {
-            val keystorePropertiesFile = rootProject.file("key.properties")
-            val keystoreProperties = java.util.Properties()
-            if (keystorePropertiesFile.exists()) {
-                keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                storeType = keystoreProperties.getProperty("storeType") ?: "jks"
-            }
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+            storeType = keystoreProperties.getProperty("storeType") ?: "jks"
         }
     }
 
 '''
 
-if KEYSTORE_MARKER not in text:
+if 'import java.util.Properties' not in text:
+    text = imports_block + text
+
+if KEYSTORE_INIT_MARKER not in text:
+    text = text.replace('\nandroid {', '\n' + keystore_init_block + 'android {', 1)
+
+if 'create("release")' not in text:
     if '    buildTypes {' in text:
         text = text.replace('    buildTypes {', signing_block + '    buildTypes {', 1)
     else:
