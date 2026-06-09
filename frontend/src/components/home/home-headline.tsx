@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
+import { AppLogo } from '@/components/brand/app-logo';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePublicSettings } from '@/hooks/use-public-settings';
 import { uz } from '@/lib/uz';
@@ -13,7 +14,10 @@ export function HomeHeadline() {
     return (
       <header className="pt-[calc(env(safe-area-inset-top,0px)+12px)]">
         <div className="flex items-start justify-between gap-3">
-          <Skeleton className="h-9 w-48 rounded-lg" />
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <Skeleton className="h-11 w-11 shrink-0 rounded-2xl shadow-none" />
+            <Skeleton className="h-9 flex-1 rounded-lg shadow-none" />
+          </div>
           <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
         </div>
       </header>
@@ -26,11 +30,14 @@ export function HomeHeadline() {
   return (
     <header className="pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-zinc-900">{title}</h1>
-          {subtitle ? (
-            <p className="mt-1 text-sm font-medium text-zinc-500">{subtitle}</p>
-          ) : null}
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <AppLogo size={44} priority className="shrink-0 shadow-card" />
+          <div className="min-w-0">
+            <h1 className="text-[26px] font-bold leading-tight tracking-tight text-zinc-900">{title}</h1>
+            {subtitle ? (
+              <p className="mt-1 text-sm font-medium text-zinc-500">{subtitle}</p>
+            ) : null}
+          </div>
         </div>
         <Link
           href="/notifications"
