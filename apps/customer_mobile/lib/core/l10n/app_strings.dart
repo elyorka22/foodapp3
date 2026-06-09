@@ -85,6 +85,10 @@ abstract final class AppStrings {
   static const continueWithGoogle = 'Google orqali davom etish';
   static const googleSignInCancelled = 'Google kirish bekor qilindi';
   static const googleSignInFailed = 'Google orqali kirish amalga oshmadi';
+  static const googleSignInConfigError =
+      'Google kirish sozlanmagan. Firebase Console ga APK SHA-1 sertifikatini qo\'shing va google-services.json ni yangilang.';
+  static const googleSignInFirebaseNotReady =
+      'Firebase ishga tushmagan. Ilovani qayta o\'rnating.';
   static const or = 'yoki';
   static const language = 'Til';
   static const help = 'Yordam';

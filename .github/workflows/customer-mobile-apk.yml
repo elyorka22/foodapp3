@@ -56,6 +56,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Configure Android release signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: chmod +x scripts/configure_android_signing.sh && ./scripts/configure_android_signing.sh
+
+      - name: Print APK signing SHA-1
+        run: chmod +x scripts/print_android_signing_sha1.sh && ./scripts/print_android_signing_sha1.sh
+
       - name: Apply launcher icons
         run: chmod +x scripts/apply_app_icons.sh && ./scripts/apply_app_icons.sh
 

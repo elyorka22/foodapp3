@@ -132,7 +132,12 @@ class ProfileScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e', style: AppTypography.body)),
+          error: (_, __) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.invalidate(authStateProvider);
+            });
+            return const Center(child: CircularProgressIndicator());
+          },
         ),
       ),
     );

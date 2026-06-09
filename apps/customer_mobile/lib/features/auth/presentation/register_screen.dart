@@ -46,6 +46,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           const SnackBar(content: Text(AppStrings.googleSignInCancelled)),
         );
       }
+    } on GoogleAuthConfigException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.googleSignInFailed;

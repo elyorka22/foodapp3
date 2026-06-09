@@ -74,6 +74,17 @@ flutter build apk \
 
 See [AUDIT_REPORT.md](./AUDIT_REPORT.md) for the full pre-commit checklist.
 
+### Google Sign-In (Android APK)
+
+Error `sign_in_failed` / `ApiException: 10` means the APK signing certificate is not registered in Firebase.
+
+1. Run `./scripts/print_android_signing_sha1.sh` (or check the **Print APK signing SHA-1** step in GitHub Actions).
+2. Firebase Console → **Project settings** → app `com.foodapp.customer_mobile` → **Add fingerprint** (SHA-1 and SHA-256).
+3. Download a fresh `google-services.json` and update GitHub secret `GOOGLE_SERVICES_JSON_CUSTOMER_B64`.
+4. Rebuild the APK.
+
+For consistent release signing in CI, set GitHub secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+
 ## Bottom navigation
 
 - Restoranlar

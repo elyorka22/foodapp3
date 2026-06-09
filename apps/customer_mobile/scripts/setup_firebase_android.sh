@@ -75,6 +75,42 @@ write_google_services() {
 
 write_google_services
 
+python3 - "${DEST}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text())
+package = "com.foodapp.customer_mobile"
+client = next(
+    (
+        c
+        for c in data.get("client", [])
+        if c.get("client_info", {}).get("android_client_info", {}).get("package_name") == package
+    ),
+    None,
+)
+if client is None:
+    print(f"ERROR: google-services.json has no Android app for {package}", file=sys.stderr)
+    sys.exit(1)
+
+oauth = client.get("oauth_client", [])
+android_oauth = [
+    o for o in oauth if o.get("client_type") == 1 and o.get("android_info", {}).get("certificate_hash")
+]
+if not android_oauth:
+    print(
+        "ERROR: google-services.json is missing Android OAuth client (SHA-1).\n"
+        "Firebase Console → Project settings → com.foodapp.customer_mobile → Add SHA-1,\n"
+        "then download a fresh google-services.json and update GOOGLE_SERVICES_JSON_CUSTOMER_B64.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+print(f"OK: Android OAuth client found for {package} ({len(android_oauth)} SHA-1 entries)")
+PY
+
 python3 - "${SETTINGS_GRADLE}" "${APP_GRADLE}" "${MANIFEST}" <<'PY'
 import re
 import sys
