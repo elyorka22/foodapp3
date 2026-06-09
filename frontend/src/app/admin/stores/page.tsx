@@ -19,14 +19,7 @@ import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
 import { MerchantLocationFields } from '@/components/admin/merchant-location-fields';
 import { BusinessImageUpload } from '@/components/admin/business-image-upload';
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { resolveFormSlug } from '@/lib/slugify';
 
 const emptyForm: RestaurantForm = {
   name: '',
@@ -92,7 +85,7 @@ export default function AdminStoresPage() {
     try {
       await create.mutateAsync({
         ...form,
-        slug: form.slug || slugify(form.name),
+        slug: resolveFormSlug(form.name),
         phone: form.phone?.trim() || undefined,
       });
       setCreateOpen(false);
@@ -112,7 +105,11 @@ export default function AdminStoresPage() {
     try {
       await update.mutateAsync({
         id: String(editRow.id),
-        body: { ...form, phone: form.phone?.trim() || undefined },
+        body: {
+          ...form,
+          slug: resolveFormSlug(form.name, String(editRow.slug ?? '')),
+          phone: form.phone?.trim() || undefined,
+        },
       });
       setEditRow(null);
       setForm(emptyForm);
@@ -168,18 +165,7 @@ export default function AdminStoresPage() {
       <Input
         placeholder="Nom"
         value={form.name}
-        onChange={(e) =>
-          setForm({
-            ...form,
-            name: e.target.value,
-            slug: form.slug || slugify(e.target.value),
-          })
-        }
-      />
-      <Input
-        placeholder="Slug"
-        value={form.slug}
-        onChange={(e) => setForm({ ...form, slug: e.target.value })}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
       />
       <Input
         placeholder="Telefon *"

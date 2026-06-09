@@ -12,14 +12,7 @@ import { EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { resolveImageUrl } from '@/lib/image-url';
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { resolveFormSlug } from '@/lib/slugify';
 
 const emptyForm: DishCategoryForm = {
   name: '',
@@ -61,7 +54,7 @@ export function GlobalDishCategoriesPage() {
     }
     const body = {
       ...form,
-      slug: form.slug || slugify(form.name),
+      slug: resolveFormSlug(form.name, editId ? form.slug : undefined),
       description: form.description?.trim() || undefined,
     };
     try {
@@ -131,11 +124,6 @@ export function GlobalDishCategoriesPage() {
             placeholder="Nom (masalan: Pizza)"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <Input
-            placeholder="Slug"
-            value={form.slug}
-            onChange={(e) => setForm({ ...form, slug: e.target.value })}
           />
           <Input
             placeholder="Tartib raqami"

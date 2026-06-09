@@ -6,19 +6,12 @@ import { useAdminProductCategories, type StoreCategoryForm } from '@/hooks/use-a
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/admin/ui';
+import { slugify } from '@/lib/slugify';
 
 type Props = {
   businessId: string;
   businessName: string;
 };
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
 
 export function StoreCategoryPanel({ businessId, businessName }: Props) {
   const { list, create, remove } = useAdminProductCategories(businessId);
@@ -58,13 +51,7 @@ export function StoreCategoryPanel({ businessId, businessName }: Props) {
         <Input
           placeholder="Kategoriya nomi"
           value={form.name}
-          onChange={(e) =>
-            setForm((f) => ({
-              ...f,
-              name: e.target.value,
-              slug: f.slug || slugify(e.target.value),
-            }))
-          }
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           className="max-w-xs"
         />
         <Button type="button" onClick={onCreate} disabled={create.isPending}>

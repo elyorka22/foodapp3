@@ -27,14 +27,7 @@ import { EmptyState } from '@/components/admin/ui';
 import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { resolveFormSlug } from '@/lib/slugify';
 
 const emptyProduct: ProductForm = {
   restaurantId: '',
@@ -242,11 +235,11 @@ export function AdminProductsPage({ vertical }: Props) {
     }
   };
 
-  const buildProductPayload = () => {
+  const buildProductPayload = (existingSlug?: string | null) => {
     const base = {
       restaurantId: form.restaurantId,
       name: form.name.trim(),
-      slug: form.slug.trim(),
+      slug: resolveFormSlug(form.name.trim(), existingSlug),
       description: form.description?.trim() || undefined,
       price: form.price,
       isAvailable: form.isAvailable ?? true,
@@ -270,8 +263,8 @@ export function AdminProductsPage({ vertical }: Props) {
       );
       return;
     }
-    if (!form.name.trim() || !form.slug.trim()) {
-      toast.error('Name and slug are required');
+    if (!form.name.trim()) {
+      toast.error('Name is required');
       return;
     }
     try {
@@ -301,7 +294,7 @@ export function AdminProductsPage({ vertical }: Props) {
         vertical === 'store'
           ? {
               name: form.name.trim(),
-              slug: form.slug.trim(),
+              slug: resolveFormSlug(form.name.trim(), editRow.slug),
               description: form.description?.trim() || undefined,
               price: form.price,
               isAvailable: form.isAvailable,
@@ -309,7 +302,7 @@ export function AdminProductsPage({ vertical }: Props) {
             }
           : {
               name: form.name.trim(),
-              slug: form.slug.trim(),
+              slug: resolveFormSlug(form.name.trim(), editRow.slug),
               description: form.description?.trim() || undefined,
               price: form.price,
               isAvailable: form.isAvailable,
@@ -410,11 +403,8 @@ export function AdminProductsPage({ vertical }: Props) {
       <Input
         placeholder="Name"
         value={form.name}
-        onChange={(e) =>
-          setForm({ ...form, name: e.target.value, slug: form.slug || slugify(e.target.value) })
-        }
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
       />
-      <Input placeholder="Slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
       <Input
         placeholder="Description"
         value={form.description ?? ''}

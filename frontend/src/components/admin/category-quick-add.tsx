@@ -7,13 +7,7 @@ import { useAdminDishCategories } from '@/hooks/use-admin-dish-categories';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { slugify } from '@/lib/slugify';
 
 type Props = {
   onCreated?: (categoryId: string) => void;

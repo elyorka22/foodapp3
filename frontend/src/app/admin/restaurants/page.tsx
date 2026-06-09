@@ -19,14 +19,7 @@ import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
 import { MerchantLocationFields } from '@/components/admin/merchant-location-fields';
 import { adminI18n as t } from '@/lib/admin-i18n';
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { resolveFormSlug } from '@/lib/slugify';
 
 const emptyForm: RestaurantForm = {
   name: '',
@@ -61,12 +54,7 @@ function RestaurantFormFields({
       <Input
         placeholder="Name"
         value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value, slug: form.slug || slugify(e.target.value) })}
-      />
-      <Input
-        placeholder="Slug"
-        value={form.slug}
-        onChange={(e) => setForm({ ...form, slug: e.target.value })}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
       />
       <Input
         placeholder="Description"
@@ -161,7 +149,10 @@ export default function AdminRestaurantsPage() {
 
   const submitCreate = async () => {
     try {
-      const created = await create.mutateAsync(form);
+      const created = await create.mutateAsync({
+        ...form,
+        slug: resolveFormSlug(form.name),
+      });
       setCreateOpen(false);
       setForm(emptyForm);
       if (created?.approvalStatus === 'APPROVED' && created?.isActive) {
@@ -177,7 +168,10 @@ export default function AdminRestaurantsPage() {
   const submitEdit = async () => {
     if (!editRow) return;
     try {
-      await update.mutateAsync({ id: editRow.id, body: form });
+      await update.mutateAsync({
+        id: editRow.id,
+        body: { ...form, slug: resolveFormSlug(form.name, editRow.slug) },
+      });
       setEditRow(null);
       setForm(emptyForm);
       toast.success('Restaurant updated');
