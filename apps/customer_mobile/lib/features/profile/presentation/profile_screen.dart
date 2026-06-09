@@ -9,7 +9,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
 import 'profile_banner_tile.dart';
-import '../../../shared/widgets/food_app_logo.dart';
 
 const _bannerAddIcon = Icon(
   Icons.add,
@@ -85,7 +84,6 @@ class ProfileScreen extends ConsumerWidget {
                       initial: initial,
                       name: displayName,
                       badgeCount: user != null && unread > 0 ? unread : null,
-                      showBrandLogo: user == null,
                     ),
                     const SizedBox(height: AppSpacing.xxl),
                     if (user == null)
@@ -146,13 +144,11 @@ class _ProfileHeader extends StatelessWidget {
     required this.initial,
     required this.name,
     this.badgeCount,
-    this.showBrandLogo = false,
   });
 
   final String initial;
   final String name;
   final int? badgeCount;
-  final bool showBrandLogo;
 
   @override
   Widget build(BuildContext context) {
@@ -161,19 +157,17 @@ class _ProfileHeader extends StatelessWidget {
         Stack(
           clipBehavior: Clip.none,
           children: [
-            showBrandLogo
-                ? const FoodAppLogo(size: 88, borderRadius: 44)
-                : CircleAvatar(
-                    radius: 44,
-                    backgroundColor: AppColors.primarySoft,
-                    child: Text(
-                      initial,
-                      style: AppTypography.display.copyWith(
-                        fontSize: 32,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
+            CircleAvatar(
+              radius: 44,
+              backgroundColor: AppColors.primarySoft,
+              child: Text(
+                initial,
+                style: AppTypography.display.copyWith(
+                  fontSize: 32,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
             if (badgeCount != null)
               Positioned(
                 top: -2,

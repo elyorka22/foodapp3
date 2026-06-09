@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { UserCircle } from 'lucide-react';
-import { AppLogo } from '@/components/brand/app-logo';
 import { uz } from '@/lib/uz';
 
 type Props = {
@@ -12,7 +11,7 @@ type Props = {
 };
 
 export function ProfilePageHeader({ name, photoUrl, badgeCount }: Props) {
-  const isGuest = name === uz.profileGuestName || name === uz.guestUserTitle;
+  const initial = name.trim().charAt(0).toUpperCase() || '?';
 
   return (
     <header className="flex flex-col items-center pt-2 text-center">
@@ -26,11 +25,13 @@ export function ProfilePageHeader({ name, photoUrl, badgeCount }: Props) {
             className="h-[88px] w-[88px] rounded-full object-cover"
             unoptimized
           />
-        ) : isGuest ? (
-          <AppLogo size={88} className="rounded-full shadow-card" />
         ) : (
           <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full bg-primary-soft">
-            <UserCircle size={48} className="text-primary" strokeWidth={1.5} />
+            {name === uz.profileGuestName || name === uz.guestUserTitle ? (
+              <span className="text-3xl font-bold text-primary">{initial}</span>
+            ) : (
+              <UserCircle size={48} className="text-primary" strokeWidth={1.5} />
+            )}
           </div>
         )}
         {badgeCount != null && badgeCount > 0 ? (

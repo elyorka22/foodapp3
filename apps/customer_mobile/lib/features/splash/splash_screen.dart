@@ -6,7 +6,6 @@ import '../../core/router/routes.dart';
 import '../auth/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
-import '../../shared/widgets/food_app_logo.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -48,7 +47,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const FoodAppLogo(size: 88, borderRadius: 24),
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryHover],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'F',
+                style: AppTypography.display.copyWith(
+                  color: Colors.white,
+                  fontSize: 40,
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
             Text(AppStrings.appName, style: AppTypography.display),
             const SizedBox(height: 24),
