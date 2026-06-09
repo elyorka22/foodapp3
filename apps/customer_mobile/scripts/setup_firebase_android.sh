@@ -28,49 +28,83 @@ except json.JSONDecodeError as exc:
 PY
 }
 
+ci_secret_help() {
+  cat >&2 <<'EOF'
+ERROR: google-services.json was not loaded from GitHub secrets.
+
+Set ONE of these repository secrets:
+  • GOOGLE_SERVICES_JSON_CUSTOMER_B64  — recommended (base64-encoded file)
+  • GOOGLE_SERVICES_JSON_CUSTOMER      — raw single-line JSON
+
+Encode for B64 secret:
+  base64 -i google-services.json | tr -d '\n'
+
+Do NOT paste raw JSON into GOOGLE_SERVICES_JSON_CUSTOMER_B64.
+EOF
+}
+
 write_google_services() {
   mkdir -p "$(dirname "$DEST")"
+  local source=""
 
   # Option 1: base64-encoded secret (recommended for GitHub Actions)
   if [[ -n "${GOOGLE_SERVICES_JSON_B64:-}" ]]; then
-    printf '%s' "${GOOGLE_SERVICES_JSON_B64}" | base64 --decode > "$DEST"
-    if validate_json "$DEST"; then
-      echo "Wrote google-services.json from GOOGLE_SERVICES_JSON_B64"
-      return 0
+    if [[ "${GOOGLE_SERVICES_JSON_B64:0:1}" == "{" ]]; then
+      echo "ERROR: GOOGLE_SERVICES_JSON_CUSTOMER_B64 looks like raw JSON, not base64." >&2
+      echo "Use: base64 -i google-services.json | tr -d '\\n'" >&2
+      if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+        exit 1
+      fi
+    else
+      if printf '%s' "${GOOGLE_SERVICES_JSON_B64}" | tr -d '[:space:]' | base64 --decode > "$DEST" 2>/dev/null \
+        && validate_json "$DEST"; then
+        source="GOOGLE_SERVICES_JSON_CUSTOMER_B64"
+      else
+        echo "WARN: GOOGLE_SERVICES_JSON_B64 could not be decoded to valid JSON" >&2
+        rm -f "$DEST"
+      fi
     fi
-    echo "WARN: GOOGLE_SERVICES_JSON_B64 decoded to invalid JSON"
   fi
 
   # Option 2: raw JSON env var
-  if [[ -n "${GOOGLE_SERVICES_JSON:-}" ]]; then
+  if [[ -z "$source" && -n "${GOOGLE_SERVICES_JSON:-}" ]]; then
     printf '%s' "${GOOGLE_SERVICES_JSON}" > "$DEST"
     if validate_json "$DEST"; then
-      echo "Wrote google-services.json from GOOGLE_SERVICES_JSON"
-      return 0
+      source="GOOGLE_SERVICES_JSON_CUSTOMER"
+    else
+      echo "WARN: GOOGLE_SERVICES_JSON is malformed (use a single-line JSON string)" >&2
+      rm -f "$DEST"
     fi
-    echo "WARN: GOOGLE_SERVICES_JSON is malformed (check GitHub secret is complete single-line JSON)"
   fi
 
   # Option 3: local file (dev, gitignored)
-  if [[ -f "${ROOT}/google-services.json" ]]; then
+  if [[ -z "$source" && -f "${ROOT}/google-services.json" ]]; then
     cp "${ROOT}/google-services.json" "$DEST"
     if validate_json "$DEST"; then
-      echo "Copied google-services.json → android/app/"
-      return 0
+      source="local google-services.json"
+    else
+      echo "WARN: local google-services.json is invalid" >&2
+      rm -f "$DEST"
     fi
-    echo "WARN: local google-services.json is invalid"
   fi
 
-  # Option 4: committed example (CI fallback — client config, not a server secret)
-  if [[ -f "${ROOT}/google-services.json.example" ]]; then
+  # Option 4: committed example (local dev only — not for CI)
+  if [[ -z "$source" && "${GITHUB_ACTIONS:-}" != "true" && -f "${ROOT}/google-services.json.example" ]]; then
     cp "${ROOT}/google-services.json.example" "$DEST"
     validate_json "$DEST"
-    echo "Using google-services.json.example → android/app/"
-    return 0
+    source="google-services.json.example"
   fi
 
-  echo "ERROR: no valid google-services.json source found" >&2
-  exit 1
+  if [[ -z "$source" ]]; then
+    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+      ci_secret_help
+    else
+      echo "ERROR: no valid google-services.json source found" >&2
+    fi
+    exit 1
+  fi
+
+  echo "Wrote ${DEST} from ${source}"
 }
 
 write_google_services
