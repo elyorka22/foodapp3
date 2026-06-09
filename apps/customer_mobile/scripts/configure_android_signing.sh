@@ -48,7 +48,11 @@ from pathlib import Path
 path = Path(sys.argv[1])
 text = path.read_text()
 
-if 'signingConfigs' in text:
+RELEASE_SIGNING = 'signingConfig = signingConfigs.getByName("release")'
+DEBUG_SIGNING = 'signingConfig = signingConfigs.getByName("debug")'
+KEYSTORE_MARKER = 'keystorePropertiesFile'
+
+if RELEASE_SIGNING in text and KEYSTORE_MARKER in text:
     print('Release signing already configured')
     sys.exit(0)
 
@@ -71,18 +75,23 @@ signing_block = '''
             }
         }
     }
+
 '''
 
-release_patch = '''
-        release {
-            signingConfig = signingConfigs.getByName("release")
-        }
-'''
+if KEYSTORE_MARKER not in text:
+    if '    buildTypes {' in text:
+        text = text.replace('    buildTypes {', signing_block + '    buildTypes {', 1)
+    else:
+        text = text.replace('android {', 'android {' + signing_block, 1)
 
-text = text.replace('android {', 'android {' + signing_block, 1)
-
-if 'release {' in text and 'signingConfig = signingConfigs.getByName("release")' not in text:
-    text = text.replace('release {', release_patch, 1)
+if DEBUG_SIGNING in text:
+    text = text.replace(DEBUG_SIGNING, RELEASE_SIGNING, 1)
+elif RELEASE_SIGNING not in text and 'release {' in text:
+    text = text.replace(
+        'release {',
+        'release {\n            signingConfig = signingConfigs.getByName("release")',
+        1,
+    )
 
 path.write_text(text)
 print('Configured release signing in app/build.gradle.kts')
