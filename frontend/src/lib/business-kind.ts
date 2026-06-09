@@ -1,13 +1,21 @@
 export type BusinessKind = 'RESTAURANT' | 'STORE';
 
-export function isRestaurantKind(kind?: string | null, typeSlug?: string | null): boolean {
-  return kind === 'RESTAURANT' || typeSlug === 'restaurant';
+export function isRestaurantKind(
+  kind?: string | null,
+  typeSlug?: string | null,
+  businessTypeId?: string | null,
+): boolean {
+  if (typeSlug === 'restaurant') return true;
+  if (businessTypeId == null && typeSlug == null) return true;
+  return kind === 'RESTAURANT';
 }
 
-export function isStoreKind(kind?: string | null, typeSlug?: string | null): boolean {
-  if (kind === 'RESTAURANT') return false;
-  if (kind === 'STORE') return true;
-  return typeSlug !== 'restaurant' && typeSlug != null;
+export function isStoreKind(
+  kind?: string | null,
+  typeSlug?: string | null,
+  businessTypeId?: string | null,
+): boolean {
+  return !isRestaurantKind(kind, typeSlug, businessTypeId);
 }
 
 /** Marketplace merchants only (excludes restaurants for home banner / shops list). */

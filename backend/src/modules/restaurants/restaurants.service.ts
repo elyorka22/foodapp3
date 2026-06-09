@@ -498,13 +498,13 @@ export class RestaurantsService {
       isTaken: (s) => this.isBusinessSlugTaken(s),
     });
 
-    let kind: BusinessKind = BusinessKind.STORE;
+    let kind: BusinessKind = BusinessKind.RESTAURANT;
     if (dto.businessTypeId) {
       const type = await this.prisma.businessType.findUnique({
         where: { id: dto.businessTypeId },
       });
       if (!type) throw new NotFoundException('Business type not found');
-      if (type.slug === 'restaurant') kind = BusinessKind.RESTAURANT;
+      kind = type.slug === 'restaurant' ? BusinessKind.RESTAURANT : BusinessKind.STORE;
     }
 
     const restaurant = await this.prisma.business.create({
@@ -547,12 +547,6 @@ export class RestaurantsService {
 
   async update(id: string, dto: UpdateRestaurantDto, user: JwtPayload) {
     this.assertRestaurantAccess(id, user);
-    if (dto.businessTypeId) {
-      const type = await this.prisma.businessType.findUnique({
-        where: { id: dto.businessTypeId },
-      });
-      if (!type) throw new NotFoundException('Business type not found');
-    }
     const {
       businessTypeId,
       slug: slugInput,
@@ -563,9 +557,17 @@ export class RestaurantsService {
     } = dto;
     const data: Prisma.BusinessUpdateInput = { ...rest };
     if (businessTypeId !== undefined) {
-      data.businessType = businessTypeId
-        ? { connect: { id: businessTypeId } }
-        : { disconnect: true };
+      if (businessTypeId) {
+        const type = await this.prisma.businessType.findUnique({
+          where: { id: businessTypeId },
+        });
+        if (!type) throw new NotFoundException('Business type not found');
+        data.kind = type.slug === 'restaurant' ? BusinessKind.RESTAURANT : BusinessKind.STORE;
+        data.businessType = { connect: { id: businessTypeId } };
+      } else {
+        data.kind = BusinessKind.RESTAURANT;
+        data.businessType = { disconnect: true };
+      }
     }
     if (dto.commissionRate !== undefined) {
       data.commissionRate = dto.commissionRate;
