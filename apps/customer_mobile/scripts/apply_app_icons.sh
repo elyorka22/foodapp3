@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generates Android/iOS launcher icons from assets/images/app_icon.png
+# Generates Android launcher icons from assets/images/app_icon.png
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
