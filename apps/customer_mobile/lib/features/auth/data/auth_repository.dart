@@ -20,11 +20,12 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 class AuthRepository {
-  AuthRepository(this._dio, this._storage, this._devices);
+  AuthRepository(this._dio, this._storage, this._devices, this._googleAuth);
 
   final Dio _dio;
   final TokenStorage _storage;
   final DeviceRegistrationService _devices;
+  final GoogleAuthService _googleAuth;
 
   Future<AuthResponseModel> loginPhone({
     required String phone,

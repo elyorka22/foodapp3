@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/auth_model.dart';
 import '../data/auth_repository.dart';
-import '../data/google_auth_service.dart';
 
 final authStateProvider =
     AsyncNotifierProvider<AuthNotifier, CustomerUserModel?>(AuthNotifier.new);
