@@ -21,6 +21,8 @@ abstract final class AppStrings {
   static const profileSocialTitle =
       "Bizni ijtimoiy tarmoqlarda kuzatib boring";
   static const profileSocialFollow = "obuna bo'ling";
+  static const profileSocialLinkMissing =
+      "Havola hali sozlanmagan. Admin panelda saqlang.";
   static const profileTermsSubtitle = "qoidalar va maxfiylik";
   static const profileLanguageSubtitle = "o'zbek / русский";
 

@@ -145,6 +145,7 @@ export const uz = {
   profilePartnershipHint: 'Biznes takliflari va hamkorlik',
   profileSocialTitle: "Bizni ijtimoiy tarmoqlarda kuzatib boring",
   profileSocialFollow: "obuna bo'ling",
+  profileSocialLinkMissing: 'Havola hali sozlanmagan. Admin panelda saqlang.',
   termsOfUse: 'Foydalanish shartlari',
   privacyPolicy: 'Maxfiylik siyosati',
   close: 'Yopish',

@@ -32,11 +32,6 @@ class ProfileSocialLinks {
   final String instagramUrl;
   final String telegramUrl;
   final String youtubeUrl;
-
-  bool get hasAny =>
-      instagramUrl.trim().isNotEmpty ||
-      telegramUrl.trim().isNotEmpty ||
-      youtubeUrl.trim().isNotEmpty;
 }
 
 class ProfileSocialSection extends StatelessWidget {
@@ -46,40 +41,6 @@ class ProfileSocialSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!links.hasAny) return const SizedBox.shrink();
-
-    final tiles = <Widget>[];
-    if (links.instagramUrl.trim().isNotEmpty) {
-      tiles.add(
-        ProfileBannerTile(
-          title: AppStrings.instagram,
-          subtitle: AppStrings.profileSocialFollow,
-          onTap: () => _openUrl(context, links.instagramUrl),
-          bottomRight: _instagramIcon,
-        ),
-      );
-    }
-    if (links.telegramUrl.trim().isNotEmpty) {
-      tiles.add(
-        ProfileBannerTile(
-          title: AppStrings.telegram,
-          subtitle: AppStrings.profileSocialFollow,
-          onTap: () => _openUrl(context, links.telegramUrl),
-          bottomRight: _telegramSocialIcon,
-        ),
-      );
-    }
-    if (links.youtubeUrl.trim().isNotEmpty) {
-      tiles.add(
-        ProfileBannerTile(
-          title: AppStrings.youtube,
-          subtitle: AppStrings.profileSocialFollow,
-          onTap: () => _openUrl(context, links.youtubeUrl),
-          bottomRight: _youtubeIcon,
-        ),
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -101,7 +62,26 @@ class ProfileSocialSection extends StatelessWidget {
           mainAxisSpacing: AppSpacing.md,
           crossAxisSpacing: AppSpacing.md,
           childAspectRatio: 0.92,
-          children: tiles
+          children: [
+            _socialTile(
+              context,
+              title: AppStrings.instagram,
+              url: links.instagramUrl,
+              icon: _instagramIcon,
+            ),
+            _socialTile(
+              context,
+              title: AppStrings.telegram,
+              url: links.telegramUrl,
+              icon: _telegramSocialIcon,
+            ),
+            _socialTile(
+              context,
+              title: AppStrings.youtube,
+              url: links.youtubeUrl,
+              icon: _youtubeIcon,
+            ),
+          ]
               .map(
                 (child) => SizedBox(height: 148, child: child),
               )
@@ -110,11 +90,41 @@ class ProfileSocialSection extends StatelessWidget {
       ],
     );
   }
+
+  Widget _socialTile(
+    BuildContext context, {
+    required String title,
+    required String url,
+    required Widget icon,
+  }) {
+    final hasUrl = url.trim().isNotEmpty;
+
+    return Opacity(
+      opacity: hasUrl ? 1 : 0.55,
+      child: ProfileBannerTile(
+        title: title,
+        subtitle: AppStrings.profileSocialFollow,
+        onTap: () => hasUrl
+            ? _openUrl(context, url)
+            : _showLinkMissing(context),
+        bottomRight: icon,
+      ),
+    );
+  }
+}
+
+void _showLinkMissing(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text(AppStrings.profileSocialLinkMissing)),
+  );
 }
 
 Future<void> _openUrl(BuildContext context, String rawUrl) async {
   final trimmed = rawUrl.trim();
-  if (trimmed.isEmpty) return;
+  if (trimmed.isEmpty) {
+    _showLinkMissing(context);
+    return;
+  }
 
   final uri = Uri.tryParse(trimmed);
   if (uri == null || !uri.hasScheme) {
