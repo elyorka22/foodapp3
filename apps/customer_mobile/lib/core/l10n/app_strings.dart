@@ -1,6 +1,6 @@
 /// Uzbek UI strings — aligned with web customer app.
 abstract final class AppStrings {
-  static const appName = 'FoodApp';
+  static const appName = 'Foodapp';
 
   static const navHome = 'Bosh sahifa';
   static const navRestaurants = 'Restoranlar';

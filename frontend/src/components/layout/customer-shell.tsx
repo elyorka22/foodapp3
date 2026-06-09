@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { BottomNav } from './bottom-nav';
-import { SiteFooter } from './site-footer';
 
 const STAFF_PREFIXES = ['/login', '/staff', '/admin', '/manager', '/business', '/restaurant', '/courier'];
 
@@ -33,7 +32,6 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <div className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))]">{children}</div>
-      <SiteFooter />
       <BottomNav />
     </div>
   );

@@ -20,8 +20,8 @@ class PublicSettings {
 
   factory PublicSettings.fromJson(Map<String, dynamic> json) {
     return PublicSettings(
-      appName: json['app_name'] as String? ?? 'FoodApp',
-      homeTitle: json['home_title'] as String? ?? 'FoodApp',
+      appName: json['app_name'] as String? ?? 'Foodapp',
+      homeTitle: json['home_title'] as String? ?? 'Foodapp',
       homeSubtitle: json['home_subtitle'] as String? ?? '',
       socialInstagramUrl: json['social_instagram_url'] as String? ?? '',
       socialTelegramUrl: json['social_telegram_url'] as String? ?? '',

@@ -26,7 +26,7 @@ RemoteNotificationContent extractNotificationContent(RemoteMessage message) {
   final data = message.data;
 
   return RemoteNotificationContent(
-    title: notification?.title ?? data['title'] as String? ?? 'FoodApp',
+    title: notification?.title ?? data['title'] as String? ?? 'Foodapp',
     body: notification?.body ?? data['body'] as String? ?? '',
   );
 }
