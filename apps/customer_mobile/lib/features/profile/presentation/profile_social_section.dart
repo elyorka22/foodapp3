@@ -120,7 +120,7 @@ Future<void> _openUrl(BuildContext context, String rawUrl) async {
   if (uri == null || !uri.hasScheme) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppStrings.errorGeneric)),
+      const SnackBar(content: Text(AppStrings.errorGeneric)),
     );
     return;
   }
