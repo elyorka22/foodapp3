@@ -64,7 +64,9 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: chmod +x scripts/configure_android_signing.sh && ./scripts/configure_android_signing.sh
 
-      - name: Print APK signing SHA-1
+      - name: Print configured release keystore fingerprints
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: chmod +x scripts/print_android_signing_sha1.sh && ./scripts/print_android_signing_sha1.sh
 
       - name: Apply launcher icons
@@ -88,6 +90,9 @@ jobs:
             DART_DEFINES+=("--dart-define=TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}")
           fi
           flutter build apk --release "${DART_DEFINES[@]}"
+
+      - name: Print signed APK fingerprints
+        run: chmod +x scripts/print_android_signing_sha1.sh && ./scripts/print_android_signing_sha1.sh build/app/outputs/flutter-apk/app-release.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

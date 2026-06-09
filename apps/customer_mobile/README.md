@@ -83,7 +83,30 @@ Error `sign_in_failed` / `ApiException: 10` means the APK signing certificate is
 3. Download a fresh `google-services.json` and update GitHub secret `GOOGLE_SERVICES_JSON_CUSTOMER_B64`.
 4. Rebuild the APK.
 
-For consistent release signing in CI, set GitHub secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+**GitHub secret format (CI):**
+
+| Secret | Format |
+|--------|--------|
+| `GOOGLE_SERVICES_JSON_CUSTOMER_B64` | **Base64** of the whole file (recommended) |
+| `GOOGLE_SERVICES_JSON_CUSTOMER` | Raw **single-line** JSON (alternative) |
+
+```bash
+base64 -i google-services.json | tr -d '\n'   # paste into GOOGLE_SERVICES_JSON_CUSTOMER_B64
+```
+
+Do **not** paste raw JSON into the `_B64` secret.
+
+**Release signing (CI):** generate once, then add GitHub secrets:
+
+```bash
+chmod +x scripts/generate_release_keystore.sh
+./scripts/generate_release_keystore.sh
+# values written to .secrets/github-secrets.txt (gitignored)
+```
+
+Required secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+
+CI prints SHA-1/SHA-256 after signing in the **Print signed APK fingerprints** step.
 
 ## Bottom navigation
 

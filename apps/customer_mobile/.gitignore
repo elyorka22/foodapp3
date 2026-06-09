@@ -23,6 +23,8 @@ pubspec.lock
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
 *.jks
+*.p12
+.secrets/
 
 # iOS
 **/ios/Pods/

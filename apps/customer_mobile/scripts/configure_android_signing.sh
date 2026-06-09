@@ -1,38 +1,44 @@
 #!/usr/bin/env bash
-# Optional release signing for CI. Requires GitHub secrets:
-# ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+# Configures release signing for CI from GitHub secrets.
+# Requires: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ANDROID_DIR="${ROOT}/android"
 APP_GRADLE="${ANDROID_DIR}/app/build.gradle.kts"
-KEYSTORE_PATH="${ANDROID_DIR}/app/upload-keystore.jks"
+KEYSTORE_PATH="${ANDROID_DIR}/app/upload-keystore.p12"
 KEY_PROPS="${ANDROID_DIR}/key.properties"
 
 if [[ ! -d "${ANDROID_DIR}" ]]; then
-  echo "SKIP: android/ not found"
-  exit 0
+  echo "ERROR: ${ANDROID_DIR} not found — run flutter create first" >&2
+  exit 1
 fi
 
 if [[ -z "${ANDROID_KEYSTORE_BASE64:-}" ]]; then
-  echo "SKIP: ANDROID_KEYSTORE_BASE64 not set — release APK will use debug signing"
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    echo "ERROR: ANDROID_KEYSTORE_BASE64 secret is required for release APK signing." >&2
+    echo "Generate a keystore with scripts/generate_release_keystore.sh and add GitHub secrets." >&2
+    exit 1
+  fi
+  echo "SKIP: ANDROID_KEYSTORE_BASE64 not set — local release builds will use debug signing"
   exit 0
 fi
 
 for var in ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
   if [[ -z "${!var:-}" ]]; then
-    echo "ERROR: ${var} is required when ANDROID_KEYSTORE_BASE64 is set"
+    echo "ERROR: ${var} is required when ANDROID_KEYSTORE_BASE64 is set" >&2
     exit 1
   fi
 done
 
-printf '%s' "${ANDROID_KEYSTORE_BASE64}" | base64 --decode > "${KEYSTORE_PATH}"
+printf '%s' "${ANDROID_KEYSTORE_BASE64}" | tr -d '[:space:]' | base64 --decode > "${KEYSTORE_PATH}"
 
 cat > "${KEY_PROPS}" <<EOF
 storePassword=${ANDROID_KEYSTORE_PASSWORD}
 keyPassword=${ANDROID_KEY_PASSWORD}
 keyAlias=${ANDROID_KEY_ALIAS}
-storeFile=upload-keystore.jks
+storeFile=upload-keystore.p12
+storeType=PKCS12
 EOF
 
 python3 - "${APP_GRADLE}" <<'PY'
@@ -61,6 +67,7 @@ signing_block = '''
                 keyPassword = keystoreProperties["keyPassword"] as String
                 storeFile = file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
+                storeType = keystoreProperties.getProperty("storeType") ?: "jks"
             }
         }
     }
@@ -81,4 +88,4 @@ path.write_text(text)
 print('Configured release signing in app/build.gradle.kts')
 PY
 
-echo "Release keystore written to android/app/upload-keystore.jks"
+echo "Release keystore written to android/app/upload-keystore.p12"
