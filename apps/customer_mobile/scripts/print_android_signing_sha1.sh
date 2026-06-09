@@ -8,12 +8,47 @@ KEY_PROPS="${ANDROID_DIR}/key.properties"
 DEBUG_KEYSTORE="${HOME}/.android/debug.keystore"
 APK_PATH="${1:-${ROOT}/build/app/outputs/flutter-apk/app-release.apk}"
 
+# keytool/apksigner may print SHA1 or SHA-1; never fail the script on grep miss.
+extract_sha1() {
+  sed -nE 's/.*SHA-?1[^:]*:[[:space:]]*//Ip' | head -1 | tr -d '\r'
+}
+
+extract_sha256() {
+  sed -nE 's/.*SHA-?256[^:]*:[[:space:]]*//Ip' | head -1 | tr -d '\r'
+}
+
+print_fingerprints_from_output() {
+  local output="$1"
+  local sha1 sha256
+  sha1="$(printf '%s\n' "$output" | extract_sha1)"
+  sha256="$(printf '%s\n' "$output" | extract_sha256)"
+  if [[ -z "$sha1" ]]; then
+    return 1
+  fi
+  echo "SHA1: $sha1"
+  if [[ -n "$sha256" ]]; then
+    echo "SHA256: $sha256"
+  fi
+  return 0
+}
+
+find_apksigner() {
+  if command -v apksigner >/dev/null 2>&1; then
+    command -v apksigner
+    return 0
+  fi
+  if [[ -n "${ANDROID_HOME:-}" ]]; then
+    find "${ANDROID_HOME}/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -1
+  fi
+}
+
 print_with_keytool_keystore() {
   local keystore="$1"
   local alias="$2"
   local storepass="$3"
-  keytool -list -v -keystore "$keystore" -alias "$alias" -storepass "$storepass" \
-    | grep -E 'SHA1:|SHA256:'
+  local output
+  output="$(keytool -list -v -keystore "$keystore" -alias "$alias" -storepass "$storepass" 2>&1)"
+  print_fingerprints_from_output "$output"
 }
 
 print_with_openssl_p12() {
@@ -27,21 +62,33 @@ print_with_openssl_p12() {
 
 print_apk_cert() {
   local apk="$1"
+  local output apksigner_bin
+
   if [[ ! -f "$apk" ]]; then
     echo "APK not found: $apk" >&2
     return 1
   fi
+
+  echo "Signed APK: $apk"
+
+  apksigner_bin="$(find_apksigner || true)"
+  if [[ -n "$apksigner_bin" && -x "$apksigner_bin" ]]; then
+    output="$("$apksigner_bin" verify --print-certs "$apk" 2>&1 || true)"
+    if print_fingerprints_from_output "$output"; then
+      return 0
+    fi
+  fi
+
   if command -v keytool >/dev/null 2>&1; then
-    echo "Signed APK: $apk"
-    keytool -printcert -jarfile "$apk" | grep -E 'SHA1:|SHA256:'
-    return 0
+    output="$(keytool -printcert -jarfile "$apk" 2>&1 || true)"
+    if print_fingerprints_from_output "$output"; then
+      return 0
+    fi
+    echo "keytool output:" >&2
+    printf '%s\n' "$output" >&2
   fi
-  if command -v apksigner >/dev/null 2>&1; then
-    echo "Signed APK: $apk"
-    apksigner verify --print-certs "$apk" | grep -E 'SHA-1|SHA-256'
-    return 0
-  fi
-  echo "WARN: keytool/apksigner not available to read APK certificate" >&2
+
+  echo "ERROR: could not extract SHA-1/SHA-256 from signed APK" >&2
   return 1
 }
 
@@ -71,8 +118,8 @@ fi
 if [[ -f "${DEBUG_KEYSTORE}" ]]; then
   echo "Using default debug keystore: ${DEBUG_KEYSTORE}"
   if command -v keytool >/dev/null 2>&1; then
-    keytool -list -v -keystore "${DEBUG_KEYSTORE}" -alias androiddebugkey -storepass android -keypass android \
-      | grep -E 'SHA1:|SHA256:'
+    output="$(keytool -list -v -keystore "${DEBUG_KEYSTORE}" -alias androiddebugkey -storepass android -keypass android 2>&1)"
+    print_fingerprints_from_output "$output"
   else
     echo "WARN: keytool not available" >&2
     exit 1
