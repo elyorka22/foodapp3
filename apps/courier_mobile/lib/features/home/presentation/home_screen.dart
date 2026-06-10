@@ -7,11 +7,11 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
-import '../../../shared/models/courier_order_model.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/food_app_card.dart';
 import '../../../shared/widgets/info_row.dart';
 import '../../home/providers/courier_home_provider.dart';
+import '../../orders/presentation/available_orders_panel.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -35,6 +35,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final earnings = ref.watch(courierEarningsProvider);
     final unread = ref.watch(notificationsUnreadProvider);
     final isOnline = onlineState.valueOrNull ?? false;
+    final availableCount = available.valueOrNull?.length ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -75,6 +76,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+      floatingActionButton: isOnline && availableCount > 0 && activeOrder.valueOrNull == null
+          ? FloatingActionButton.extended(
+              onPressed: () => showAvailableOrdersPanel(context, ref),
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.list_alt),
+              label: Text('${AppStrings.openOrdersList} ($availableCount)'),
+            )
+          : null,
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(activeOrderProvider);
@@ -112,7 +121,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const SizedBox(height: 4),
                         Text(
                           isOnline
-                              ? 'Yangi buyurtmalar qabul qilinadi'
+                              ? 'Yangi buyurtmalar ro\'yxatda chiqadi'
                               : 'Buyurtmalar to\'xtatilgan',
                           style: AppTypography.bodySmall,
                         ),
@@ -135,56 +144,116 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
+            if (isOnline && activeOrder.valueOrNull == null) ...[
+              const SizedBox(height: AppSpacing.lg),
+              available.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (orders) {
+                  if (orders.isEmpty) return _EmptyState();
+                  return FoodAppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.primarySoft,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.delivery_dining,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    AppStrings.newOrderAlert,
+                                    style: AppTypography.subtitle,
+                                  ),
+                                  Text(
+                                    '${orders.length} ta buyurtma kutmoqda',
+                                    style: AppTypography.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        FoodAppButton(
+                          label: '${AppStrings.openOrdersList} (${orders.length})',
+                          onPressed: () => showAvailableOrdersPanel(context, ref),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             activeOrder.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Text(e.toString()),
               data: (order) {
-                if (order == null) return const SizedBox.shrink();
+                if (order == null) {
+                  if (!isOnline) return _EmptyState();
+                  return const SizedBox.shrink();
+                }
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(AppStrings.activeDelivery, style: AppTypography.subtitle),
                     const SizedBox(height: AppSpacing.md),
-                    _OrderSummaryCard(
-                      order: order,
-                      onOpen: () => context.push(AppRoutes.activeOrder, extra: order.id),
+                    FoodAppCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          InfoRow(label: AppStrings.orderId, value: order.orderNumber),
+                          InfoRow(
+                            label: AppStrings.restaurant,
+                            value: order.restaurantName ?? '—',
+                          ),
+                          InfoRow(
+                            label: AppStrings.customer,
+                            value: order.customerPhone ?? order.customerName ?? '—',
+                          ),
+                          if (order.distanceKm != null)
+                            InfoRow(
+                              label: AppStrings.distance,
+                              value: '${order.distanceKm} km',
+                            ),
+                          InfoRow(
+                            label: AppStrings.deliveryFee,
+                            value: formatSum(order.courierFee ?? order.deliveryFee),
+                          ),
+                          InfoRow(
+                            label: AppStrings.address,
+                            value: order.customerAddress ?? '—',
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          FoodAppButton(
+                            label: AppStrings.openOrder,
+                            onPressed: () =>
+                                context.push(AppRoutes.activeOrder, extra: order.id),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.lg),
                   ],
                 );
               },
             ),
-            if (isOnline)
-              available.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text(e.toString()),
-                data: (orders) {
-                  if (orders.isEmpty) {
-                    return _EmptyState();
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(AppStrings.availableOrders, style: AppTypography.subtitle),
-                      const SizedBox(height: AppSpacing.md),
-                      ...orders.map(
-                        (order) => Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                          child: _OrderSummaryCard(
-                            order: order,
-                            onOpen: () =>
-                                context.push(AppRoutes.incomingOrder, extra: order.id),
-                            showAcceptHint: true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              )
-            else
+            if (!isOnline) ...[
+              const SizedBox(height: AppSpacing.lg),
               _EmptyState(),
+            ],
           ],
         ),
       ),
@@ -228,43 +297,6 @@ class _StatsRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _OrderSummaryCard extends StatelessWidget {
-  const _OrderSummaryCard({
-    required this.order,
-    required this.onOpen,
-    this.showAcceptHint = false,
-  });
-
-  final CourierOrderModel order;
-  final VoidCallback onOpen;
-  final bool showAcceptHint;
-
-  @override
-  Widget build(BuildContext context) {
-    return FoodAppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          InfoRow(label: AppStrings.orderId, value: order.orderNumber),
-          InfoRow(label: AppStrings.restaurant, value: order.restaurantName ?? '—'),
-          InfoRow(label: AppStrings.address, value: order.customerAddress ?? '—'),
-          if (order.distanceKm != null)
-            InfoRow(label: AppStrings.distance, value: '${order.distanceKm} km'),
-          InfoRow(
-            label: AppStrings.deliveryFee,
-            value: formatSum(order.courierFee ?? order.deliveryFee),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          FoodAppButton(
-            label: showAcceptHint ? AppStrings.accept : AppStrings.openOrder,
-            onPressed: onOpen,
-          ),
-        ],
-      ),
     );
   }
 }

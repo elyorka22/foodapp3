@@ -1,0 +1,303 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/l10n/app_strings.dart';
+import '../../../core/network/api_exception.dart';
+import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format_sum.dart';
+import '../../../shared/models/courier_order_model.dart';
+import '../../../shared/widgets/food_app_button.dart';
+import '../../home/providers/courier_home_provider.dart';
+import '../data/courier_repository.dart';
+
+/// Opens a modal with all pool orders. Courier taps a row to accept it.
+Future<void> showAvailableOrdersPanel(
+  BuildContext context,
+  WidgetRef ref, {
+  bool playSoundOnOpen = false,
+}) async {
+  if (playSoundOnOpen) {
+    // Sound is played by the watcher before opening; keep hook for manual open.
+  }
+
+  if (!context.mounted) return;
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => const _AvailableOrdersPanel(),
+  );
+}
+
+class _AvailableOrdersPanel extends ConsumerStatefulWidget {
+  const _AvailableOrdersPanel();
+
+  @override
+  ConsumerState<_AvailableOrdersPanel> createState() => _AvailableOrdersPanelState();
+}
+
+class _AvailableOrdersPanelState extends ConsumerState<_AvailableOrdersPanel> {
+  String? _acceptingId;
+
+  Future<void> _acceptOrder(CourierOrderModel order) async {
+    if (_acceptingId != null) return;
+
+    final online = ref.read(courierOnlineProvider).valueOrNull ?? false;
+    if (!online) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppStrings.mustBeOnline)),
+      );
+      return;
+    }
+
+    setState(() => _acceptingId = order.id);
+    try {
+      await ref.read(courierRepositoryProvider).acceptOrder(order.id);
+      ref.invalidate(activeOrderProvider);
+      ref.invalidate(availableOrdersProvider);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      context.push(AppRoutes.activeOrder, extra: order.id);
+    } on DioException catch (e) {
+      final err = e.error;
+      final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+      ref.invalidate(availableOrdersProvider);
+    } finally {
+      if (mounted) setState(() => _acceptingId = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ordersAsync = ref.watch(availableOrdersProvider);
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.88,
+        minChildSize: 0.45,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppStrings.availableOrdersTitle,
+                              style: AppTypography.subtitle.copyWith(fontSize: 18),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppStrings.availableOrdersHint,
+                              style: AppTypography.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ordersAsync.when(
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(child: Text(e.toString())),
+                    data: (orders) {
+                      if (orders.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.inbox_outlined,
+                                  size: 56,
+                                  color: AppColors.textMuted,
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                Text(
+                                  AppStrings.noAvailableOrders,
+                                  style: AppTypography.subtitle,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(
+                                  AppStrings.waitingOrdersHint,
+                                  style: AppTypography.bodySmall,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        itemCount: orders.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+                        itemBuilder: (context, index) {
+                          final order = orders[index];
+                          final isAccepting = _acceptingId == order.id;
+                          return _AvailableOrderTile(
+                            order: order,
+                            isAccepting: isAccepting,
+                            onTap: isAccepting ? null : () => _acceptOrder(order),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: FoodAppButton(
+                    label: AppStrings.close,
+                    variant: FoodAppButtonVariant.secondary,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AvailableOrderTile extends StatelessWidget {
+  const _AvailableOrderTile({
+    required this.order,
+    required this.onTap,
+    required this.isAccepting,
+  });
+
+  final CourierOrderModel order;
+  final VoidCallback? onTap;
+  final bool isAccepting;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primarySoft,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '#${order.orderNumber}',
+                      style: AppTypography.subtitle,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      order.restaurantName ?? '—',
+                      style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      order.customerAddress ?? '—',
+                      style: AppTypography.bodySmall,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (order.distanceKm != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '${order.distanceKm} km',
+                        style: AppTypography.caption,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    formatSum(order.courierFee ?? order.deliveryFee),
+                    style: AppTypography.subtitle.copyWith(color: AppColors.primary),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (isAccepting)
+                    const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        AppStrings.accept,
+                        style: AppTypography.caption.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

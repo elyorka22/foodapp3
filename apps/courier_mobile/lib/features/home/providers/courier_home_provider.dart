@@ -9,7 +9,7 @@ import '../../../shared/models/courier_earnings_model.dart';
 import '../../../shared/models/courier_model.dart';
 import '../../../shared/models/courier_order_model.dart';
 
-const _pollInterval = Duration(seconds: 10);
+const _pollInterval = Duration(seconds: 5);
 
 final courierProfileProvider = FutureProvider.autoDispose<CourierProfileModel>((ref) async {
   ref.watch(authStateProvider);

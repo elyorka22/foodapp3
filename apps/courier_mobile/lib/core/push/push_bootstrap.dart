@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../audio/new_order_sound_service.dart';
 import '../router/app_router.dart';
 import 'device_registration_service.dart';
 import 'notification_deep_link.dart';
@@ -44,6 +45,13 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindi
     final router = ref.read(routerProvider);
 
     await push.initialize();
+
+    push.onForegroundMessage((data) {
+      final orderId = data['orderId'] as String?;
+      if (orderId != null && orderId.isNotEmpty) {
+        NewOrderSoundService.instance.play();
+      }
+    });
 
     push.onNotificationTap((data) {
       if (!mounted) return;

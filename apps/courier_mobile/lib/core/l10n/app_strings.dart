@@ -12,6 +12,13 @@ abstract final class AppStrings {
   static const waitingOrdersHint =
       'Onlayn rejimda qoling. Yangi buyurtmalar ro\'yxatda ko\'rinadi.';
   static const availableOrders = 'Mavjud buyurtmalar';
+  static const availableOrdersTitle = 'Mavjud buyurtmalar';
+  static const availableOrdersHint =
+      'Kerakli buyurtmani bosing — u sizga birikadi.';
+  static const noAvailableOrders = 'Hozircha buyurtmalar yo\'q';
+  static const openOrdersList = 'Buyurtmalar ro\'yxati';
+  static const newOrderAlert = 'Yangi buyurtma!';
+  static const close = 'Yopish';
   static const activeDelivery = 'Faol yetkazish';
   static const orderId = 'Buyurtma';
   static const restaurant = 'Restoran';

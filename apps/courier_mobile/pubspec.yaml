@@ -1,7 +1,7 @@
 name: courier_mobile
 description: FoodApp courier mobile application — simple delivery workflow.
 publish_to: 'none'
-version: 1.1.0+2
+version: 1.1.0+3
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
@@ -26,6 +26,7 @@ dependencies:
   firebase_core: ^3.13.0
   firebase_messaging: ^15.2.5
   flutter_local_notifications: ^19.0.0
+  audioplayers: ^6.4.0
 
 dev_dependencies:
   flutter_test:
@@ -34,3 +35,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/sounds/
