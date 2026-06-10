@@ -33,6 +33,15 @@ class CourierOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (mode == CourierOrderCardMode.available) {
+      return _AvailableOrderCard(
+        order: order,
+        actionLabel: actionLabel,
+        onAction: onAction,
+        isLoading: isLoading,
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: isActiveHighlight ? AppColors.primarySoft : Colors.white,
@@ -61,21 +70,20 @@ class CourierOrderCard extends StatelessWidget {
                   style: AppTypography.subtitle.copyWith(fontSize: 18),
                 ),
               ),
-              if (mode == CourierOrderCardMode.active)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    AppStrings.activeDelivery,
-                    style: AppTypography.caption.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  AppStrings.activeDelivery,
+                  style: AppTypography.caption.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -87,7 +95,7 @@ class CourierOrderCard extends StatelessWidget {
             ),
           _InfoLine(
             icon: Icons.payments_outlined,
-            label: formatSum(order.courierFee ?? order.deliveryFee),
+            label: formatSum(order.initialDeliveryFee),
             valueColor: AppColors.primary,
           ),
           if (order.customerPhone != null && order.customerPhone!.trim().isNotEmpty)
@@ -132,6 +140,63 @@ class CourierOrderCard extends StatelessWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
+  }
+}
+
+class _AvailableOrderCard extends StatelessWidget {
+  const _AvailableOrderCard({
+    required this.order,
+    required this.actionLabel,
+    required this.onAction,
+    required this.isLoading,
+  });
+
+  final CourierOrderModel order;
+  final String actionLabel;
+  final VoidCallback? onAction;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            order.restaurantName ?? '—',
+            style: AppTypography.subtitle.copyWith(fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            AppStrings.initialDeliveryFee,
+            style: AppTypography.caption,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            formatSum(order.initialDeliveryFee),
+            style: AppTypography.title.copyWith(
+              color: AppColors.primary,
+              fontSize: 24,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          FoodAppButton(
+            label: actionLabel,
+            isLoading: isLoading,
+            onPressed: onAction,
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -34,7 +34,7 @@ const foodAppAndroidNotificationDetails = AndroidNotificationDetails(
   enableVibration: true,
   visibility: NotificationVisibility.public,
   category: AndroidNotificationCategory.message,
-  ticker: 'FoodApp Courier',
+  ticker: 'iKuryer',
 );
 
 const foodAppCourierUrgentNotificationDetails = AndroidNotificationDetails(

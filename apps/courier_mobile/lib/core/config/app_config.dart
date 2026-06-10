@@ -5,7 +5,7 @@ class AppConfig {
 
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String wsBaseUrl = String.fromEnvironment('WS_BASE_URL', defaultValue: '');
-  static const String appName = 'FoodApp Courier';
+  static const String appName = 'iKuryer';
 
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 30);

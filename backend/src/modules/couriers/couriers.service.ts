@@ -6,6 +6,7 @@ import {
 import { OrderStatus, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
+import { calculateDeliveryFee } from '../../common/utils/geo.util';
 import { normalizePhone } from '../../common/utils/phone.util';
 import { AuthService } from '../auth/auth.service';
 import { AuditService } from '../audit/audit.service';
@@ -484,26 +485,38 @@ export class CouriersService {
       return [];
     }
 
-    const orders = await this.prisma.order.findMany({
-      where: {
-        status: OrderStatus.PREPARING,
-        courierId: null,
-        courierRequestedAt: { not: null },
-        deletedAt: null,
-      },
-      include: {
-        items: true,
-        guestOrder: true,
-        address: true,
-        business: { select: { name: true } },
-        branch: true,
-      },
-      orderBy: { createdAt: 'asc' },
-      take: 50,
-    });
-    return orders.map((order) => ({
+    const [orders, deliveryConfig] = await Promise.all([
+      this.prisma.order.findMany({
+        where: {
+          status: OrderStatus.PREPARING,
+          courierId: null,
+          courierRequestedAt: { not: null },
+          deletedAt: null,
+        },
+        include: {
+          items: true,
+          guestOrder: true,
+          address: true,
+          business: { select: { name: true } },
+          branch: true,
+        },
+        orderBy: { createdAt: 'asc' },
+        take: 50,
+      }),
+      this.settings.getDeliveryPricing(),
+    ]);
+    return orders.map((order) => {
+      const dist = Number(order.distanceKm ?? 0);
+      const estimatedCourierFee = calculateDeliveryFee(
+        dist,
+        deliveryConfig.courierPricePerKm,
+        deliveryConfig.courierMinFee,
+      );
+      return {
       ...order,
       total: Number(order.total),
+      deliveryFee: Number(order.deliveryFee),
+      estimatedCourierFee,
       guestOrder: order.guestOrder
         ? {
             ...order.guestOrder,
@@ -518,7 +531,8 @@ export class CouriersService {
             longitude: Number(order.address.longitude),
           }
         : null,
-    }));
+    };
+    });
   }
 
   async getEarnings(userId: string) {

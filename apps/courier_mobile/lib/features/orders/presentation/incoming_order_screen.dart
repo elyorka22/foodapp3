@@ -9,9 +9,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_order_model.dart';
 import '../../../shared/widgets/food_app_button.dart';
-import '../../../shared/widgets/food_app_card.dart';
-import '../../../shared/widgets/info_row.dart';
-import '../../../shared/widgets/order_line_items_card.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
 
@@ -85,35 +82,40 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text(AppStrings.newOrder)),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          FoodAppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                InfoRow(label: AppStrings.orderId, value: order.orderNumber),
-                InfoRow(label: AppStrings.restaurant, value: order.restaurantName ?? '—'),
-                InfoRow(label: AppStrings.address, value: order.customerAddress ?? '—'),
-                if (order.distanceKm != null)
-                  InfoRow(label: AppStrings.distance, value: '${order.distanceKm} km'),
-                InfoRow(
-                  label: AppStrings.deliveryFee,
-                  value: formatSum(order.courierFee ?? order.deliveryFee),
-                ),
-                InfoRow(label: AppStrings.total, value: formatSum(order.total)),
-              ],
+      body: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Spacer(),
+            Text(
+              order.restaurantName ?? '—',
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          OrderLineItemsCard(items: order.items),
-          const SizedBox(height: AppSpacing.xl),
-          FoodAppButton(
-            label: AppStrings.accept,
-            isLoading: _acting,
-            onPressed: _accept,
-          ),
-        ],
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              AppStrings.initialDeliveryFee,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              formatSum(order.initialDeliveryFee),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: const Color(0xFFFF6B00),
+                    fontWeight: FontWeight.w700,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const Spacer(),
+            FoodAppButton(
+              label: AppStrings.accept,
+              isLoading: _acting,
+              onPressed: _accept,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -43,12 +43,16 @@ jobs:
           GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_COURIER_B64 }}
         run: |
           flutter create . --org com.foodapp --project-name courier_mobile --platforms=android --no-overwrite
-          chmod +x scripts/patch_android_permissions.sh scripts/setup_firebase_android.sh
+          chmod +x scripts/patch_android_permissions.sh scripts/patch_android_app_name.sh scripts/setup_firebase_android.sh
           ./scripts/patch_android_permissions.sh
+          ./scripts/patch_android_app_name.sh
           ./scripts/setup_firebase_android.sh
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Apply launcher icons
+        run: chmod +x scripts/apply_app_icons.sh && ./scripts/apply_app_icons.sh
 
       - name: Analyze
         run: flutter analyze
@@ -72,7 +76,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: foodapp-courier-apk
+          name: ikuryer-apk
           path: apps/courier_mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
@@ -80,7 +84,7 @@ jobs:
       - name: Upload App Bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: foodapp-courier-aab
+          name: ikuryer-aab
           path: apps/courier_mobile/build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 30

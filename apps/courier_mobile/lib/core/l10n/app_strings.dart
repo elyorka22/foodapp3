@@ -1,5 +1,5 @@
 abstract final class AppStrings {
-  static const appName = 'FoodApp Courier';
+  static const appName = 'iKuryer';
   static const login = 'Kirish';
   static const phone = 'Telefon';
   static const password = 'Parol';
@@ -32,6 +32,7 @@ abstract final class AppStrings {
   static const customer = 'Mijoz';
   static const distance = 'Masofa';
   static const deliveryFee = 'Yetkazish to\'lovi';
+  static const initialDeliveryFee = 'Boshlang\'ich summa';
   static const address = 'Manzil';
   static const openOrder = 'Buyurtmani ochish';
   static const newOrder = 'Yangi buyurtma';

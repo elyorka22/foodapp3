@@ -224,78 +224,38 @@ class _AvailableOrderTile extends StatelessWidget {
     return Material(
       color: AppColors.primarySoft,
       borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '#${order.orderNumber}',
-                      style: AppTypography.subtitle,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      order.restaurantName ?? '—',
-                      style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      order.customerAddress ?? '—',
-                      style: AppTypography.bodySmall,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (order.distanceKm != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '${order.distanceKm} km',
-                        style: AppTypography.caption,
-                      ),
-                    ],
-                  ],
-                ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              order.restaurantName ?? '—',
+              style: AppTypography.subtitle.copyWith(fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              AppStrings.initialDeliveryFee,
+              style: AppTypography.caption,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              formatSum(order.initialDeliveryFee),
+              style: AppTypography.subtitle.copyWith(
+                color: AppColors.primary,
+                fontSize: 22,
               ),
-              const SizedBox(width: AppSpacing.md),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    formatSum(order.courierFee ?? order.deliveryFee),
-                    style: AppTypography.subtitle.copyWith(color: AppColors.primary),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  if (isAccepting)
-                    const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        AppStrings.accept,
-                        style: AppTypography.caption.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FoodAppButton(
+              label: AppStrings.accept,
+              isLoading: isAccepting,
+              onPressed: isAccepting ? null : onTap,
+            ),
+          ],
         ),
       ),
     );

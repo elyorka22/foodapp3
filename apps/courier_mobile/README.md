@@ -1,4 +1,4 @@
-# FoodApp Courier Mobile
+# iKuryer Mobile
 
 Simple Flutter courier app for small-city delivery launch.
 

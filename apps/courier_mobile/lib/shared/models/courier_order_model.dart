@@ -41,6 +41,7 @@ class CourierOrderModel {
     this.restaurantLat,
     this.restaurantLng,
     this.courierFee,
+    this.estimatedCourierFee,
     this.assignmentAcceptedAt,
     this.items = const [],
   });
@@ -61,8 +62,13 @@ class CourierOrderModel {
   final double? restaurantLat;
   final double? restaurantLng;
   final num? courierFee;
+  final num? estimatedCourierFee;
   final DateTime? assignmentAcceptedAt;
   final List<CourierOrderLineItem> items;
+
+  /// Amount shown before accept: estimated courier payout from API or DB delivery fee.
+  num get initialDeliveryFee =>
+      estimatedCourierFee ?? courierFee ?? deliveryFee;
 
   factory CourierOrderModel.fromJson(Map<String, dynamic> json) {
     final restaurant = json['restaurant'] as Map<String, dynamic>?;
@@ -105,7 +111,8 @@ class CourierOrderModel {
       restaurantLng: parseDouble(json['restaurantLongitude']) ??
           parseDouble(restaurant?['longitude']) ??
           parseDouble(business?['longitude']),
-      courierFee: assignment?['courierFee'] as num? ?? json['deliveryFee'] as num?,
+      courierFee: assignment?['courierFee'] as num?,
+      estimatedCourierFee: json['estimatedCourierFee'] as num?,
       assignmentAcceptedAt: _parseDateTime(assignment?['acceptedAt']),
       items: items,
     );
