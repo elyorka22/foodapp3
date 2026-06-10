@@ -245,7 +245,7 @@ class _OrdersPanel extends StatelessWidget {
           ),
         ),
         if (!isOnline)
-          SliverFillRemaining(
+          const SliverFillRemaining(
             hasScrollBody: false,
             child: _EmptyOrdersMessage(
               message: AppStrings.goOnlineToSeeOrders,
@@ -300,7 +300,7 @@ class _OrdersPanel extends StatelessWidget {
                       AppSpacing.lg,
                       AppSpacing.sm,
                       AppSpacing.lg,
-                      AppSpacing.xxxl,
+                      AppSpacing.xxl,
                     ),
                     sliver: SliverList.separated(
                       itemCount: orders.length,
