@@ -56,7 +56,7 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
           title={uz.profileHelp}
           subtitle={uz.profileHelpHint}
           icon={HelpCircle}
-          href="/notifications"
+          href="/profile/help"
         />
         <ProfileBannerTile
           title={uz.changeLanguage}

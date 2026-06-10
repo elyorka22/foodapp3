@@ -11,6 +11,11 @@ class PublicSettings {
     this.socialInstagramUrl = '',
     this.socialTelegramUrl = '',
     this.socialYoutubeUrl = '',
+    this.helpTelegramUrl = '',
+    this.helpTelegramLabel = '',
+    this.partnershipTelegramUrl = '',
+    this.partnershipTelegramLabel = '',
+    this.partnershipPhone = '',
   });
 
   final String appName;
@@ -21,6 +26,11 @@ class PublicSettings {
   final String socialInstagramUrl;
   final String socialTelegramUrl;
   final String socialYoutubeUrl;
+  final String helpTelegramUrl;
+  final String helpTelegramLabel;
+  final String partnershipTelegramUrl;
+  final String partnershipTelegramLabel;
+  final String partnershipPhone;
 
   factory PublicSettings.fromJson(Map<String, dynamic> json) {
     return PublicSettings(
@@ -34,6 +44,11 @@ class PublicSettings {
       socialInstagramUrl: json['social_instagram_url'] as String? ?? '',
       socialTelegramUrl: json['social_telegram_url'] as String? ?? '',
       socialYoutubeUrl: json['social_youtube_url'] as String? ?? '',
+      helpTelegramUrl: json['help_telegram_url'] as String? ?? '',
+      helpTelegramLabel: json['help_telegram_label'] as String? ?? '',
+      partnershipTelegramUrl: json['partnership_telegram_url'] as String? ?? '',
+      partnershipTelegramLabel: json['partnership_telegram_label'] as String? ?? '',
+      partnershipPhone: json['partnership_phone'] as String? ?? '',
     );
   }
 }

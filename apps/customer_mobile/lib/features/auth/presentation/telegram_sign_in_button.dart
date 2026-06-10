@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/l10n/app_strings.dart';
-import '../../../shared/widgets/food_app_button.dart';
+import 'auth_social_button.dart';
 
 class TelegramSignInButton extends StatelessWidget {
   const TelegramSignInButton({
@@ -12,10 +12,10 @@ class TelegramSignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FoodAppButton(
+    return AuthSocialButton(
       label: AppStrings.telegramLogin,
-      variant: FoodAppButtonVariant.secondary,
       onPressed: onPressed,
+      leading: const TelegramBrandIcon(),
     );
   }
 }

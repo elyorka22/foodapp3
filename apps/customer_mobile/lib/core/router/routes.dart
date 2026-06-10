@@ -5,6 +5,8 @@ abstract final class AppRoutes {
   static const stores = '/stores';
   static const cart = '/cart';
   static const profile = '/profile';
+  static const profileHelp = '/profile/help';
+  static const profilePartnership = '/profile/partnership';
   static const checkout = '/checkout';
   static const completeProfile = '/complete-profile';
   static const orderTrack = '/track';

@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, FileText, Globe, Heart, HelpCircle, Package, Plus, Sparkles } from 'lucide-react';
+import { Bell, Briefcase, FileText, Globe, Heart, HelpCircle, Package, Plus, Sparkles } from 'lucide-react';
 import { ProfileBannerGrid } from '@/components/profile/profile-banner-grid';
 import { ProfileBannerTile } from '@/components/profile/profile-banner-tile';
 import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
@@ -57,9 +57,17 @@ export function ProfileAccountMenu() {
       <ProfileBannerTile
         title={uz.profileHelp}
         subtitle={uz.profileHelpSubtitle}
-        href="/notifications"
+        href="/profile/help"
         icon={HelpCircle}
       />
+      {loggedIn ? (
+        <ProfileBannerTile
+          title={uz.profilePartnership}
+          subtitle={uz.profilePartnershipHint}
+          href="/profile/partnership"
+          icon={Briefcase}
+        />
+      ) : null}
       <ProfileBannerTile
         title={uz.termsOfUse}
         subtitle={uz.profileTermsSubtitle}

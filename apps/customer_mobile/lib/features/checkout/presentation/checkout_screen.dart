@@ -13,6 +13,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/cart_item_model.dart';
 import '../../../shared/models/order_model.dart';
+import '../../../shared/widgets/checkout_promo_card.dart';
 import '../../../shared/widgets/customer_page.dart';
 import '../../../shared/widgets/delivery_location_field.dart';
 import '../../../shared/widgets/food_app_button.dart';
@@ -301,38 +302,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: CustomerTextField(
-                  controller: _promoCode,
-                  placeholder: AppStrings.promoCode,
-                  textCapitalization: TextCapitalization.characters,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              SizedBox(
-                width: 108,
-                child: FoodAppButton(
-                  label: _validatingPromo ? '...' : AppStrings.apply,
-                  variant: FoodAppButtonVariant.secondary,
-                  expanded: true,
-                  onPressed: _validatingPromo || businessId == null
-                      ? null
-                      : () => _applyPromo(businessId, total, user?.id),
-                ),
-              ),
-            ],
+          CheckoutPromoCard(
+            controller: _promoCode,
+            validating: _validatingPromo,
+            message: _promoMessage,
+            onApply: _validatingPromo || businessId == null
+                ? null
+                : () => _applyPromo(businessId, total, user?.id),
           ),
-          if (_promoMessage.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              _promoMessage,
-              style: AppTypography.bodySmall.copyWith(color: AppColors.primary),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           CustomerTextField(
             controller: _phone,
             placeholder: AppStrings.phonePlaceholder,

@@ -13,7 +13,7 @@ Triggers:
 - Push / PR to `main` or `master` when `apps/customer_mobile/**` changes
 - Manual: **Actions → Customer Mobile APK → Run workflow**
 
-Steps: checkout → validate env → Flutter stable → `flutter create` (Android) → `pub get` → `analyze` → `test` → `build apk --release` → upload artifact.
+Steps: checkout → validate env → Flutter stable → `flutter create` (Android) → `pub get` → `analyze` → `test` → `build apk --release` + `build appbundle --release` → upload artifacts.
 
 ---
 
@@ -73,13 +73,21 @@ flutter run \
 
 ---
 
-## 4. Download APK artifacts
+## 4. Download artifacts
 
 1. Open the repository on GitHub → **Actions**
 2. Select the latest **Customer Mobile APK** run
 3. Scroll to **Artifacts**
-4. Download **foodapp-customer-apk** (contains `app-release.apk`)
-5. Install on Android: enable “Install unknown apps”, transfer APK, open to install
+4. **Play Store:** download **foodapp-customer-aab** (`app-release.aab`) → upload in Google Play Console
+5. **Direct install / QA:** download **foodapp-customer-apk** (`app-release.apk`)
+
+### Play Store checklist
+
+- Upload **AAB** (not APK) to Google Play Console
+- `version` in `pubspec.yaml`: bump `+buildNumber` for each upload (e.g. `1.0.0+2`)
+- Add release keystore SHA-1 to Firebase (Google Sign-In) if using Google login
+- Fill admin settings: **Yordam (profil)** and **Hamkorlik (profil)** Telegram / phone
+- Deploy backend + frontend before publishing (new `/settings/public` fields)
 
 ---
 

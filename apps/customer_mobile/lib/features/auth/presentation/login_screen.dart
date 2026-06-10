@@ -5,11 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/food_app_button.dart';
-import '../../../shared/widgets/food_app_input.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
 import '../data/google_auth_service.dart';
 import '../providers/auth_provider.dart';
+import 'auth_social_layout.dart';
 import 'google_sign_in_button.dart';
 import 'telegram_sign_in_button.dart';
 
@@ -21,19 +21,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _phone = TextEditingController();
-  final _password = TextEditingController();
-  bool _loading = false;
   bool _googleLoading = false;
 
-  @override
-  void dispose() {
-    _phone.dispose();
-    _password.dispose();
-    super.dispose();
-  }
-
-  bool get _busy => _loading || _googleLoading;
+  bool get _busy => _googleLoading;
 
   Future<void> _submitGoogle() async {
     setState(() => _googleLoading = true);
@@ -67,64 +57,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _submit() async {
-    setState(() => _loading = true);
-    try {
-      await ref.read(authStateProvider.notifier).loginPhone(
-            _phone.text.trim(),
-            _password.text.isEmpty ? null : _password.text,
-          );
-      if (mounted) context.pop();
-    } on DioException catch (e) {
-      final err = e.error;
-      final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
   bool get _telegramEnabled => AppConfig.telegramBotUsername.trim().isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.login)),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          children: [
-            GoogleSignInButton(
-              isLoading: _googleLoading,
-              onPressed: _busy ? null : _submitGoogle,
-            ),
-            if (_telegramEnabled) ...[
-              const SizedBox(height: AppSpacing.md),
-              TelegramSignInButton(
-                onPressed: _busy ? null : () => context.push('/profile/telegram'),
-              ),
-            ],
-            const AuthOrDivider(),
-            FoodAppInput(
-              label: AppStrings.phone,
-              controller: _phone,
-              keyboardType: TextInputType.phone,
-              hint: AppStrings.phonePlaceholder,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            FoodAppInput(
-              label: AppStrings.password,
-              controller: _password,
-              obscureText: true,
-              hint: AppStrings.password,
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            FoodAppButton(
-              label: AppStrings.login,
-              isLoading: _loading,
-              onPressed: _busy ? null : _submit,
-            ),
-          ],
+    final actions = <Widget>[
+      GoogleSignInButton(
+        isLoading: _googleLoading,
+        onPressed: _busy ? null : _submitGoogle,
+      ),
+      if (_telegramEnabled)
+        TelegramSignInButton(
+          onPressed: _busy ? null : () => context.push('/profile/telegram'),
+        ),
+    ];
+
+    return AuthSocialLayout(
+      title: AppStrings.login,
+      subtitle: AppStrings.loginSocialSubtitle,
+      actions: actions,
+      footer: TextButton(
+        onPressed: () => context.pushReplacement('/profile/register'),
+        child: Text(
+          AppStrings.noAccountRegister,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

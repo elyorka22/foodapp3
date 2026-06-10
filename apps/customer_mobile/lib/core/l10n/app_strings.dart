@@ -43,6 +43,7 @@ abstract final class AppStrings {
   static const checkout = 'Buyurtma berish';
   static const checkoutTitle = 'Buyurtmani rasmiylashtirish';
   static const noAccountRequired = "Ro'yxatdan o'tish shart emas";
+  static const checkoutPromoLabel = '🎁 Promo kod';
   static const promoCode = 'Promo kod';
   static const apply = "Qo'llash";
   static const invalidPromo = "Promo kod noto'g'ri";
@@ -84,6 +85,12 @@ abstract final class AppStrings {
 
   static const login = 'Kirish';
   static const register = "Ro'yxatdan o'tish";
+  static const loginSocialSubtitle =
+      'Google yoki Telegram orqali tez va xavfsiz kiring';
+  static const registerSocialSubtitle =
+      "Bir necha soniyada hisob oching — telefon va parol hozircha shart emas";
+  static const noAccountRegister = "Hisobingiz yo'qmi? Ro'yxatdan o'ting";
+  static const haveAccountLogin = 'Akkauntingiz bormi? Kirish';
   static const logout = 'Chiqish';
   static const guestBrowse = 'Mehmon sifatida davom etish';
   static const phone = 'Telefon';
@@ -101,6 +108,11 @@ abstract final class AppStrings {
   static const language = 'Til';
   static const help = 'Yordam';
   static const partnership = 'Hamkorlik';
+  static const contactViaTelegram = "Telegram orqali bog'laning";
+  static const contactViaPhone = "Telefon orqali bog'laning";
+  static const openTelegram = 'Telegramga yozish';
+  static const contactNotConfigured =
+      "Hozircha bog'lanish ma'lumotlari sozlanmagan.";
   static const instagram = 'Instagram';
   static const telegram = 'Telegram';
   static const youtube = 'YouTube';

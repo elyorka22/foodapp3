@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/public_settings_provider.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
@@ -85,15 +85,16 @@ class ProfileScreen extends ConsumerWidget {
                       _GuestBannerGrid(
                         onLogin: () => context.push('/profile/login'),
                         onRegister: () => context.push('/profile/register'),
-                        onHelp: () {},
+                        onHelp: () => context.push(AppRoutes.profileHelp),
                       )
                     else
                       _LoggedInBannerGrid(
                         unread: unread,
                         onNotifications: () =>
                             context.push(AppRoutes.notifications),
-                        onHelp: () {},
-                        onPartnership: () => _openPartnershipEmail(context),
+                        onHelp: () => context.push(AppRoutes.profileHelp),
+                        onPartnership: () =>
+                            context.push(AppRoutes.profilePartnership),
                       ),
                     ProfileSocialSection(links: socialLinks),
                     if (user != null) ...[
@@ -110,14 +111,16 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                     ],
-                    const SizedBox(height: AppSpacing.sm),
-                    TextButton(
-                      onPressed: () => context.push(AppRoutes.networkHealth),
-                      child: Text(
-                        'Tarmoq diagnostikasi',
-                        style: AppTypography.caption,
+                    if (kDebugMode) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      TextButton(
+                        onPressed: () => context.push(AppRoutes.networkHealth),
+                        child: Text(
+                          'Tarmoq diagnostikasi',
+                          style: AppTypography.caption,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -132,16 +135,6 @@ class ProfileScreen extends ConsumerWidget {
           },
         ),
       ),
-    );
-  }
-}
-
-Future<void> _openPartnershipEmail(BuildContext context) async {
-  final uri = Uri(scheme: 'mailto', path: 'partners@foodapp.uz');
-  if (!await launchUrl(uri)) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('partners@foodapp.uz')),
     );
   }
 }

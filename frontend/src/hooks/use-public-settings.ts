@@ -12,6 +12,11 @@ export type PublicSettings = {
   social_instagram_url: string;
   social_telegram_url: string;
   social_youtube_url: string;
+  help_telegram_url: string;
+  help_telegram_label: string;
+  partnership_telegram_url: string;
+  partnership_telegram_label: string;
+  partnership_phone: string;
 };
 
 export function usePublicSettings() {

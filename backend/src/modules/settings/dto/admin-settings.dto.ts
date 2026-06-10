@@ -37,6 +37,21 @@ export class AdminSettingsDto {
   @IsString()
   support_telegram?: string;
 
+  @ApiPropertyOptional({ description: 'Help page Telegram link (@user or https://t.me/...)' })
+  @IsOptional()
+  @IsString()
+  help_telegram_url?: string;
+
+  @ApiPropertyOptional({ description: 'Partnership page Telegram link' })
+  @IsOptional()
+  @IsString()
+  partnership_telegram_url?: string;
+
+  @ApiPropertyOptional({ description: 'Partnership page phone number' })
+  @IsOptional()
+  @IsString()
+  partnership_phone?: string;
+
   @ApiPropertyOptional({ description: 'Instagram profile URL for customer app profile' })
   @IsOptional()
   @IsString()

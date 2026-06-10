@@ -3,6 +3,8 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import 'customer_page.dart';
+import 'food_app_button.dart';
 
 /// GPS button to calculate delivery fee (no manual address field on checkout).
 class DeliveryLocationField extends StatelessWidget {
@@ -19,65 +21,31 @@ class DeliveryLocationField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
+    final label = busy
+        ? AppStrings.deliveryCalculating
+        : quoted
+            ? AppStrings.recalculateDeliveryPrice
+            : AppStrings.calculateDeliveryPrice;
+
+    return CustomerCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(AppStrings.deliveryLabel, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            AppStrings.deliveryLabel,
+            style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 4),
           Text(
             AppStrings.deliveryPriceHint,
             style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
           ),
           const SizedBox(height: AppSpacing.md),
-          Material(
-            color: quoted ? const Color(0xFFF0FDF4) : AppColors.primarySoft,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              onTap: busy ? null : onCalculate,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: quoted
-                        ? const Color(0xFFBBF7D0)
-                        : AppColors.primary.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 18,
-                      color: quoted ? AppColors.success : AppColors.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      busy
-                          ? AppStrings.deliveryCalculating
-                          : quoted
-                              ? AppStrings.recalculateDeliveryPrice
-                              : AppStrings.calculateDeliveryPrice,
-                      style: AppTypography.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: quoted
-                            ? const Color(0xFF166534)
-                            : AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          FoodAppButton(
+            label: label,
+            variant: quoted ? FoodAppButtonVariant.secondary : FoodAppButtonVariant.primary,
+            isLoading: busy,
+            onPressed: busy ? null : onCalculate,
           ),
         ],
       ),

@@ -26,11 +26,14 @@ Dio createDioClient(TokenStorage storage) {
   );
 
   dio.interceptors.addAll([
-    UrlLogInterceptor(),
     AuthInterceptor(storage),
     RetryInterceptor(dio),
     ErrorInterceptor(),
   ]);
+
+  if (kDebugMode) {
+    dio.interceptors.insert(0, UrlLogInterceptor());
+  }
 
   if (kDebugMode) {
     dio.interceptors.add(

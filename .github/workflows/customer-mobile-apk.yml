@@ -79,7 +79,7 @@ jobs:
       - name: Test
         run: flutter test
 
-      - name: Build release APK
+      - name: Build release APK and App Bundle (Play Store)
         run: |
           DART_DEFINES=(
             "--dart-define=API_BASE_URL=${API_BASE_URL}"
@@ -91,6 +91,7 @@ jobs:
             DART_DEFINES+=("--dart-define=TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}")
           fi
           flutter build apk --release "${DART_DEFINES[@]}"
+          flutter build appbundle --release "${DART_DEFINES[@]}"
 
       - name: Print signed APK fingerprints
         run: chmod +x scripts/print_android_signing_sha1.sh && ./scripts/print_android_signing_sha1.sh build/app/outputs/flutter-apk/app-release.apk
@@ -102,3 +103,11 @@ jobs:
           path: apps/customer_mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload App Bundle artifact (Play Store)
+        uses: actions/upload-artifact@v4
+        with:
+          name: foodapp-customer-aab
+          path: apps/customer_mobile/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30

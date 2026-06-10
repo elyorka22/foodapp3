@@ -92,6 +92,9 @@ function AdminSettingsContent() {
       home_restaurants_banner_title: form.home_restaurants_banner_title?.trim() || 'Barcha restoranlar',
       support_phone: form.support_phone,
       support_telegram: form.support_telegram,
+      help_telegram_url: form.help_telegram_url?.trim() ?? '',
+      partnership_telegram_url: form.partnership_telegram_url?.trim() ?? '',
+      partnership_phone: form.partnership_phone?.trim() ?? '',
       social_instagram_url: form.social_instagram_url?.trim() ?? '',
       social_telegram_url: form.social_telegram_url?.trim() ?? '',
       social_youtube_url: form.social_youtube_url?.trim() ?? '',
@@ -247,6 +250,31 @@ function AdminSettingsContent() {
         />
       </SettingsSection>
 
+      <SettingsSection title="Yordam (profil)">
+        <Input
+          placeholder="Telegram (@support yoki https://t.me/...)"
+          value={form.help_telegram_url ?? ''}
+          onChange={(e) => setForm({ ...form, help_telegram_url: e.target.value })}
+        />
+        <p className="sm:col-span-2 text-xs text-zinc-500">
+          Mijoz ilovasida «Yordam» sahifasida ko&apos;rinadi. Bo&apos;sh qoldirilsa, quyidagi
+          Support Telegram ishlatiladi.
+        </p>
+      </SettingsSection>
+
+      <SettingsSection title="Hamkorlik (profil)">
+        <Input
+          placeholder="Telegram (@partners yoki https://t.me/...)"
+          value={form.partnership_telegram_url ?? ''}
+          onChange={(e) => setForm({ ...form, partnership_telegram_url: e.target.value })}
+        />
+        <Input
+          placeholder="Telefon (+998901234567)"
+          value={form.partnership_phone ?? ''}
+          onChange={(e) => setForm({ ...form, partnership_phone: e.target.value })}
+        />
+      </SettingsSection>
+
       <SettingsSection title="Support">
         <Input
           placeholder="Support phone"
@@ -254,7 +282,7 @@ function AdminSettingsContent() {
           onChange={(e) => setForm({ ...form, support_phone: e.target.value })}
         />
         <Input
-          placeholder="Support Telegram"
+          placeholder="Support Telegram (zaxira)"
           value={form.support_telegram}
           onChange={(e) => setForm({ ...form, support_telegram: e.target.value })}
         />

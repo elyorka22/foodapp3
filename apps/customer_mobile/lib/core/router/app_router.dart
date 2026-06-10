@@ -12,6 +12,7 @@ import '../../features/debug/presentation/network_health_screen.dart';
 import '../../features/orders/presentation/order_tracking_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/promotions/presentation/promotions_screen.dart';
+import '../../features/profile/presentation/profile_contact_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/restaurants/presentation/all_restaurants_screen.dart';
 import '../../features/restaurants/presentation/category_products_screen.dart';
@@ -31,6 +32,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       final onComplete = state.matchedLocation == AppRoutes.completeProfile;
       if (needsPhone && !onComplete) {
         return AppRoutes.completeProfile;
+      }
+      if (state.matchedLocation == AppRoutes.profilePartnership) {
+        final user = ref.read(authStateProvider).valueOrNull;
+        if (user == null) {
+          return AppRoutes.profile;
+        }
       }
       return null;
     },
@@ -132,6 +139,18 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'telegram',
                     builder: (_, __) => const TelegramLoginScreen(),
+                  ),
+                  GoRoute(
+                    path: 'help',
+                    builder: (_, __) => const ProfileContactScreen(
+                      kind: ProfileContactKind.help,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'partnership',
+                    builder: (_, __) => const ProfileContactScreen(
+                      kind: ProfileContactKind.partnership,
+                    ),
                   ),
                 ],
               ),

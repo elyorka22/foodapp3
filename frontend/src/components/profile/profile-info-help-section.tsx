@@ -33,13 +33,13 @@ export function ProfileInfoHelpSection() {
           icon={HelpCircle}
           label={uz.profileHelp}
           hint={uz.profileHelpHint}
-          href="/notifications"
+          href="/profile/help"
         />
         <ProfileMenuRow
           icon={Briefcase}
           label={uz.profilePartnership}
           hint={uz.profilePartnershipHint}
-          href="mailto:partners@foodapp.uz"
+          href="/profile/partnership"
         />
         <ProfileMenuRow icon={FileText} label={uz.termsOfUse} href="#" />
         <ProfileMenuRow

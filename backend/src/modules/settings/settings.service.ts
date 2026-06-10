@@ -7,6 +7,10 @@ import {
   type ImageFramingDefaults,
   pickImageFramingDefaults,
 } from '../../common/utils/image-framing.util';
+import {
+  normalizeTelegramUrl,
+  telegramDisplayLabel,
+} from '../../common/utils/telegram-url.util';
 
 export interface DeliveryPricing {
   baseDeliveryFee: number;
@@ -29,6 +33,9 @@ export interface AdminSettings extends ImageFramingDefaults {
   home_restaurants_banner_title: string;
   support_phone: string;
   support_telegram: string;
+  help_telegram_url: string;
+  partnership_telegram_url: string;
+  partnership_phone: string;
   social_instagram_url: string;
   social_telegram_url: string;
   social_youtube_url: string;
@@ -54,6 +61,11 @@ export interface PublicSettings {
   social_instagram_url: string;
   social_telegram_url: string;
   social_youtube_url: string;
+  help_telegram_url: string;
+  help_telegram_label: string;
+  partnership_telegram_url: string;
+  partnership_telegram_label: string;
+  partnership_phone: string;
 }
 
 const DEFAULT_PRICING: DeliveryPricing = {
@@ -73,6 +85,9 @@ const DEFAULT_ADMIN: AdminSettings = {
   home_restaurants_banner_title: 'Barcha restoranlar',
   support_phone: '+998901234567',
   support_telegram: '@support',
+  help_telegram_url: '',
+  partnership_telegram_url: '',
+  partnership_phone: '',
   social_instagram_url: '',
   social_telegram_url: '',
   social_youtube_url: '',
@@ -137,6 +152,13 @@ export class SettingsService {
       social_instagram_url: admin.social_instagram_url ?? '',
       social_telegram_url: admin.social_telegram_url ?? '',
       social_youtube_url: admin.social_youtube_url ?? '',
+      help_telegram_url: this.resolveHelpTelegramUrl(admin),
+      help_telegram_label: telegramDisplayLabel(
+        admin.help_telegram_url?.trim() || admin.support_telegram,
+      ),
+      partnership_telegram_url: normalizeTelegramUrl(admin.partnership_telegram_url),
+      partnership_telegram_label: telegramDisplayLabel(admin.partnership_telegram_url),
+      partnership_phone: admin.partnership_phone?.trim() ?? '',
     };
   }
 
@@ -203,6 +225,11 @@ export class SettingsService {
     });
 
     return this.getAdminSettings();
+  }
+
+  private resolveHelpTelegramUrl(admin: AdminSettings): string {
+    const raw = admin.help_telegram_url?.trim() || admin.support_telegram?.trim();
+    return normalizeTelegramUrl(raw);
   }
 
   async getCommissionDefault(): Promise<number> {
