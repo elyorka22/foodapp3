@@ -13,6 +13,7 @@ import '../../features/orders/presentation/order_tracking_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/promotions/presentation/promotions_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/restaurants/presentation/all_restaurants_screen.dart';
 import '../../features/restaurants/presentation/category_products_screen.dart';
 import '../../features/restaurants/presentation/restaurant_detail_screen.dart';
 import '../../features/restaurants/presentation/restaurants_screen.dart';
@@ -92,6 +93,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.restaurants,
                 builder: (_, __) => const RestaurantsScreen(),
                 routes: [
+                  GoRoute(
+                    path: 'all',
+                    builder: (_, __) => const AllRestaurantsScreen(),
+                  ),
                   GoRoute(
                     path: ':slug',
                     builder: (_, state) => RestaurantDetailScreen(

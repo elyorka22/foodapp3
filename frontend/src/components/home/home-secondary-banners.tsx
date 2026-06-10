@@ -1,6 +1,13 @@
 'use client';
 
-import { type CSSProperties, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { categoryImageStyle } from '@/lib/category-image-style';
@@ -66,15 +73,76 @@ function DishCategorySlide({ category }: { category: DishCategory }) {
           </div>
         }
       />
-      <p className="mt-1.5 truncate text-center text-xs font-medium text-zinc-800">
-        {category.name}
-      </p>
     </Link>
   );
 }
 
+const AUTO_SCROLL_MS = 5000;
+const MANUAL_PAUSE_MS = 10000;
+
 function DishCategoriesBanner({ categories }: { categories: DishCategory[] }) {
   const slides = categories.filter((c) => c.isActive !== false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const pauseUntilRef = useRef(0);
+  const programmaticScrollRef = useRef(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const readIndex = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || el.clientWidth <= 0) return 0;
+    return Math.min(
+      slides.length - 1,
+      Math.max(0, Math.round(el.scrollLeft / el.clientWidth)),
+    );
+  }, [slides.length]);
+
+  const scrollToIndex = useCallback(
+    (index: number, smooth = true) => {
+      const el = scrollRef.current;
+      if (!el) return;
+      programmaticScrollRef.current = true;
+      el.scrollTo({
+        left: el.clientWidth * index,
+        behavior: smooth ? 'smooth' : 'instant',
+      });
+      setActiveIndex(index);
+      window.setTimeout(() => {
+        programmaticScrollRef.current = false;
+      }, smooth ? 600 : 0);
+    },
+    [],
+  );
+
+  const pauseAuto = useCallback(() => {
+    pauseUntilRef.current = Date.now() + MANUAL_PAUSE_MS;
+  }, []);
+
+  const advance = useCallback(() => {
+    if (slides.length <= 1) return;
+    if (Date.now() < pauseUntilRef.current) return;
+    const current = readIndex();
+    scrollToIndex((current + 1) % slides.length);
+  }, [readIndex, scrollToIndex, slides.length]);
+
+  useEffect(() => {
+    setActiveIndex(0);
+    const el = scrollRef.current;
+    if (el) el.scrollLeft = 0;
+  }, [slides.length, slides[0]?.id]);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const timer = window.setInterval(advance, AUTO_SCROLL_MS);
+    return () => window.clearInterval(timer);
+  }, [advance, slides.length]);
+
+  const handleScroll = useCallback(() => {
+    const index = readIndex();
+    setActiveIndex(index);
+    if (!programmaticScrollRef.current) {
+      pauseAuto();
+    }
+  }, [pauseAuto, readIndex]);
 
   if (!slides.length) {
     return (
@@ -90,18 +158,34 @@ function DishCategoriesBanner({ categories }: { categories: DishCategory[] }) {
   }
 
   if (slides.length === 1) {
-    return <DishCategorySlide category={slides[0]} />;
+    return (
+      <div>
+        <DishCategorySlide category={slides[0]} />
+        <p className="mt-1.5 truncate text-center text-xs font-medium text-zinc-800">
+          {slides[0].name}
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div
-      className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
-      style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
-      aria-label={uz.dishCategories}
-    >
-      {slides.map((category) => (
-        <DishCategorySlide key={category.id} category={category} />
-      ))}
+    <div>
+      <div
+        ref={scrollRef}
+        className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+        aria-label={uz.dishCategories}
+        onScroll={handleScroll}
+        onTouchStart={pauseAuto}
+        onPointerDown={pauseAuto}
+      >
+        {slides.map((category) => (
+          <DishCategorySlide key={category.id} category={category} />
+        ))}
+      </div>
+      <p className="mt-1.5 truncate text-center text-xs font-medium text-zinc-800">
+        {slides[activeIndex]?.name}
+      </p>
     </div>
   );
 }

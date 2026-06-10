@@ -57,6 +57,16 @@ class CategoryProductsScreen extends ConsumerWidget {
                             Text(p.name, maxLines: 2, style: AppTypography.bodySmall),
                             if (p.restaurantName != null)
                               Text(p.restaurantName!, style: AppTypography.bodySmall.copyWith(fontSize: 11)),
+                            if (p.description != null && p.description!.trim().isNotEmpty)
+                              Text(
+                                p.description!,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.bodySmall.copyWith(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
                             Text('${p.price} UZS', style: AppTypography.subtitle.copyWith(fontSize: 13)),
                           ],
                         ),

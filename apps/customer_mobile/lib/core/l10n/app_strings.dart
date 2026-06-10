@@ -29,6 +29,8 @@ abstract final class AppStrings {
   static const searchRestaurants = 'Restoran qidirish';
   static const searchStores = "Do'kon qidirish";
   static const categories = 'Kategoriyalar';
+  static const dishCategories = 'Taom kategoriyalari';
+  static const allRestaurants = 'Barcha restoranlar';
   static const popular = 'Mashhur';
   static const seeAll = 'Barchasi';
 

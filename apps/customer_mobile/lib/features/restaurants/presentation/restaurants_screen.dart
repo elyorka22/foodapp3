@@ -9,7 +9,9 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/food_app_restaurant_card.dart';
 import '../../../shared/widgets/home_banner_grid.dart';
 import '../../../shared/widgets/home_headline.dart';
+import '../../../shared/widgets/home_secondary_banners.dart';
 import '../../stores/providers/stores_provider.dart';
+import '../providers/dish_categories_provider.dart';
 import '../providers/restaurants_provider.dart';
 
 class RestaurantsScreen extends ConsumerWidget {
@@ -66,6 +68,8 @@ class RestaurantsScreen extends ConsumerWidget {
                   error: (_, __) => const SizedBox.shrink(),
                 ),
               ),
+              const SizedBox(height: AppSpacing.md),
+              const HomeSecondaryBanners(),
               const SizedBox(height: AppSpacing.lg),
               Text(AppStrings.popular, style: AppTypography.subtitle),
               const SizedBox(height: AppSpacing.md),

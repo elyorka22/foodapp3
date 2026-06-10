@@ -1,6 +1,7 @@
 abstract final class AppRoutes {
   static const splash = '/';
   static const restaurants = '/restaurants';
+  static const allRestaurants = '/restaurants/all';
   static const stores = '/stores';
   static const cart = '/cart';
   static const profile = '/profile';
