@@ -35,5 +35,14 @@ export function useStaffOrders(status?: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
   });
 
-  return { ...query, orders, updateStatus };
+  const requestCourier = useMutation({
+    mutationFn: (id: string) =>
+      api(`/orders/${id}/request-courier`, {
+        method: 'POST',
+        token: token ?? undefined,
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
+  });
+
+  return { ...query, orders, updateStatus, requestCourier };
 }

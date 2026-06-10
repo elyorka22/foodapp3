@@ -290,6 +290,62 @@ export class NotificationService {
     });
   }
 
+  async notifyOnlineCouriersPoolOrder(order: { id: string; orderNumber: string }) {
+    const couriers = await this.prisma.courier.findMany({
+      where: {
+        isOnline: true,
+        deletedAt: null,
+        user: { isActive: true, deletedAt: null },
+      },
+      select: { userId: true },
+    });
+    if (!couriers.length) return;
+
+    const metadata = {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+    };
+    await this.sendToMany(
+      couriers.map((c) => ({
+        userId: c.userId,
+        accountType: NotificationAccountType.STAFF,
+        userRole: UserRole.COURIER,
+      })),
+      'NEW_ORDER',
+      metadata,
+    );
+  }
+
+  async notifyManagersCourierRequested(order: {
+    id: string;
+    orderNumber: string;
+    businessName?: string;
+  }) {
+    const managers = await this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        isActive: true,
+        role: { in: ['SUPER_ADMIN', 'MANAGER'] },
+      },
+      select: { id: true },
+    });
+    const metadata = {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      businessName: order.businessName,
+    };
+    await this.sendToMany(
+      managers.map((m) => ({
+        userId: m.id,
+        accountType: NotificationAccountType.STAFF,
+      })),
+      'NEW_ORDER',
+      metadata,
+      'Kuryer kerak',
+      `Buyurtma ${order.orderNumber}: restoran kuryerni chaqirdi`,
+    );
+  }
+
   async notifyManagersCourierDeclined(params: {
     orderId: string;
     orderNumber: string;

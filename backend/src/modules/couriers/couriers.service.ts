@@ -12,6 +12,7 @@ import { AuditService } from '../audit/audit.service';
 import { AdminNotificationsService } from '../admin-notifications/admin-notifications.service';
 import { NotificationService } from '../notifications/notifications.service';
 import { OrdersGateway } from '../orders/orders.gateway';
+import { SettingsService } from '../settings/settings.service';
 import { AdminCouriersQueryDto } from './dto/admin-couriers-query.dto';
 import { CreateCourierDto } from './dto/create-courier.dto';
 import { UpdateCourierDto } from './dto/update-courier.dto';
@@ -35,6 +36,7 @@ export class CouriersService {
     private adminNotifications: AdminNotificationsService,
     private notifications: NotificationService,
     private gateway: OrdersGateway,
+    private settings: SettingsService,
   ) {}
 
   async findAllAdmin(query: AdminCouriersQueryDto) {
@@ -477,10 +479,16 @@ export class CouriersService {
   }
 
   async getAvailableOrders() {
+    const mode = await this.settings.getCourierDispatchMode();
+    if (mode !== 'auto') {
+      return [];
+    }
+
     const orders = await this.prisma.order.findMany({
       where: {
-        status: { in: [OrderStatus.PREPARING, OrderStatus.COURIER_ASSIGNED] },
+        status: OrderStatus.PREPARING,
         courierId: null,
+        courierRequestedAt: { not: null },
         deletedAt: null,
       },
       include: {
@@ -528,6 +536,30 @@ export class CouriersService {
       assignmentEarnings: Number(assignments._sum.courierFee ?? 0),
       totalDeliveries: courier.totalDeliveries,
       completedAssignments: assignments._count,
+    };
+  }
+
+  async getShiftStats(userId: string) {
+    const courier = await this.prisma.courier.findFirst({ where: { userId } });
+    if (!courier) return null;
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const today = await this.prisma.courierAssignment.aggregate({
+      where: {
+        courierId: courier.id,
+        deliveredAt: { gte: startOfDay },
+      },
+      _sum: { courierFee: true },
+      _count: true,
+    });
+
+    return {
+      todayDeliveries: today._count,
+      todayEarnings: Number(today._sum.courierFee ?? 0),
+      totalDeliveries: courier.totalDeliveries,
+      totalEarnings: Number(courier.totalEarnings),
     };
   }
 }

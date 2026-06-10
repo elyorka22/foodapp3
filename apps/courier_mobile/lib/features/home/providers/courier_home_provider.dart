@@ -6,6 +6,7 @@ import '../../notifications/data/notifications_repository.dart';
 import '../../orders/data/courier_repository.dart';
 import '../../../core/location/courier_location_service.dart';
 import '../../../shared/models/courier_earnings_model.dart';
+import '../../../shared/models/courier_shift_stats_model.dart';
 import '../../../shared/models/courier_model.dart';
 import '../../../shared/models/courier_order_model.dart';
 
@@ -20,6 +21,23 @@ final courierEarningsProvider =
     FutureProvider.autoDispose<CourierEarningsModel>((ref) async {
   ref.watch(authStateProvider);
   return ref.read(courierRepositoryProvider).fetchEarnings();
+});
+
+final shiftStatsProvider = StreamProvider.autoDispose<CourierShiftStatsModel>((ref) async* {
+  ref.watch(authStateProvider);
+  while (true) {
+    try {
+      yield await ref.read(courierRepositoryProvider).fetchShiftStats();
+    } catch (_) {
+      yield const CourierShiftStatsModel(
+        todayDeliveries: 0,
+        todayEarnings: 0,
+        totalDeliveries: 0,
+        totalEarnings: 0,
+      );
+    }
+    await Future<void>.delayed(_pollInterval);
+  }
 });
 
 final notificationsUnreadProvider = FutureProvider.autoDispose<int>((ref) async {

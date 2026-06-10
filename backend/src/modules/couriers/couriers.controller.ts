@@ -76,6 +76,12 @@ export class CouriersController {
     return this.couriers.getEarnings(user.sub);
   }
 
+  @Get('me/shift-stats')
+  @Roles(UserRole.COURIER)
+  shiftStats(@CurrentUser() user: JwtPayload) {
+    return this.couriers.getShiftStats(user.sub);
+  }
+
   @Patch('me/online')
   @Roles(UserRole.COURIER)
   setOnline(@CurrentUser() user: JwtPayload, @Body() body: { isOnline: boolean }) {

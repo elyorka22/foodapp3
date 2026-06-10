@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_paths.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../shared/models/courier_earnings_model.dart';
+import '../../../shared/models/courier_shift_stats_model.dart';
 import '../../../shared/models/courier_model.dart';
 import '../../../shared/models/courier_order_model.dart';
 
@@ -23,6 +24,11 @@ class CourierRepository {
   Future<CourierEarningsModel> fetchEarnings() async {
     final res = await _dio.get<Map<String, dynamic>>(ApiPaths.courierEarnings);
     return CourierEarningsModel.fromJson(res.data ?? {});
+  }
+
+  Future<CourierShiftStatsModel> fetchShiftStats() async {
+    final res = await _dio.get<Map<String, dynamic>>(ApiPaths.courierShiftStats);
+    return CourierShiftStatsModel.fromJson(res.data ?? {});
   }
 
   Future<void> setOnline(bool isOnline) async {

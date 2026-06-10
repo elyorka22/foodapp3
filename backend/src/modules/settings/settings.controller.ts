@@ -38,4 +38,10 @@ export class SettingsController {
   setDeliveryPricing(@Body() body: DeliveryPricing) {
     return this.settings.setDeliveryPricing(body);
   }
+
+  @Get('courier-dispatch')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  getCourierDispatch() {
+    return this.settings.getCourierDispatchMode().then((mode) => ({ mode }));
+  }
 }

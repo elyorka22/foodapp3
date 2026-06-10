@@ -98,6 +98,7 @@ function AdminSettingsContent() {
       social_instagram_url: form.social_instagram_url?.trim() ?? '',
       social_telegram_url: form.social_telegram_url?.trim() ?? '',
       social_youtube_url: form.social_youtube_url?.trim() ?? '',
+      courier_dispatch_mode: form.courier_dispatch_mode ?? 'manager',
       min_order_amount: parseNumberInput(minOrderAmount),
       free_delivery_threshold: parseNumberInput(freeDeliveryThreshold),
     };
@@ -248,6 +249,30 @@ function AdminSettingsContent() {
           value={freeDeliveryThreshold}
           onChange={setFreeDeliveryThreshold}
         />
+      </SettingsSection>
+
+      <SettingsSection title="Kuryer boshqaruvi">
+        <div className="sm:col-span-2 flex flex-wrap gap-3">
+          <Button
+            type="button"
+            variant={form.courier_dispatch_mode === 'auto' ? 'primary' : 'secondary'}
+            onClick={() => setForm({ ...form, courier_dispatch_mode: 'auto' })}
+          >
+            Avtoto&apos;ldirish
+          </Button>
+          <Button
+            type="button"
+            variant={form.courier_dispatch_mode === 'manager' ? 'primary' : 'secondary'}
+            onClick={() => setForm({ ...form, courier_dispatch_mode: 'manager' })}
+          >
+            Menejerga boshqarish
+          </Button>
+        </div>
+        <p className="sm:col-span-2 text-xs text-zinc-500">
+          <strong>Avtoto&apos;ldirish:</strong> restoran «Kuryerni chaqirish» bosganda buyurtma
+          onlayn kuryerlarga chiqadi. <strong>Menejerga boshqarish:</strong> menejer qo&apos;lda
+          kuryer biriktiradi.
+        </p>
       </SettingsSection>
 
       <SettingsSection title="Yordam (profil)">

@@ -201,7 +201,14 @@ export function AdminOrdersView({
                   <td className="p-3">{o.restaurant?.name}</td>
                   <td className="p-3">{o.guestOrder?.phone}</td>
                   <td className="p-3">
-                    <StatusBadge status={o.status} />
+                    <div className="flex flex-col gap-1">
+                      <StatusBadge status={o.status} />
+                      {o.status === 'PREPARING' && o.courierRequestedAt && !o.courier?.id && (
+                        <span className="text-xs font-medium text-amber-600">
+                          Kuryer kutilmoqda
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-3">{Number(o.total).toLocaleString()} UZS</td>
                   <td className="p-3 text-xs text-zinc-500">

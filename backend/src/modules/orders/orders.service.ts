@@ -35,7 +35,7 @@ import { ORDER_STATUS_TO_CUSTOMER_TEMPLATE } from '../notifications/constants/or
 const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
   ACCEPTED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
-  PREPARING: [OrderStatus.COURIER_ASSIGNED, OrderStatus.CANCELLED],
+  PREPARING: [OrderStatus.CANCELLED],
   COURIER_ASSIGNED: [OrderStatus.ARRIVED_AT_RESTAURANT, OrderStatus.CANCELLED],
   ARRIVED_AT_RESTAURANT: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
   PICKED_UP: [OrderStatus.DELIVERING],
@@ -816,9 +816,64 @@ export class OrdersService {
     return payload;
   }
 
+  async requestCourier(orderId: string, user: JwtPayload) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, deletedAt: null },
+      include: {
+        business: { select: { name: true } },
+        guestOrder: true,
+      },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+
+    if (user.role === UserRole.BUSINESS && userBusinessId(user) !== order.businessId) {
+      throw new ForbiddenException();
+    }
+
+    if (order.status !== OrderStatus.PREPARING) {
+      throw new BadRequestException('Courier can only be requested while order is PREPARING');
+    }
+    if (order.courierId) {
+      throw new BadRequestException('Order already has a courier');
+    }
+    if (order.courierRequestedAt) {
+      return this.emitOrderPayload(orderId);
+    }
+
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: { courierRequestedAt: new Date() },
+    });
+
+    await this.recordStatusChange(
+      orderId,
+      OrderStatus.PREPARING,
+      user.sub,
+      'Restaurant requested courier',
+    );
+
+    const mode = await this.settings.getCourierDispatchMode();
+    if (mode === 'auto') {
+      await this.notifications.notifyOnlineCouriersPoolOrder({
+        id: order.id,
+        orderNumber: order.orderNumber,
+      });
+    } else {
+      await this.notifications.notifyManagersCourierRequested({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        businessName: order.business?.name,
+      });
+    }
+
+    return this.emitOrderPayload(orderId);
+  }
+
   async acceptOrderAsCourier(orderId: string, userId: string) {
     const courier = await this.prisma.courier.findFirst({ where: { userId } });
     if (!courier) throw new ForbiddenException();
+
+    const dispatchMode = await this.settings.getCourierDispatchMode();
 
     const order = await this.prisma.order.findFirst({
       where: {
@@ -830,6 +885,15 @@ export class OrdersService {
       include: { guestOrder: true },
     });
     if (!order) throw new NotFoundException('Order not available');
+
+    if (!order.courierId) {
+      if (dispatchMode !== 'auto') {
+        throw new BadRequestException('Courier pool is disabled — wait for manager assignment');
+      }
+      if (!order.courierRequestedAt) {
+        throw new BadRequestException('Restaurant has not requested a courier yet');
+      }
+    }
 
     if (order.courierId === courier.id) {
       await this.prisma.courierAssignment.update({
@@ -951,6 +1015,7 @@ export class OrdersService {
         ? Number(order.customerLongitude)
         : null,
       createdAt: order.createdAt,
+      courierRequestedAt: order.courierRequestedAt ?? null,
       deliveredAt: order.deliveredAt,
       items: Array.isArray(order.items)
         ? (order.items as Record<string, unknown>[]).map((item) => ({

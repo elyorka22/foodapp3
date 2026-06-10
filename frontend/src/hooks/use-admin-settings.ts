@@ -23,6 +23,7 @@ export type AdminSettings = {
   free_delivery_threshold: number;
   default_delivery_fee: number;
   commission_default: number;
+  courier_dispatch_mode: 'auto' | 'manager';
   banner_default_image_scale: number;
   banner_default_image_position_x: number;
   banner_default_image_position_y: number;

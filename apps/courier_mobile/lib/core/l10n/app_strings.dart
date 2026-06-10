@@ -16,9 +16,16 @@ abstract final class AppStrings {
   static const availableOrdersHint =
       'Kerakli buyurtmani bosing — u sizga birikadi.';
   static const noAvailableOrders = 'Hozircha buyurtmalar yo\'q';
+  static const goOnlineToSeeOrders = 'Buyurtmalarni ko\'rish uchun onlayn bo\'ling';
   static const openOrdersList = 'Buyurtmalar ro\'yxati';
   static const newOrderAlert = 'Yangi buyurtma!';
   static const close = 'Yopish';
+  static const openMap = 'Xaritada ochish';
+  static const shiftStatsTitle = 'Smena statistikasi';
+  static const shiftDeliveries = 'Bugun yetkazildi';
+  static const shiftEarnings = 'Bugungi daromad';
+  static const totalDeliveries = 'Jami yetkazish';
+  static const totalEarnings = 'Jami daromad';
   static const activeDelivery = 'Faol yetkazish';
   static const orderId = 'Buyurtma';
   static const restaurant = 'Restoran';
@@ -33,6 +40,7 @@ abstract final class AppStrings {
   static const arrivedAtRestaurant = 'Restoranga yetib bordim';
   static const pickedUp = 'Buyurtmani oldim';
   static const delivered = 'Yetkazildi';
+  static const startDelivering = 'Yetkazishni boshlash';
   static const deliveryCompleted = 'Yetkazish yakunlandi';
   static const deliveryCompletedHint = 'Yana yangi buyurtmalar kutilmoqda.';
   static const backToHome = 'Bosh sahifaga';

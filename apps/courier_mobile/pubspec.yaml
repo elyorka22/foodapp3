@@ -1,7 +1,7 @@
 name: courier_mobile
 description: FoodApp courier mobile application — simple delivery workflow.
 publish_to: 'none'
-version: 1.1.0+3
+version: 1.2.0+4
 
 environment:
   sdk: '>=3.5.0 <4.0.0'

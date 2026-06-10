@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/audio/new_order_sound_service.dart';
 import '../../../shared/models/courier_order_model.dart';
 import '../../home/providers/courier_home_provider.dart';
-import 'available_orders_panel.dart';
 
-/// Detects new pool orders, plays a sound, and opens the orders panel.
+/// Plays a sound when a new pool order appears (permanent list on home screen).
 class AvailableOrdersWatcher extends ConsumerStatefulWidget {
   const AvailableOrdersWatcher({required this.child, super.key});
 
@@ -18,7 +17,6 @@ class AvailableOrdersWatcher extends ConsumerStatefulWidget {
 class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher> {
   final Set<String> _seenOrderIds = {};
   bool _initialized = false;
-  bool _panelOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +54,6 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
         ..clear()
         ..addAll(currentIds);
       _initialized = true;
-      if (orders.isNotEmpty) {
-        _openPanel(playSound: false);
-      }
       return;
     }
 
@@ -67,19 +62,8 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
       ..clear()
       ..addAll(currentIds);
 
-    if (newIds.isEmpty) return;
-
-    NewOrderSoundService.instance.play();
-    _openPanel(playSound: false);
-  }
-
-  Future<void> _openPanel({required bool playSound}) async {
-    if (_panelOpen || !mounted) return;
-    _panelOpen = true;
-    try {
-      await showAvailableOrdersPanel(context, ref, playSoundOnOpen: playSound);
-    } finally {
-      _panelOpen = false;
+    if (newIds.isNotEmpty) {
+      NewOrderSoundService.instance.play();
     }
   }
 }

@@ -157,6 +157,15 @@ export class OrdersController {
     return this.ordersService.removeCourier(id, user.sub);
   }
 
+  @Post(':id/request-courier')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  @ApiOperation({ summary: 'Restaurant requests courier (auto pool or manager queue)' })
+  requestCourier(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.ordersService.requestCourier(id, user);
+  }
+
   @Post(':id/accept')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()

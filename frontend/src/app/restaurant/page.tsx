@@ -11,7 +11,7 @@ export default function RestaurantPanelPage() {
   const { ready, authorized, token } = useRequireStaffRole({
     roles: 'BUSINESS',
   });
-  const { orders, updateStatus } = useStaffOrders();
+  const { orders, updateStatus, requestCourier } = useStaffOrders();
 
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants-admin'],
@@ -62,6 +62,10 @@ export default function RestaurantPanelPage() {
       <OrderTable
         orders={orders}
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+        onRequestCourier={(id) => requestCourier.mutate(id)}
+        requestCourierPendingId={
+          requestCourier.isPending ? (requestCourier.variables as string) : null
+        }
       />
     </DashboardShell>
   );

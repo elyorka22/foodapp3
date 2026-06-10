@@ -1,5 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsInt, IsNumber, IsOptional, IsString, Max, Min, ValidateIf } from 'class-validator';
+import { IsEmail, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, Min, ValidateIf } from 'class-validator';
+
+export const COURIER_DISPATCH_MODES = ['auto', 'manager'] as const;
+export type CourierDispatchMode = (typeof COURIER_DISPATCH_MODES)[number];
 
 export class AdminSettingsDto {
   @ApiPropertyOptional()
@@ -95,6 +98,14 @@ export class AdminSettingsDto {
   @IsNumber()
   @Min(0)
   commission_default?: number;
+
+  @ApiPropertyOptional({
+    description: 'auto = pool orders for couriers after restaurant calls courier; manager = manual assignment',
+    enum: COURIER_DISPATCH_MODES,
+  })
+  @IsOptional()
+  @IsIn(COURIER_DISPATCH_MODES)
+  courier_dispatch_mode?: CourierDispatchMode;
 
   @ApiPropertyOptional({ description: 'Default banner zoom % (50–200)' })
   @IsOptional()

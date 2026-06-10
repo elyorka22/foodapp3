@@ -44,6 +44,7 @@ export interface AdminSettings extends ImageFramingDefaults {
   free_delivery_threshold: number;
   default_delivery_fee: number;
   commission_default: number;
+  courier_dispatch_mode: 'auto' | 'manager';
 }
 
 export interface PublicSettings {
@@ -96,6 +97,7 @@ const DEFAULT_ADMIN: AdminSettings = {
   free_delivery_threshold: 100000,
   default_delivery_fee: 8000,
   commission_default: 10,
+  courier_dispatch_mode: 'manager',
 };
 
 @Injectable()
@@ -230,6 +232,11 @@ export class SettingsService {
   private resolveHelpTelegramUrl(admin: AdminSettings): string {
     const raw = admin.help_telegram_url?.trim() || admin.support_telegram?.trim();
     return normalizeTelegramUrl(raw);
+  }
+
+  async getCourierDispatchMode(): Promise<'auto' | 'manager'> {
+    const admin = await this.getAdminSettings();
+    return admin.courier_dispatch_mode === 'auto' ? 'auto' : 'manager';
   }
 
   async getCommissionDefault(): Promise<number> {

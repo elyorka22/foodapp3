@@ -9,6 +9,7 @@ export type OrderRow = {
   status: string;
   total: number;
   items?: OrderLineItem[];
+  courierRequestedAt?: string | null;
   guestOrder?: { phone: string; deliveryAddress: string };
   restaurant?: { name: string };
 };
@@ -16,7 +17,6 @@ export type OrderRow = {
 const NEXT_STATUS: Record<string, string> = {
   PENDING: 'ACCEPTED',
   ACCEPTED: 'PREPARING',
-  PREPARING: 'COURIER_ASSIGNED',
   COURIER_ASSIGNED: 'ARRIVED_AT_RESTAURANT',
   ARRIVED_AT_RESTAURANT: 'PICKED_UP',
   PICKED_UP: 'DELIVERING',
@@ -26,11 +26,15 @@ const NEXT_STATUS: Record<string, string> = {
 export function OrderTable({
   orders,
   onStatusChange,
+  onRequestCourier,
   showRestaurant,
+  requestCourierPendingId,
 }: {
   orders: OrderRow[];
   onStatusChange: (id: string, status: string) => void;
+  onRequestCourier?: (id: string) => void;
   showRestaurant?: boolean;
+  requestCourierPendingId?: string | null;
 }) {
   const rows = Array.isArray(orders) ? orders : [];
   if (!rows.length) return <p className="text-sm opacity-60">No orders</p>;
@@ -52,6 +56,11 @@ export function OrderTable({
         <tbody>
           {rows.map((o) => {
             const next = NEXT_STATUS[o.status];
+            const canRequestCourier =
+              o.status === 'PREPARING' && !o.courierRequestedAt && !!onRequestCourier;
+            const courierRequested =
+              o.status === 'PREPARING' && !!o.courierRequestedAt;
+
             return (
               <tr key={o.id} className="border-t dark:border-white/10">
                 <td className="p-3 font-mono text-xs">{o.orderNumber}</td>
@@ -65,17 +74,36 @@ export function OrderTable({
                   )}
                 </td>
                 <td className="p-3">
-                  <span className="rounded bg-brand-100 px-2 py-0.5 text-xs dark:bg-brand-900">
-                    {o.status}
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span className="rounded bg-brand-100 px-2 py-0.5 text-xs dark:bg-brand-900">
+                      {o.status}
+                    </span>
+                    {courierRequested && (
+                      <span className="text-xs font-medium text-amber-600">
+                        Kuryer chaqirildi
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="p-3">{Number(o.total).toLocaleString()}</td>
                 <td className="p-3">
-                  {next && (
-                    <Button size="sm" onClick={() => onStatusChange(o.id, next)}>
-                      → {next}
-                    </Button>
-                  )}
+                  <div className="flex flex-col gap-2">
+                    {canRequestCourier && (
+                      <Button
+                        size="sm"
+                        className="bg-orange-500 hover:bg-orange-600"
+                        disabled={requestCourierPendingId === o.id}
+                        onClick={() => onRequestCourier?.(o.id)}
+                      >
+                        Kuryerni chaqirish
+                      </Button>
+                    )}
+                    {next && (
+                      <Button size="sm" variant="secondary" onClick={() => onStatusChange(o.id, next)}>
+                        → {next}
+                      </Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             );
