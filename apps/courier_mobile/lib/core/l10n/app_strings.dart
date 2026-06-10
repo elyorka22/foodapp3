@@ -67,4 +67,11 @@ abstract final class AppStrings {
   static const orderUnavailable = 'Buyurtma endi mavjud emas';
   static const goOnline = 'Onlayn bo\'lish';
   static const goOffline = 'Oflayn bo\'lish';
+  static const startShift = 'Smenani boshlash';
+  static const endShift = 'Smenani tugatish';
+  static const todayBonuses = 'Bonuslar';
+  static const merchantRestaurant = 'Restoran';
+  static const merchantStore = 'Do\'kon';
+  static const activeOrderOpen = 'Faol buyurtmani ochish';
+  static const shiftOfflineHint = 'Buyurtmalar qabul qilish uchun smenani boshlang';
 }

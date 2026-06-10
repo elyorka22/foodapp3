@@ -9,10 +9,10 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/courier_order_model.dart';
-import '../../../shared/widgets/courier_order_card.dart';
+import '../../../shared/widgets/compact_order_tile.dart';
+import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/shift_stats_bar.dart';
 import '../../home/providers/courier_home_provider.dart';
-import '../../orders/courier_order_actions.dart';
 import '../../orders/data/courier_repository.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -24,6 +24,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? _actingOrderId;
+  bool _shiftLoading = false;
 
   @override
   void initState() {
@@ -38,10 +39,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.invalidate(notificationsUnreadProvider);
   }
 
-  Future<void> _handleOrderAction(
-    CourierOrderModel order, {
-    required bool isAvailable,
-  }) async {
+  Future<void> _setShift(bool online) async {
+    if (_shiftLoading) return;
+    setState(() => _shiftLoading = true);
+    try {
+      await ref.read(courierOnlineProvider.notifier).setOnline(online);
+    } on DioException catch (e) {
+      final err = e.error;
+      final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ApiException.formatError(e))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _shiftLoading = false);
+    }
+  }
+
+  Future<void> _acceptOrder(CourierOrderModel order) async {
     if (_actingOrderId != null) return;
 
     final online = ref.read(courierOnlineProvider).valueOrNull ?? false;
@@ -55,36 +75,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     setState(() => _actingOrderId = order.id);
     try {
-      final repo = ref.read(courierRepositoryProvider);
-
-      if (shouldAcceptOrder(order, isAvailable: isAvailable)) {
-        await repo.acceptOrder(order.id);
-        ref.invalidate(activeOrderProvider);
-        ref.invalidate(availableOrdersProvider);
-        return;
-      }
-
-      final next = nextStatusForOrder(order);
-      if (next == null) {
-        if (!mounted) return;
-        context.push(AppRoutes.activeOrder, extra: order.id);
-        return;
-      }
-
-      if (next == 'PICKED_UP_THEN_DELIVERING') {
-        var updated = await repo.updateStatus(order.id, 'PICKED_UP');
-        await repo.updateStatus(updated.id, 'DELIVERING');
-      } else if (next == 'DELIVERED') {
-        await repo.updateStatus(order.id, 'DELIVERED');
-        ref.invalidate(activeOrderProvider);
-        ref.invalidate(availableOrdersProvider);
-        ref.invalidate(shiftStatsProvider);
-        if (!mounted) return;
-        context.push(AppRoutes.orderComplete);
-      } else {
-        await repo.updateStatus(order.id, next);
-        ref.invalidate(activeOrderProvider);
-      }
+      await ref.read(courierRepositoryProvider).acceptOrder(order.id);
+      ref.invalidate(activeOrderProvider);
+      ref.invalidate(availableOrdersProvider);
+      if (!mounted) return;
+      context.push(AppRoutes.activeOrder, extra: order.id);
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
@@ -92,7 +87,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       }
       ref.invalidate(availableOrdersProvider);
-      ref.invalidate(activeOrderProvider);
     } finally {
       if (mounted) setState(() => _actingOrderId = null);
     }
@@ -106,39 +100,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final shiftStats = ref.watch(shiftStatsProvider);
     final unread = ref.watch(notificationsUnreadProvider);
     final isOnline = onlineState.valueOrNull ?? false;
+    final hasActiveOrder = activeOrder.valueOrNull != null;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.appName),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  isOnline ? AppStrings.online : AppStrings.offline,
-                  style: AppTypography.caption.copyWith(
-                    color: isOnline ? AppColors.success : AppColors.textMuted,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Switch(
-                  value: isOnline,
-                  activeTrackColor: AppColors.primarySoft,
-                  thumbColor: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.selected)) {
-                      return AppColors.primary;
-                    }
-                    return null;
-                  }),
-                  onChanged: onlineState.isLoading
-                      ? null
-                      : (v) => ref.read(courierOnlineProvider.notifier).setOnline(v),
-                ),
-              ],
-            ),
-          ),
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -179,18 +146,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refresh,
-              child: _OrdersPanel(
-                isOnline: isOnline,
-                activeOrder: activeOrder,
-                available: available,
-                actingOrderId: _actingOrderId,
-                onOrderAction: _handleOrderAction,
-              ),
+              child: isOnline
+                  ? _ShiftWorkZone(
+                      activeOrder: activeOrder,
+                      available: available,
+                      actingOrderId: _actingOrderId,
+                      onAccept: _acceptOrder,
+                      onOpenActive: (id) => context.push(AppRoutes.activeOrder, extra: id),
+                    )
+                  : _OfflineShiftPrompt(
+                      isLoading: _shiftLoading || onlineState.isLoading,
+                      onStartShift: () => _setShift(true),
+                    ),
             ),
           ),
+          if (isOnline)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
+              child: FoodAppButton(
+                label: AppStrings.endShift,
+                variant: FoodAppButtonVariant.secondary,
+                isLoading: _shiftLoading,
+                onPressed: hasActiveOrder || _shiftLoading
+                    ? null
+                    : () => _setShift(false),
+              ),
+            ),
           shiftStats.when(
             loading: () => const SizedBox(
-              height: 120,
+              height: 72,
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (_, __) => const SizedBox.shrink(),
@@ -202,21 +186,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _OrdersPanel extends StatelessWidget {
-  const _OrdersPanel({
-    required this.isOnline,
+class _OfflineShiftPrompt extends StatelessWidget {
+  const _OfflineShiftPrompt({
+    required this.isLoading,
+    required this.onStartShift,
+  });
+
+  final bool isLoading;
+  final VoidCallback onStartShift;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      children: [
+        const SizedBox(height: 48),
+        Icon(Icons.delivery_dining, size: 72, color: AppColors.primary.withValues(alpha: 0.85)),
+        const SizedBox(height: AppSpacing.xl),
+        Text(
+          AppStrings.shiftOfflineHint,
+          style: AppTypography.subtitle,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: AppSpacing.xxl),
+        FoodAppButton(
+          label: AppStrings.startShift,
+          isLoading: isLoading,
+          onPressed: isLoading ? null : onStartShift,
+        ),
+      ],
+    );
+  }
+}
+
+class _ShiftWorkZone extends StatelessWidget {
+  const _ShiftWorkZone({
     required this.activeOrder,
     required this.available,
     required this.actingOrderId,
-    required this.onOrderAction,
+    required this.onAccept,
+    required this.onOpenActive,
   });
 
-  final bool isOnline;
   final AsyncValue<CourierOrderModel?> activeOrder;
   final AsyncValue<List<CourierOrderModel>> available;
   final String? actingOrderId;
-  final Future<void> Function(CourierOrderModel order, {required bool isAvailable})
-      onOrderAction;
+  final Future<void> Function(CourierOrderModel order) onAccept;
+  final void Function(String orderId) onOpenActive;
 
   @override
   Widget build(BuildContext context) {
@@ -232,61 +249,76 @@ class _OrdersPanel extends StatelessWidget {
               AppSpacing.lg,
               AppSpacing.sm,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               AppStrings.availableOrdersTitle,
-              style: AppTypography.subtitle.copyWith(color: Colors.white),
+              style: AppTypography.body.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
         ),
-        if (!isOnline)
-          const SliverFillRemaining(
-            hasScrollBody: false,
-            child: _EmptyOrdersMessage(
-              message: AppStrings.goOnlineToSeeOrders,
-              icon: Icons.power_settings_new,
+        ...activeOrder.when(
+          loading: () => [
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                child: Center(child: CircularProgressIndicator()),
+              ),
             ),
-          )
-        else
-          activeOrder.when(
-            loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (e, _) => SliverToBoxAdapter(child: Center(child: Text('$e'))),
-            data: (active) {
-              if (active != null) {
-                return SliverPadding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      CourierOrderCard(
-                        order: active,
-                        mode: CourierOrderCardMode.active,
-                        isActiveHighlight: true,
-                        isLoading: actingOrderId == active.id,
-                        actionLabel: actionLabelForOrder(active, isAvailable: false),
-                        onAction: actingOrderId == null
-                            ? () => onOrderAction(active, isAvailable: false)
-                            : null,
+          ],
+          error: (e, _) => [SliverToBoxAdapter(child: Center(child: Text('$e')))],
+          data: (active) {
+            final slivers = <Widget>[];
+            if (active != null) {
+              slivers.add(
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Material(
+                      color: AppColors.primarySoft,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        onTap: () => onOpenActive(active.id),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.local_shipping_outlined, color: AppColors.primary),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  AppStrings.activeOrderOpen,
+                                  style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                            ],
+                          ),
+                        ),
                       ),
-                    ]),
+                    ),
                   ),
-                );
-              }
+                ),
+              );
+            }
 
-              return available.when(
+            slivers.add(
+              available.when(
                 loading: () => const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
                 ),
                 error: (e, _) => SliverToBoxAdapter(child: Center(child: Text('$e'))),
                 data: (orders) {
                   if (orders.isEmpty) {
-                    return const SliverFillRemaining(
+                    return SliverFillRemaining(
                       hasScrollBody: false,
                       child: _EmptyOrdersMessage(
                         message: AppStrings.noAvailableOrders,
@@ -300,29 +332,27 @@ class _OrdersPanel extends StatelessWidget {
                       AppSpacing.lg,
                       AppSpacing.sm,
                       AppSpacing.lg,
-                      AppSpacing.xxl,
+                      AppSpacing.lg,
                     ),
                     sliver: SliverList.separated(
                       itemCount: orders.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+                      separatorBuilder: (_, __) => const SizedBox(height: 6),
                       itemBuilder: (context, index) {
                         final order = orders[index];
-                        return CourierOrderCard(
+                        return CompactOrderTile(
                           order: order,
-                          mode: CourierOrderCardMode.available,
                           isLoading: actingOrderId == order.id,
-                          actionLabel: actionLabelForOrder(order, isAvailable: true),
-                          onAction: actingOrderId == null
-                              ? () => onOrderAction(order, isAvailable: true)
-                              : null,
+                          onAccept: actingOrderId == null ? () => onAccept(order) : null,
                         );
                       },
                     ),
                   );
                 },
-              );
-            },
-          ),
+              ),
+            );
+            return slivers;
+          },
+        ),
       ],
     );
   }
@@ -342,11 +372,11 @@ class _EmptyOrdersMessage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: AppColors.textMuted),
-            const SizedBox(height: AppSpacing.lg),
+            Icon(icon, size: 48, color: AppColors.textMuted),
+            const SizedBox(height: AppSpacing.md),
             Text(
               message,
-              style: AppTypography.subtitle,
+              style: AppTypography.body,
               textAlign: TextAlign.center,
             ),
           ],

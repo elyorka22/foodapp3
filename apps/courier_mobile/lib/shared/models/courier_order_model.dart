@@ -33,6 +33,7 @@ class CourierOrderModel {
     required this.total,
     this.distanceKm,
     this.restaurantName,
+    this.businessTypeSlug,
     this.customerName,
     this.customerPhone,
     this.customerAddress,
@@ -54,6 +55,13 @@ class CourierOrderModel {
   final num total;
   final double? distanceKm;
   final String? restaurantName;
+  final String? businessTypeSlug;
+
+  String get merchantTypeLabel {
+    if (businessTypeSlug == 'restaurant') return 'Restoran';
+    if (businessTypeSlug != null && businessTypeSlug!.isNotEmpty) return 'Do\'kon';
+    return '';
+  }
   final String? customerName;
   final String? customerPhone;
   final String? customerAddress;
@@ -100,6 +108,8 @@ class CourierOrderModel {
       total: json['total'] as num? ?? 0,
       distanceKm: parseDouble(json['distanceKm']),
       restaurantName: restaurant?['name'] as String? ?? business?['name'] as String?,
+      businessTypeSlug: _readBusinessTypeSlug(restaurant) ??
+          _readBusinessTypeSlug(business),
       customerName: guest?['customerName'] as String? ?? courierUser?['fullName'] as String?,
       customerPhone: guest?['phone'] as String?,
       customerAddress: guest?['deliveryAddress'] as String? ?? address?['line1'] as String?,
@@ -135,4 +145,10 @@ DateTime? _parseDateTime(dynamic value) {
   if (value == null) return null;
   if (value is String) return DateTime.tryParse(value);
   return null;
+}
+
+String? _readBusinessTypeSlug(Map<String, dynamic>? business) {
+  if (business == null) return null;
+  final type = business['businessType'] as Map<String, dynamic>?;
+  return type?['slug'] as String?;
 }

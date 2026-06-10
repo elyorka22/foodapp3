@@ -33,49 +33,28 @@ class ShiftStatsBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Text(AppStrings.shiftStatsTitle, style: AppTypography.subtitle),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatTile(
-                    label: AppStrings.shiftDeliveries,
-                    value: '${stats.todayDeliveries}',
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _StatTile(
-                    label: AppStrings.shiftEarnings,
-                    value: formatSum(stats.todayEarnings),
-                    accent: true,
-                  ),
-                ),
-              ],
+            Expanded(
+              child: _StatTile(
+                label: AppStrings.shiftDeliveries,
+                value: '${stats.todayDeliveries}',
+              ),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatTile(
-                    label: AppStrings.totalDeliveries,
-                    value: '${stats.totalDeliveries}',
-                    compact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _StatTile(
-                    label: AppStrings.totalEarnings,
-                    value: formatSum(stats.totalEarnings),
-                    compact: true,
-                  ),
-                ),
-              ],
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _StatTile(
+                label: AppStrings.shiftEarnings,
+                value: formatSum(stats.todayEarnings),
+                accent: true,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _StatTile(
+                label: AppStrings.todayBonuses,
+                value: formatSum(stats.todayBonuses),
+              ),
             ),
           ],
         ),
@@ -89,33 +68,33 @@ class _StatTile extends StatelessWidget {
     required this.label,
     required this.value,
     this.accent = false,
-    this.compact = false,
   });
 
   final String label;
   final String value;
   final bool accent;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(compact ? 10 : 12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: accent ? AppColors.primarySoft : const Color(0xFFF7F8FA),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTypography.caption),
+          Text(label, style: AppTypography.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 4),
           Text(
             value,
-            style: (compact ? AppTypography.body : AppTypography.subtitle).copyWith(
+            style: AppTypography.body.copyWith(
               color: accent ? AppColors.primary : AppColors.textPrimary,
               fontWeight: FontWeight.w700,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

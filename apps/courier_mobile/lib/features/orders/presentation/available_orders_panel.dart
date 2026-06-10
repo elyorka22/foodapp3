@@ -8,8 +8,8 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_order_model.dart';
+import '../../../shared/widgets/compact_order_tile.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
@@ -177,14 +177,14 @@ class _AvailableOrdersPanelState extends ConsumerState<_AvailableOrdersPanel> {
                         controller: scrollController,
                         padding: const EdgeInsets.all(AppSpacing.lg),
                         itemCount: orders.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+                        separatorBuilder: (_, __) => const SizedBox(height: 6),
                         itemBuilder: (context, index) {
                           final order = orders[index];
                           final isAccepting = _acceptingId == order.id;
-                          return _AvailableOrderTile(
+                          return CompactOrderTile(
                             order: order,
-                            isAccepting: isAccepting,
-                            onTap: isAccepting ? null : () => _acceptOrder(order),
+                            isLoading: isAccepting,
+                            onAccept: isAccepting ? null : () => _acceptOrder(order),
                           );
                         },
                       );
@@ -203,60 +203,6 @@ class _AvailableOrdersPanelState extends ConsumerState<_AvailableOrdersPanel> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _AvailableOrderTile extends StatelessWidget {
-  const _AvailableOrderTile({
-    required this.order,
-    required this.onTap,
-    required this.isAccepting,
-  });
-
-  final CourierOrderModel order;
-  final VoidCallback? onTap;
-  final bool isAccepting;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.primarySoft,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              order.restaurantName ?? '—',
-              style: AppTypography.subtitle.copyWith(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              AppStrings.initialDeliveryFee,
-              style: AppTypography.caption,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              formatSum(order.initialDeliveryFee),
-              style: AppTypography.subtitle.copyWith(
-                color: AppColors.primary,
-                fontSize: 22,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            FoodAppButton(
-              label: AppStrings.accept,
-              isLoading: isAccepting,
-              onPressed: isAccepting ? null : onTap,
-            ),
-          ],
-        ),
       ),
     );
   }

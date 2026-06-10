@@ -32,6 +32,7 @@ final shiftStatsProvider = StreamProvider.autoDispose<CourierShiftStatsModel>((r
       yield const CourierShiftStatsModel(
         todayDeliveries: 0,
         todayEarnings: 0,
+        todayBonuses: 0,
         totalDeliveries: 0,
         totalEarnings: 0,
       );

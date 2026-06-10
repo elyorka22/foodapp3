@@ -497,7 +497,12 @@ export class CouriersService {
           items: true,
           guestOrder: true,
           address: true,
-          business: { select: { name: true } },
+          business: {
+            select: {
+              name: true,
+              businessType: { select: { slug: true, name: true } },
+            },
+          },
           branch: true,
         },
         orderBy: { createdAt: 'asc' },
