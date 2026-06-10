@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -108,16 +107,6 @@ class ProfileScreen extends ConsumerWidget {
                             color: AppColors.danger,
                             fontWeight: FontWeight.w600,
                           ),
-                        ),
-                      ),
-                    ],
-                    if (kDebugMode) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      TextButton(
-                        onPressed: () => context.push(AppRoutes.networkHealth),
-                        child: Text(
-                          'Tarmoq diagnostikasi',
-                          style: AppTypography.caption,
                         ),
                       ),
                     ],
