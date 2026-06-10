@@ -6,7 +6,7 @@ abstract final class AppStrings {
   static const online = 'Onlayn';
   static const offline = 'Oflayn';
   static const tabHome = 'Asosiy';
-  static const tabHistory = 'Tarix';
+  static const tabStatistics = 'Statistika';
   static const tabProfile = 'Profil';
   static const waitingOrders = 'Buyurtmalar kutilmoqda';
   static const waitingOrdersHint =
@@ -72,6 +72,10 @@ abstract final class AppStrings {
   static const todayBonuses = 'Bonuslar';
   static const merchantRestaurant = 'Restoran';
   static const merchantStore = 'Do\'kon';
-  static const activeOrderOpen = 'Faol buyurtmani ochish';
   static const shiftOfflineHint = 'Buyurtmalar qabul qilish uchun smenani boshlang';
+  static const weekDeliveries = 'Haftalik yetkazishlar';
+  static const weekEarnings = 'Haftalik daromad';
+  static const weekDailyBreakdown = 'Kunlik ko\'rsatkichlar';
+  static const noStatistics = 'Hali statistika yo\'q';
+  static const waitingForOrders = 'Buyurtmalar kutilmoqda...';
 }

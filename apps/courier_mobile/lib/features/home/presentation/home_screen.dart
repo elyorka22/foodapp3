@@ -39,7 +39,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.invalidate(notificationsUnreadProvider);
   }
 
-  Future<void> _setShift(bool online) async {
+  Future<void> _toggleShift(bool online) async {
     if (_shiftLoading) return;
     setState(() => _shiftLoading = true);
     try {
@@ -78,8 +78,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       await ref.read(courierRepositoryProvider).acceptOrder(order.id);
       ref.invalidate(activeOrderProvider);
       ref.invalidate(availableOrdersProvider);
-      if (!mounted) return;
-      context.push(AppRoutes.activeOrder, extra: order.id);
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
@@ -94,6 +92,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(activeOrderProvider, (previous, next) {
+      final wasActive = previous?.valueOrNull;
+      final nowActive = next.valueOrNull;
+      if (wasActive == null && nowActive != null && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.push(AppRoutes.activeOrder, extra: nowActive.id);
+          }
+        });
+      }
+    });
+
     final onlineState = ref.watch(courierOnlineProvider);
     final activeOrder = ref.watch(activeOrderProvider);
     final available = ref.watch(availableOrdersProvider);
@@ -101,6 +111,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final unread = ref.watch(notificationsUnreadProvider);
     final isOnline = onlineState.valueOrNull ?? false;
     final hasActiveOrder = activeOrder.valueOrNull != null;
+    final shiftBusy = _shiftLoading || onlineState.isLoading;
 
     return Scaffold(
       appBar: AppBar(
@@ -152,26 +163,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       available: available,
                       actingOrderId: _actingOrderId,
                       onAccept: _acceptOrder,
-                      onOpenActive: (id) => context.push(AppRoutes.activeOrder, extra: id),
                     )
-                  : _OfflineShiftPrompt(
-                      isLoading: _shiftLoading || onlineState.isLoading,
-                      onStartShift: () => _setShift(true),
-                    ),
+                  : const _OfflineShiftPrompt(),
             ),
           ),
-          if (isOnline)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-              child: FoodAppButton(
-                label: AppStrings.endShift,
-                variant: FoodAppButtonVariant.secondary,
-                isLoading: _shiftLoading,
-                onPressed: hasActiveOrder || _shiftLoading
-                    ? null
-                    : () => _setShift(false),
-              ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
+            child: FoodAppButton(
+              label: isOnline ? AppStrings.endShift : AppStrings.startShift,
+              variant: isOnline ? FoodAppButtonVariant.secondary : FoodAppButtonVariant.primary,
+              isLoading: shiftBusy,
+              onPressed: shiftBusy || (isOnline && hasActiveOrder)
+                  ? null
+                  : () => _toggleShift(!isOnline),
             ),
+          ),
           shiftStats.when(
             loading: () => const SizedBox(
               height: 72,
@@ -187,13 +193,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 class _OfflineShiftPrompt extends StatelessWidget {
-  const _OfflineShiftPrompt({
-    required this.isLoading,
-    required this.onStartShift,
-  });
-
-  final bool isLoading;
-  final VoidCallback onStartShift;
+  const _OfflineShiftPrompt();
 
   @override
   Widget build(BuildContext context) {
@@ -201,19 +201,13 @@ class _OfflineShiftPrompt extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.xxl),
       children: [
-        const SizedBox(height: 48),
+        const SizedBox(height: 64),
         Icon(Icons.delivery_dining, size: 72, color: AppColors.primary.withValues(alpha: 0.85)),
         const SizedBox(height: AppSpacing.xl),
         Text(
           AppStrings.shiftOfflineHint,
           style: AppTypography.subtitle,
           textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: AppSpacing.xxl),
-        FoodAppButton(
-          label: AppStrings.startShift,
-          isLoading: isLoading,
-          onPressed: isLoading ? null : onStartShift,
         ),
       ],
     );
@@ -226,134 +220,63 @@ class _ShiftWorkZone extends StatelessWidget {
     required this.available,
     required this.actingOrderId,
     required this.onAccept,
-    required this.onOpenActive,
   });
 
   final AsyncValue<CourierOrderModel?> activeOrder;
   final AsyncValue<List<CourierOrderModel>> available;
   final String? actingOrderId;
   final Future<void> Function(CourierOrderModel order) onAccept;
-  final void Function(String orderId) onOpenActive;
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      slivers: [
-        SliverToBoxAdapter(
-          child: Container(
-            width: double.infinity,
-            margin: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.md,
-              AppSpacing.lg,
-              AppSpacing.sm,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              AppStrings.availableOrdersTitle,
-              style: AppTypography.body.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        ...activeOrder.when(
-          loading: () => [
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(AppSpacing.lg),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-          ],
-          error: (e, _) => [SliverToBoxAdapter(child: Center(child: Text('$e')))],
-          data: (active) {
-            final slivers = <Widget>[];
-            if (active != null) {
-              slivers.add(
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: Material(
-                      color: AppColors.primarySoft,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: () => onOpenActive(active.id),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.local_shipping_outlined, color: AppColors.primary),
-                              const SizedBox(width: AppSpacing.sm),
-                              Expanded(
-                                child: Text(
-                                  AppStrings.activeOrderOpen,
-                                  style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                              const Icon(Icons.chevron_right, color: AppColors.textMuted),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+    return activeOrder.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('$e')),
+      data: (active) {
+        if (active != null) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              SizedBox(height: 120),
+              Center(child: Text(AppStrings.waitingForOrders)),
+            ],
+          );
+        }
+
+        return available.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (orders) {
+            if (orders.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 120),
+                  _EmptyOrdersMessage(
+                    message: AppStrings.noAvailableOrders,
+                    icon: Icons.inbox_outlined,
                   ),
-                ),
+                ],
               );
             }
 
-            slivers.add(
-              available.when(
-                loading: () => const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (e, _) => SliverToBoxAdapter(child: Center(child: Text('$e'))),
-                data: (orders) {
-                  if (orders.isEmpty) {
-                    return const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: _EmptyOrdersMessage(
-                        message: AppStrings.noAvailableOrders,
-                        icon: Icons.inbox_outlined,
-                      ),
-                    );
-                  }
-
-                  return SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                    ),
-                    sliver: SliverList.separated(
-                      itemCount: orders.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 6),
-                      itemBuilder: (context, index) {
-                        final order = orders[index];
-                        return CompactOrderTile(
-                          order: order,
-                          isLoading: actingOrderId == order.id,
-                          onAccept: actingOrderId == null ? () => onAccept(order) : null,
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
+            return ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              itemCount: orders.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 6),
+              itemBuilder: (context, index) {
+                final order = orders[index];
+                return CompactOrderTile(
+                  order: order,
+                  isLoading: actingOrderId == order.id,
+                  onAccept: actingOrderId == null ? () => onAccept(order) : null,
+                );
+              },
             );
-            return slivers;
           },
-        ),
-      ],
+        );
+      },
     );
   }
 }

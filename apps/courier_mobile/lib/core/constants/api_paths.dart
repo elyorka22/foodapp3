@@ -7,6 +7,7 @@ abstract final class ApiPaths {
   static const courierAvailableOrders = '/couriers/me/orders/available';
   static const courierEarnings = '/couriers/me/earnings';
   static const courierShiftStats = '/couriers/me/shift-stats';
+  static const courierWeeklyStats = '/couriers/me/weekly-stats';
   static const orders = '/orders';
   static String order(String id) => '/orders/$id';
   static String orderAccept(String id) => '/orders/$id/accept';

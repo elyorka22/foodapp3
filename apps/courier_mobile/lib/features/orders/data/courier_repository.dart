@@ -4,6 +4,7 @@ import '../../../core/constants/api_paths.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../shared/models/courier_earnings_model.dart';
 import '../../../shared/models/courier_shift_stats_model.dart';
+import '../../../shared/models/courier_weekly_stats_model.dart';
 import '../../../shared/models/courier_model.dart';
 import '../../../shared/models/courier_order_model.dart';
 
@@ -29,6 +30,11 @@ class CourierRepository {
   Future<CourierShiftStatsModel> fetchShiftStats() async {
     final res = await _dio.get<Map<String, dynamic>>(ApiPaths.courierShiftStats);
     return CourierShiftStatsModel.fromJson(res.data ?? {});
+  }
+
+  Future<CourierWeeklyStatsModel> fetchWeeklyStats() async {
+    final res = await _dio.get<Map<String, dynamic>>(ApiPaths.courierWeeklyStats);
+    return CourierWeeklyStatsModel.fromJson(res.data ?? {});
   }
 
   Future<void> setOnline(bool isOnline) async {

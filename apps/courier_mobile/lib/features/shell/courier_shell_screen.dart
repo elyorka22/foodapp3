@@ -33,9 +33,9 @@ class CourierShellScreen extends ConsumerWidget {
               label: AppStrings.tabHome,
             ),
             NavigationDestination(
-              icon: Icon(Icons.history_outlined),
-              selectedIcon: Icon(Icons.history),
-              label: AppStrings.tabHistory,
+              icon: Icon(Icons.bar_chart_outlined),
+              selectedIcon: Icon(Icons.bar_chart),
+              label: AppStrings.tabStatistics,
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outline),

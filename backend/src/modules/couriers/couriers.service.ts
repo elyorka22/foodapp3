@@ -558,6 +558,56 @@ export class CouriersService {
     };
   }
 
+  async getWeeklyStats(userId: string) {
+    const courier = await this.prisma.courier.findFirst({ where: { userId } });
+    if (!courier) return null;
+
+    const start = new Date();
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+
+    const assignments = await this.prisma.courierAssignment.findMany({
+      where: {
+        courierId: courier.id,
+        deliveredAt: { gte: start },
+      },
+      select: { deliveredAt: true, courierFee: true },
+    });
+
+    const days: {
+      date: string;
+      deliveries: number;
+      earnings: number;
+    }[] = [];
+
+    for (let offset = 6; offset >= 0; offset--) {
+      const dayStart = new Date();
+      dayStart.setDate(dayStart.getDate() - offset);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const dayRows = assignments.filter(
+        (row) =>
+          row.deliveredAt &&
+          row.deliveredAt >= dayStart &&
+          row.deliveredAt < dayEnd,
+      );
+
+      days.push({
+        date: dayStart.toISOString().slice(0, 10),
+        deliveries: dayRows.length,
+        earnings: dayRows.reduce((sum, row) => sum + Number(row.courierFee), 0),
+      });
+    }
+
+    return {
+      days,
+      weekDeliveries: days.reduce((sum, day) => sum + day.deliveries, 0),
+      weekEarnings: days.reduce((sum, day) => sum + day.earnings, 0),
+    };
+  }
+
   async getShiftStats(userId: string) {
     const courier = await this.prisma.courier.findFirst({ where: { userId } });
     if (!courier) return null;
