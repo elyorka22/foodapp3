@@ -30,6 +30,7 @@ class RestaurantsScreen extends ConsumerWidget {
             ref.invalidate(publicSettingsProvider);
             ref.invalidate(bannersProvider);
             ref.invalidate(homeFeaturedStoresProvider);
+            ref.invalidate(dishCategoriesProvider);
             ref.invalidate(restaurantsListProvider);
           },
           child: ListView(
