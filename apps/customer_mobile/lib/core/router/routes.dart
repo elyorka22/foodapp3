@@ -11,5 +11,6 @@ abstract final class AppRoutes {
   static const notifications = '/notifications';
   static const promotions = '/promotions';
   static const networkHealth = '/network-health';
-  static String categoryProducts(String slug) => '/categories/$slug';
+  static const categoryProductsBase = '/categories';
+  static String categoryProducts(String slug) => '$categoryProductsBase/$slug';
 }

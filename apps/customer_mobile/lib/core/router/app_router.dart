@@ -60,7 +60,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const NetworkHealthScreen(),
       ),
       GoRoute(
-        path: '${AppRoutes.categoryProducts}/:slug',
+        path: '${AppRoutes.categoryProductsBase}/:slug',
         builder: (_, state) => CategoryProductsScreen(
           slug: state.pathParameters['slug']!,
         ),
