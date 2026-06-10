@@ -1,0 +1,71 @@
+name: Business Mobile APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/business_mobile/**'
+      - '.github/workflows/business-mobile-apk.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: business-mobile-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/business_mobile
+
+    env:
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate build environment
+        run: chmod +x scripts/validate_build_env.sh && ./scripts/validate_build_env.sh
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('apps/business_mobile/pubspec.yaml') }}
+
+      - name: Create Android platform project
+        run: flutter create . --org com.foodapp --project-name business_mobile --platforms=android --no-overwrite
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build release APK and App Bundle
+        run: |
+          API_URL="$(printf '%s' "${API_BASE_URL}" | tr -d '[:space:]')"
+          flutter build apk --release --dart-define=API_BASE_URL="${API_URL}"
+          flutter build appbundle --release --dart-define=API_BASE_URL="${API_URL}"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foodapp-business-apk
+          path: apps/business_mobile/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload App Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foodapp-business-aab
+          path: apps/business_mobile/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
