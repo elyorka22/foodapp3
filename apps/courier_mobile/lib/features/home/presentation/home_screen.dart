@@ -318,7 +318,7 @@ class _ShiftWorkZone extends StatelessWidget {
                 error: (e, _) => SliverToBoxAdapter(child: Center(child: Text('$e'))),
                 data: (orders) {
                   if (orders.isEmpty) {
-                    return SliverFillRemaining(
+                    return const SliverFillRemaining(
                       hasScrollBody: false,
                       child: _EmptyOrdersMessage(
                         message: AppStrings.noAvailableOrders,
