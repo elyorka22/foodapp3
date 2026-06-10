@@ -17,6 +17,16 @@ export class AdminSettingsDto {
   @IsString()
   home_subtitle?: string;
 
+  @ApiPropertyOptional({ description: 'Home secondary banner image — all restaurants tile' })
+  @IsOptional()
+  @IsString()
+  home_restaurants_banner_image_url?: string;
+
+  @ApiPropertyOptional({ description: 'Label on all-restaurants home banner' })
+  @IsOptional()
+  @IsString()
+  home_restaurants_banner_title?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

@@ -8,6 +8,7 @@ import { useDeliveryPricing } from '@/hooks/use-delivery-pricing';
 import { LoadingState, EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { uploadImage } from '@/lib/upload';
 
 /** Parse numeric text field; empty string becomes 0. */
 function parseNumberInput(value: string): number {
@@ -87,6 +88,8 @@ function AdminSettingsContent() {
       app_name: form.app_name,
       home_title: form.home_title,
       home_subtitle: form.home_subtitle,
+      home_restaurants_banner_image_url: form.home_restaurants_banner_image_url ?? '',
+      home_restaurants_banner_title: form.home_restaurants_banner_title?.trim() || 'Barcha restoranlar',
       support_phone: form.support_phone,
       support_telegram: form.support_telegram,
       social_instagram_url: form.social_instagram_url?.trim() ?? '',
@@ -169,6 +172,43 @@ function AdminSettingsContent() {
           value={form.home_subtitle ?? ''}
           onChange={(e) => setForm({ ...form, home_subtitle: e.target.value })}
         />
+      </SettingsSection>
+
+      <SettingsSection title="Bosh sahifa — «Barcha restoranlar» banneri">
+        <Input
+          placeholder="Banner sarlavhasi"
+          value={form.home_restaurants_banner_title ?? ''}
+          onChange={(e) => setForm({ ...form, home_restaurants_banner_title: e.target.value })}
+        />
+        <label className="text-xs opacity-70">
+          Banner rasmi
+          <input
+            type="file"
+            accept="image/*"
+            className="mt-1 block w-full text-xs"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              try {
+                const { url } = await uploadImage(file);
+                setForm({ ...form, home_restaurants_banner_image_url: url });
+                toast.success('Rasm yuklandi');
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'Yuklash xatosi');
+              }
+            }}
+          />
+        </label>
+        {form.home_restaurants_banner_image_url ? (
+          <p className="sm:col-span-2 text-xs text-zinc-500">
+            Rasm biriktirildi. Saqlang va bosh sahifada ko&apos;ring.
+          </p>
+        ) : (
+          <p className="sm:col-span-2 text-xs text-zinc-500">
+            Taom kategoriyalari banneri avtomatik — rasmlar «Taom kategoriyalari» bo&apos;limidan
+            olinadi. Bu yerda faqat «Barcha restoranlar» uchun rasm yuklang.
+          </p>
+        )}
       </SettingsSection>
 
       <SettingsSection title="Delivery pricing">

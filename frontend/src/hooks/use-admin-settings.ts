@@ -8,6 +8,8 @@ export type AdminSettings = {
   app_name: string;
   home_title: string;
   home_subtitle: string;
+  home_restaurants_banner_image_url: string;
+  home_restaurants_banner_title: string;
   support_phone: string;
   support_telegram: string;
   social_instagram_url: string;
@@ -45,6 +47,7 @@ export function useAdminSettings() {
       }),
     onSuccess: (data) => {
       qc.setQueryData(['admin-settings'], data);
+      qc.invalidateQueries({ queryKey: ['settings', 'public'] });
     },
   });
 

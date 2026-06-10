@@ -7,6 +7,8 @@ export type PublicSettings = {
   app_name: string;
   home_title: string;
   home_subtitle: string;
+  home_restaurants_banner_image_url: string;
+  home_restaurants_banner_title: string;
   social_instagram_url: string;
   social_telegram_url: string;
   social_youtube_url: string;

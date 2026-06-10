@@ -8,6 +8,10 @@ import {
   UserRole,
 } from '@prisma/client';
 import { isRestaurantKind, resolveBusinessKind } from '../../common/utils/business-kind.util';
+import {
+  buildMenuCategoriesFromProducts,
+  sortMenuProducts,
+} from '../../common/utils/menu-order.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { AdminNotificationsService } from '../admin-notifications/admin-notifications.service';
@@ -280,21 +284,17 @@ export class RestaurantsService {
     const isOpen = await this.schedule.isOpen(restaurant.id);
     const kind = resolveBusinessKind(restaurant);
     const branch = restaurant.branches?.[0];
-    const products = restaurant.products.map((p) => ({
-      ...p,
-      price: Number(p.price),
-      comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
-    }));
+    const restaurantMenu = isRestaurantKind(restaurant);
+    const products = sortMenuProducts(
+      restaurant.products.map((p) => ({
+        ...p,
+        price: Number(p.price),
+        comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
+      })),
+      restaurantMenu,
+    );
 
-    const dishCategories = isRestaurantKind(restaurant)
-      ? [
-          ...new Map(
-            products
-              .filter((p) => p.dishCategory)
-              .map((p) => [p.dishCategory!.id, p.dishCategory!]),
-          ).values(),
-        ].map((c) => ({ id: c.id, name: c.name, slug: c.slug }))
-      : [];
+    const menuCategories = buildMenuCategoriesFromProducts(products, restaurantMenu);
 
     return {
       ...restaurant,
@@ -314,9 +314,14 @@ export class RestaurantsService {
         : null,
       deliveryMinutes: restaurant.avgPrepMinutes,
       address: branch?.address ?? null,
-      productCategories: isRestaurantKind(restaurant)
-        ? dishCategories
-        : restaurant.productCategories,
+      productCategories: restaurantMenu
+        ? menuCategories
+        : restaurant.productCategories.map((c) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            sortOrder: c.sortOrder,
+          })),
     };
   }
 

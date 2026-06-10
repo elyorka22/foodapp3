@@ -85,6 +85,18 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
     );
   }, [allProducts, activeCategoryId, restaurant]);
 
+  const menuSections = useMemo(() => {
+    if (activeCategoryId !== 'all') return null;
+    return categories
+      .map((category) => ({
+        category,
+        products: allProducts.filter(
+          (product) => productMenuCategoryId(product, restaurant) === category.id,
+        ),
+      }))
+      .filter((section) => section.products.length > 0);
+  }, [activeCategoryId, allProducts, categories, restaurant]);
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-lg bg-[#F5F5F7] px-3 pb-24">
@@ -141,6 +153,27 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
           description={uz.menuEmptyHint}
           className="mt-8"
         />
+      ) : menuSections ? (
+        <div className="space-y-6 pb-4">
+          {menuSections.map((section) => (
+            <section key={section.category.id}>
+              <h2 className="mb-3 text-base font-semibold text-zinc-900">
+                {section.category.name}
+              </h2>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-5">
+                {section.products.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    restaurantId={business.id}
+                    restaurantName={business.name}
+                    disabled={closed}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-3 gap-y-5 pb-4">
           {filteredProducts.map((p) => (

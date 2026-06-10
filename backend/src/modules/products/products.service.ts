@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { BusinessKind, Prisma, UserRole } from '@prisma/client';
 import { isRestaurantKind, isStoreKind } from '../../common/utils/business-kind.util';
+import { sortMenuProducts } from '../../common/utils/menu-order.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
@@ -20,6 +21,12 @@ export class ProductsService {
   ) {}
 
   async findByBusiness(businessId: string, categoryId?: string, publicMenu = false) {
+    const business = await this.prisma.business.findFirst({
+      where: { id: businessId, deletedAt: null },
+      include: { businessType: true },
+    });
+    if (!business) throw new NotFoundException('Business not found');
+
     const rows = await this.prisma.product.findMany({
       where: {
         businessId,
@@ -35,9 +42,9 @@ export class ProductsService {
         dishCategory: true,
         business: { select: { id: true, name: true, slug: true } },
       },
-      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
-    return rows.map((p) => this.mapProduct(p));
+    const sorted = sortMenuProducts(rows, isRestaurantKind(business));
+    return sorted.map((p) => this.mapProduct(p));
   }
 
   async findByDishCategory(params: {

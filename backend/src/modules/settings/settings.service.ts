@@ -25,6 +25,8 @@ export interface AdminSettings extends ImageFramingDefaults {
   app_name: string;
   home_title: string;
   home_subtitle: string;
+  home_restaurants_banner_image_url: string;
+  home_restaurants_banner_title: string;
   support_phone: string;
   support_telegram: string;
   social_instagram_url: string;
@@ -41,6 +43,8 @@ export interface PublicSettings {
   app_name: string;
   home_title: string;
   home_subtitle: string;
+  home_restaurants_banner_image_url: string;
+  home_restaurants_banner_title: string;
   banner_default_image_scale: number;
   banner_default_image_position_x: number;
   banner_default_image_position_y: number;
@@ -65,6 +69,8 @@ const DEFAULT_ADMIN: AdminSettings = {
   app_name: 'Food Delivery',
   home_title: 'CHUST',
   home_subtitle: "Shahar bo'ylab yetkazish",
+  home_restaurants_banner_image_url: '',
+  home_restaurants_banner_title: 'Barcha restoranlar',
   support_phone: '+998901234567',
   support_telegram: '@support',
   social_instagram_url: '',
@@ -117,6 +123,9 @@ export class SettingsService {
       app_name: admin.app_name,
       home_title: admin.home_title,
       home_subtitle: admin.home_subtitle,
+      home_restaurants_banner_image_url: admin.home_restaurants_banner_image_url ?? '',
+      home_restaurants_banner_title:
+        admin.home_restaurants_banner_title?.trim() || 'Barcha restoranlar',
       banner_default_image_scale: framing.banner_default_image_scale,
       banner_default_image_position_x: framing.banner_default_image_position_x,
       banner_default_image_position_y: framing.banner_default_image_position_y,

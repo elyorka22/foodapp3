@@ -61,12 +61,27 @@ class _RestaurantDetailBody extends ConsumerWidget {
     return products.where((p) => p.categoryId == activeCategoryId).toList();
   }
 
+  List<({RestaurantCategoryModel category, List<ProductModel> products})> _menuSections(
+    List<ProductModel> products,
+    List<RestaurantCategoryModel> categories,
+  ) {
+    return [
+      for (final category in categories)
+        (
+          category: category,
+          products: products.where((p) => p.categoryId == category.id).toList(),
+        ),
+    ].where((section) => section.products.isNotEmpty).toList();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productsAsync = ref.watch(restaurantProductsProvider(restaurant.id));
     final allProducts = restaurant.products ?? productsAsync.value ?? [];
-    final products = _filterProducts(allProducts);
     final categories = restaurant.categories ?? [];
+    final products = _filterProducts(allProducts);
+    final menuSections =
+        activeCategoryId == 'all' ? _menuSections(allProducts, categories) : null;
     final closed = restaurant.isOpen == false;
 
     return Scaffold(
@@ -139,6 +154,68 @@ class _RestaurantDetailBody extends ConsumerWidget {
                   child: Text(
                     AppStrings.menuEmpty,
                     style: AppTypography.bodySmall,
+                  ),
+                ),
+              )
+            else if (menuSections != null)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  0,
+                  AppSpacing.lg,
+                  AppSpacing.xxxl,
+                ),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, sectionIndex) {
+                      final section = menuSections[sectionIndex];
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: sectionIndex == menuSections.length - 1 ? 0 : AppSpacing.xl,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              section.category.name,
+                              style: AppTypography.title.copyWith(fontSize: 18),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 20,
+                                mainAxisExtent: 300,
+                              ),
+                              itemCount: section.products.length,
+                              itemBuilder: (context, index) {
+                                final p = section.products[index];
+                                final qty = ref.watch(
+                                  cartProvider.select(
+                                    (items) => items
+                                        .where((i) => i.productId == p.id)
+                                        .fold(0, (s, i) => s + i.quantity),
+                                  ),
+                                );
+                                return MenuProductCard(
+                                  product: p,
+                                  quantity: qty,
+                                  disabled: closed,
+                                  onAdd: () => _add(ref, p),
+                                  onRemove: () =>
+                                      ref.read(cartProvider.notifier).decrement(p.id),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    childCount: menuSections.length,
                   ),
                 ),
               )

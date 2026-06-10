@@ -61,7 +61,10 @@ export default function CategoryProductsPage({ slug }: { slug: string }) {
                 {p.business?.name && (
                   <p className="mt-0.5 truncate text-xs text-zinc-500">{p.business.name}</p>
                 )}
-                <p className="mt-1 text-sm font-bold text-brand-600">
+                {p.description?.trim() ? (
+                  <p className="mt-1 line-clamp-2 text-xs text-zinc-500">{p.description}</p>
+                ) : null}
+                <p className="mt-1.5 text-sm font-bold text-brand-600">
                   {Number(p.price).toLocaleString('uz-UZ')} so‘m
                 </p>
               </div>
