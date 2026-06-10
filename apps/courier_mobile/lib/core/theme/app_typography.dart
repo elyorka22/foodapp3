@@ -26,6 +26,12 @@ abstract final class AppTypography {
         color: AppColors.textSecondary,
       );
 
+  static TextStyle get caption => const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textSecondary,
+      );
+
   static TextStyle get button => const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,

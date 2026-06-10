@@ -78,7 +78,11 @@ class DeliveryMap extends StatelessWidget {
                 if (_points.length >= 2)
                   PolylineLayer(
                     polylines: [
-                      Polyline(points: _points, color: const Color(0xFFFF6B00), strokeWidth: 4),
+                      Polyline(
+                        points: _points,
+                        color: const Color(0xFFFF6B00),
+                        strokeWidth: 4,
+                      ),
                     ],
                   ),
                 MarkerLayer(
@@ -111,12 +115,20 @@ class DeliveryMap extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        if (customerLat != null && customerLng != null)
+        if (restaurantLat != null && restaurantLng != null)
           FoodAppButton(
-            label: AppStrings.openInGoogleMaps,
+            label: AppStrings.navigateToRestaurant,
+            variant: FoodAppButtonVariant.secondary,
+            onPressed: () => _openMaps(restaurantLat!, restaurantLng!),
+          ),
+        if (customerLat != null && customerLng != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          FoodAppButton(
+            label: AppStrings.navigateToCustomer,
             variant: FoodAppButtonVariant.secondary,
             onPressed: () => _openMaps(customerLat!, customerLng!),
           ),
+        ],
       ],
     );
   }

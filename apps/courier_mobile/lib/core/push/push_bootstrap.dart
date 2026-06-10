@@ -47,12 +47,12 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindi
 
     push.onNotificationTap((data) {
       if (!mounted) return;
-      navigateFromPushData(router, data);
+      navigateFromPushData(router, ref, data);
     });
 
     final initial = await push.getInitialNotificationData();
     if (initial != null && mounted) {
-      navigateFromPushData(router, initial);
+      await navigateFromPushData(router, ref, initial);
     }
 
     await ref.read(deviceRegistrationServiceProvider).registerAfterAuth();

@@ -1,5 +1,28 @@
 import '../../core/utils/json_parse.dart';
 
+class CourierOrderLineItem {
+  const CourierOrderLineItem({
+    required this.name,
+    required this.quantity,
+    required this.price,
+    required this.subtotal,
+  });
+
+  final String name;
+  final int quantity;
+  final num price;
+  final num subtotal;
+
+  factory CourierOrderLineItem.fromJson(Map<String, dynamic> json) {
+    return CourierOrderLineItem(
+      name: json['name'] as String? ?? '—',
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      price: json['price'] as num? ?? 0,
+      subtotal: json['subtotal'] as num? ?? 0,
+    );
+  }
+}
+
 class CourierOrderModel {
   const CourierOrderModel({
     required this.id,
@@ -19,6 +42,7 @@ class CourierOrderModel {
     this.restaurantLng,
     this.courierFee,
     this.assignmentAcceptedAt,
+    this.items = const [],
   });
 
   final String id;
@@ -38,6 +62,7 @@ class CourierOrderModel {
   final double? restaurantLng;
   final num? courierFee;
   final DateTime? assignmentAcceptedAt;
+  final List<CourierOrderLineItem> items;
 
   factory CourierOrderModel.fromJson(Map<String, dynamic> json) {
     final restaurant = json['restaurant'] as Map<String, dynamic>?;
@@ -55,6 +80,11 @@ class CourierOrderModel {
         parseDouble(address?['longitude']) ??
         parseDouble(json['customerLongitude']);
 
+    final rawItems = json['items'] as List<dynamic>? ?? [];
+    final items = rawItems
+        .map((e) => CourierOrderLineItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     return CourierOrderModel(
       id: json['id'] as String,
       orderNumber: json['orderNumber'] as String? ?? json['id'] as String,
@@ -69,10 +99,15 @@ class CourierOrderModel {
       customerAddress: guest?['deliveryAddress'] as String? ?? address?['line1'] as String?,
       customerLat: customerLat,
       customerLng: customerLng,
-      restaurantLat: parseDouble(json['restaurantLatitude']),
-      restaurantLng: parseDouble(json['restaurantLongitude']),
+      restaurantLat: parseDouble(json['restaurantLatitude']) ??
+          parseDouble(restaurant?['latitude']) ??
+          parseDouble(business?['latitude']),
+      restaurantLng: parseDouble(json['restaurantLongitude']) ??
+          parseDouble(restaurant?['longitude']) ??
+          parseDouble(business?['longitude']),
       courierFee: assignment?['courierFee'] as num? ?? json['deliveryFee'] as num?,
       assignmentAcceptedAt: _parseDateTime(assignment?['acceptedAt']),
+      items: items,
     );
   }
 

@@ -11,6 +11,7 @@ import '../../../shared/models/courier_order_model.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/food_app_card.dart';
 import '../../../shared/widgets/info_row.dart';
+import '../../../shared/widgets/order_line_items_card.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
 
@@ -36,15 +37,18 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
 
   Future<void> _load() async {
     try {
-      final orders = await ref.read(courierRepositoryProvider).fetchAvailableOrders();
       CourierOrderModel? order;
-      for (final item in orders) {
+      final available = await ref.read(courierRepositoryProvider).fetchAvailableOrders();
+      for (final item in available) {
         if (item.id == widget.orderId) {
           order = item;
           break;
         }
       }
+      order ??= await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
       if (mounted) setState(() => _order = order);
+    } catch (_) {
+      if (mounted) setState(() => _order = null);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -59,42 +63,57 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
     if (order == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text(AppStrings.errorGeneric)),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(AppStrings.orderUnavailable, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.lg),
+                FoodAppButton(
+                  label: AppStrings.backToHome,
+                  variant: FoodAppButtonVariant.secondary,
+                  onPressed: () => context.go(AppRoutes.home),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
     return Scaffold(
       appBar: AppBar(title: const Text(AppStrings.newOrder)),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: FoodAppCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    InfoRow(label: AppStrings.restaurant, value: order.restaurantName ?? '—'),
-                    InfoRow(label: AppStrings.address, value: order.customerAddress ?? '—'),
-                    if (order.distanceKm != null)
-                      InfoRow(label: AppStrings.distance, value: '${order.distanceKm} km'),
-                    InfoRow(
-                      label: AppStrings.deliveryFee,
-                      value: formatSum(order.courierFee ?? order.deliveryFee),
-                    ),
-                  ],
+        children: [
+          FoodAppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                InfoRow(label: AppStrings.orderId, value: order.orderNumber),
+                InfoRow(label: AppStrings.restaurant, value: order.restaurantName ?? '—'),
+                InfoRow(label: AppStrings.address, value: order.customerAddress ?? '—'),
+                if (order.distanceKm != null)
+                  InfoRow(label: AppStrings.distance, value: '${order.distanceKm} km'),
+                InfoRow(
+                  label: AppStrings.deliveryFee,
+                  value: formatSum(order.courierFee ?? order.deliveryFee),
                 ),
-              ),
+                InfoRow(label: AppStrings.total, value: formatSum(order.total)),
+              ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            FoodAppButton(
-              label: AppStrings.accept,
-              isLoading: _acting,
-              onPressed: _accept,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          OrderLineItemsCard(items: order.items),
+          const SizedBox(height: AppSpacing.xl),
+          FoodAppButton(
+            label: AppStrings.accept,
+            isLoading: _acting,
+            onPressed: _accept,
+          ),
+        ],
       ),
     );
   }
@@ -108,6 +127,7 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
       }
       await ref.read(courierRepositoryProvider).acceptOrder(widget.orderId);
       ref.invalidate(activeOrderProvider);
+      ref.invalidate(availableOrdersProvider);
       if (!mounted) return;
       context.go(AppRoutes.activeOrder, extra: widget.orderId);
     } on DioException catch (e) {
@@ -118,5 +138,4 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
       if (mounted) setState(() => _acting = false);
     }
   }
-
 }

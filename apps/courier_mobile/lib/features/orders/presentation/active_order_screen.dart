@@ -9,10 +9,12 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/courier_order_model.dart';
+import '../../../shared/widgets/call_phone_button.dart';
 import '../../../shared/widgets/delivery_map.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/food_app_card.dart';
 import '../../../shared/widgets/info_row.dart';
+import '../../../shared/widgets/order_line_items_card.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
 
@@ -85,50 +87,58 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('${AppStrings.orderId} ${order.orderNumber}')),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          FoodAppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(_statusLabel(order.status), style: AppTypography.subtitle),
-                const SizedBox(height: AppSpacing.md),
-                InfoRow(label: AppStrings.restaurant, value: order.restaurantName ?? '—'),
-                InfoRow(label: AppStrings.customer, value: order.customerPhone ?? '—'),
-                InfoRow(label: AppStrings.address, value: order.customerAddress ?? '—'),
-              ],
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            FoodAppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(_statusLabel(order.status), style: AppTypography.subtitle),
+                  const SizedBox(height: AppSpacing.md),
+                  InfoRow(label: AppStrings.restaurant, value: order.restaurantName ?? '—'),
+                  InfoRow(label: AppStrings.customer, value: order.customerPhone ?? '—'),
+                  InfoRow(label: AppStrings.address, value: order.customerAddress ?? '—'),
+                  if (order.customerPhone != null)
+                    CallPhoneButton(phone: order.customerPhone!),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          DeliveryMap(
-            courierLat: _courierLat,
-            courierLng: _courierLng,
-            restaurantLat: order.restaurantLat,
-            restaurantLng: order.restaurantLng,
-            customerLat: order.customerLat,
-            customerLng: order.customerLng,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          if (_needsAcceptance) ...[
-            FoodAppButton(
-              label: AppStrings.accept,
-              isLoading: _acting,
-              onPressed: _acting ? null : _acceptAssignment,
+            const SizedBox(height: AppSpacing.lg),
+            OrderLineItemsCard(items: order.items),
+            const SizedBox(height: AppSpacing.lg),
+            DeliveryMap(
+              courierLat: _courierLat,
+              courierLng: _courierLng,
+              restaurantLat: order.restaurantLat,
+              restaurantLng: order.restaurantLng,
+              customerLat: order.customerLat,
+              customerLng: order.customerLng,
             ),
-            const SizedBox(height: AppSpacing.md),
-            FoodAppButton(
-              label: AppStrings.decline,
-              variant: FoodAppButtonVariant.secondary,
-              onPressed: _acting ? null : _declineAssignment,
-            ),
-          ] else
-            FoodAppButton(
-              label: _actionLabel,
-              isLoading: _acting,
-              onPressed: _acting ? null : _onAction,
-            ),
-        ],
+            const SizedBox(height: AppSpacing.lg),
+            if (_needsAcceptance) ...[
+              FoodAppButton(
+                label: AppStrings.accept,
+                isLoading: _acting,
+                onPressed: _acting ? null : _acceptAssignment,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              FoodAppButton(
+                label: AppStrings.decline,
+                variant: FoodAppButtonVariant.secondary,
+                isLoading: _acting,
+                onPressed: _acting ? null : _declineAssignment,
+              ),
+            ] else
+              FoodAppButton(
+                label: _actionLabel,
+                isLoading: _acting,
+                onPressed: _acting ? null : _onAction,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -209,6 +219,7 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
       if (order.status == 'DELIVERING') {
         await ref.read(courierRepositoryProvider).updateStatus(order.id, 'DELIVERED');
         ref.invalidate(activeOrderProvider);
+        ref.invalidate(courierEarningsProvider);
         if (!mounted) return;
         context.go(AppRoutes.orderComplete);
       }

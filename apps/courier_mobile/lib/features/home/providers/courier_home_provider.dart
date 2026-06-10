@@ -1,28 +1,69 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../notifications/data/notifications_repository.dart';
 import '../../orders/data/courier_repository.dart';
 import '../../../core/location/courier_location_service.dart';
+import '../../../shared/models/courier_earnings_model.dart';
 import '../../../shared/models/courier_model.dart';
 import '../../../shared/models/courier_order_model.dart';
+
+const _pollInterval = Duration(seconds: 10);
 
 final courierProfileProvider = FutureProvider.autoDispose<CourierProfileModel>((ref) async {
   ref.watch(authStateProvider);
   return ref.read(courierRepositoryProvider).fetchMe();
 });
 
-final activeOrderProvider = FutureProvider.autoDispose<CourierOrderModel?>((ref) async {
+final courierEarningsProvider =
+    FutureProvider.autoDispose<CourierEarningsModel>((ref) async {
   ref.watch(authStateProvider);
-  final orders = await ref.read(courierRepositoryProvider).fetchMyOrders();
-  for (final order in orders) {
-    if (order.isActive) return order;
+  return ref.read(courierRepositoryProvider).fetchEarnings();
+});
+
+final notificationsUnreadProvider = FutureProvider.autoDispose<int>((ref) async {
+  ref.watch(authStateProvider);
+  return ref.read(notificationsRepositoryProvider).fetchUnreadCount();
+});
+
+final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref) async* {
+  ref.watch(authStateProvider);
+  while (true) {
+    try {
+      final orders = await ref.read(courierRepositoryProvider).fetchMyOrders();
+      CourierOrderModel? active;
+      for (final order in orders) {
+        if (order.isActive) {
+          active = order;
+          break;
+        }
+      }
+      yield active;
+    } catch (_) {
+      yield null;
+    }
+    await Future<void>.delayed(_pollInterval);
   }
-  return null;
 });
 
 final availableOrdersProvider =
-    FutureProvider.autoDispose<List<CourierOrderModel>>((ref) async {
+    StreamProvider.autoDispose<List<CourierOrderModel>>((ref) async* {
   ref.watch(authStateProvider);
-  return ref.read(courierRepositoryProvider).fetchAvailableOrders();
+  final online = ref.watch(courierOnlineProvider).valueOrNull ?? false;
+  if (!online) {
+    yield [];
+    return;
+  }
+
+  while (true) {
+    try {
+      yield await ref.read(courierRepositoryProvider).fetchAvailableOrders();
+    } catch (_) {
+      yield [];
+    }
+    await Future<void>.delayed(_pollInterval);
+  }
 });
 
 final courierOnlineProvider =
@@ -55,6 +96,10 @@ class CourierOnlineNotifier extends Notifier<AsyncValue<bool>> {
         }
       }
       ref.invalidate(courierProfileProvider);
+      ref.invalidate(courierEarningsProvider);
+      if (!value) {
+        ref.invalidate(availableOrdersProvider);
+      }
     } catch (e, st) {
       state = AsyncValue.data(previous);
       state = AsyncValue.error(e, st);

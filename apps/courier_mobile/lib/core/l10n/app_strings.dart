@@ -5,9 +5,13 @@ abstract final class AppStrings {
   static const password = 'Parol';
   static const online = 'Onlayn';
   static const offline = 'Oflayn';
+  static const tabHome = 'Asosiy';
+  static const tabHistory = 'Tarix';
+  static const tabProfile = 'Profil';
   static const waitingOrders = 'Buyurtmalar kutilmoqda';
   static const waitingOrdersHint =
-      'Onlayn rejimda qoling. Yangi buyurtma tayinlanganda xabar beramiz.';
+      'Onlayn rejimda qoling. Yangi buyurtmalar ro\'yxatda ko\'rinadi.';
+  static const availableOrders = 'Mavjud buyurtmalar';
   static const activeDelivery = 'Faol yetkazish';
   static const orderId = 'Buyurtma';
   static const restaurant = 'Restoran';
@@ -26,6 +30,8 @@ abstract final class AppStrings {
   static const deliveryCompletedHint = 'Yana yangi buyurtmalar kutilmoqda.';
   static const backToHome = 'Bosh sahifaga';
   static const openInGoogleMaps = 'Google Mapsda ochish';
+  static const navigateToRestaurant = 'Restoranga yo\'l';
+  static const navigateToCustomer = 'Mijozga yo\'l';
   static const profile = 'Profil';
   static const notifications = 'Bildirishnomalar';
   static const orderHistory = 'Yetkazish tarixi';
@@ -34,9 +40,15 @@ abstract final class AppStrings {
   static const noNotifications = 'Bildirishnomalar yo\'q';
   static const noHistory = 'Hali yetkazishlar yo\'q';
   static const earned = 'Daromad';
+  static const deliveries = 'Yetkazishlar';
+  static const todayEarnings = 'Jami daromad';
+  static const orderItems = 'Buyurtma tarkibi';
+  static const callCustomer = 'Mijozga qo\'ng\'iroq';
+  static const total = 'Jami';
   static const errorGeneric = 'Xatolik yuz berdi';
   static const loginFailed = 'Kirish amalga oshmadi';
   static const mustBeOnline = 'Buyurtma qabul qilish uchun onlayn bo\'ling';
-  static const declineNotSupported =
-      'Rad etish hozircha serverda qo\'llab-quvvatlanmaydi. Buyurtma e\'tiborsiz qoldiriladi.';
+  static const orderUnavailable = 'Buyurtma endi mavjud emas';
+  static const goOnline = 'Onlayn bo\'lish';
+  static const goOffline = 'Oflayn bo\'lish';
 }

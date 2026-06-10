@@ -56,11 +56,15 @@ jobs:
       - name: Test
         run: flutter test
 
-      - name: Build release APK
+      - name: Build release APK and App Bundle
         run: |
           API_URL="$(printf '%s' "${API_BASE_URL}" | tr -d '[:space:]')"
           WS_URL="$(printf '%s' "${WS_BASE_URL}" | tr -d '[:space:]')"
           flutter build apk --release \
+            --dart-define=API_BASE_URL="${API_URL}" \
+            --dart-define=WS_BASE_URL="${WS_URL}" \
+            --dart-define=ENABLE_FCM=true
+          flutter build appbundle --release \
             --dart-define=API_BASE_URL="${API_URL}" \
             --dart-define=WS_BASE_URL="${WS_URL}" \
             --dart-define=ENABLE_FCM=true
@@ -72,3 +76,11 @@ jobs:
           path: apps/courier_mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload App Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foodapp-courier-aab
+          path: apps/courier_mobile/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30

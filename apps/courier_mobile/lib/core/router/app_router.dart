@@ -9,6 +9,7 @@ import '../../features/orders/presentation/incoming_order_screen.dart';
 import '../../features/orders/presentation/order_complete_screen.dart';
 import '../../features/orders/presentation/order_history_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/shell/courier_shell_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import 'routes.dart';
 
@@ -25,13 +26,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       final onSplash = location == AppRoutes.splash;
 
       if (loggedIn && (onLogin || onSplash)) return AppRoutes.home;
-      if (!loggedIn && !onLogin) return AppRoutes.login;
+      if (!loggedIn && !onLogin && !onSplash) return AppRoutes.login;
       return null;
     },
     routes: [
       GoRoute(path: AppRoutes.splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
-      GoRoute(path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
       GoRoute(
         path: AppRoutes.incomingOrder,
         builder: (_, state) => IncomingOrderScreen(orderId: state.extra as String),
@@ -41,9 +41,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => ActiveOrderScreen(orderId: state.extra as String),
       ),
       GoRoute(path: AppRoutes.orderComplete, builder: (_, __) => const OrderCompleteScreen()),
-      GoRoute(path: AppRoutes.profile, builder: (_, __) => const ProfileScreen()),
       GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationsScreen()),
-      GoRoute(path: AppRoutes.orderHistory, builder: (_, __) => const OrderHistoryScreen()),
+      StatefulShellRoute.indexedStack(
+        builder: (_, __, navigationShell) =>
+            CourierShellScreen(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.history,
+                builder: (_, __) => const OrderHistoryScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: AppRoutes.profile, builder: (_, __) => const ProfileScreen()),
+            ],
+          ),
+        ],
+      ),
     ],
   );
 

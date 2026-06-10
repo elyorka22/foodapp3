@@ -18,4 +18,25 @@ class CourierLocationService {
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
   }
+
+  Stream<Position> watchPosition() async* {
+    final enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) return;
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      return;
+    }
+
+    yield* Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 50,
+      ),
+    );
+  }
 }
