@@ -125,6 +125,7 @@ abstract final class AppStrings {
 
   static const loading = 'Yuklanmoqda...';
   static const retry = 'Qayta urinish';
+  static const back = 'Orqaga';
   static const errorGeneric = 'Xatolik yuz berdi';
 
   static const addToCart = "Savatga qo'shish";
