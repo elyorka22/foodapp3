@@ -11,10 +11,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
+import '../../../core/utils/phone_util.dart';
 import '../../../shared/models/cart_item_model.dart';
 import '../../../shared/models/order_model.dart';
 import '../../../shared/widgets/checkout_promo_card.dart';
 import '../../../shared/widgets/customer_page.dart';
+import '../../../shared/widgets/uz_phone_field.dart';
 import '../../../shared/widgets/delivery_location_field.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -61,7 +63,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       !_loading &&
       !_calculateBusy &&
       _deliveryQuoted &&
-      _phone.text.trim().isNotEmpty;
+      isValidUzPhone(_phone.text);
 
   Future<void> _calculateDelivery() async {
     setState(() {
@@ -199,7 +201,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     try {
       final deliveryAddress = 'GPS: ${_lat!}, ${_lng!}';
-      final phone = _phone.text.trim();
+      final phone = normalizePhone(_phone.text);
       final deviceId = await ref.read(deviceRegistrationServiceProvider).getDeviceId();
       await ref.read(deviceRegistrationServiceProvider).syncGuestPhone(phone);
 
@@ -246,7 +248,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final user = ref.watch(authStateProvider).valueOrNull;
 
     if (user?.phone != null && _phone.text.isEmpty) {
-      _phone.text = user!.phone!;
+      setUzPhoneController(_phone, user!.phone);
     }
 
     if (cart.isEmpty) {
@@ -311,10 +313,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 : () => _applyPromo(businessId, total, user?.id),
           ),
           const SizedBox(height: AppSpacing.lg),
-          CustomerTextField(
+          UzPhoneField(
             controller: _phone,
-            placeholder: AppStrings.phonePlaceholder,
-            keyboardType: TextInputType.phone,
+            hint: AppStrings.phonePlaceholder,
           ),
           const SizedBox(height: AppSpacing.lg),
           DeliveryLocationField(

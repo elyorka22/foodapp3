@@ -49,7 +49,7 @@ abstract final class AppStrings {
   static const invalidPromo = "Promo kod noto'g'ri";
   static const promoValidateFailed = 'Promo tekshirilmadi';
   static String promoDiscount(String amount) => 'Chegirma: $amount';
-  static const phonePlaceholder = 'Telefon (+998901234567)';
+  static const phonePlaceholder = '90 123 45 67';
   static const commentOptional = 'Izoh (ixtiyoriy)';
   static const placingOrder = 'Buyurtma yuborilmoqda...';
   static const deliveryFee = 'yetkazish';

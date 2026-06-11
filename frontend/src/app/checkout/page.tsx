@@ -25,6 +25,7 @@ import { CheckoutSummaryCard } from '@/components/checkout/checkout-summary-card
 import { CheckoutSubmitBar } from '@/components/checkout/checkout-submit-bar';
 import { fetchDeliveryQuote } from '@/hooks/use-delivery-pricing';
 import { formatSum } from '@/lib/format-sum';
+import { isValidUzPhone, normalizePhone } from '@/lib/phone';
 import { uz } from '@/lib/uz';
 
 export default function CheckoutPage() {
@@ -192,7 +193,7 @@ export default function CheckoutPage() {
         token: token ?? undefined,
         body: JSON.stringify({
           restaurantId,
-          phone: loggedIn?.phone ?? phone,
+          phone: loggedIn?.phone ?? normalizePhone(phone),
           customerId: loggedIn?.id,
           deliveryAddress: address,
           latitude: deliveryLocation.lat,
@@ -216,7 +217,7 @@ export default function CheckoutPage() {
     !loading &&
     !deliveryLoading &&
     deliveryQuoted &&
-    phone.trim().length > 0;
+    isValidUzPhone(phone);
 
   if (!items.length) {
     return (

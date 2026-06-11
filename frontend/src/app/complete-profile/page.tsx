@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { isValidUzPhone, normalizePhone } from '@/lib/phone';
 import { Card } from '@/components/ui/card';
 import { api } from '@/lib/api';
 import {
@@ -67,10 +68,15 @@ export default function CompleteProfilePage() {
       return;
     }
 
+    if (!isValidUzPhone(phone)) {
+      setError(uz.phoneInvalid);
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
-      const body: Record<string, unknown> = { phone };
+      const body: Record<string, unknown> = { phone: normalizePhone(phone) };
       if (deliveryLocation.address.trim()) {
         body.deliveryAddress = deliveryLocation.address.trim();
         body.latitude = deliveryLocation.lat;
@@ -99,12 +105,7 @@ export default function CompleteProfilePage() {
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-zinc-700">{uz.phone}</label>
-            <Input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
+            <PhoneInput value={phone} onChange={setPhone} required />
           </div>
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-700">

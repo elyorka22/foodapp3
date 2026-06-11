@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { isValidUzPhone, normalizePhone } from '@/lib/phone';
 import { PasswordInput } from '@/components/ui/password-input';
 import {
   persistCustomerSession,
@@ -54,7 +56,7 @@ export function CustomerRegisterForm({ onSuccess, onSwitchToLogin }: Props) {
       setError(uz.nameRequired);
       return;
     }
-    if (phone.trim().length < 9) {
+    if (!isValidUzPhone(phone)) {
       setError(uz.phoneInvalid);
       return;
     }
@@ -70,7 +72,7 @@ export function CustomerRegisterForm({ onSuccess, onSwitchToLogin }: Props) {
     setLoading(true);
     try {
       const res = await registerWithPhone({
-        phone,
+        phone: normalizePhone(phone),
         fullName: fullName.trim(),
         password,
       });
@@ -115,16 +117,7 @@ export function CustomerRegisterForm({ onSuccess, onSwitchToLogin }: Props) {
           <label htmlFor="register-phone" className="mb-2 block text-sm font-medium text-foreground">
             {uz.phone}
           </label>
-          <Input
-            id="register-phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="+998 90 123 45 67"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-          />
+          <PhoneInput id="register-phone" value={phone} onChange={setPhone} required />
         </div>
         <div>
           <label htmlFor="register-password" className="mb-2 block text-sm font-medium text-foreground">

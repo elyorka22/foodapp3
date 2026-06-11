@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { isValidUzPhone, normalizePhone } from '@/lib/phone';
 import { PasswordInput } from '@/components/ui/password-input';
 import { dashboardPath, loginStaff, setAuth } from '@/lib/auth';
 import { uz } from '@/lib/uz';
@@ -24,10 +26,14 @@ export function StaffLoginForm({ redirect = true, onSuccess }: Props) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidUzPhone(phone)) {
+      setError(uz.phoneInvalid);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
-      const res = await loginStaff(phone, password);
+      const res = await loginStaff(normalizePhone(phone), password);
       setAuth(res.accessToken, res.user);
       onSuccess?.();
       if (redirect) {
@@ -46,15 +52,11 @@ export function StaffLoginForm({ redirect = true, onSuccess }: Props) {
         <label htmlFor="staff-phone" className="mb-2 block text-sm font-medium text-foreground">
           {uz.phone}
         </label>
-        <Input
+        <PhoneInput
           id="staff-phone"
-          type="tel"
           name="staff-phone"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="+998 90 123 45 67"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={setPhone}
           required
         />
       </div>

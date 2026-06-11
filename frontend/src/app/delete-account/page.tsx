@@ -6,7 +6,10 @@ import { ChevronLeft, ShieldAlert, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { requestAccountDeletion } from '@/lib/account-deletion';
+import { isValidUzPhone, normalizePhone } from '@/lib/phone';
+import { uz } from '@/lib/uz';
 import { getCustomerToken } from '@/lib/customer';
 
 const DATA_DELETED = [
@@ -43,6 +46,10 @@ export default function DeleteAccountPage() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!isValidUzPhone(phone)) {
+      setError(uz.phoneInvalid);
+      return;
+    }
     setLoading(true);
     setError('');
     setMessage('');
@@ -50,7 +57,7 @@ export default function DeleteAccountPage() {
       const token = getCustomerToken() ?? undefined;
       const res = await requestAccountDeletion(
         {
-          phone: phone.trim(),
+          phone: normalizePhone(phone),
           ...(email.trim() ? { email: email.trim() } : {}),
           ...(reason.trim() ? { reason: reason.trim() } : {}),
         },
@@ -146,16 +153,7 @@ export default function DeleteAccountPage() {
               <label htmlFor="phone" className="mb-1 block text-sm font-medium text-zinc-700">
                 Phone number <span className="text-red-600">*</span>
               </label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                placeholder="+998901234567"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                autoComplete="tel"
-              />
+              <PhoneInput id="phone" name="phone" value={phone} onChange={setPhone} required />
             </div>
             <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium text-zinc-700">

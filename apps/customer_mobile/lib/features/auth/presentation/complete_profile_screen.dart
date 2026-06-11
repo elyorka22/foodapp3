@@ -9,7 +9,8 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/food_app_button.dart';
-import '../../../shared/widgets/food_app_input.dart';
+import '../../../core/utils/phone_util.dart';
+import '../../../shared/widgets/uz_phone_field.dart';
 import '../providers/auth_provider.dart';
 
 /// Shown when Telegram (or other) auth returns `needsPhone: true`.
@@ -47,11 +48,10 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
             ],
             Text(AppStrings.completeProfileHint, style: AppTypography.bodySmall),
             const SizedBox(height: AppSpacing.xxl),
-            FoodAppInput(
+            UzPhoneField(
               label: AppStrings.phone,
               controller: _phone,
-              keyboardType: TextInputType.phone,
-              hint: '+998901234567',
+              hint: AppStrings.phonePlaceholder,
             ),
             const SizedBox(height: AppSpacing.xxl),
             FoodAppButton(
@@ -66,17 +66,16 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   }
 
   Future<void> _submit() async {
-    final phone = _phone.text.trim();
-    if (phone.length < 9) {
+    if (!isValidUzPhone(_phone.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Telefon raqamini kiriting')),
+        const SnackBar(content: Text('Telefon raqamini to\'liq kiriting (+998 dan keyin 9 raqam)')),
       );
       return;
     }
 
     setState(() => _loading = true);
     try {
-      await ref.read(authStateProvider.notifier).completeProfile(phone);
+      await ref.read(authStateProvider.notifier).completeProfile(normalizePhone(_phone.text));
       if (!mounted) return;
       context.go(AppRoutes.restaurants);
     } on DioException catch (e) {

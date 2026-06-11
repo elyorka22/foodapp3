@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { isValidUzPhone, normalizePhone } from '@/lib/phone';
 import { PasswordInput } from '@/components/ui/password-input';
 import {
   persistCustomerSession,
@@ -70,10 +71,14 @@ export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
 
   const handlePhoneLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidUzPhone(phone)) {
+      setError(uz.phoneInvalid);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
-      const res = await signInWithPhone(phone, password);
+      const res = await signInWithPhone(normalizePhone(phone), password);
       finishAuth(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : uz.loginFailed);
@@ -129,14 +134,10 @@ export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
           <label htmlFor="customer-phone-login" className="mb-2 block text-sm font-medium text-foreground">
             {uz.phone}
           </label>
-          <Input
+          <PhoneInput
             id="customer-phone-login"
-            type="tel"
-            autoComplete="tel"
-            inputMode="tel"
-            placeholder="+998 90 123 45 67"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={setPhone}
             required
           />
         </div>
