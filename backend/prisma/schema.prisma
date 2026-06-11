@@ -127,6 +127,13 @@ enum LoyaltyLevel {
   PLATINUM
 }
 
+enum AccountDeletionRequestStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model User {
   id           String    @id @default(uuid()) @db.Uuid
   email        String?   @unique
@@ -487,6 +494,7 @@ model Customer {
   promoUsages    PromoCodeUsage[]
   referralsSent  Referral[] @relation("ReferralInviter")
   referralsGot   Referral[] @relation("ReferralInvited")
+  deletionRequests AccountDeletionRequest[]
 
   @@index([deletedAt])
   @@index([telegramUsername])
@@ -891,4 +899,23 @@ model Referral {
 
   @@index([inviterCustomerId])
   @@map("referrals")
+}
+
+/// Google Play account deletion compliance — public and in-app requests.
+model AccountDeletionRequest {
+  id        String                       @id @default(uuid()) @db.Uuid
+  userId    String?                      @map("user_id") @db.Uuid
+  phone     String
+  email     String?
+  reason    String?
+  status    AccountDeletionRequestStatus   @default(PENDING)
+  createdAt DateTime                     @default(now()) @map("created_at")
+  deletedAt DateTime?                    @map("deleted_at")
+
+  customer Customer? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([phone])
+  @@index([status, createdAt])
+  @@map("account_deletion_requests")
 }

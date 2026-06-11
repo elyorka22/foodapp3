@@ -10,7 +10,7 @@ const STAFF_PREFIXES = ['/login', '/staff', '/admin', '/manager', '/business', '
 const EMBED_PATHS = ['/auth/telegram-mobile'];
 
 /** Legal pages render without global footer/nav clutter. */
-const LEGAL_PATHS = ['/privacy', '/terms'];
+const LEGAL_PATHS = ['/privacy', '/terms', '/delete-account'];
 
 /** Global SiteHeader removed — only the home page shows HomeTopBar inside its own layout. */
 export function CustomerShell({ children }: { children: React.ReactNode }) {

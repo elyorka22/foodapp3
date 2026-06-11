@@ -7,7 +7,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CustomerAuthProvider, OrderStatus, Prisma } from '@prisma/client';
+import {
+  CustomerAuthProvider,
+  NotificationAccountType,
+  OrderStatus,
+  Prisma,
+} from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BruteForceService } from '../../common/security/brute-force.service';
 import { AuditService } from '../audit/audit.service';
@@ -335,6 +340,128 @@ export class CustomersService {
     const orders = await this.getOrderHistory(id, customer.phone);
 
     return { stats, orders };
+  }
+
+  async deleteCustomerAccount(
+    customerId: string,
+    meta?: { requestId?: string; source?: string },
+  ) {
+    const customer = await this.prisma.customer.findFirst({
+      where: { id: customerId, deletedAt: null },
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    const tag = customerId.slice(0, 8);
+    const scrubbedPhone = customer.phone
+      ? `${customer.phone}_deleted_${tag}`
+      : null;
+    const anonymizedPhone = `deleted_${tag}`;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.guestOrder.updateMany({
+        where: { customerId },
+        data: {
+          customerId: null,
+          phone: scrubbedPhone ?? anonymizedPhone,
+          deliveryAddress: 'Deleted',
+          comment: null,
+          deviceId: null,
+        },
+      });
+
+      if (customer.phone) {
+        await tx.guestOrder.updateMany({
+          where: { phone: customer.phone, customerId: null },
+          data: {
+            phone: anonymizedPhone,
+            deliveryAddress: 'Deleted',
+            comment: null,
+            deviceId: null,
+          },
+        });
+      }
+
+      await tx.userDevice.deleteMany({
+        where: {
+          userId: customerId,
+          accountType: NotificationAccountType.CUSTOMER,
+        },
+      });
+
+      await tx.notificationPreference.deleteMany({
+        where: {
+          userId: customerId,
+          accountType: NotificationAccountType.CUSTOMER,
+        },
+      });
+
+      await tx.notification.deleteMany({
+        where: {
+          userId: customerId,
+          accountType: NotificationAccountType.CUSTOMER,
+        },
+      });
+
+      await tx.referral.deleteMany({
+        where: {
+          OR: [
+            { inviterCustomerId: customerId },
+            { invitedCustomerId: customerId },
+          ],
+        },
+      });
+
+      await tx.customerLoyalty.deleteMany({ where: { customerId } });
+
+      await tx.promoCodeUsage.updateMany({
+        where: { customerId },
+        data: { customerId: null },
+      });
+
+      await tx.customer.update({
+        where: { id: customerId },
+        data: {
+          deletedAt: new Date(),
+          isActive: false,
+          phone: scrubbedPhone,
+          fullName: 'Deleted User',
+          email: null,
+          passwordHash: null,
+          otpVerified: false,
+          otpCode: null,
+          otpExpiresAt: null,
+          telegramId: null,
+          telegramUsername: null,
+          telegramFirstName: null,
+          telegramLastName: null,
+          telegramPhotoUrl: null,
+          isTelegramVerified: false,
+          lastTelegramLoginAt: null,
+          googleId: null,
+          googlePhotoUrl: null,
+          isGoogleVerified: false,
+          lastGoogleLoginAt: null,
+          defaultDeliveryAddress: null,
+          defaultLatitude: null,
+          defaultLongitude: null,
+          referralCode: customer.referralCode
+            ? `${customer.referralCode}_deleted_${tag}`
+            : null,
+          authProvider: null,
+        },
+      });
+    });
+
+    await this.audit.log({
+      action: 'delete_account',
+      entity: 'customer',
+      entityId: customerId,
+      metadata: meta,
+    });
+
+    return { deleted: true };
   }
 
   async assertCustomerCanOrder(customerId: string) {

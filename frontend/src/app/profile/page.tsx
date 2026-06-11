@@ -10,6 +10,7 @@ import { ProfileAccountMenu } from '@/components/profile/profile-account-menu';
 import { ProfilePageHeader } from '@/components/profile/profile-page-header';
 import { ProfileSocialSection } from '@/components/profile/profile-social-section';
 import { ProfileStaffLoginButton } from '@/components/profile/profile-staff-login-button';
+import { DeleteAccountDialog } from '@/components/profile/delete-account-dialog';
 import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
 import { api } from '@/lib/api';
 import {
@@ -33,6 +34,7 @@ function displayTelegramName(c: CustomerProfile): string {
 export default function ProfilePage() {
   const [customer, setCustomerState] = useState<CustomerProfile | null>(null);
   const [message, setMessage] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { unread } = useCustomerNotifications();
   const unreadCount = unread.data?.count ?? 0;
 
@@ -114,7 +116,7 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 flex flex-col items-center gap-2">
           <Button
             type="button"
             variant="ghost"
@@ -123,7 +125,25 @@ export default function ProfilePage() {
           >
             {uz.signOut}
           </Button>
+          {customer.phone && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="text-zinc-500 hover:text-red-600"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              Delete Account
+            </Button>
+          )}
         </div>
+
+        {showDeleteDialog && customer.phone && (
+          <DeleteAccountDialog
+            phone={customer.phone}
+            token={getCustomerToken() ?? ''}
+            onClose={() => setShowDeleteDialog(false)}
+          />
+        )}
 
         <ProfileStaffLoginButton className="mt-4" />
 

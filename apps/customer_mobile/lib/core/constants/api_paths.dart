@@ -14,6 +14,7 @@ class ApiPaths {
   static const customersLogin = '/customers/login';
   static const customersMe = '/customers/me';
   static const customersCompleteProfile = '/customers/complete-profile';
+  static const accountDeleteRequest = '/account/delete-request';
 
   static const notifications = '/notifications';
   static const notificationsUnread = '/notifications/unread-count';

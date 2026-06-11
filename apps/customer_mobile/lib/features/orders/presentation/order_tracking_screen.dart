@@ -29,7 +29,6 @@ class OrderTrackingScreen extends ConsumerWidget {
         data: (snapshot) => _TrackingBody(
           order: snapshot.order,
           isStale: snapshot.isStale,
-          pollError: snapshot.pollError,
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -57,17 +56,16 @@ class _TrackingBody extends StatelessWidget {
   const _TrackingBody({
     required this.order,
     this.isStale = false,
-    this.pollError,
   });
 
   final OrderTrackModel order;
   final bool isStale;
-  final String? pollError;
 
   @override
   Widget build(BuildContext context) {
-    final activeIdx = OrderStatusSteps.activeIndex(order.status);
+    final progressIdx = OrderStatusSteps.activeIndex(order.status);
     final isCancelled = order.status == 'CANCELLED';
+    final statusHint = OrderStatusSteps.statusHint(order.status);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -104,16 +102,17 @@ class _TrackingBody extends StatelessWidget {
                   style: AppTypography.subtitle.copyWith(color: AppColors.danger),
                 )
               : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    for (var i = 0; i < OrderStatusSteps.steps.length; i++)
-                      _StepRow(
-                        step: OrderStatusSteps.steps[i],
-                        state: i < activeIdx
-                            ? _StepState.done
-                            : i == activeIdx
-                                ? _StepState.active
-                                : _StepState.pending,
+                    if (statusHint != null) ...[
+                      Text(
+                        statusHint,
+                        style: AppTypography.subtitle.copyWith(color: AppColors.primary),
+                        textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                    _SimpleProgressBar(progressIndex: progressIdx),
                   ],
                 ),
         ),
@@ -179,55 +178,104 @@ class _TrackingBody extends StatelessWidget {
   }
 }
 
-enum _StepState { done, active, pending }
+class _SimpleProgressBar extends StatelessWidget {
+  const _SimpleProgressBar({required this.progressIndex});
 
-class _StepRow extends StatelessWidget {
-  const _StepRow({required this.step, required this.state});
+  final int progressIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = OrderStatusSteps.steps;
+
+    return Row(
+      children: [
+        for (var i = 0; i < steps.length; i++) ...[
+          if (i > 0) Expanded(child: _ConnectorLine(filled: i <= progressIndex)),
+          _StageNode(
+            step: steps[i],
+            state: i < progressIndex
+                ? _StageState.done
+                : i == progressIndex
+                    ? _StageState.active
+                    : _StageState.pending,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+enum _StageState { done, active, pending }
+
+class _StageNode extends StatelessWidget {
+  const _StageNode({required this.step, required this.state});
 
   final OrderStep step;
-  final _StepState state;
+  final _StageState state;
+
+  IconData get _icon => switch (step.iconName) {
+        'store' => Icons.storefront_outlined,
+        'delivery' => Icons.delivery_dining_outlined,
+        _ => Icons.home_outlined,
+      };
 
   @override
   Widget build(BuildContext context) {
     final color = switch (state) {
-      _StepState.done => AppColors.success,
-      _StepState.active => AppColors.primary,
-      _StepState.pending => AppColors.textMuted,
+      _StageState.done => AppColors.success,
+      _StageState.active => AppColors.primary,
+      _StageState.pending => AppColors.textMuted,
     };
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+    return SizedBox(
+      width: 72,
+      child: Column(
         children: [
           Container(
-            width: 28,
-            height: 28,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: state == _StepState.pending
-                  ? AppColors.border
-                  : color.withValues(alpha: 0.15),
+              color: state == _StageState.pending
+                  ? AppColors.border.withValues(alpha: 0.5)
+                  : color.withValues(alpha: 0.12),
               border: Border.all(color: color, width: 2),
             ),
-            child: state == _StepState.done
-                ? Icon(Icons.check, size: 16, color: color)
-                : state == _StepState.active
-                    ? Icon(Icons.circle, size: 10, color: color)
-                    : null,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              step.label,
-              style: AppTypography.body.copyWith(
-                fontWeight: state == _StepState.active ? FontWeight.w600 : FontWeight.w400,
-                color: state == _StepState.pending
-                    ? AppColors.textMuted
-                    : AppColors.textPrimary,
-              ),
+            child: Icon(
+              state == _StageState.done ? Icons.check : _icon,
+              color: color,
+              size: 22,
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            step.label,
+            style: AppTypography.caption.copyWith(
+              color: state == _StageState.pending ? AppColors.textMuted : AppColors.textPrimary,
+              fontWeight: state == _StageState.active ? FontWeight.w700 : FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _ConnectorLine extends StatelessWidget {
+  const _ConnectorLine({required this.filled});
+
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 3,
+      margin: const EdgeInsets.only(bottom: 28),
+      decoration: BoxDecoration(
+        color: filled ? AppColors.primary : AppColors.border,
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }

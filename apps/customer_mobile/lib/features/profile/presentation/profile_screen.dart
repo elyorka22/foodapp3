@@ -9,6 +9,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
+import '../data/account_deletion_repository.dart';
 import 'profile_banner_tile.dart';
 import 'profile_social_section.dart';
 
@@ -37,6 +38,52 @@ const _bannerNotificationIcon = Icon(
   size: 40,
   color: Color(0x999CA3AF),
 );
+
+Future<void> _confirmDeleteAccount(
+  BuildContext context,
+  WidgetRef ref,
+  String phone,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(AppStrings.deleteAccountTitle),
+      content: Text(AppStrings.deleteAccountWarning),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(AppStrings.deleteAccountCancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(
+            AppStrings.deleteAccountConfirm,
+            style: const TextStyle(color: AppColors.danger),
+          ),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
+  try {
+    await ref
+        .read(accountDeletionRepositoryProvider)
+        .deleteAccountAndLogout(phone: phone);
+    ref.invalidate(authStateProvider);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.deleteAccountSuccess)),
+      );
+    }
+  } catch (_) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.errorGeneric)),
+      );
+    }
+  }
+}
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -109,6 +156,32 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
+                      if (user.phone != null && user.phone!.isNotEmpty)
+                        TextButton(
+                          onPressed: () => _confirmDeleteAccount(
+                            context,
+                            ref,
+                            user.phone!,
+                          ),
+                          child: Text(
+                            AppStrings.deleteAccount,
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textMuted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.sm),
+                          child: Text(
+                            AppStrings.deleteAccountPhoneRequired,
+                            textAlign: TextAlign.center,
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ),
                     ],
                   ],
                 ),

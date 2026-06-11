@@ -16,6 +16,9 @@ export function SiteFooter() {
           <Link href="/terms" className={linkClass}>
             Terms of Service
           </Link>
+          <Link href="/delete-account" className={linkClass}>
+            Delete Account
+          </Link>
         </nav>
         <a href="mailto:support@foodapp.uz" className="text-xs text-zinc-500 hover:text-[#FF6B00]">
           support@foodapp.uz

@@ -55,7 +55,7 @@ const sections = [
   {
     title: 'User Rights',
     body:
-      'You may request access, correction, or deletion of your personal information, and you may withdraw consent for optional processing such as marketing notifications, subject to legal and operational requirements.',
+      'You may request access, correction, or deletion of your personal information, and you may withdraw consent for optional processing such as marketing notifications, subject to legal and operational requirements. To delete your account, visit our account deletion page or use the Delete Account option in the app Profile.',
   },
   {
     title: 'Contact Information',
@@ -97,6 +97,13 @@ export default function PrivacyPage() {
           ))}
 
           <p className="border-t border-zinc-100 pt-4 text-sm text-zinc-600">
+            To request account deletion, visit{' '}
+            <Link href="/delete-account" className="font-medium text-[#FF6B00]">
+              Delete Account
+            </Link>
+            .
+          </p>
+          <p className="text-sm text-zinc-600">
             Email:{' '}
             <a href="mailto:support@foodapp.uz" className="font-medium text-[#FF6B00]">
               support@foodapp.uz

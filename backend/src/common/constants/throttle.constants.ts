@@ -6,4 +6,5 @@ export const THROTTLE = {
   PROMO_VALIDATE: { limit: 40, ttl: 3_600_000 },
   TRACK_ORDER: { limit: 120, ttl: 60_000 },
   GUEST_DEVICE: { limit: 60, ttl: 3_600_000 },
+  ACCOUNT_DELETION: { limit: 5, ttl: 3_600_000 },
 } as const;

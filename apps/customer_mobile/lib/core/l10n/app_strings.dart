@@ -92,6 +92,17 @@ abstract final class AppStrings {
   static const noAccountRegister = "Hisobingiz yo'qmi? Ro'yxatdan o'ting";
   static const haveAccountLogin = 'Akkauntingiz bormi? Kirish';
   static const logout = 'Chiqish';
+  static const deleteAccount = 'Hisobni o\'chirish';
+  static const deleteAccountTitle = 'Hisobni o\'chirish';
+  static const deleteAccountWarning =
+      'Bu amal qaytarib bo\'lmaydi. Profilingiz, telefon raqamingiz, saqlangan manzillar, '
+      'joylashuv ma\'lumotlari, bildirishnoma tokenlari, autentifikatsiya ma\'lumotlari va '
+      'shaxsiy ma\'lumotlaringiz o\'chiriladi va tiklab bo\'lmaydi.';
+  static const deleteAccountConfirm = 'Hisobni o\'chirish';
+  static const deleteAccountCancel = 'Bekor qilish';
+  static const deleteAccountPhoneRequired =
+      'Hisobni o\'chirish uchun avval telefon raqamini qo\'shing.';
+  static const deleteAccountSuccess = 'Hisobingiz o\'chirildi';
   static const guestBrowse = 'Mehmon sifatida davom etish';
   static const phone = 'Telefon';
   static const password = 'Parol';

@@ -32,6 +32,7 @@ import { TelegramAuthModule } from './modules/telegram-auth/telegram-auth.module
 import { GoogleAuthModule } from './modules/google-auth/google-auth.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { FirebaseModule } from './common/firebase/firebase.module';
+import { AccountDeletionModule } from './modules/account-deletion/account-deletion.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { FirebaseModule } from './common/firebase/firebase.module';
     TelegramAuthModule,
     GoogleAuthModule,
     NotificationsModule,
+    AccountDeletionModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })
