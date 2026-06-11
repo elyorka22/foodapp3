@@ -17,7 +17,7 @@ class CourierApp extends ConsumerWidget {
         child: MaterialApp.router(
           title: AppConfig.appName,
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
+          theme: AppTheme.dark,
           routerConfig: router,
         ),
       ),

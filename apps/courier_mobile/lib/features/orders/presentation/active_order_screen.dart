@@ -2,10 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/jobs/courier_job_adapter.dart';
+import '../../../core/jobs/job_stop.dart';
+import '../../../core/jobs/job_workflow.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/location/courier_location_service.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/courier_order_model.dart';
@@ -13,8 +17,9 @@ import '../../../shared/widgets/call_phone_button.dart';
 import '../../../shared/widgets/delivery_map.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/food_app_card.dart';
-import '../../../shared/widgets/info_row.dart';
+import '../../../shared/widgets/job_step_indicator.dart';
 import '../../../shared/widgets/order_line_items_card.dart';
+import '../../../shared/widgets/service_type_badge.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
 
@@ -65,16 +70,6 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
 
   bool get _needsAcceptance => _order?.needsCourierAcceptance ?? false;
 
-  String get _actionLabel {
-    final status = _order?.status;
-    if (_needsAcceptance) return AppStrings.accept;
-    if (status == 'COURIER_ASSIGNED') return AppStrings.arrivedAtRestaurant;
-    if (status == 'ARRIVED_AT_RESTAURANT') return AppStrings.pickedUp;
-    if (status == 'PICKED_UP') return AppStrings.delivered;
-    if (status == 'DELIVERING') return AppStrings.delivered;
-    return AppStrings.openOrder;
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -104,77 +99,128 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
       );
     }
 
+    final steps = JobWorkflow.stepsFor(order);
+    final phase = JobWorkflow.phaseLabel(order);
+    final stops = order.stops;
+
     return Scaffold(
-      appBar: AppBar(title: Text('${AppStrings.orderId} ${order.orderNumber}')),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            FoodAppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+      appBar: AppBar(
+        title: Text('${AppStrings.orderId} #${order.orderNumber}'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: ServiceTypeBadge(type: order.serviceType, compact: true),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _load,
+              color: AppColors.primary,
+              child: ListView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 children: [
-                  Text(_statusLabel(order.status), style: AppTypography.subtitle),
+                  Text(phase, style: AppTypography.title.copyWith(fontSize: 22)),
                   const SizedBox(height: AppSpacing.md),
-                  InfoRow(label: AppStrings.restaurant, value: order.restaurantName ?? '—'),
-                  InfoRow(label: AppStrings.customer, value: order.customerPhone ?? '—'),
-                  InfoRow(label: AppStrings.address, value: order.customerAddress ?? '—'),
-                  if (order.customerPhone != null)
-                    CallPhoneButton(phone: order.customerPhone!),
+                  JobStepIndicator(steps: steps),
+                  const SizedBox(height: AppSpacing.lg),
+                  DeliveryMap(
+                    courierLat: _courierLat,
+                    courierLng: _courierLng,
+                    restaurantLat: order.restaurantLat,
+                    restaurantLng: order.restaurantLng,
+                    customerLat: order.customerLat,
+                    customerLng: order.customerLng,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  ...stops.map(
+                    (stop) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: FoodAppCard(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.primarySoft,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                stop.role == JobStopRole.pickup
+                                    ? Icons.storefront_outlined
+                                    : Icons.location_on_outlined,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(stop.roleLabel, style: AppTypography.caption),
+                                  Text(stop.title, style: AppTypography.subtitle),
+                                  if (stop.subtitle != null)
+                                    Text(stop.subtitle!, style: AppTypography.bodySmall),
+                                ],
+                              ),
+                            ),
+                            if (stop.phone != null)
+                              CallPhoneButton(phone: stop.phone!),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (order.items.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    OrderLineItemsCard(items: order.items),
+                  ],
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            OrderLineItemsCard(items: order.items),
-            const SizedBox(height: AppSpacing.lg),
-            DeliveryMap(
-              courierLat: _courierLat,
-              courierLng: _courierLng,
-              restaurantLat: order.restaurantLat,
-              restaurantLng: order.restaurantLng,
-              customerLat: order.customerLat,
-              customerLng: order.customerLng,
+          ),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              border: Border(top: BorderSide(color: AppColors.border)),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            if (_needsAcceptance) ...[
-              FoodAppButton(
-                label: AppStrings.accept,
-                isLoading: _acting,
-                onPressed: _acting ? null : _acceptAssignment,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              FoodAppButton(
-                label: AppStrings.decline,
-                variant: FoodAppButtonVariant.secondary,
-                isLoading: _acting,
-                onPressed: _acting ? null : _declineAssignment,
-              ),
-            ] else
-              FoodAppButton(
-                label: _actionLabel,
-                isLoading: _acting,
-                onPressed: _acting ? null : _onAction,
-              ),
-          ],
-        ),
+            child: SafeArea(
+              top: false,
+              child: _needsAcceptance
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FoodAppButton(
+                          label: AppStrings.accept,
+                          isLoading: _acting,
+                          onPressed: _acting ? null : _acceptAssignment,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        FoodAppButton(
+                          label: AppStrings.decline,
+                          variant: FoodAppButtonVariant.secondary,
+                          isLoading: _acting,
+                          onPressed: _acting ? null : _declineAssignment,
+                        ),
+                      ],
+                    )
+                  : FoodAppButton(
+                      label: JobWorkflow.actionLabel(order),
+                      isLoading: _acting,
+                      onPressed: _acting ? null : _onAction,
+                    ),
+            ),
+          ),
+        ],
       ),
     );
-  }
-
-  String _statusLabel(String status) {
-    if (_needsAcceptance) return 'Yangi buyurtma biriktirildi';
-    switch (status) {
-      case 'COURIER_ASSIGNED':
-        return 'Restoranga yo\'l';
-      case 'ARRIVED_AT_RESTAURANT':
-        return 'Buyurtmani olish';
-      case 'PICKED_UP':
-      case 'DELIVERING':
-        return 'Mijozga yetkazish';
-      default:
-        return status;
-    }
   }
 
   Future<void> _acceptAssignment() async {

@@ -2,13 +2,17 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/jobs/courier_job_adapter.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_order_model.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../../shared/widgets/service_type_badge.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
 
@@ -66,7 +70,7 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(AppStrings.orderUnavailable, style: Theme.of(context).textTheme.titleMedium),
+                Text(AppStrings.orderUnavailable, style: AppTypography.subtitle),
                 const SizedBox(height: AppSpacing.lg),
                 FoodAppButton(
                   label: AppStrings.backToHome,
@@ -80,7 +84,10 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
       );
     }
 
+    final pickup = order.stops.first;
+
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text(AppStrings.newOrder)),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -88,24 +95,27 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Spacer(),
+            ServiceTypeBadge(type: order.serviceType),
+            const SizedBox(height: AppSpacing.lg),
             Text(
-              order.restaurantName ?? '—',
-              style: Theme.of(context).textTheme.headlineSmall,
+              pickup.title,
+              style: AppTypography.title.copyWith(fontSize: 26),
               textAlign: TextAlign.center,
             ),
+            if (pickup.subtitle != null) ...[
+              const SizedBox(height: 8),
+              Text(pickup.subtitle!, style: AppTypography.bodySmall, textAlign: TextAlign.center),
+            ],
             const SizedBox(height: AppSpacing.xl),
-            Text(
-              AppStrings.initialDeliveryFee,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
+            Text(AppStrings.initialDeliveryFee, style: AppTypography.caption, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.sm),
             Text(
               formatSum(order.initialDeliveryFee),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: const Color(0xFFFF6B00),
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: AppTypography.title.copyWith(
+                color: AppColors.primary,
+                fontSize: 36,
+                fontWeight: FontWeight.w800,
+              ),
               textAlign: TextAlign.center,
             ),
             const Spacer(),

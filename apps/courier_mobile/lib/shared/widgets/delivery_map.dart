@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/l10n/app_strings.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'food_app_button.dart';
 
@@ -80,7 +81,7 @@ class DeliveryMap extends StatelessWidget {
                     polylines: [
                       Polyline(
                         points: _points,
-                        color: const Color(0xFFFF6B00),
+                        color: AppColors.mapRoute,
                         strokeWidth: 4,
                       ),
                     ],
@@ -92,21 +93,21 @@ class DeliveryMap extends StatelessWidget {
                         point: LatLng(courierLat!, courierLng!),
                         width: 36,
                         height: 36,
-                        child: const Icon(Icons.delivery_dining, color: Color(0xFFFF6B00)),
+                        child: const Icon(Icons.navigation, color: AppColors.primary),
                       ),
                     if (restaurantLat != null && restaurantLng != null)
                       Marker(
                         point: LatLng(restaurantLat!, restaurantLng!),
                         width: 36,
                         height: 36,
-                        child: const Icon(Icons.store, color: Colors.blue),
+                        child: const Icon(Icons.store, color: AppColors.serviceFood),
                       ),
                     if (customerLat != null && customerLng != null)
                       Marker(
                         point: LatLng(customerLat!, customerLng!),
                         width: 36,
                         height: 36,
-                        child: const Icon(Icons.person_pin_circle, color: Colors.green),
+                        child: const Icon(Icons.person_pin_circle, color: AppColors.success),
                       ),
                   ],
                 ),

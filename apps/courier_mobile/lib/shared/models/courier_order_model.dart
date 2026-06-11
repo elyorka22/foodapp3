@@ -1,3 +1,4 @@
+import '../../core/jobs/job_service_type.dart';
 import '../../core/utils/json_parse.dart';
 
 class CourierOrderLineItem {
@@ -127,6 +128,9 @@ class CourierOrderModel {
       items: items,
     );
   }
+
+  /// Platform service type — food today; taxi/cargo when new apps connect.
+  JobServiceType get serviceType => JobServiceType.food;
 
   /// Manager-assigned order awaiting courier confirmation.
   bool get needsCourierAcceptance =>

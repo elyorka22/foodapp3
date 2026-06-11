@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/jobs/job_service_type.dart';
 import '../../../core/l10n/app_strings.dart';
-import '../../../core/router/routes.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/password_text_field.dart';
 import '../providers/auth_provider.dart';
@@ -38,13 +41,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              const Icon(Icons.delivery_dining, size: 64, color: Color(0xFFFF6B00)),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                ),
+                child: const Icon(Icons.hub, size: 40, color: AppColors.primary),
+              ),
               const SizedBox(height: AppSpacing.lg),
-              Text(AppStrings.appName, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                AppStrings.appName,
+                textAlign: TextAlign.center,
+                style: AppTypography.title.copyWith(fontSize: 28),
+              ),
+              Text(
+                AppStrings.appTagline,
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: JobServiceType.values
+                    .map(
+                      (t) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Icon(
+                          t.icon,
+                          color: t.isAvailable ? t.color : AppColors.textMuted,
+                          size: 22,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
               const SizedBox(height: AppSpacing.xxl),
               TextField(
                 controller: _phone,
                 keyboardType: TextInputType.phone,
+                style: AppTypography.body,
                 decoration: const InputDecoration(
                   labelText: AppStrings.phone,
                   hintText: '+998901234567',

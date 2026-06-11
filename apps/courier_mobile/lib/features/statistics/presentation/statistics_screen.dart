@@ -7,6 +7,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_weekly_stats_model.dart';
+import '../../../shared/widgets/food_app_card.dart';
 import '../../orders/data/courier_repository.dart';
 
 final weeklyStatsProvider = FutureProvider.autoDispose<CourierWeeklyStatsModel>((ref) async {
@@ -24,6 +25,7 @@ class StatisticsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text(AppStrings.tabStatistics)),
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(weeklyStatsProvider),
+        color: AppColors.primary,
         child: stats.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => ListView(
@@ -49,6 +51,7 @@ class StatisticsScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: _SummaryCard(
+                        icon: Icons.check_circle_outline,
                         label: AppStrings.weekDeliveries,
                         value: '${data.weekDeliveries}',
                       ),
@@ -56,6 +59,7 @@ class StatisticsScreen extends ConsumerWidget {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: _SummaryCard(
+                        icon: Icons.payments_outlined,
                         label: AppStrings.weekEarnings,
                         value: formatSum(data.weekEarnings),
                         accent: true,
@@ -78,33 +82,33 @@ class StatisticsScreen extends ConsumerWidget {
 
 class _SummaryCard extends StatelessWidget {
   const _SummaryCard({
+    required this.icon,
     required this.label,
     required this.value,
     this.accent = false,
   });
 
+  final IconData icon;
   final String label;
   final String value;
   final bool accent;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return FoodAppCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: accent ? AppColors.primarySoft : const Color(0xFFF7F8FA),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, color: accent ? AppColors.primary : AppColors.textMuted, size: 20),
+          const SizedBox(height: 8),
           Text(label, style: AppTypography.caption),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             value,
-            style: AppTypography.subtitle.copyWith(
+            style: AppTypography.title.copyWith(
               color: accent ? AppColors.primary : AppColors.textPrimary,
+              fontSize: 22,
             ),
           ),
         ],
@@ -127,10 +131,10 @@ class _DayRow extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        color: AppColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
@@ -142,7 +146,7 @@ class _DayRow extends StatelessWidget {
             formatSum(day.earnings),
             style: AppTypography.body.copyWith(
               color: AppColors.primary,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

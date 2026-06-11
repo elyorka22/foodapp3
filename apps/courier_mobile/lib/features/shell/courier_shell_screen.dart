@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../orders/presentation/available_orders_watcher.dart';
@@ -25,21 +24,22 @@ class CourierShellScreen extends ConsumerWidget {
         bottomNavigationBar: NavigationBar(
           selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: _onTap,
+          backgroundColor: AppColors.surface,
           indicatorColor: AppColors.primarySoft,
           destinations: const [
             NavigationDestination(
-              icon: Icon(Icons.delivery_dining_outlined),
-              selectedIcon: Icon(Icons.delivery_dining),
+              icon: Icon(Icons.dashboard_outlined),
+              selectedIcon: Icon(Icons.dashboard),
               label: AppStrings.tabHome,
             ),
             NavigationDestination(
-              icon: Icon(Icons.bar_chart_outlined),
-              selectedIcon: Icon(Icons.bar_chart),
+              icon: Icon(Icons.insights_outlined),
+              selectedIcon: Icon(Icons.insights),
               label: AppStrings.tabStatistics,
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
+              icon: Icon(Icons.account_circle_outlined),
+              selectedIcon: Icon(Icons.account_circle),
               label: AppStrings.tabProfile,
             ),
           ],

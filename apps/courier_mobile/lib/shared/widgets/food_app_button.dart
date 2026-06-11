@@ -63,7 +63,7 @@ class FoodAppButton extends StatelessWidget {
       case FoodAppButtonVariant.primary:
         return AppColors.primary;
       case FoodAppButtonVariant.secondary:
-        return AppColors.surface;
+        return AppColors.surfaceElevated;
       case FoodAppButtonVariant.danger:
         return AppColors.danger;
     }

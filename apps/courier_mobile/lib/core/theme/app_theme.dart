@@ -1,30 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
 
 abstract final class AppTheme {
-  static ThemeData get light {
+  static ThemeData get dark {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
-      colorScheme: const ColorScheme.light(
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
-        onPrimary: Colors.white,
+        onPrimary: AppColors.onPrimary,
+        secondary: AppColors.accent,
         surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
         outline: AppColors.border,
+        error: AppColors.danger,
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         elevation: 0,
+        scrolledUnderElevation: 0,
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: AppTypography.title,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        elevation: 0,
+        height: 68,
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.primarySoft,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppTypography.caption.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            );
+          }
+          return AppTypography.caption.copyWith(color: AppColors.textMuted);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: AppColors.primary, size: 24);
+          }
+          return const IconThemeData(color: AppColors.textMuted, size: 24);
+        }),
+      ),
+      dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.surfaceElevated,
+        contentTextStyle: AppTypography.body.copyWith(color: AppColors.textPrimary),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        behavior: SnackBarBehavior.floating,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: AppColors.surfaceElevated,
+        labelStyle: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+        hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -39,6 +74,19 @@ abstract final class AppTheme {
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.onPrimary,
+          minimumSize: const Size.fromHeight(52),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+          ),
+        ),
+      ),
     );
   }
+
+  /// Legacy alias — courier app uses dark theme only.
+  static ThemeData get light => dark;
 }

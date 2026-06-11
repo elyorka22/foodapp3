@@ -19,11 +19,27 @@ class OrderCompleteScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.check_circle, size: 80, color: AppColors.success),
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_rounded, size: 56, color: AppColors.success),
+              ),
               const SizedBox(height: AppSpacing.lg),
-              Text(AppStrings.deliveryCompleted, style: AppTypography.title, textAlign: TextAlign.center),
+              Text(
+                AppStrings.deliveryCompleted,
+                style: AppTypography.title,
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: AppSpacing.sm),
-              Text(AppStrings.deliveryCompletedHint, style: AppTypography.bodySmall, textAlign: TextAlign.center),
+              Text(
+                AppStrings.deliveryCompletedHint,
+                style: AppTypography.bodySmall,
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: AppSpacing.xxl),
               FoodAppButton(
                 label: AppStrings.backToHome,

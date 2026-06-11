@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/jobs/job_service_type.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
@@ -9,9 +10,11 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/courier_order_model.dart';
-import '../../../shared/widgets/compact_order_tile.dart';
-import '../../../shared/widgets/food_app_button.dart';
+import '../../../shared/widgets/active_job_hero.dart';
+import '../../../shared/widgets/job_offer_card.dart';
+import '../../../shared/widgets/service_filter_chips.dart';
 import '../../../shared/widgets/shift_stats_bar.dart';
+import '../../../shared/widgets/shift_status_header.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../../orders/data/courier_repository.dart';
 
@@ -26,6 +29,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? _actingOrderId;
   bool _shiftLoading = false;
   bool _profileLoaded = false;
+  JobServiceType? _serviceFilter;
 
   @override
   void initState() {
@@ -46,37 +50,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.invalidate(notificationsUnreadProvider);
   }
 
-  Future<void> _startShift() async {
-    if (_shiftLoading || ref.read(shiftSessionOpenProvider)) return;
-    setState(() => _shiftLoading = true);
-    try {
-      await ref.read(courierOnlineProvider.notifier).setOnline(true);
-      if (!mounted) return;
-      ref.read(shiftSessionOpenProvider.notifier).state = true;
-    } on DioException catch (e) {
-      final err = e.error;
-      final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiException.formatError(e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _shiftLoading = false);
-    }
-  }
+  Future<void> _toggleShift() async {
+    final shiftOpen = ref.read(shiftSessionOpenProvider);
+    if (_shiftLoading) return;
+    if (shiftOpen && ref.read(activeOrderProvider).valueOrNull != null) return;
 
-  Future<void> _endShift() async {
-    if (_shiftLoading || !ref.read(shiftSessionOpenProvider)) return;
     setState(() => _shiftLoading = true);
     try {
-      await ref.read(courierOnlineProvider.notifier).setOnline(false);
+      await ref.read(courierOnlineProvider.notifier).setOnline(!shiftOpen);
       if (!mounted) return;
-      ref.read(shiftSessionOpenProvider.notifier).state = false;
+      ref.read(shiftSessionOpenProvider.notifier).state = !shiftOpen;
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
@@ -116,6 +99,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  List<CourierOrderModel> _filterOrders(List<CourierOrderModel> orders) {
+    if (_serviceFilter == null) return orders;
+    return orders.where((o) => o.serviceType == _serviceFilter).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final shiftOpen = ref.watch(shiftSessionOpenProvider);
@@ -127,20 +115,94 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final shiftBusy = _shiftLoading || !_profileLoaded;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.appName),
-        actions: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () => context.push(AppRoutes.notifications),
+      body: Column(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: _HomeTopBar(
+              unread: unread,
+              onNotifications: () => context.push(AppRoutes.notifications),
+            ),
+          ),
+          if (_profileLoaded)
+            ShiftStatusHeader(
+              isOnline: shiftOpen,
+              isLoading: shiftBusy,
+              onToggle: shiftBusy ? null : _toggleShift,
+              blockedReason: shiftOpen && hasActiveOrder ? AppStrings.endShiftBlocked : null,
+            ),
+          if (shiftOpen)
+            ServiceFilterChips(
+              selected: _serviceFilter,
+              onSelected: (v) => setState(() => _serviceFilter = v),
+            ),
+          Expanded(
+            child: !_profileLoaded
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _refresh,
+                    color: AppColors.primary,
+                    child: shiftOpen
+                        ? _JobsInbox(
+                            activeOrder: activeOrder,
+                            available: available,
+                            actingOrderId: _actingOrderId,
+                            filter: _filterOrders,
+                            onAccept: _acceptOrder,
+                            onOpenActive: (id) =>
+                                context.push(AppRoutes.activeOrder, extra: id),
+                          )
+                        : const _OfflineWelcome(),
+                  ),
+          ),
+          if (shiftOpen)
+            shiftStats.when(
+              loading: () => const SizedBox(
+                height: 72,
+                child: Center(child: CircularProgressIndicator()),
               ),
-              unread.when(
-                data: (count) {
-                  if (count <= 0) return const SizedBox.shrink();
-                  return Positioned(
+              error: (_, __) => const SizedBox.shrink(),
+              data: (stats) => ShiftStatsBar(stats: stats),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeTopBar extends StatelessWidget {
+  const _HomeTopBar({
+    required this.unread,
+    required this.onNotifications,
+  });
+
+  final AsyncValue<int> unread;
+  final VoidCallback onNotifications;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+      child: Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(AppStrings.appName, style: AppTypography.title),
+              Text(AppStrings.appTagline, style: AppTypography.caption),
+            ],
+          ),
+          const Spacer(),
+          unread.when(
+            data: (count) => Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: onNotifications,
+                ),
+                if (count > 0)
+                  Positioned(
                     right: 8,
                     top: 8,
                     child: Container(
@@ -153,63 +215,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Text(
                         count > 99 ? '99+' : '$count',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white, fontSize: 10),
+                        style: const TextStyle(
+                          color: AppColors.onPrimary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  );
-                },
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: !_profileLoaded
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _refresh,
-                    child: shiftOpen
-                        ? _ShiftWorkZone(
-                            activeOrder: activeOrder,
-                            available: available,
-                            actingOrderId: _actingOrderId,
-                            onAccept: _acceptOrder,
-                            onOpenActive: (id) =>
-                                context.push(AppRoutes.activeOrder, extra: id),
-                          )
-                        : const _OfflineShiftPrompt(),
                   ),
-          ),
-          if (_profileLoaded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                0,
-                AppSpacing.lg,
-                AppSpacing.sm,
-              ),
-              child: FoodAppButton(
-                label: shiftOpen ? AppStrings.endShift : AppStrings.startShift,
-                variant: shiftOpen
-                    ? FoodAppButtonVariant.secondary
-                    : FoodAppButtonVariant.primary,
-                isLoading: shiftBusy,
-                onPressed: shiftBusy || (shiftOpen && hasActiveOrder)
-                    ? null
-                    : (shiftOpen ? _endShift : _startShift),
-              ),
+              ],
             ),
-          shiftStats.when(
-            loading: () => const SizedBox(
-              height: 72,
-              child: Center(child: CircularProgressIndicator()),
+            loading: () => IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: onNotifications,
             ),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (stats) => ShiftStatsBar(stats: stats),
+            error: (_, __) => IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: onNotifications,
+            ),
           ),
         ],
       ),
@@ -217,8 +240,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _OfflineShiftPrompt extends StatelessWidget {
-  const _OfflineShiftPrompt();
+class _OfflineWelcome extends StatelessWidget {
+  const _OfflineWelcome();
 
   @override
   Widget build(BuildContext context) {
@@ -226,24 +249,69 @@ class _OfflineShiftPrompt extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.xxl),
       children: [
-        const SizedBox(height: 64),
-        Icon(Icons.delivery_dining, size: 72, color: AppColors.primary.withValues(alpha: 0.85)),
-        const SizedBox(height: AppSpacing.xl),
-        Text(
-          AppStrings.shiftOfflineHint,
-          style: AppTypography.subtitle,
-          textAlign: TextAlign.center,
+        const SizedBox(height: 32),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceElevated,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            children: [
+              Icon(Icons.hub_outlined, size: 64, color: AppColors.primary.withValues(alpha: 0.9)),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                AppStrings.shiftOfflineHint,
+                style: AppTypography.body,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _ServiceIcon(type: JobServiceType.food),
+                  const SizedBox(width: 16),
+                  _ServiceIcon(type: JobServiceType.taxi, dimmed: true),
+                  const SizedBox(width: 16),
+                  _ServiceIcon(type: JobServiceType.cargo, dimmed: true),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 }
 
-class _ShiftWorkZone extends StatelessWidget {
-  const _ShiftWorkZone({
+class _ServiceIcon extends StatelessWidget {
+  const _ServiceIcon({required this.type, this.dimmed = false});
+
+  final JobServiceType type;
+  final bool dimmed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: dimmed ? 0.4 : 1,
+      child: Column(
+        children: [
+          Icon(type.icon, color: type.color, size: 28),
+          const SizedBox(height: 4),
+          Text(type.label, style: AppTypography.caption),
+        ],
+      ),
+    );
+  }
+}
+
+class _JobsInbox extends StatelessWidget {
+  const _JobsInbox({
     required this.activeOrder,
     required this.available,
     required this.actingOrderId,
+    required this.filter,
     required this.onAccept,
     required this.onOpenActive,
   });
@@ -251,6 +319,7 @@ class _ShiftWorkZone extends StatelessWidget {
   final AsyncValue<CourierOrderModel?> activeOrder;
   final AsyncValue<List<CourierOrderModel>> available;
   final String? actingOrderId;
+  final List<CourierOrderModel> Function(List<CourierOrderModel>) filter;
   final Future<void> Function(CourierOrderModel order) onAccept;
   final void Function(String orderId) onOpenActive;
 
@@ -260,46 +329,29 @@ class _ShiftWorkZone extends StatelessWidget {
 
     return available.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const _OrdersEmptyState(message: AppStrings.noAvailableOrders),
+      error: (_, __) => const _EmptyInbox(message: AppStrings.noAvailableOrders),
       data: (orders) {
+        final filtered = filter(orders);
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
           children: [
-            if (active != null) ...[
-              Material(
-                color: AppColors.primarySoft,
-                borderRadius: BorderRadius.circular(10),
-                child: InkWell(
-                  onTap: () => onOpenActive(active.id),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.local_shipping_outlined, color: AppColors.primary),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            AppStrings.continueDelivery,
-                            style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, color: AppColors.textMuted),
-                      ],
-                    ),
-                  ),
-                ),
+            if (active != null)
+              ActiveJobHero(
+                order: active,
+                onOpen: () => onOpenActive(active.id),
               ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            if (orders.isEmpty)
-              const _OrdersEmptyState(message: AppStrings.noAvailableOrders)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Text(AppStrings.jobsInbox, style: AppTypography.subtitle),
+            ),
+            if (filtered.isEmpty)
+              const _EmptyInbox(message: AppStrings.noAvailableOrders)
             else
-              ...orders.map(
+              ...filtered.map(
                 (order) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: CompactOrderTile(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: JobOfferCard(
                     order: order,
                     isLoading: actingOrderId == order.id,
                     onAccept: actingOrderId == null ? () => onAccept(order) : null,
@@ -313,8 +365,8 @@ class _ShiftWorkZone extends StatelessWidget {
   }
 }
 
-class _OrdersEmptyState extends StatelessWidget {
-  const _OrdersEmptyState({required this.message});
+class _EmptyInbox extends StatelessWidget {
+  const _EmptyInbox({required this.message});
 
   final String message;
 
@@ -324,9 +376,11 @@ class _OrdersEmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 48),
       child: Column(
         children: [
-          const Icon(Icons.inbox_outlined, size: 48, color: AppColors.textMuted),
+          Icon(Icons.inbox_outlined, size: 48, color: AppColors.textMuted),
           const SizedBox(height: AppSpacing.md),
           Text(message, style: AppTypography.body, textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          Text(AppStrings.waitingOrdersHint, style: AppTypography.caption, textAlign: TextAlign.center),
         ],
       ),
     );
