@@ -12,7 +12,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/courier_order_model.dart';
 import '../../../shared/widgets/active_job_hero.dart';
 import '../../../shared/widgets/job_offer_card.dart';
-import '../../../shared/widgets/service_filter_chips.dart';
 import '../../../shared/widgets/shift_stats_bar.dart';
 import '../../../shared/widgets/new_job_alert_banner.dart';
 import '../../../shared/widgets/shift_status_header.dart';
@@ -31,8 +30,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? _actingOrderId;
   bool _shiftLoading = false;
   bool _profileLoaded = false;
-  JobServiceType? _serviceFilter;
-
   @override
   void initState() {
     super.initState();
@@ -102,11 +99,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  List<CourierOrderModel> _filterOrders(List<CourierOrderModel> orders) {
-    if (_serviceFilter == null) return orders;
-    return orders.where((o) => o.serviceType == _serviceFilter).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     final shiftOpen = ref.watch(shiftSessionOpenProvider);
@@ -142,13 +134,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ShiftStatusHeader(
               isOnline: shiftOpen,
               isLoading: shiftBusy,
-              onToggle: shiftBusy ? null : _toggleShift,
-              blockedReason: shiftOpen && hasActiveOrder ? AppStrings.endShiftBlocked : null,
-            ),
-          if (shiftOpen)
-            ServiceFilterChips(
-              selected: _serviceFilter,
-              onSelected: (v) => setState(() => _serviceFilter = v),
+              onToggle: shiftBusy || (shiftOpen && hasActiveOrder) ? null : _toggleShift,
             ),
           Expanded(
             child: !_profileLoaded
@@ -161,7 +147,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             activeOrder: activeOrder,
                             available: available,
                             actingOrderId: _actingOrderId,
-                            filter: _filterOrders,
                             onAccept: _acceptOrder,
                             onOpenActive: (id) =>
                                 context.push(AppRoutes.activeOrder, extra: id),
@@ -332,7 +317,6 @@ class _JobsInbox extends StatelessWidget {
     required this.activeOrder,
     required this.available,
     required this.actingOrderId,
-    required this.filter,
     required this.onAccept,
     required this.onOpenActive,
   });
@@ -340,7 +324,6 @@ class _JobsInbox extends StatelessWidget {
   final AsyncValue<CourierOrderModel?> activeOrder;
   final AsyncValue<List<CourierOrderModel>> available;
   final String? actingOrderId;
-  final List<CourierOrderModel> Function(List<CourierOrderModel>) filter;
   final Future<void> Function(CourierOrderModel order) onAccept;
   final void Function(String orderId) onOpenActive;
 
@@ -352,7 +335,6 @@ class _JobsInbox extends StatelessWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => const _EmptyInbox(message: AppStrings.noAvailableOrders),
       data: (orders) {
-        final filtered = filter(orders);
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
@@ -362,16 +344,12 @@ class _JobsInbox extends StatelessWidget {
                 order: active,
                 onOpen: () => onOpenActive(active.id),
               ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Text(AppStrings.jobsInbox, style: AppTypography.subtitle),
-            ),
-            if (filtered.isEmpty)
+            if (orders.isEmpty)
               const _EmptyInbox(message: AppStrings.noAvailableOrders)
             else
-              ...filtered.map(
+              ...orders.map(
                 (order) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: JobOfferCard(
                     order: order,
                     isLoading: actingOrderId == order.id,
