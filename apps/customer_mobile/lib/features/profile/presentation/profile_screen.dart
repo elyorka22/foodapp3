@@ -73,7 +73,7 @@ Future<void> _confirmDeleteAccount(
     ref.invalidate(authStateProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.deleteAccountSuccess)),
+        const SnackBar(content: Text(AppStrings.deleteAccountSuccess)),
       );
     }
   } catch (_) {
