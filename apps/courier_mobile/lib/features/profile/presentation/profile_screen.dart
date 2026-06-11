@@ -185,11 +185,7 @@ class ProfileScreen extends ConsumerWidget {
             label: AppStrings.notifications,
             onTap: () => context.push(AppRoutes.notifications),
           ),
-          _ProfileTile(
-            icon: Icons.settings_outlined,
-            label: AppStrings.notificationSettings,
-            onTap: openAppSettings,
-          ),
+          const _NotificationSettingsTile(),
           const Divider(height: 24),
           _ProfileTile(
             icon: Icons.logout,
@@ -202,6 +198,19 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _NotificationSettingsTile extends StatelessWidget {
+  const _NotificationSettingsTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfileTile(
+      icon: Icons.settings_outlined,
+      label: AppStrings.notificationSettings,
+      onTap: openAppSettings,
     );
   }
 }
