@@ -76,7 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     try {
       await ref.read(courierOnlineProvider.notifier).setOnline(false);
       if (!mounted) return;
-      setState(() => _shiftOpen = false);
+      ref.read(shiftSessionOpenProvider.notifier).state = false;
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
@@ -260,7 +260,7 @@ class _ShiftWorkZone extends StatelessWidget {
 
     return available.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => _OrdersEmptyState(message: AppStrings.noAvailableOrders),
+      error: (_, __) => const _OrdersEmptyState(message: AppStrings.noAvailableOrders),
       data: (orders) {
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
