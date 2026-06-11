@@ -12,7 +12,9 @@ const nextConfig: NextConfig = {
     return [
       { source: '/restaurant', destination: '/business', permanent: true },
       { source: '/restaurant/:path*', destination: '/business/:path*', permanent: true },
-      { source: '/products', destination: '/shops', permanent: true },
+      { source: '/products', destination: '/', permanent: true },
+      { source: '/shops', destination: '/', permanent: true },
+      { source: '/shops/category/:slug', destination: '/', permanent: true },
     ];
   },
   images: {

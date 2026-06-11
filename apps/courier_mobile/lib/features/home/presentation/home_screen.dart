@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/jobs/job_service_type.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
@@ -255,59 +254,15 @@ class _OfflineWelcome extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.xxl),
       children: [
-        const SizedBox(height: 32),
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceElevated,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            children: [
-              Icon(Icons.hub_outlined, size: 64, color: AppColors.primary.withValues(alpha: 0.9)),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                AppStrings.shiftOfflineHint,
-                style: AppTypography.body,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _ServiceIcon(type: JobServiceType.food),
-                  SizedBox(width: 16),
-                  _ServiceIcon(type: JobServiceType.taxi, dimmed: true),
-                  SizedBox(width: 16),
-                  _ServiceIcon(type: JobServiceType.cargo, dimmed: true),
-                ],
-              ),
-            ],
-          ),
+        const SizedBox(height: 48),
+        Icon(Icons.hub_outlined, size: 56, color: AppColors.textMuted),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          AppStrings.goOnlineToSeeOrders,
+          style: AppTypography.body,
+          textAlign: TextAlign.center,
         ),
       ],
-    );
-  }
-}
-
-class _ServiceIcon extends StatelessWidget {
-  const _ServiceIcon({required this.type, this.dimmed = false});
-
-  final JobServiceType type;
-  final bool dimmed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Opacity(
-      opacity: dimmed ? 0.4 : 1,
-      child: Column(
-        children: [
-          Icon(type.icon, color: type.color, size: 28),
-          const SizedBox(height: 4),
-          Text(type.label, style: AppTypography.caption),
-        ],
-      ),
     );
   }
 }
@@ -378,8 +333,6 @@ class _EmptyInbox extends StatelessWidget {
           const Icon(Icons.inbox_outlined, size: 48, color: AppColors.textMuted),
           const SizedBox(height: AppSpacing.md),
           Text(message, style: AppTypography.body, textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          Text(AppStrings.waitingOrdersHint, style: AppTypography.caption, textAlign: TextAlign.center),
         ],
       ),
     );

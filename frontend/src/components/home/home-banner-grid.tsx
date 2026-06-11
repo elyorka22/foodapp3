@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { Skeleton } from '@/components/ui/skeleton';
-import { uz } from '@/lib/uz';
 import type { HomeBanner } from '@/hooks/use-home-data';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
 import { resolveImageUrl as imgUrl } from '@/lib/image-url';
@@ -12,8 +11,6 @@ import { BannerSlotCarousel } from './banner-slot-carousel';
 import { HomeStoreSlotCarousel } from './home-store-slot-carousel';
 
 type Placement = 'HOME_MAIN' | 'HOME_SIDE_TOP';
-
-const SHOPS_ENTRY_HREF = '/shops';
 
 type Props = {
   banners: HomeBanner[];
@@ -135,11 +132,7 @@ export function HomeBannerGrid({ banners, featuredStores, isLoading }: Props) {
           <Slot banners={topBanners} />
         </div>
         <div className="flex min-h-0 flex-col">
-          <HomeStoreSlotCarousel
-            stores={featuredStores ?? []}
-            fallbackHref={SHOPS_ENTRY_HREF}
-            fallbackLabel={uz.navShops}
-          />
+          <HomeStoreSlotCarousel stores={featuredStores ?? []} />
         </div>
       </div>
     </section>

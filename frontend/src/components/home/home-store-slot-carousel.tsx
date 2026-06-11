@@ -49,7 +49,7 @@ function StoreSlide({ store }: { store: ShopBusiness }) {
 export function HomeStoreSlotCarousel({
   stores,
   className,
-  fallbackHref = '/shops',
+  fallbackHref,
   fallbackLabel,
 }: Props) {
   const storeOnly = stores.filter((s) => isStoreKind(s.kind, s.businessType?.slug));

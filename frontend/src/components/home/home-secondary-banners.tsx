@@ -173,7 +173,7 @@ function DishCategoriesBanner({ categories }: { categories: DishCategory[] }) {
       <div
         ref={scrollRef}
         className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
-        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+        style={{ WebkitOverflowScrolling: 'touch' }}
         aria-label={uz.dishCategories}
         onScroll={handleScroll}
         onTouchStart={pauseAuto}
