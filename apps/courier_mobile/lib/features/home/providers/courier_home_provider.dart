@@ -12,6 +12,9 @@ import '../../../shared/models/courier_order_model.dart';
 
 const _pollInterval = Duration(seconds: 5);
 
+/// True only after courier taps "Start shift" in current app session.
+final shiftSessionOpenProvider = StateProvider<bool>((ref) => false);
+
 final courierProfileProvider = FutureProvider.autoDispose<CourierProfileModel>((ref) async {
   ref.watch(authStateProvider);
   return ref.read(courierRepositoryProvider).fetchMe();
@@ -48,6 +51,12 @@ final notificationsUnreadProvider = FutureProvider.autoDispose<int>((ref) async 
 
 final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref) async* {
   ref.watch(authStateProvider);
+  final shiftOpen = ref.watch(shiftSessionOpenProvider);
+  if (!shiftOpen) {
+    yield null;
+    return;
+  }
+
   while (true) {
     try {
       final orders = await ref.read(courierRepositoryProvider).fetchMyOrders();
@@ -69,8 +78,7 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
 final availableOrdersProvider =
     StreamProvider.autoDispose<List<CourierOrderModel>>((ref) async* {
   ref.watch(authStateProvider);
-  final online = ref.watch(courierOnlineProvider).valueOrNull ?? false;
-  if (!online) {
+  if (!ref.watch(shiftSessionOpenProvider)) {
     yield [];
     return;
   }
@@ -98,6 +106,9 @@ class CourierOnlineNotifier extends Notifier<AsyncValue<bool>> {
       final profile = await ref.read(courierRepositoryProvider).fetchMe();
       return profile.isOnline;
     });
+    if (state.hasError) {
+      state = const AsyncValue.data(false);
+    }
   }
 
   Future<void> setOnline(bool value) async {

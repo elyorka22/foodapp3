@@ -24,14 +24,8 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
       next.whenData(_onOrdersUpdated);
     });
 
-    ref.listen(courierOnlineProvider, (previous, next) {
-      final wasOnline = previous?.valueOrNull ?? false;
-      final isOnline = next.valueOrNull ?? false;
-      if (!wasOnline && isOnline) {
-        _initialized = false;
-        _seenOrderIds.clear();
-      }
-      if (!isOnline) {
+    ref.listen(shiftSessionOpenProvider, (previous, next) {
+      if (previous != next) {
         _initialized = false;
         _seenOrderIds.clear();
       }
@@ -41,8 +35,8 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
   }
 
   void _onOrdersUpdated(List<CourierOrderModel> orders) {
-    final online = ref.read(courierOnlineProvider).valueOrNull ?? false;
-    if (!online) return;
+    final shiftOpen = ref.read(shiftSessionOpenProvider);
+    if (!shiftOpen) return;
 
     final active = ref.read(activeOrderProvider).valueOrNull;
     if (active != null) return;

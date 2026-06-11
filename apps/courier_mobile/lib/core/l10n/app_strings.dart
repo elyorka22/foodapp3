@@ -77,5 +77,5 @@ abstract final class AppStrings {
   static const weekEarnings = 'Haftalik daromad';
   static const weekDailyBreakdown = 'Kunlik ko\'rsatkichlar';
   static const noStatistics = 'Hali statistika yo\'q';
-  static const waitingForOrders = 'Buyurtmalar kutilmoqda...';
+  static const continueDelivery = 'Faol yetkazishni davom ettirish';
 }

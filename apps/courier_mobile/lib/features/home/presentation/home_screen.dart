@@ -25,25 +25,58 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? _actingOrderId;
   bool _shiftLoading = false;
+  bool _profileLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(courierOnlineProvider.notifier).load());
+    Future.microtask(_loadProfile);
+  }
+
+  Future<void> _loadProfile() async {
+    await ref.read(courierOnlineProvider.notifier).load();
+    if (mounted) setState(() => _profileLoaded = true);
   }
 
   Future<void> _refresh() async {
+    if (!ref.read(shiftSessionOpenProvider)) return;
     ref.invalidate(activeOrderProvider);
     ref.invalidate(availableOrdersProvider);
     ref.invalidate(shiftStatsProvider);
     ref.invalidate(notificationsUnreadProvider);
   }
 
-  Future<void> _toggleShift(bool online) async {
-    if (_shiftLoading) return;
+  Future<void> _startShift() async {
+    if (_shiftLoading || ref.read(shiftSessionOpenProvider)) return;
     setState(() => _shiftLoading = true);
     try {
-      await ref.read(courierOnlineProvider.notifier).setOnline(online);
+      await ref.read(courierOnlineProvider.notifier).setOnline(true);
+      if (!mounted) return;
+      ref.read(shiftSessionOpenProvider.notifier).state = true;
+    } on DioException catch (e) {
+      final err = e.error;
+      final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ApiException.formatError(e))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _shiftLoading = false);
+    }
+  }
+
+  Future<void> _endShift() async {
+    if (_shiftLoading || !ref.read(shiftSessionOpenProvider)) return;
+    setState(() => _shiftLoading = true);
+    try {
+      await ref.read(courierOnlineProvider.notifier).setOnline(false);
+      if (!mounted) return;
+      setState(() => _shiftOpen = false);
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
@@ -62,22 +95,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _acceptOrder(CourierOrderModel order) async {
-    if (_actingOrderId != null) return;
-
-    final online = ref.read(courierOnlineProvider).valueOrNull ?? false;
-    if (!online) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStrings.mustBeOnline)),
-      );
-      return;
-    }
+    if (_actingOrderId != null || !ref.read(shiftSessionOpenProvider)) return;
 
     setState(() => _actingOrderId = order.id);
     try {
       await ref.read(courierRepositoryProvider).acceptOrder(order.id);
       ref.invalidate(activeOrderProvider);
       ref.invalidate(availableOrdersProvider);
+      if (!mounted) return;
+      context.push(AppRoutes.activeOrder, extra: order.id);
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
@@ -92,26 +118,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(activeOrderProvider, (previous, next) {
-      final wasActive = previous?.valueOrNull;
-      final nowActive = next.valueOrNull;
-      if (wasActive == null && nowActive != null && mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.push(AppRoutes.activeOrder, extra: nowActive.id);
-          }
-        });
-      }
-    });
-
-    final onlineState = ref.watch(courierOnlineProvider);
+    final shiftOpen = ref.watch(shiftSessionOpenProvider);
     final activeOrder = ref.watch(activeOrderProvider);
     final available = ref.watch(availableOrdersProvider);
     final shiftStats = ref.watch(shiftStatsProvider);
     final unread = ref.watch(notificationsUnreadProvider);
-    final isOnline = onlineState.valueOrNull ?? false;
     final hasActiveOrder = activeOrder.valueOrNull != null;
-    final shiftBusy = _shiftLoading || onlineState.isLoading;
+    final shiftBusy = _shiftLoading || !_profileLoaded;
 
     return Scaffold(
       appBar: AppBar(
@@ -155,29 +168,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Column(
         children: [
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: _refresh,
-              child: isOnline
-                  ? _ShiftWorkZone(
-                      activeOrder: activeOrder,
-                      available: available,
-                      actingOrderId: _actingOrderId,
-                      onAccept: _acceptOrder,
-                    )
-                  : const _OfflineShiftPrompt(),
-            ),
+            child: !_profileLoaded
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: shiftOpen
+                        ? _ShiftWorkZone(
+                            activeOrder: activeOrder,
+                            available: available,
+                            actingOrderId: _actingOrderId,
+                            onAccept: _acceptOrder,
+                            onOpenActive: (id) =>
+                                context.push(AppRoutes.activeOrder, extra: id),
+                          )
+                        : const _OfflineShiftPrompt(),
+                  ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-            child: FoodAppButton(
-              label: isOnline ? AppStrings.endShift : AppStrings.startShift,
-              variant: isOnline ? FoodAppButtonVariant.secondary : FoodAppButtonVariant.primary,
-              isLoading: shiftBusy,
-              onPressed: shiftBusy || (isOnline && hasActiveOrder)
-                  ? null
-                  : () => _toggleShift(!isOnline),
+          if (_profileLoaded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                0,
+                AppSpacing.lg,
+                AppSpacing.sm,
+              ),
+              child: FoodAppButton(
+                label: shiftOpen ? AppStrings.endShift : AppStrings.startShift,
+                variant: shiftOpen
+                    ? FoodAppButtonVariant.secondary
+                    : FoodAppButtonVariant.primary,
+                isLoading: shiftBusy,
+                onPressed: shiftBusy || (shiftOpen && hasActiveOrder)
+                    ? null
+                    : (shiftOpen ? _endShift : _startShift),
+              ),
             ),
-          ),
           shiftStats.when(
             loading: () => const SizedBox(
               height: 72,
@@ -220,90 +245,89 @@ class _ShiftWorkZone extends StatelessWidget {
     required this.available,
     required this.actingOrderId,
     required this.onAccept,
+    required this.onOpenActive,
   });
 
   final AsyncValue<CourierOrderModel?> activeOrder;
   final AsyncValue<List<CourierOrderModel>> available;
   final String? actingOrderId;
   final Future<void> Function(CourierOrderModel order) onAccept;
+  final void Function(String orderId) onOpenActive;
 
   @override
   Widget build(BuildContext context) {
-    return activeOrder.when(
+    final active = activeOrder.valueOrNull;
+
+    return available.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('$e')),
-      data: (active) {
-        if (active != null) {
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: const [
-              SizedBox(height: 120),
-              Center(child: Text(AppStrings.waitingForOrders)),
-            ],
-          );
-        }
-
-        return available.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e')),
-          data: (orders) {
-            if (orders.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 120),
-                  _EmptyOrdersMessage(
-                    message: AppStrings.noAvailableOrders,
-                    icon: Icons.inbox_outlined,
+      error: (_, __) => _OrdersEmptyState(message: AppStrings.noAvailableOrders),
+      data: (orders) {
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            if (active != null) ...[
+              Material(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  onTap: () => onOpenActive(active.id),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.local_shipping_outlined, color: AppColors.primary),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            AppStrings.continueDelivery,
+                            style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      ],
+                    ),
                   ),
-                ],
-              );
-            }
-
-            return ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: orders.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 6),
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                return CompactOrderTile(
-                  order: order,
-                  isLoading: actingOrderId == order.id,
-                  onAccept: actingOrderId == null ? () => onAccept(order) : null,
-                );
-              },
-            );
-          },
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+            if (orders.isEmpty)
+              const _OrdersEmptyState(message: AppStrings.noAvailableOrders)
+            else
+              ...orders.map(
+                (order) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: CompactOrderTile(
+                    order: order,
+                    isLoading: actingOrderId == order.id,
+                    onAccept: actingOrderId == null ? () => onAccept(order) : null,
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
   }
 }
 
-class _EmptyOrdersMessage extends StatelessWidget {
-  const _EmptyOrdersMessage({required this.message, required this.icon});
+class _OrdersEmptyState extends StatelessWidget {
+  const _OrdersEmptyState({required this.message});
 
   final String message;
-  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 48, color: AppColors.textMuted),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              message,
-              style: AppTypography.body,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48),
+      child: Column(
+        children: [
+          const Icon(Icons.inbox_outlined, size: 48, color: AppColors.textMuted),
+          const SizedBox(height: AppSpacing.md),
+          Text(message, style: AppTypography.body, textAlign: TextAlign.center),
+        ],
       ),
     );
   }

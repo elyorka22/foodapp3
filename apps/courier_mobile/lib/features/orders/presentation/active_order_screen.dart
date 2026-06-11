@@ -82,7 +82,26 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
     }
     final order = _order;
     if (order == null) {
-      return Scaffold(appBar: AppBar(), body: const Center(child: Text(AppStrings.errorGeneric)));
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(AppStrings.orderUnavailable, style: AppTypography.subtitle),
+                const SizedBox(height: AppSpacing.lg),
+                FoodAppButton(
+                  label: AppStrings.backToHome,
+                  variant: FoodAppButtonVariant.secondary,
+                  onPressed: () => context.go(AppRoutes.home),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     return Scaffold(
