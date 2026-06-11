@@ -23,7 +23,7 @@ class ShiftStatusHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
-        AppSpacing.xs,
+        AppSpacing.sm,
         AppSpacing.lg,
         AppSpacing.sm,
       ),
