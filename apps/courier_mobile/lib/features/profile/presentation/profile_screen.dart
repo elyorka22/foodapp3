@@ -207,7 +207,7 @@ class _NotificationSettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ProfileTile(
+    return const _ProfileTile(
       icon: Icons.settings_outlined,
       label: AppStrings.notificationSettings,
       onTap: openAppSettings,
