@@ -116,6 +116,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final unread = ref.watch(notificationsUnreadProvider);
     final hasActiveOrder = activeOrder.valueOrNull != null;
     final shiftBusy = _shiftLoading || !_profileLoaded;
+    final jobAlert = ref.watch(newJobAlertProvider);
 
     return Scaffold(
       body: Column(
@@ -125,8 +126,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: _HomeTopBar(
               unread: unread,
               onNotifications: () => context.push(AppRoutes.notifications),
+              onHistory: () => context.push(AppRoutes.orderHistory),
             ),
           ),
+          if (jobAlert != null)
+            NewJobAlertBanner(
+              alert: jobAlert,
+              onTap: () {
+                ref.read(newJobAlertProvider.notifier).state = null;
+                context.push(AppRoutes.incomingOrder, extra: jobAlert.orderId);
+              },
+              onDismiss: () => ref.read(newJobAlertProvider.notifier).state = null,
+            ),
           if (_profileLoaded)
             ShiftStatusHeader(
               isOnline: shiftOpen,
@@ -277,13 +288,13 @@ class _OfflineWelcome extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xl),
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _ServiceIcon(type: JobServiceType.food),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   _ServiceIcon(type: JobServiceType.taxi, dimmed: true),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   _ServiceIcon(type: JobServiceType.cargo, dimmed: true),
                 ],
               ),
@@ -386,7 +397,7 @@ class _EmptyInbox extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 48),
       child: Column(
         children: [
-          Icon(Icons.inbox_outlined, size: 48, color: AppColors.textMuted),
+          const Icon(Icons.inbox_outlined, size: 48, color: AppColors.textMuted),
           const SizedBox(height: AppSpacing.md),
           Text(message, style: AppTypography.body, textAlign: TextAlign.center),
           const SizedBox(height: 8),

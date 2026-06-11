@@ -50,7 +50,11 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindi
     push.onForegroundMessage((data) {
       final orderId = data['orderId'] as String?;
       if (orderId != null && orderId.isNotEmpty) {
-        NewOrderSoundService.instance.play();
+        final prefs = ref.read(alertPreferencesProvider);
+        NewOrderSoundService.instance.play(
+          soundEnabled: prefs.soundEnabled,
+          vibrationEnabled: prefs.vibrationEnabled,
+        );
       }
     });
 

@@ -19,7 +19,7 @@ abstract final class AppTheme {
         outline: AppColors.border,
         error: AppColors.danger,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
         backgroundColor: AppColors.background,

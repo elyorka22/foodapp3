@@ -225,7 +225,7 @@ class _ProfileTile extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: color ?? AppColors.textSecondary),
       title: Text(label, style: TextStyle(color: color ?? AppColors.textPrimary)),
-      trailing: Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
       onTap: onTap,
     );
   }
