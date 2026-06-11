@@ -97,7 +97,7 @@ class CourierRepository {
   Future<List<CourierOrderModel>> fetchHistory() async {
     final res = await _dio.get<Map<String, dynamic>>(
       ApiPaths.orders,
-      queryParameters: {'status': 'DELIVERED', 'limit': 30},
+      queryParameters: {'status': 'DELIVERED', 'limit': 50},
     );
     final data = res.data?['data'] as List<dynamic>? ?? [];
     return data

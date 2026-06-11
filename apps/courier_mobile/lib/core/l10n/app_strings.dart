@@ -29,6 +29,11 @@ abstract final class AppStrings {
   static const goOnlineToSeeOrders = 'Vazifalarni ko\'rish uchun onlayn bo\'ling';
   static const openOrdersList = 'Vazifalar ro\'yxati';
   static const newOrderAlert = 'Yangi vazifa!';
+  static const newJobAlertTitle = 'Yangi vazifa!';
+  static const newJobAlertTap = 'Qabul qilish uchun bosing';
+  static const alertSettings = 'Ogohlantirishlar';
+  static const alertSound = 'Ovozli signal';
+  static const alertVibration = 'Vibratsiya';
   static const close = 'Yopish';
   static const openMap = 'Xaritada ochish';
   static const shiftStatsTitle = 'Bugungi smena';

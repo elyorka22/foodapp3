@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../core/audio/alert_preferences.dart';
 import '../../../core/jobs/job_service_type.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
@@ -22,6 +23,7 @@ class ProfileScreen extends ConsumerWidget {
     final profile = ref.watch(courierProfileProvider);
     final earnings = ref.watch(courierEarningsProvider);
     final shiftOpen = ref.watch(shiftSessionOpenProvider);
+    final alertPrefs = ref.watch(alertPreferencesProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text(AppStrings.profile)),
@@ -149,7 +151,35 @@ class ProfileScreen extends ConsumerWidget {
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
           ),
+          const SizedBox(height: AppSpacing.lg),
+          FoodAppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppStrings.alertSettings, style: AppTypography.subtitle),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(AppStrings.alertSound, style: AppTypography.body),
+                  value: alertPrefs.soundEnabled,
+                  onChanged: (v) =>
+                      ref.read(alertPreferencesProvider.notifier).setSoundEnabled(v),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(AppStrings.alertVibration, style: AppTypography.body),
+                  value: alertPrefs.vibrationEnabled,
+                  onChanged: (v) =>
+                      ref.read(alertPreferencesProvider.notifier).setVibrationEnabled(v),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: AppSpacing.md),
+          _ProfileTile(
+            icon: Icons.history,
+            label: AppStrings.orderHistory,
+            onTap: () => context.push(AppRoutes.orderHistory),
+          ),
           _ProfileTile(
             icon: Icons.notifications_outlined,
             label: AppStrings.notifications,

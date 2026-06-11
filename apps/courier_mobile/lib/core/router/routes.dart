@@ -8,4 +8,5 @@ abstract final class AppRoutes {
   static const activeOrder = '/active-order';
   static const orderComplete = '/order-complete';
   static const notifications = '/notifications';
+  static const orderHistory = '/order-history';
 }

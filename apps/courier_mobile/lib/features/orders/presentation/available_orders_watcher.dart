@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/audio/alert_preferences.dart';
 import '../../../core/audio/new_order_sound_service.dart';
 import '../../../shared/models/courier_order_model.dart';
 import '../../home/providers/courier_home_provider.dart';
+import '../providers/new_job_alert_provider.dart';
 
-/// Plays a sound when a new pool order appears (permanent list on home screen).
+/// Plays sound/vibration and shows banner when a new pool job appears.
 class AvailableOrdersWatcher extends ConsumerStatefulWidget {
   const AvailableOrdersWatcher({required this.child, super.key});
 
@@ -28,6 +30,7 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
       if (previous != next) {
         _initialized = false;
         _seenOrderIds.clear();
+        ref.read(newJobAlertProvider.notifier).state = null;
       }
     });
 
@@ -56,8 +59,23 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
       ..clear()
       ..addAll(currentIds);
 
-    if (newIds.isNotEmpty) {
-      NewOrderSoundService.instance.play();
-    }
+    if (newIds.isEmpty) return;
+
+    final prefs = ref.read(alertPreferencesProvider);
+    NewOrderSoundService.instance.play(
+      soundEnabled: prefs.soundEnabled,
+      vibrationEnabled: prefs.vibrationEnabled,
+    );
+
+    final newest = orders.firstWhere(
+      (o) => newIds.contains(o.id),
+      orElse: () => orders.first,
+    );
+
+    ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
+      orderId: newest.id,
+      title: newest.restaurantName ?? newest.orderNumber,
+      fee: newest.initialDeliveryFee,
+    );
   }
 }

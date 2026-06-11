@@ -14,9 +14,11 @@ import '../../../shared/widgets/active_job_hero.dart';
 import '../../../shared/widgets/job_offer_card.dart';
 import '../../../shared/widgets/service_filter_chips.dart';
 import '../../../shared/widgets/shift_stats_bar.dart';
+import '../../../shared/widgets/new_job_alert_banner.dart';
 import '../../../shared/widgets/shift_status_header.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../../orders/data/courier_repository.dart';
+import '../../orders/providers/new_job_alert_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -83,6 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     setState(() => _actingOrderId = order.id);
     try {
       await ref.read(courierRepositoryProvider).acceptOrder(order.id);
+      ref.read(newJobAlertProvider.notifier).state = null;
       ref.invalidate(activeOrderProvider);
       ref.invalidate(availableOrdersProvider);
       if (!mounted) return;
@@ -174,10 +177,12 @@ class _HomeTopBar extends StatelessWidget {
   const _HomeTopBar({
     required this.unread,
     required this.onNotifications,
+    required this.onHistory,
   });
 
   final AsyncValue<int> unread;
   final VoidCallback onNotifications;
+  final VoidCallback onHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -193,6 +198,11 @@ class _HomeTopBar extends StatelessWidget {
             ],
           ),
           const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: AppStrings.orderHistory,
+            onPressed: onHistory,
+          ),
           unread.when(
             data: (count) => Stack(
               clipBehavior: Clip.none,

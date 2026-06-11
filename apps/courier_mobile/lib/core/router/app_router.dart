@@ -7,6 +7,7 @@ import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/orders/presentation/active_order_screen.dart';
 import '../../features/orders/presentation/incoming_order_screen.dart';
 import '../../features/orders/presentation/order_complete_screen.dart';
+import '../../features/orders/presentation/order_history_screen.dart';
 import '../../features/statistics/presentation/statistics_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/shell/courier_shell_screen.dart';
@@ -42,6 +43,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.orderComplete, builder: (_, __) => const OrderCompleteScreen()),
       GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationsScreen()),
+      GoRoute(path: AppRoutes.orderHistory, builder: (_, __) => const OrderHistoryScreen()),
       StatefulShellRoute.indexedStack(
         builder: (_, __, navigationShell) =>
             CourierShellScreen(navigationShell: navigationShell),

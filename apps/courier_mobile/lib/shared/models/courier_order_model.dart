@@ -45,6 +45,7 @@ class CourierOrderModel {
     this.courierFee,
     this.estimatedCourierFee,
     this.assignmentAcceptedAt,
+    this.createdAt,
     this.items = const [],
   });
 
@@ -73,6 +74,7 @@ class CourierOrderModel {
   final num? courierFee;
   final num? estimatedCourierFee;
   final DateTime? assignmentAcceptedAt;
+  final DateTime? createdAt;
   final List<CourierOrderLineItem> items;
 
   /// Amount shown before accept: estimated courier payout from API or DB delivery fee.
@@ -125,6 +127,7 @@ class CourierOrderModel {
       courierFee: assignment?['courierFee'] as num?,
       estimatedCourierFee: json['estimatedCourierFee'] as num?,
       assignmentAcceptedAt: _parseDateTime(assignment?['acceptedAt']),
+      createdAt: _parseDateTime(json['createdAt']),
       items: items,
     );
   }
