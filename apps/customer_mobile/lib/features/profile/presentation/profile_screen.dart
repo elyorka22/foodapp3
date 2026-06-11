@@ -47,18 +47,18 @@ Future<void> _confirmDeleteAccount(
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: Text(AppStrings.deleteAccountTitle),
-      content: Text(AppStrings.deleteAccountWarning),
+      title: const Text(AppStrings.deleteAccountTitle),
+      content: const Text(AppStrings.deleteAccountWarning),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(AppStrings.deleteAccountCancel),
+          child: const Text(AppStrings.deleteAccountCancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text(
+          child: const Text(
             AppStrings.deleteAccountConfirm,
-            style: const TextStyle(color: AppColors.danger),
+            style: TextStyle(color: AppColors.danger),
           ),
         ),
       ],
@@ -79,7 +79,7 @@ Future<void> _confirmDeleteAccount(
   } catch (_) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.errorGeneric)),
+        const SnackBar(content: Text(AppStrings.errorGeneric)),
       );
     }
   }
