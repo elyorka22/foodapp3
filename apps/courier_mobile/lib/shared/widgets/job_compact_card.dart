@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/jobs/courier_job_adapter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
-import '../../core/utils/format_sum.dart';
 import '../models/courier_order_model.dart';
+import 'order_money_summary.dart';
 import 'service_type_badge.dart';
 
 /// Minimal job row: service type, establishment name, delivery fee.
@@ -48,13 +48,7 @@ class JobCompactCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                formatSum(order.initialDeliveryFee),
-                style: AppTypography.subtitle.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+              OrderMoneySummary(order: order, compact: true),
               if (trailing != null) ...[
                 const SizedBox(width: 8),
                 trailing!,

@@ -52,15 +52,20 @@ class CourierRepository {
     final res = await _dio.get<List<dynamic>>(ApiPaths.courierAvailableOrders);
     return (res.data ?? [])
         .map((e) => CourierOrderModel.fromJson(e as Map<String, dynamic>))
+        .where((order) => order.isAvailableInPool)
         .toList();
   }
 
-  Future<List<CourierOrderModel>> fetchMyOrders({String? status}) async {
+  Future<List<CourierOrderModel>> fetchMyOrders({
+    String? status,
+    String? statusGroup,
+  }) async {
     final res = await _dio.get<Map<String, dynamic>>(
       ApiPaths.orders,
       queryParameters: {
         'limit': 50,
         if (status != null) 'status': status,
+        if (statusGroup != null) 'statusGroup': statusGroup,
       },
     );
     final data = res.data?['data'] as List<dynamic>? ?? [];

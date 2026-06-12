@@ -3,8 +3,8 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
-import '../../core/utils/format_sum.dart';
 import '../models/courier_order_model.dart';
+import 'order_money_summary.dart';
 
 /// Compact row for available orders — fits many items on one screen.
 class CompactOrderTile extends StatelessWidget {
@@ -64,13 +64,7 @@ class CompactOrderTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                formatSum(order.initialDeliveryFee),
-                style: AppTypography.body.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              OrderMoneySummary(order: order, compact: true),
               const SizedBox(width: AppSpacing.sm),
               SizedBox(
                 height: 32,

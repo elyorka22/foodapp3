@@ -12,6 +12,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_order_model.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../../shared/widgets/order_money_summary.dart';
 import '../../../shared/widgets/service_type_badge.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
@@ -47,6 +48,9 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
         }
       }
       order ??= await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
+      if (order != null && order.isCancelled) {
+        order = null;
+      }
       if (mounted) setState(() => _order = order);
     } catch (_) {
       if (mounted) setState(() => _order = null);
@@ -107,15 +111,21 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
               Text(pickup.subtitle!, style: AppTypography.bodySmall, textAlign: TextAlign.center),
             ],
             const SizedBox(height: AppSpacing.xl),
-            Text(AppStrings.initialDeliveryFee, style: AppTypography.caption, textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.sm),
+            OrderMoneySummary(order: order),
+            const SizedBox(height: AppSpacing.lg),
             Text(
-              formatSum(order.initialDeliveryFee),
+              formatSum(order.collectFromCustomer),
               style: AppTypography.title.copyWith(
                 color: AppColors.primary,
-                fontSize: 36,
+                fontSize: 32,
                 fontWeight: FontWeight.w800,
               ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppStrings.collectFromCustomer,
+              style: AppTypography.caption,
               textAlign: TextAlign.center,
             ),
             const Spacer(),

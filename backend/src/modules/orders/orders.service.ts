@@ -452,6 +452,8 @@ export class OrdersService {
     }
     if (dto.status === OrderStatus.CANCELLED) {
       updateData.cancelReason = dto.cancelReason;
+      updateData.courierRequestedAt = null;
+      updateData.courier = { disconnect: true };
     }
 
     if (dto.status === OrderStatus.COURIER_ASSIGNED && dto.courierId) {
@@ -753,8 +755,36 @@ export class OrdersService {
     const statusChanged = order.status !== OrderStatus.COURIER_ASSIGNED;
     const acceptedAt = requireOnline ? new Date() : null;
 
-    await this.prisma.$transaction([
-      this.prisma.courierAssignment.upsert({
+    await this.prisma.$transaction(async (tx) => {
+      if (!allowReassign && !order.courierId) {
+        const claimed = await tx.order.updateMany({
+          where: {
+            id: orderId,
+            deletedAt: null,
+            courierId: null,
+            status: { in: allowedStatuses },
+          },
+          data: {
+            courierId,
+            status: OrderStatus.COURIER_ASSIGNED,
+          },
+        });
+        if (claimed.count === 0) {
+          throw new BadRequestException(
+            'Order already assigned to another courier',
+          );
+        }
+      } else {
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            courierId,
+            status: OrderStatus.COURIER_ASSIGNED,
+          },
+        });
+      }
+
+      await tx.courierAssignment.upsert({
         where: { orderId },
         create: {
           orderId,
@@ -770,15 +800,8 @@ export class OrdersService {
           courierFee,
           acceptedAt: allowReassign ? null : acceptedAt,
         },
-      }),
-      this.prisma.order.update({
-        where: { id: orderId },
-        data: {
-          courierId,
-          status: OrderStatus.COURIER_ASSIGNED,
-        },
-      }),
-    ]);
+      });
+    });
 
     if (statusChanged || allowReassign) {
       await this.recordStatusChange(

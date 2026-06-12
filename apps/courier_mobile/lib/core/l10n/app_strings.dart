@@ -48,6 +48,10 @@ abstract final class AppStrings {
   static const distance = 'Masofa';
   static const deliveryFee = 'To\'lov';
   static const initialDeliveryFee = 'Kuryer to\'lovi';
+  static const orderAmount = 'Buyurtma summasi';
+  static const payAtRestaurant = 'Restoranda to\'lash';
+  static const collectFromCustomer = 'Mijozdan olish';
+  static const deliveryEarnings = 'Yetkazish haqi';
   static const address = 'Manzil';
   static const openOrder = 'Vazifani ochish';
   static const newOrder = 'Yangi vazifa';
@@ -81,6 +85,7 @@ abstract final class AppStrings {
   static const loginFailed = 'Kirish amalga oshmadi';
   static const mustBeOnline = 'Vazifa qabul qilish uchun onlayn bo\'ling';
   static const orderUnavailable = 'Vazifa endi mavjud emas';
+  static const orderAlreadyTaken = 'Boshqa kuryer allaqachon qabul qilgan';
   static const goOnline = 'Onlayn';
   static const goOffline = 'Oflayn';
   static const startShift = 'Smenani boshlash';

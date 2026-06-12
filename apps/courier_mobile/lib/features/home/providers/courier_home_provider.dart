@@ -59,7 +59,9 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
 
   while (true) {
     try {
-      final orders = await ref.read(courierRepositoryProvider).fetchMyOrders();
+      final orders = await ref
+          .read(courierRepositoryProvider)
+          .fetchMyOrders(statusGroup: 'active');
       CourierOrderModel? active;
       for (final order in orders) {
         if (order.isActive) {

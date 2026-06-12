@@ -81,6 +81,30 @@ class CourierOrderModel {
   num get initialDeliveryFee =>
       estimatedCourierFee ?? courierFee ?? deliveryFee;
 
+  /// Courier keeps this as delivery earnings.
+  num get courierEarnings => initialDeliveryFee;
+
+  /// Food amount the courier pays at the merchant.
+  num get orderAmount {
+    if (subtotal > 0) return subtotal;
+    final fromTotal = total - deliveryFee;
+    return fromTotal > 0 ? fromTotal : 0;
+  }
+
+  /// Full amount to collect from the customer (food + delivery).
+  num get collectFromCustomer {
+    if (total > 0) return total;
+    return orderAmount + deliveryFee;
+  }
+
+  bool get isCancelled => status == 'CANCELLED';
+
+  bool get isDelivered => status == 'DELIVERED';
+
+  /// Order waiting in the auto-dispatch pool for any courier.
+  bool get isAvailableInPool =>
+      !isCancelled && !isDelivered && status == 'PREPARING';
+
   factory CourierOrderModel.fromJson(Map<String, dynamic> json) {
     final restaurant = json['restaurant'] as Map<String, dynamic>?;
     final business = json['business'] as Map<String, dynamic>?;

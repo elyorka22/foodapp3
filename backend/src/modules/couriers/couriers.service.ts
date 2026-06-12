@@ -519,6 +519,7 @@ export class CouriersService {
       );
       return {
       ...order,
+      subtotal: Number(order.subtotal),
       total: Number(order.total),
       deliveryFee: Number(order.deliveryFee),
       estimatedCourierFee,

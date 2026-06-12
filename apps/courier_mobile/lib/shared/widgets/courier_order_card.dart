@@ -4,10 +4,10 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
-import '../../core/utils/format_sum.dart';
 import '../../core/utils/map_launcher.dart';
 import '../models/courier_order_model.dart';
 import 'food_app_button.dart';
+import 'order_money_summary.dart';
 
 enum CourierOrderCardMode { available, active }
 
@@ -93,11 +93,7 @@ class CourierOrderCard extends StatelessWidget {
               icon: Icons.route_outlined,
               label: '${order.distanceKm} km',
             ),
-          _InfoLine(
-            icon: Icons.payments_outlined,
-            label: formatSum(order.initialDeliveryFee),
-            valueColor: AppColors.primary,
-          ),
+          OrderMoneySummary(order: order, showCollectTotal: true),
           if (order.customerPhone != null && order.customerPhone!.trim().isNotEmpty)
             InkWell(
               onTap: () => _callPhone(order.customerPhone!),
@@ -174,20 +170,7 @@ class _AvailableOrderCard extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(
-            AppStrings.initialDeliveryFee,
-            style: AppTypography.caption,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            formatSum(order.initialDeliveryFee),
-            style: AppTypography.title.copyWith(
-              color: AppColors.primary,
-              fontSize: 24,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          OrderMoneySummary(order: order, showCollectTotal: true),
           const SizedBox(height: AppSpacing.lg),
           FoodAppButton(
             label: actionLabel,

@@ -19,6 +19,7 @@ import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/food_app_card.dart';
 import '../../../shared/widgets/job_step_indicator.dart';
 import '../../../shared/widgets/order_line_items_card.dart';
+import '../../../shared/widgets/order_money_summary.dart';
 import '../../../shared/widgets/service_type_badge.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
@@ -125,6 +126,11 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
                   Text(phase, style: AppTypography.title.copyWith(fontSize: 22)),
                   const SizedBox(height: AppSpacing.md),
                   JobStepIndicator(steps: steps),
+                  const SizedBox(height: AppSpacing.lg),
+                  FoodAppCard(
+                    padding: const EdgeInsets.all(14),
+                    child: OrderMoneySummary(order: order, showCollectTotal: true),
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                   DeliveryMap(
                     courierLat: _courierLat,
