@@ -2,10 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../features/manager/presentation/manager_courier_form_screen.dart';
 import '../../features/manager/presentation/manager_couriers_screen.dart';
 import '../../features/manager/presentation/manager_orders_screen.dart';
+import '../../features/manager/presentation/manager_restaurant_form_screen.dart';
+import '../../features/manager/presentation/manager_restaurants_screen.dart';
+import '../../features/menu/presentation/menu_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/restaurant/presentation/restaurant_orders_screen.dart';
+import '../../features/restaurant/presentation/restaurant_stats_screen.dart';
 import '../../features/shell/manager_shell_screen.dart';
 import '../../features/shell/restaurant_shell_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -37,6 +43,30 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: AppRoutes.splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (_, __) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.managerRestaurantNew,
+        builder: (_, __) => const ManagerRestaurantFormScreen(),
+      ),
+      GoRoute(
+        path: '/manager/restaurants/:id/edit',
+        builder: (_, state) => ManagerRestaurantFormScreen(
+          restaurantId: state.pathParameters['id'],
+        ),
+      ),
+      GoRoute(
+        path: '/manager/restaurants/:id/menu',
+        builder: (_, state) => MenuScreen(
+          restaurantId: state.pathParameters['id'],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.managerCourierNew,
+        builder: (_, __) => const ManagerCourierFormScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (_, __, navigationShell) =>
             RestaurantShellScreen(navigationShell: navigationShell),
@@ -46,6 +76,22 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.restaurantHome,
                 builder: (_, __) => const RestaurantOrdersScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.restaurantMenu,
+                builder: (_, __) => const MenuScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.restaurantStats,
+                builder: (_, __) => const RestaurantStatsScreen(),
               ),
             ],
           ),
@@ -68,6 +114,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.managerHome,
                 builder: (_, __) => const ManagerOrdersScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.managerRestaurants,
+                builder: (_, __) => const ManagerRestaurantsScreen(),
               ),
             ],
           ),

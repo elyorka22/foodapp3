@@ -1,11 +1,20 @@
 abstract final class AppRoutes {
   static const splash = '/';
   static const login = '/login';
+  static const notifications = '/notifications';
 
   static const restaurantHome = '/restaurant';
+  static const restaurantMenu = '/restaurant/menu';
+  static const restaurantStats = '/restaurant/stats';
   static const restaurantProfile = '/restaurant/profile';
 
   static const managerHome = '/manager';
+  static const managerRestaurants = '/manager/restaurants';
   static const managerCouriers = '/manager/couriers';
   static const managerProfile = '/manager/profile';
+
+  static const managerRestaurantNew = '/manager/restaurants/new';
+  static String managerRestaurantEdit(String id) => '/manager/restaurants/$id/edit';
+  static String managerRestaurantMenu(String id) => '/manager/restaurants/$id/menu';
+  static const managerCourierNew = '/manager/couriers/new';
 }

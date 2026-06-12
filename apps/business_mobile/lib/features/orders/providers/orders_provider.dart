@@ -1,15 +1,29 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../shared/models/order_model.dart';
-import '../data/orders_repository.dart';
+import 'dart:async';
 
-final ordersListProvider = FutureProvider.autoDispose<List<StaffOrderModel>>((ref) async {
-  return ref.watch(ordersRepositoryProvider).fetchOrders();
-});
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../settings/data/settings_repository.dart';
+import '../data/orders_repository.dart';
+import '../../../shared/models/order_model.dart';
+
+const _pollInterval = Duration(seconds: 15);
+
+final orderFilterProvider = StateProvider<String?>((ref) => null);
 
 final ordersPollingProvider = StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
-  final repo = ref.watch(ordersRepositoryProvider);
+  final filter = ref.watch(orderFilterProvider);
+
   while (true) {
-    yield await repo.fetchOrders();
-    await Future<void>.delayed(const Duration(seconds: 15));
+    try {
+      yield await ref.read(ordersRepositoryProvider).fetchOrders(
+            statusGroup: filter,
+          );
+    } catch (_) {
+      yield const [];
+    }
+    await Future<void>.delayed(_pollInterval);
   }
+});
+
+final dispatchModeProvider = FutureProvider.autoDispose<String>((ref) async {
+  return ref.read(settingsRepositoryProvider).fetchCourierDispatchMode();
 });

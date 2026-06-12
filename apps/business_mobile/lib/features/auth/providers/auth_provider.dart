@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/push/device_registration_service.dart';
 import '../../../shared/models/auth_model.dart';
 import '../data/auth_repository.dart';
 
@@ -23,9 +24,11 @@ class AuthNotifier extends AsyncNotifier<AuthUserModel?> {
     if (state.hasError) {
       throw state.error!;
     }
+    await ref.read(deviceRegistrationServiceProvider).registerAfterAuth();
   }
 
   Future<void> logout() async {
+    await ref.read(deviceRegistrationServiceProvider).unregisterOnLogout();
     await ref.read(authRepositoryProvider).logout();
     state = const AsyncData(null);
   }

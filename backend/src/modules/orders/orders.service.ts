@@ -274,6 +274,13 @@ export class OrdersService {
       businessName: order.business?.name,
     });
 
+    await this.notifications.notifyBusinessStaffNewOrder({
+      businessId: order.businessId,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      businessName: order.business?.name,
+    });
+
     if (customerId) {
       await this.notifications.notifyCustomerOrderStatus({
         customerId,

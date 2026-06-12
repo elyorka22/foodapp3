@@ -5,12 +5,13 @@ This guide covers Firebase Cloud Messaging (FCM) setup for the FoodApp monorepo:
 ## Firebase project
 
 1. Create or open your Firebase project in [Firebase Console](https://console.firebase.google.com/).
-2. Register two Android apps:
+2. Register Android apps:
 
 | App | Package name |
 |-----|----------------|
 | Customer | `com.foodapp.customer_mobile` |
 | Courier | `com.foodapp.courier_mobile` |
+| Business | `com.foodapp.business_mobile` |
 
 3. Download `google-services.json` for each app from **Project settings → Your apps**.
 
@@ -68,6 +69,11 @@ In-app notifications still work via HTTP/WebSocket; only FCM transport is disabl
 Package: `com.foodapp.courier_mobile`  
 Config file: `apps/courier_mobile/google-services.json` (copied to `android/app/` by `setup_firebase_android.sh`)
 
+## Business mobile (Android)
+
+Package: `com.foodapp.business_mobile`  
+Config file: `apps/business_mobile/google-services.json` (copied to `android/app/` by `setup_firebase_android.sh`)
+
 ## Architecture overview
 
 ```
@@ -109,6 +115,8 @@ Android channel ID **`foodapp_default`** is used by both backend FCM payloads an
 |--------|-------------|
 | `GOOGLE_SERVICES_JSON_CUSTOMER` | Full contents of customer `google-services.json` |
 | `GOOGLE_SERVICES_JSON_COURIER` | Full contents of courier `google-services.json` |
+| `GOOGLE_SERVICES_JSON_BUSINESS` | Full contents of business `google-services.json` |
+| `GOOGLE_SERVICES_JSON_BUSINESS_B64` | Optional: base64-encoded business JSON |
 
 See [FCM_DEPLOYMENT.md](./FCM_DEPLOYMENT.md) for production deployment.
 

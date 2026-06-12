@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/order_model.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/filter_chips.dart';
 import '../../../shared/widgets/order_card.dart';
+import '../../../shared/widgets/screen_header.dart';
 import '../../manager/data/couriers_repository.dart';
 import '../../orders/data/orders_repository.dart';
 import '../../orders/providers/orders_provider.dart';
@@ -22,35 +27,111 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final orders = ref.watch(ordersPollingProvider);
+    final filter = ref.watch(orderFilterProvider);
+    final dispatchMode = ref.watch(dispatchModeProvider);
+    final isManagerDispatch = dispatchMode.valueOrNull == 'manager';
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.managerPanel)),
+      backgroundColor: AppColors.background,
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(ordersPollingProvider),
-        child: orders.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text(ApiException.formatError(e))),
-          data: (list) {
-            if (list.isEmpty) {
-              return const Center(child: Text(AppStrings.noOrders));
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                final order = list[index];
-                return OrderCard(
-                  order: order,
-                  showRestaurant: true,
-                  isLoading: _actingOrderId == order.id,
-                  onStatusChange: (next) => _updateStatus(order.id, next),
-                  onAssignCourier: order.canAssignCourier
-                      ? () => _showAssignDialog(order)
-                      : null,
+        onRefresh: () async {
+          ref.invalidate(ordersPollingProvider);
+          ref.invalidate(dispatchModeProvider);
+        },
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+          children: [
+            ScreenHeader(
+              title: AppStrings.managerPanel,
+              subtitle: AppStrings.orders,
+              trailing: dispatchMode.when(
+                data: (mode) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    mode == 'manager' ? 'Menejer' : 'Avto',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.infoSoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isManagerDispatch ? AppStrings.dispatchManager : AppStrings.dispatchAuto,
+                  style: AppTypography.caption.copyWith(color: AppColors.info),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: FilterChipsRow(
+                options: const [
+                  FilterChipOption(label: AppStrings.filterAll, value: null),
+                  FilterChipOption(label: AppStrings.filterActive, value: 'active'),
+                  FilterChipOption(label: AppStrings.filterCancelled, value: 'cancelled'),
+                ],
+                selected: filter,
+                onSelected: (v) => ref.read(orderFilterProvider.notifier).state = v,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            orders.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.all(48),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (e, _) => ErrorState(
+                message: ApiException.formatError(e),
+                onRetry: () => ref.invalidate(ordersPollingProvider),
+              ),
+              data: (list) {
+                if (list.isEmpty) {
+                  return const EmptyState(
+                    icon: Icons.inbox_outlined,
+                    title: AppStrings.noOrders,
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Column(
+                    children: list
+                        .map(
+                          (order) => OrderCard(
+                            order: order,
+                            showRestaurant: true,
+                            showAssignCourier: isManagerDispatch,
+                            isLoading: _actingOrderId == order.id,
+                            onStatusChange: (next) => _updateStatus(order.id, next),
+                            onAssignCourier: isManagerDispatch && order.canAssignCourier
+                                ? () => _showAssignDialog(order)
+                                : null,
+                            onCancel: order.canCancel
+                                ? () => _cancelOrder(order.id)
+                                : null,
+                          ),
+                        )
+                        .toList(),
+                  ),
                 );
               },
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
@@ -72,6 +153,26 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
     }
   }
 
+  Future<void> _cancelOrder(String orderId) async {
+    setState(() => _actingOrderId = orderId);
+    try {
+      await ref.read(ordersRepositoryProvider).updateStatus(
+            orderId,
+            'CANCELLED',
+            cancelReason: 'Menejer tomonidan bekor qilindi',
+          );
+      ref.invalidate(ordersPollingProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ApiException.formatError(e))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _actingOrderId = null);
+    }
+  }
+
   Future<void> _showAssignDialog(StaffOrderModel order) async {
     try {
       final couriers = await ref.read(couriersRepositoryProvider).fetchCouriers();
@@ -80,13 +181,14 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
       final online = couriers.where((c) => c.isOnline && c.isActive).toList();
       if (online.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Onlayn kuryerlar yo\'q')),
+          const SnackBar(content: Text(AppStrings.noOnlineCouriers)),
         );
         return;
       }
 
       final selected = await showModalBottomSheet<String>(
         context: context,
+        showDragHandle: true,
         builder: (context) {
           return SafeArea(
             child: Column(
@@ -94,17 +196,25 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Text(
-                    AppStrings.selectCourier,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  child: Text(AppStrings.selectCourier, style: AppTypography.subtitle),
                 ),
-                ...online.map(
-                  (courier) => ListTile(
-                    title: Text(courier.fullName),
-                    subtitle: Text(courier.phone ?? ''),
-                    trailing: const Icon(Icons.circle, color: Colors.green, size: 10),
-                    onTap: () => Navigator.pop(context, courier.id),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: online.length,
+                    itemBuilder: (context, index) {
+                      final courier = online[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.primarySoft,
+                          child: Text(courier.fullName.characters.first),
+                        ),
+                        title: Text(courier.fullName),
+                        subtitle: Text(courier.phone ?? ''),
+                        trailing: const Icon(Icons.circle, color: AppColors.success, size: 10),
+                        onTap: () => Navigator.pop(context, courier.id),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -115,7 +225,11 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
 
       if (selected == null) return;
       setState(() => _actingOrderId = order.id);
-      await ref.read(ordersRepositoryProvider).assignCourier(order.id, selected);
+      if (order.courierId == null) {
+        await ref.read(ordersRepositoryProvider).assignCourier(order.id, selected);
+      } else {
+        await ref.read(ordersRepositoryProvider).reassignCourier(order.id, selected);
+      }
       ref.invalidate(ordersPollingProvider);
     } catch (e) {
       if (mounted) {

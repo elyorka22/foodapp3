@@ -246,6 +246,43 @@ export class NotificationService {
     });
   }
 
+  /** Restaurant staff linked to a business — business_mobile push. */
+  async notifyBusinessStaffNewOrder(params: {
+    businessId: string;
+    orderId: string;
+    orderNumber: string;
+    businessName?: string;
+  }) {
+    const staff = await this.prisma.businessStaff.findMany({
+      where: {
+        businessId: params.businessId,
+        deletedAt: null,
+        user: {
+          deletedAt: null,
+          isActive: true,
+          role: UserRole.BUSINESS,
+        },
+      },
+      select: { userId: true },
+    });
+    if (!staff.length) return;
+
+    const metadata = {
+      orderId: params.orderId,
+      orderNumber: params.orderNumber,
+      businessName: params.businessName,
+    };
+    await this.sendToMany(
+      staff.map((s) => ({
+        userId: s.userId,
+        accountType: NotificationAccountType.STAFF,
+        userRole: UserRole.BUSINESS,
+      })),
+      'NEW_ORDER',
+      metadata,
+    );
+  }
+
   async notifyManagersNewOrder(order: {
     id: string;
     orderNumber: string;

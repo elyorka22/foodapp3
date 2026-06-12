@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/l10n/app_strings.dart';
+import '../../core/theme/app_colors.dart';
 
 class ManagerShellScreen extends StatelessWidget {
   const ManagerShellScreen({super.key, required this.navigationShell});
@@ -10,6 +11,7 @@ class ManagerShellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
@@ -19,6 +21,11 @@ class ManagerShellScreen extends StatelessWidget {
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: AppStrings.orders,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.storefront_outlined),
+            selectedIcon: Icon(Icons.storefront),
+            label: AppStrings.restaurants,
           ),
           NavigationDestination(
             icon: Icon(Icons.delivery_dining_outlined),

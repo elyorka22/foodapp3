@@ -7,6 +7,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/password_text_field.dart';
 import '../providers/auth_provider.dart';
@@ -33,25 +34,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(),
-              const Icon(Icons.storefront, size: 64, color: AppColors.primary),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                AppStrings.appName,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall,
+              const SizedBox(height: 48),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(Icons.storefront_rounded, size: 40, color: AppColors.primary),
               ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(AppStrings.appName, style: AppTypography.title.copyWith(fontSize: 24)),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                '${AppStrings.restaurantPanel} / ${AppStrings.managerPanel}',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
+                AppStrings.appTagline,
+                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.xxl),
               TextField(
@@ -62,6 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 decoration: const InputDecoration(
                   labelText: AppStrings.loginId,
                   hintText: AppStrings.loginIdHint,
+                  prefixIcon: Icon(Icons.person_outline),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -80,12 +86,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text(
                   'API: ${AppConfig.normalizedApiBaseUrl}',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textMuted,
-                      ),
+                  style: AppTypography.caption,
                 ),
               ],
-              const Spacer(),
             ],
           ),
         ),
@@ -108,17 +111,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
       context.go(user.homeRoute);
     } catch (e) {
-      if (mounted) {
-        _showError(ApiException.formatError(e));
-      }
+      if (mounted) _showError(ApiException.formatError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 }

@@ -14,25 +14,54 @@ class OrdersRepository {
 
   final Dio _dio;
 
-  Future<List<StaffOrderModel>> fetchOrders() async {
+  Future<List<StaffOrderModel>> fetchOrders({String? statusGroup}) async {
     final res = await _dio.get<dynamic>(
       ApiPaths.orders,
-      queryParameters: {'limit': 50},
+      queryParameters: {
+        'limit': 50,
+        if (statusGroup != null) 'statusGroup': statusGroup,
+      },
     );
     return parseListResponse(res.data)
         .map(StaffOrderModel.fromJson)
         .toList();
   }
 
-  Future<void> updateStatus(String orderId, String status) async {
-    await _dio.patch(ApiPaths.orderStatus(orderId), data: {'status': status});
+  Future<void> updateStatus(String orderId, String status, {String? cancelReason}) async {
+    await _dio.patch(
+      ApiPaths.orderStatus(orderId),
+      data: {
+        'status': status,
+        if (cancelReason != null) 'cancelReason': cancelReason,
+      },
+    );
   }
 
   Future<void> requestCourier(String orderId) async {
     await _dio.post(ApiPaths.requestCourier(orderId));
   }
 
-  Future<void> assignCourier(String orderId, String courierId) async {
-    await _dio.post(ApiPaths.assignCourier(orderId), data: {'courierId': courierId});
+  Future<void> assignCourier(String orderId, String courierId, {String? note}) async {
+    await _dio.post(
+      ApiPaths.assignCourier(orderId),
+      data: {
+        'courierId': courierId,
+        if (note != null) 'note': note,
+      },
+    );
+  }
+
+  Future<void> reassignCourier(String orderId, String courierId, {String? note}) async {
+    await _dio.patch(
+      ApiPaths.reassignCourier(orderId),
+      data: {
+        'courierId': courierId,
+        if (note != null) 'note': note,
+      },
+    );
+  }
+
+  Future<void> removeCourier(String orderId) async {
+    await _dio.patch(ApiPaths.removeCourier(orderId));
   }
 }
