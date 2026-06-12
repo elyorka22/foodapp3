@@ -188,7 +188,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     )
                   else
                     DropdownButtonFormField<String>(
-                      value: _categoryId,
+                      key: ValueKey(_categoryId ?? 'none'),
+                      initialValue: _categoryId,
                       decoration: InputDecoration(
                         labelText: _isStore
                             ? AppStrings.selectStoreCategory

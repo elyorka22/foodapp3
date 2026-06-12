@@ -214,7 +214,7 @@ class _ProductTile extends StatelessWidget {
               height: 56,
               child: imageUrl != null
                   ? Image.network(imageUrl, fit: BoxFit.cover)
-                  : ColoredBox(
+                  : const ColoredBox(
                       color: AppColors.primarySoft,
                       child: Icon(Icons.fastfood_outlined, color: AppColors.primary),
                     ),
