@@ -16,6 +16,8 @@ abstract final class ApiPaths {
   static const staffDevicesUnregister = '/notifications/staff/devices/unregister';
   static String notificationStaffRead(String id) => '/notifications/staff/$id/read';
 
+  static const users = '/users';
+
   static String order(String id) => '/orders/$id';
   static String orderStatus(String id) => '/orders/$id/status';
   static String requestCourier(String id) => '/orders/$id/request-courier';
@@ -23,6 +25,7 @@ abstract final class ApiPaths {
   static String reassignCourier(String id) => '/orders/$id/reassign-courier';
   static String removeCourier(String id) => '/orders/$id/remove-courier';
   static String restaurant(String id) => '/restaurants/$id';
+  static String restaurantOwnerAccount(String id) => '/restaurants/$id/owner-account';
   static String restaurantWorkingHours(String id) => '/restaurants/$id/working-hours';
   static String restaurantStats(String id) => '/analytics/restaurant/$id';
   static String product(String id) => '/products/$id';

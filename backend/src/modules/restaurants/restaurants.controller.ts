@@ -19,6 +19,7 @@ import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { RestaurantApprovalDto } from './dto/restaurant-approval.dto';
 import { AdminRestaurantsQueryDto } from './dto/admin-restaurants-query.dto';
 import { SetWorkingHoursDto } from './dto/set-working-hours.dto';
+import { SetupOwnerAccountDto } from './dto/setup-owner-account.dto';
 import { AddHolidayDto } from './dto/add-holiday.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -165,6 +166,18 @@ export class RestaurantsController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.restaurants.update(id, dto, user);
+  }
+
+  @Post(':id/owner-account')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  setupOwnerAccount(
+    @Param('id') id: string,
+    @Body() dto: SetupOwnerAccountDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.restaurants.setupOwnerAccount(id, dto, user);
   }
 
   @Delete(':id')

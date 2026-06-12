@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_paths.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/utils/json_parse.dart';
+import '../../../core/utils/owner_login.dart';
 import '../../../shared/models/order_model.dart';
 import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/models/working_hour_model.dart';
@@ -53,6 +54,66 @@ class RestaurantRepository {
       data: restaurant.toUpdateJson(),
     );
     return RestaurantModel.fromJson(res.data!);
+  }
+
+  /// Create or update business panel owner without PATCH ownerLogin/ownerFullName
+  /// (compatible with older API that only accepts ownerPassword on PATCH).
+  Future<void> syncOwnerAccount({
+    required String restaurantId,
+    required String login,
+    required String password,
+    String? fullName,
+  }) async {
+    try {
+      await _dio.post(
+        ApiPaths.restaurantOwnerAccount(restaurantId),
+        data: {
+          'login': login,
+          'password': password,
+          if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
+        },
+      );
+      return;
+    } on DioException catch (e) {
+      if (e.response?.statusCode != 404 && e.response?.statusCode != 405) {
+        rethrow;
+      }
+    }
+
+    await _createOwnerViaUsers(
+      restaurantId: restaurantId,
+      login: login,
+      password: password,
+      fullName: fullName,
+    );
+  }
+
+  /// Password reset only — works on older API (ownerPassword on PATCH).
+  Future<void> resetOwnerPassword(String restaurantId, String password) async {
+    await _dio.patch(
+      ApiPaths.restaurant(restaurantId),
+      data: {'ownerPassword': password},
+    );
+  }
+
+  Future<void> _createOwnerViaUsers({
+    required String restaurantId,
+    required String login,
+    required String password,
+    String? fullName,
+  }) async {
+    final parts = parseOwnerLogin(login);
+    await _dio.post(
+      ApiPaths.users,
+      data: {
+        'email': parts.email,
+        if (parts.phone != null) 'phone': parts.phone,
+        'password': password,
+        'role': 'BUSINESS',
+        'restaurantId': restaurantId,
+        if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
+      },
+    );
   }
 
   Future<RestaurantStatsModel> fetchStats(String restaurantId) async {

@@ -27,6 +27,7 @@ import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { SetupOwnerAccountDto } from './dto/setup-owner-account.dto';
 import { AdminRestaurantsQueryDto } from './dto/admin-restaurants-query.dto';
 import { userBusinessId } from '../../domain/business/business-id.util';
 import { businessWhereForVertical } from '../../domain/business/merchant-vertical';
@@ -698,6 +699,30 @@ export class RestaurantsService {
       metadata: dto,
     });
     return restaurant;
+  }
+
+  async setupOwnerAccount(id: string, dto: SetupOwnerAccountDto, user: JwtPayload) {
+    this.assertRestaurantAccess(id, user);
+    const restaurant = await this.prisma.business.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!restaurant) throw new NotFoundException('Restaurant not found');
+
+    await this.syncBusinessOwnerOnUpdate(id, restaurant.name, {
+      ownerLogin: dto.login,
+      ownerPassword: dto.password,
+      ownerFullName: dto.fullName,
+    });
+
+    await this.audit.log({
+      userId: user.sub,
+      action: 'setup_owner_account',
+      entity: 'restaurant',
+      entityId: id,
+      metadata: { login: dto.login },
+    });
+
+    return { ok: true };
   }
 
   private async syncBusinessOwnerOnUpdate(

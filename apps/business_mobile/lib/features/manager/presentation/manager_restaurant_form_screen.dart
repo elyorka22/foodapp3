@@ -306,6 +306,7 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
       final hours = _buildWorkingHours();
       final kind = _isStore ? 'STORE' : 'RESTAURANT';
       final owner = _ownerPayload();
+      final repo = ref.read(restaurantRepositoryProvider);
 
       if (_isEdit) {
         final model = RestaurantModel(
@@ -315,12 +316,40 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
           phone: _phone.text.trim(),
           branchAddress: _address.text.trim(),
           isActive: _isActive,
-          ownerLogin: owner.login,
-          ownerPassword: owner.password,
-          ownerFullName: owner.fullName,
           workingHours: hours,
         );
-        await ref.read(restaurantRepositoryProvider).updateRestaurant(model);
+        await repo.updateRestaurant(model);
+
+        final needsOwnerCreate = !_hasOwnerAccount &&
+            owner.login != null &&
+            owner.login!.isNotEmpty &&
+            owner.password != null &&
+            owner.password!.isNotEmpty;
+
+        if (needsOwnerCreate) {
+          await repo.syncOwnerAccount(
+            restaurantId: widget.restaurantId!,
+            login: owner.login!,
+            password: owner.password!,
+            fullName: owner.fullName,
+          );
+        } else if (_hasOwnerAccount &&
+            owner.password != null &&
+            owner.password!.isNotEmpty) {
+          final login = (owner.login != null && owner.login!.isNotEmpty)
+              ? owner.login!
+              : _originalOwnerLogin;
+          if (login.isNotEmpty) {
+            await repo.syncOwnerAccount(
+              restaurantId: widget.restaurantId!,
+              login: login,
+              password: owner.password!,
+              fullName: owner.fullName,
+            );
+          } else {
+            await repo.resetOwnerPassword(widget.restaurantId!, owner.password!);
+          }
+        }
       } else {
         final model = RestaurantModel(
           id: '',
