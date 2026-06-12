@@ -12,6 +12,7 @@ import {
 } from '@/lib/restaurant-card-meta';
 import { restaurantPublicPath } from '@/lib/restaurant-url';
 import { uz } from '@/lib/uz';
+import { BusinessAvailabilityBadge } from '@/components/business/business-availability-badge';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
 const FALLBACK_BACKGROUNDS = [
@@ -78,6 +79,12 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
         <h3 className="truncate text-[15px] font-bold leading-tight text-zinc-900">
           {restaurant.name}
         </h3>
+        <BusinessAvailabilityBadge
+          isOpen={restaurant.isOpen}
+          closesAt={restaurant.closesAt}
+          closingSoon={restaurant.closingSoon}
+          className="mt-0.5"
+        />
         <div className="mt-0.5 flex items-center justify-between gap-2">
           <span className="inline-flex shrink-0 items-center gap-1 text-[13px] text-zinc-500">
             <Footprints size={15} strokeWidth={2} className="text-zinc-600" />

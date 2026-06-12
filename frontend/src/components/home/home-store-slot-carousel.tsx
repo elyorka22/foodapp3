@@ -9,6 +9,7 @@ import { categoryImageStyle } from '@/lib/category-image-style';
 import { isStoreKind } from '@/lib/business-kind';
 import { shopPublicPath } from '@/lib/shop-url';
 import { uz } from '@/lib/uz';
+import { BusinessAvailabilityBadge } from '@/components/business/business-availability-badge';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
 
 type Props = {
@@ -41,6 +42,16 @@ function StoreSlide({ store }: { store: ShopBusiness }) {
           sizes="50vw"
           unoptimized
         />
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
+          <p className="truncate text-sm font-bold text-white">{store.name}</p>
+          <BusinessAvailabilityBadge
+            isOpen={store.isOpen}
+            closesAt={store.closesAt}
+            closingSoon={store.closingSoon}
+            onDark
+            className="mt-0.5"
+          />
+        </div>
       </div>
     </Link>
   );

@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { RestaurantScheduleService } from './restaurant-schedule.service';
 import {
   BusinessKind,
@@ -37,6 +43,7 @@ export class RestaurantsService {
     private adminNotifications: AdminNotificationsService,
     private schedule: RestaurantScheduleService,
     private settings: SettingsService,
+    private auth: AuthService,
   ) {}
 
   /** Homepage / food delivery — restaurants only, not marketplace shops (grocery, pharmacy, …). */
@@ -86,9 +93,11 @@ export class RestaurantsService {
     ]);
 
     const framingDefaults = await this.settings.getImageFramingDefaults();
-    const serialized = data.map((r) =>
-      this.serializePublicListItem(r, framingDefaults),
-    );
+    const availabilityMap = await this.schedule.getAvailabilityBatch(data.map((r) => r.id));
+    const serialized = data.map((r) => ({
+      ...this.serializePublicListItem(r, framingDefaults),
+      ...availabilityMap.get(r.id),
+    }));
     return paginatedResponse(serialized, total, query.page ?? 1, query.limit ?? 20);
   }
 
@@ -281,7 +290,7 @@ export class RestaurantsService {
       },
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
-    const isOpen = await this.schedule.isOpen(restaurant.id);
+    const availability = await this.schedule.getAvailability(restaurant.id);
     const kind = resolveBusinessKind(restaurant);
     const branch = restaurant.branches?.[0];
     const restaurantMenu = isRestaurantKind(restaurant);
@@ -300,7 +309,10 @@ export class RestaurantsService {
       ...restaurant,
       kind,
       products,
-      isOpen,
+      isOpen: availability.isOpen,
+      closesAt: availability.closesAt,
+      closingSoon: availability.closingSoon,
+      minutesUntilClose: availability.minutesUntilClose,
       catalogMode: 'CATALOG',
       phone: restaurant.phone,
       logoUrl: restaurant.logoUrl,
@@ -342,7 +354,28 @@ export class RestaurantsService {
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
     if (user) this.assertRestaurantAccess(id, user);
-    return restaurant;
+
+    const branch = restaurant.branches?.[0];
+    let ownerLogin: string | null = null;
+    let ownerFullName: string | null = null;
+    if (user && (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER)) {
+      const staff = await this.prisma.businessStaff.findFirst({
+        where: { businessId: id, deletedAt: null },
+        include: { user: { select: { email: true, phone: true, fullName: true } } },
+      });
+      ownerLogin = staff?.user?.email ?? staff?.user?.phone ?? null;
+      ownerFullName = staff?.user?.fullName ?? null;
+    }
+
+    return {
+      ...restaurant,
+      commissionRate: Number(restaurant.commissionRate),
+      branchAddress: branch?.address ?? null,
+      latitude: branch ? Number(branch.latitude) : null,
+      longitude: branch ? Number(branch.longitude) : null,
+      ownerLogin,
+      ownerFullName,
+    };
   }
 
   async findAllAdmin(query: AdminRestaurantsQueryDto, user: JwtPayload) {
@@ -503,13 +536,37 @@ export class RestaurantsService {
       isTaken: (s) => this.isBusinessSlugTaken(s),
     });
 
-    let kind: BusinessKind = BusinessKind.RESTAURANT;
+    if (dto.ownerLogin && !dto.ownerPassword) {
+      throw new BadRequestException('ownerPassword is required when ownerLogin is set');
+    }
+    if (dto.ownerPassword && !dto.ownerLogin) {
+      throw new BadRequestException('ownerLogin is required when ownerPassword is set');
+    }
+
+    let kind: BusinessKind =
+      dto.kind === 'STORE'
+        ? BusinessKind.STORE
+        : dto.kind === 'RESTAURANT'
+          ? BusinessKind.RESTAURANT
+          : BusinessKind.RESTAURANT;
+    let businessTypeId = dto.businessTypeId;
     if (dto.businessTypeId) {
       const type = await this.prisma.businessType.findUnique({
         where: { id: dto.businessTypeId },
       });
       if (!type) throw new NotFoundException('Business type not found');
       kind = type.slug === 'restaurant' ? BusinessKind.RESTAURANT : BusinessKind.STORE;
+    } else if (kind === BusinessKind.STORE) {
+      const storeType = await this.prisma.businessType.findFirst({
+        where: { isActive: true, slug: { not: 'restaurant' } },
+        orderBy: { sortOrder: 'asc' },
+      });
+      businessTypeId = storeType?.id;
+    } else {
+      const restaurantType = await this.prisma.businessType.findUnique({
+        where: { slug: 'restaurant' },
+      });
+      businessTypeId = restaurantType?.id;
     }
 
     const restaurant = await this.prisma.business.create({
@@ -517,7 +574,7 @@ export class RestaurantsService {
         name: dto.name,
         slug,
         kind,
-        businessTypeId: dto.businessTypeId,
+        businessTypeId,
         description: dto.description,
         logoUrl: dto.logoUrl,
         coverUrl: dto.coverUrl,
@@ -540,6 +597,19 @@ export class RestaurantsService {
       name: restaurant.name,
     });
 
+    if (dto.ownerLogin && dto.ownerPassword) {
+      await this.createBusinessOwner({
+        businessId: restaurant.id,
+        login: dto.ownerLogin,
+        password: dto.ownerPassword,
+        fullName: dto.ownerFullName ?? dto.name,
+      });
+    }
+
+    if (dto.workingHours?.length) {
+      await this.schedule.setWorkingHours(restaurant.id, dto.workingHours);
+    }
+
     await this.audit.log({
       userId: user?.sub,
       action: 'create',
@@ -558,6 +628,8 @@ export class RestaurantsService {
       latitude,
       longitude,
       branchAddress,
+      ownerPassword,
+      workingHours,
       ...rest
     } = dto;
     const data: Prisma.BusinessUpdateInput = { ...rest };
@@ -592,6 +664,13 @@ export class RestaurantsService {
       name: restaurant.name,
     });
 
+    if (workingHours?.length) {
+      await this.schedule.setWorkingHours(id, workingHours);
+    }
+    if (ownerPassword) {
+      await this.resetBusinessOwnerPassword(id, ownerPassword);
+    }
+
     await this.audit.log({
       userId: user.sub,
       action: 'update',
@@ -600,6 +679,66 @@ export class RestaurantsService {
       metadata: dto,
     });
     return restaurant;
+  }
+
+  private async createBusinessOwner(params: {
+    businessId: string;
+    login: string;
+    password: string;
+    fullName?: string;
+  }) {
+    const login = params.login.trim();
+    const isEmail = login.includes('@');
+    const email = isEmail ? login.toLowerCase() : null;
+    const phone = !isEmail ? normalizePhone(login) : null;
+
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [
+          ...(email ? [{ email }] : []),
+          ...(phone ? [{ phone }] : []),
+        ],
+      },
+    });
+    if (existing) {
+      throw new ConflictException('User with this email or phone already exists');
+    }
+
+    const passwordHash = await this.auth.hashPassword(params.password);
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        phone,
+        fullName: params.fullName?.trim() || null,
+        role: UserRole.BUSINESS,
+        passwordHash,
+        adminPasswordNote: params.password,
+        isActive: true,
+      },
+    });
+
+    await this.prisma.businessStaff.create({
+      data: { userId: user.id, businessId: params.businessId },
+    });
+
+    return user;
+  }
+
+  private async resetBusinessOwnerPassword(businessId: string, password: string) {
+    const staff = await this.prisma.businessStaff.findFirst({
+      where: { businessId, deletedAt: null },
+      include: { user: true },
+    });
+    if (!staff?.user) {
+      throw new BadRequestException('Business owner account not found');
+    }
+
+    const passwordHash = await this.auth.hashPassword(password);
+    await this.prisma.user.update({
+      where: { id: staff.userId },
+      data: { passwordHash, adminPasswordNote: password },
+    });
   }
 
   private async upsertPrimaryBranch(

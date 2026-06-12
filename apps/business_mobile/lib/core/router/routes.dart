@@ -10,6 +10,7 @@ abstract final class AppRoutes {
 
   static const managerHome = '/manager';
   static const managerRestaurants = '/manager/restaurants';
+  static const managerStores = '/manager/stores';
   static const managerCouriers = '/manager/couriers';
   static const managerProfile = '/manager/profile';
 

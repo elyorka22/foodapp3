@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { isRestaurantOpenNow } from '../../common/utils/restaurant-hours.util';
+import {
+  resolveRestaurantAvailability,
+  type RestaurantAvailability,
+} from '../../common/utils/restaurant-hours.util';
 
 export type WorkingHourInput = {
   dayOfWeek: number;
@@ -21,19 +24,66 @@ export class RestaurantScheduleService {
   }
 
   async isOpen(businessId: string) {
-    const [hours, holidays] = await Promise.all([
-      this.prisma.businessWorkingHours.findMany({ where: { businessId } }),
+    const availability = await this.getAvailability(businessId);
+    return availability.isOpen;
+  }
+
+  async getAvailability(businessId: string): Promise<RestaurantAvailability> {
+    const map = await this.getAvailabilityBatch([businessId]);
+    return map.get(businessId) ?? {
+      isOpen: true,
+      closesAt: null,
+      closingSoon: false,
+      minutesUntilClose: null,
+    };
+  }
+
+  async getAvailabilityBatch(businessIds: string[]): Promise<Map<string, RestaurantAvailability>> {
+    const result = new Map<string, RestaurantAvailability>();
+    if (!businessIds.length) return result;
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const [allHours, allHolidays] = await Promise.all([
+      this.prisma.businessWorkingHours.findMany({
+        where: { businessId: { in: businessIds } },
+      }),
       this.prisma.businessHoliday.findMany({
         where: {
-          businessId,
-          date: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            lt: new Date(new Date().setHours(23, 59, 59, 999)),
-          },
+          businessId: { in: businessIds },
+          date: { gte: todayStart, lte: todayEnd },
         },
       }),
     ]);
-    return isRestaurantOpenNow(hours, holidays);
+
+    const hoursByBusiness = new Map<string, typeof allHours>();
+    for (const row of allHours) {
+      const list = hoursByBusiness.get(row.businessId) ?? [];
+      list.push(row);
+      hoursByBusiness.set(row.businessId, list);
+    }
+
+    const holidaysByBusiness = new Map<string, typeof allHolidays>();
+    for (const row of allHolidays) {
+      const list = holidaysByBusiness.get(row.businessId) ?? [];
+      list.push(row);
+      holidaysByBusiness.set(row.businessId, list);
+    }
+
+    for (const id of businessIds) {
+      result.set(
+        id,
+        resolveRestaurantAvailability(
+          hoursByBusiness.get(id) ?? [],
+          holidaysByBusiness.get(id) ?? [],
+        ),
+      );
+    }
+
+    return result;
   }
 
   getWorkingHours(businessId: string) {

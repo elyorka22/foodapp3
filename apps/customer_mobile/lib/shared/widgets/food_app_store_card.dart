@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../shared/models/business_model.dart';
+import 'business_availability_badge.dart';
 import 'food_app_card.dart';
 
 class FoodAppStoreCard extends StatelessWidget {
@@ -33,6 +34,13 @@ class FoodAppStoreCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(store.name, style: AppTypography.subtitle),
+                const SizedBox(height: 2),
+                BusinessAvailabilityBadge(
+                  isOpen: store.isOpen,
+                  closesAt: store.closesAt,
+                  closingSoon: store.closingSoon ?? false,
+                  compact: true,
+                ),
                 if (store.businessType != null)
                   Text(store.businessType!.name, style: AppTypography.caption),
                 if (store.averageRating != null && store.reviewCount != null)

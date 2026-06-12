@@ -29,6 +29,10 @@ export type BusinessPublic = {
     catalogMode?: 'CATALOG' | 'CONTACT';
   } | null;
   category?: string | null;
+  isOpen?: boolean;
+  closesAt?: string | null;
+  closingSoon?: boolean;
+  minutesUntilClose?: number | null;
 };
 
 export type BusinessType = {

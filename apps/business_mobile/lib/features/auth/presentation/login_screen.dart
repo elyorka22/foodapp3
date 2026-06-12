@@ -42,14 +42,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 48),
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(24),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  'assets/images/app_icon.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
                 ),
-                child: const Icon(Icons.storefront_rounded, size: 40, color: AppColors.primary),
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(AppStrings.appName, style: AppTypography.title.copyWith(fontSize: 24)),

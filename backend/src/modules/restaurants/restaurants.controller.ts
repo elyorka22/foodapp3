@@ -58,8 +58,7 @@ export class RestaurantsController {
 
   @Get(':id/availability')
   async getAvailability(@Param('id') id: string) {
-    const isOpen = await this.schedule.isOpen(id);
-    return { isOpen };
+    return this.schedule.getAvailability(id);
   }
 
   @Get(':id/working-hours')

@@ -13,6 +13,7 @@ import { ProductCard, type MenuProduct } from '@/components/restaurant/product-c
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
+import { BusinessAvailabilityBanner } from '@/components/business/business-availability-badge';
 import { uz } from '@/lib/uz';
 
 type MenuCategory = { id: string; name: string; slug?: string };
@@ -134,11 +135,11 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
     <div className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-3 pb-24">
       <RestaurantMenuHeader title={business.name} backHref={backHref} />
 
-      {closed && (
-        <p className="mb-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          {uz.restaurantClosed}
-        </p>
-      )}
+      <BusinessAvailabilityBanner
+        isOpen={business.isOpen}
+        closesAt={business.closesAt}
+        closingSoon={business.closingSoon}
+      />
 
       <RestaurantCategoryTabs
         categories={categories}

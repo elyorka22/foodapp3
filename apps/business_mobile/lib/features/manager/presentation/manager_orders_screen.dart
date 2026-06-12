@@ -114,6 +114,7 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
                         .map(
                           (order) => OrderCard(
                             order: order,
+                            compact: true,
                             showRestaurant: true,
                             showAssignCourier: isManagerDispatch,
                             isLoading: _actingOrderId == order.id,

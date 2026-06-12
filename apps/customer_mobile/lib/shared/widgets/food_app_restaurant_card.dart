@@ -7,6 +7,7 @@ import '../../core/utils/image_framing.dart';
 import '../../core/utils/image_url.dart';
 import '../../core/utils/restaurant_card_meta.dart';
 import '../../shared/models/restaurant_model.dart';
+import 'business_availability_badge.dart';
 
 class FoodAppRestaurantCard extends StatelessWidget {
   const FoodAppRestaurantCard({
@@ -78,6 +79,13 @@ class FoodAppRestaurantCard extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 height: 1.2,
               ),
+            ),
+            const SizedBox(height: 2),
+            BusinessAvailabilityBadge(
+              isOpen: restaurant.isOpen,
+              closesAt: restaurant.closesAt,
+              closingSoon: restaurant.closingSoon ?? false,
+              compact: true,
             ),
             const SizedBox(height: 2),
             Row(

@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/restaurant_model.dart';
+import '../../../shared/widgets/business_availability_badge.dart';
 import '../../../shared/widgets/menu_product_card.dart';
 import '../../../shared/widgets/restaurant_category_tabs.dart';
 import '../../cart/providers/cart_provider.dart';
@@ -120,21 +121,12 @@ class _RestaurantDetailBody extends ConsumerWidget {
                       restaurant.name,
                       style: AppTypography.title.copyWith(fontSize: 26),
                     ),
-                    if (closed) ...[
+                    if (restaurant.isOpen != null) ...[
                       const SizedBox(height: AppSpacing.md),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF7ED),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          AppStrings.restaurantClosed,
-                          style: AppTypography.bodySmall.copyWith(
-                            color: const Color(0xFF92400E),
-                          ),
-                        ),
+                      BusinessAvailabilityBanner(
+                        isOpen: restaurant.isOpen,
+                        closesAt: restaurant.closesAt,
+                        closingSoon: restaurant.closingSoon ?? false,
                       ),
                     ],
                     const SizedBox(height: AppSpacing.lg),

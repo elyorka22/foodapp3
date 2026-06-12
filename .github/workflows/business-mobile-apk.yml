@@ -50,6 +50,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Apply launcher icons
+        run: chmod +x scripts/apply_app_icons.sh && ./scripts/apply_app_icons.sh
+
       - name: Analyze
         run: flutter analyze
 

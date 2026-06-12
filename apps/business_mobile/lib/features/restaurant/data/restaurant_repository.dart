@@ -5,6 +5,7 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/utils/json_parse.dart';
 import '../../../shared/models/order_model.dart';
 import '../../../shared/models/restaurant_model.dart';
+import '../../../shared/models/working_hour_model.dart';
 
 final restaurantRepositoryProvider = Provider<RestaurantRepository>((ref) {
   return RestaurantRepository(ref.watch(dioProvider));
@@ -22,10 +23,13 @@ class RestaurantRepository {
     return RestaurantModel.fromJson(list.first);
   }
 
-  Future<List<RestaurantModel>> fetchAllRestaurants() async {
+  Future<List<RestaurantModel>> fetchAllRestaurants({String? vertical}) async {
     final res = await _dio.get<dynamic>(
       ApiPaths.restaurantsAdmin,
-      queryParameters: {'limit': 100},
+      queryParameters: {
+        'limit': 100,
+        if (vertical != null) 'vertical': vertical,
+      },
     );
     return parseListResponse(res.data).map(RestaurantModel.fromJson).toList();
   }
@@ -54,5 +58,13 @@ class RestaurantRepository {
   Future<RestaurantStatsModel> fetchStats(String restaurantId) async {
     final res = await _dio.get<Map<String, dynamic>>(ApiPaths.restaurantStats(restaurantId));
     return RestaurantStatsModel.fromJson(res.data!);
+  }
+
+  Future<List<WorkingHourModel>> fetchWorkingHours(String restaurantId) async {
+    final res = await _dio.get<List<dynamic>>(ApiPaths.restaurantWorkingHours(restaurantId));
+    return (res.data ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(WorkingHourModel.fromJson)
+        .toList();
   }
 }

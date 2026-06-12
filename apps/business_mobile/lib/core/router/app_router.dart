@@ -6,7 +6,7 @@ import '../../features/manager/presentation/manager_courier_form_screen.dart';
 import '../../features/manager/presentation/manager_couriers_screen.dart';
 import '../../features/manager/presentation/manager_orders_screen.dart';
 import '../../features/manager/presentation/manager_restaurant_form_screen.dart';
-import '../../features/manager/presentation/manager_restaurants_screen.dart';
+import '../../features/manager/presentation/manager_restaurants_screen.dart' show ManagerRestaurantsScreen, ManagerStoresScreen;
 import '../../features/menu/presentation/menu_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -122,6 +122,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.managerRestaurants,
                 builder: (_, __) => const ManagerRestaurantsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.managerStores,
+                builder: (_, __) => const ManagerStoresScreen(),
               ),
             ],
           ),

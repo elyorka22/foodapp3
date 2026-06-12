@@ -55,6 +55,13 @@ class StaffOrderModel {
   bool get isCancelled => status == 'CANCELLED';
   bool get isActive => !isCancelled && status != 'DELIVERED';
 
+  /// Order items total without delivery fee.
+  num get itemsTotal {
+    if (subtotal > 0) return subtotal;
+    if (deliveryFee > 0 && total > deliveryFee) return total - deliveryFee;
+    return total;
+  }
+
   bool get canRequestCourier =>
       status == 'PREPARING' && courierRequestedAt == null;
 

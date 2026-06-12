@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/restaurant_model.dart';
+import '../../../shared/models/working_hour_model.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../../shared/widgets/password_text_field.dart';
 import '../../restaurant/data/restaurant_repository.dart';
 import 'manager_restaurants_screen.dart';
 
@@ -23,48 +26,75 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
   final _name = TextEditingController();
   final _phone = TextEditingController();
   final _address = TextEditingController();
+  final _ownerLogin = TextEditingController();
+  final _ownerPassword = TextEditingController();
+  final _openTime = TextEditingController(text: '09:00');
+  final _closeTime = TextEditingController(text: '22:00');
   bool _isActive = true;
+  bool _closedSunday = false;
   bool _loading = false;
   bool _initialized = false;
+  String _vertical = 'restaurant';
+  String? _existingOwnerLogin;
 
   bool get _isEdit => widget.restaurantId != null;
+  bool get _isStore => _vertical == 'store';
 
   @override
   void dispose() {
     _name.dispose();
     _phone.dispose();
     _address.dispose();
+    _ownerLogin.dispose();
+    _ownerPassword.dispose();
+    _openTime.dispose();
+    _closeTime.dispose();
     super.dispose();
   }
 
   Future<void> _load() async {
-    if (!_isEdit) return;
-    final restaurant = await ref
-        .read(restaurantRepositoryProvider)
-        .fetchRestaurant(widget.restaurantId!);
-    _name.text = restaurant.name;
-    _phone.text = restaurant.phone ?? '';
-    _address.text = restaurant.branchAddress ?? '';
-    _isActive = restaurant.isActive;
+    final extra = GoRouterState.of(context).extra;
+    if (extra is String && (extra == 'store' || extra == 'restaurant')) {
+      _vertical = extra;
+    }
+
+    if (_isEdit) {
+      final repo = ref.read(restaurantRepositoryProvider);
+      final restaurant = await repo.fetchRestaurant(widget.restaurantId!);
+      final hours = await repo.fetchWorkingHours(widget.restaurantId!);
+
+      _name.text = restaurant.name;
+      _phone.text = restaurant.phone ?? '';
+      _address.text = restaurant.branchAddress ?? '';
+      _isActive = restaurant.isActive;
+      _existingOwnerLogin = restaurant.ownerLogin;
+      _vertical = restaurant.isStore ? 'store' : 'restaurant';
+
+      if (hours.isNotEmpty) {
+        final sample = hours.firstWhere((h) => !h.isClosed, orElse: () => hours.first);
+        _openTime.text = sample.openTime;
+        _closeTime.text = sample.closeTime;
+        _closedSunday = hours.any((h) => h.dayOfWeek == 0 && h.isClosed);
+      }
+    }
+
     if (mounted) setState(() => _initialized = true);
   }
 
   @override
   void initState() {
     super.initState();
-    if (_isEdit) {
-      Future.microtask(_load);
-    } else {
-      _initialized = true;
-    }
+    Future.microtask(_load);
   }
 
   @override
   Widget build(BuildContext context) {
+    final title = _isEdit
+        ? (_isStore ? AppStrings.editStore : AppStrings.editRestaurant)
+        : (_isStore ? AppStrings.createStore : AppStrings.createRestaurant);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEdit ? AppStrings.editRestaurant : AppStrings.createRestaurant),
-      ),
+      appBar: AppBar(title: Text(title)),
       body: !_initialized
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -74,7 +104,9 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
                 children: [
                   TextField(
                     controller: _name,
-                    decoration: const InputDecoration(labelText: AppStrings.restaurantName),
+                    decoration: InputDecoration(
+                      labelText: _isStore ? AppStrings.storeName : AppStrings.restaurantName,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextField(
@@ -88,6 +120,71 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
                     decoration: const InputDecoration(labelText: AppStrings.restaurantAddress),
                     maxLines: 2,
                   ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(AppStrings.workingHours, style: AppTypography.subtitle),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _openTime,
+                          decoration: const InputDecoration(
+                            labelText: AppStrings.openTime,
+                            hintText: '09:00',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: TextField(
+                          controller: _closeTime,
+                          decoration: const InputDecoration(
+                            labelText: AppStrings.closeTime,
+                            hintText: '22:00',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(AppStrings.closedSunday),
+                    value: _closedSunday,
+                    onChanged: (v) => setState(() => _closedSunday = v),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    _isEdit ? 'Hisob' : 'Restoran paneli uchun hisob',
+                    style: AppTypography.subtitle,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (_isEdit && _existingOwnerLogin != null) ...[
+                    InputDecorator(
+                      decoration: const InputDecoration(labelText: AppStrings.ownerLogin),
+                      child: Text(_existingOwnerLogin!, style: AppTypography.body),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    PasswordTextField(
+                      controller: _ownerPassword,
+                      labelText: AppStrings.newOwnerPassword,
+                    ),
+                  ] else if (!_isEdit) ...[
+                    TextField(
+                      controller: _ownerLogin,
+                      keyboardType: TextInputType.emailAddress,
+                      autocorrect: false,
+                      decoration: const InputDecoration(
+                        labelText: AppStrings.ownerLogin,
+                        hintText: AppStrings.ownerLoginHint,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    PasswordTextField(
+                      controller: _ownerPassword,
+                      labelText: AppStrings.ownerPassword,
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.md),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
@@ -107,23 +204,62 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
     );
   }
 
+  List<WorkingHourModel> _buildWorkingHours() {
+    return buildWeeklyHours(
+      openTime: _openTime.text.trim().isEmpty ? '09:00' : _openTime.text.trim(),
+      closeTime: _closeTime.text.trim().isEmpty ? '22:00' : _closeTime.text.trim(),
+      closedSunday: _closedSunday,
+    );
+  }
+
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) return;
+    if (!_isEdit) {
+      if (_ownerLogin.text.trim().isEmpty || _ownerPassword.text.length < 6) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Kirish va parol (kamida 6 belgi) kerak')),
+          );
+        }
+        return;
+      }
+    }
+
     setState(() => _loading = true);
     try {
-      final model = RestaurantModel(
-        id: widget.restaurantId ?? '',
-        name: _name.text.trim(),
-        phone: _phone.text.trim(),
-        branchAddress: _address.text.trim(),
-        isActive: _isActive,
-      );
+      final hours = _buildWorkingHours();
+      final kind = _isStore ? 'STORE' : 'RESTAURANT';
+
       if (_isEdit) {
+        final model = RestaurantModel(
+          id: widget.restaurantId!,
+          name: _name.text.trim(),
+          kind: kind,
+          phone: _phone.text.trim(),
+          branchAddress: _address.text.trim(),
+          isActive: _isActive,
+          ownerPassword: _ownerPassword.text.isNotEmpty ? _ownerPassword.text : null,
+          workingHours: hours,
+        );
         await ref.read(restaurantRepositoryProvider).updateRestaurant(model);
       } else {
+        final model = RestaurantModel(
+          id: '',
+          name: _name.text.trim(),
+          kind: kind,
+          phone: _phone.text.trim(),
+          branchAddress: _address.text.trim(),
+          isActive: _isActive,
+          ownerLogin: _ownerLogin.text.trim(),
+          ownerPassword: _ownerPassword.text,
+          ownerFullName: _name.text.trim(),
+          workingHours: hours,
+        );
         await ref.read(restaurantRepositoryProvider).createRestaurant(model);
       }
+
       ref.invalidate(restaurantsListProvider);
+      ref.invalidate(storesListProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text(AppStrings.saved)),

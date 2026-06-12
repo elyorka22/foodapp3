@@ -12,7 +12,10 @@ class ManagerShellScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: navigationShell,
+      body: SafeArea(
+        bottom: false,
+        child: navigationShell,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: navigationShell.goBranch,
@@ -26,6 +29,11 @@ class ManagerShellScreen extends StatelessWidget {
             icon: Icon(Icons.storefront_outlined),
             selectedIcon: Icon(Icons.storefront),
             label: AppStrings.restaurants,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.shopping_bag_outlined),
+            selectedIcon: Icon(Icons.shopping_bag),
+            label: AppStrings.stores,
           ),
           NavigationDestination(
             icon: Icon(Icons.delivery_dining_outlined),

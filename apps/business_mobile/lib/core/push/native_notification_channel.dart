@@ -1,7 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 const foodAppNotificationChannelId = 'foodapp_business_default';
-const foodAppNotificationChannelName = 'FoodApp Business';
+const foodAppNotificationChannelName = 'Foodapp Business';
 const foodAppBusinessUrgentChannelId = 'foodapp_business_urgent';
 const foodAppBusinessUrgentChannelName = 'Yangi buyurtmalar';
 
@@ -34,7 +34,7 @@ const foodAppAndroidNotificationDetails = AndroidNotificationDetails(
   enableVibration: true,
   visibility: NotificationVisibility.public,
   category: AndroidNotificationCategory.message,
-  ticker: 'FoodApp Business',
+  ticker: 'Foodapp Business',
 );
 
 const foodAppBusinessUrgentNotificationDetails = AndroidNotificationDetails(

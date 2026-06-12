@@ -37,6 +37,9 @@ class RestaurantModel {
     this.averageRating,
     this.reviewCount,
     this.isOpen,
+    this.closesAt,
+    this.closingSoon,
+    this.minutesUntilClose,
     this.catalogMode,
     this.kind,
     this.phone,
@@ -60,6 +63,9 @@ class RestaurantModel {
   final double? averageRating;
   final int? reviewCount;
   final bool? isOpen;
+  final String? closesAt;
+  final bool? closingSoon;
+  final int? minutesUntilClose;
   final String? catalogMode;
   final String? kind;
   final String? phone;
@@ -87,6 +93,9 @@ class RestaurantModel {
       averageRating: parseDoubleOrNull(json['averageRating']),
       reviewCount: parseIntOrNull(json['reviewCount']),
       isOpen: json['isOpen'] as bool?,
+      closesAt: json['closesAt'] as String?,
+      closingSoon: json['closingSoon'] as bool?,
+      minutesUntilClose: parseIntOrNull(json['minutesUntilClose']),
       catalogMode: json['catalogMode'] as String? ?? 'CATALOG',
       kind: json['kind'] as String?,
       phone: json['phone'] as String?,

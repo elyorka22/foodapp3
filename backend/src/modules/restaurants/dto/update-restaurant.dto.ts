@@ -1,5 +1,19 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUUID, Max, Min, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+import { WorkingHourDto } from './set-working-hours.dto';
 
 export class UpdateRestaurantDto {
   @ApiPropertyOptional()
@@ -87,4 +101,17 @@ export class UpdateRestaurantDto {
   @Min(-180)
   @Max(180)
   longitude?: number;
+
+  @ApiPropertyOptional({ description: 'Reset business owner password' })
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  ownerPassword?: string;
+
+  @ApiPropertyOptional({ type: [WorkingHourDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WorkingHourDto)
+  workingHours?: WorkingHourDto[];
 }

@@ -1,5 +1,5 @@
 abstract final class AppStrings {
-  static const appName = 'FoodApp Business';
+  static const appName = 'Foodapp Business';
   static const appTagline = 'Restoran va menejerlar uchun';
 
   static const phone = 'Telefon';
@@ -16,6 +16,7 @@ abstract final class AppStrings {
   static const managerPanel = 'Menejer';
   static const orders = 'Buyurtmalar';
   static const restaurants = 'Restoranlar';
+  static const stores = 'Do\'konlar';
   static const menu = 'Menyu';
   static const statistics = 'Statistika';
   static const couriers = 'Kuryerlar';
@@ -31,6 +32,7 @@ abstract final class AppStrings {
 
   static const noOrders = 'Buyurtmalar yo\'q';
   static const noRestaurants = 'Restoranlar yo\'q';
+  static const noStores = 'Do\'konlar yo\'q';
   static const noProducts = 'Mahsulotlar yo\'q';
   static const noCouriers = 'Kuryerlar yo\'q';
 
@@ -79,11 +81,27 @@ abstract final class AppStrings {
   static const saved = 'Saqlandi';
 
   static const restaurantName = 'Restoran nomi';
+  static const storeName = 'Do\'kon nomi';
   static const restaurantPhone = 'Telefon';
   static const restaurantAddress = 'Manzil';
+  static const ownerLogin = 'Kirish (telefon yoki email)';
+  static const ownerLoginHint = '+998901234567 yoki owner@example.com';
+  static const ownerPassword = 'Parol';
+  static const ownerPasswordHint = 'Kamida 6 ta belgi';
+  static const newOwnerPassword = 'Yangi parol (ixtiyoriy)';
+  static const workingHours = 'Ish vaqti';
+  static const openTime = 'Ochilish';
+  static const closeTime = 'Yopilish';
+  static const closedSunday = 'Yakshanba yopiq';
+  static const editStore = 'Do\'konni tahrirlash';
   static const createRestaurant = 'Restoran yaratish';
+  static const createStore = 'Do\'kon yaratish';
   static const editRestaurant = 'Restoranni tahrirlash';
   static const manageMenu = 'Menyuni boshqarish';
+  static const orderAmount = 'Buyurtma';
+  static const deliveryAmount = 'Yetkazish';
+  static const showDetails = 'Batafsil';
+  static const hideDetails = 'Yopish';
 
   static const productName = 'Mahsulot nomi';
   static const productPrice = 'Narx';

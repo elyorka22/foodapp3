@@ -28,6 +28,10 @@ export type HomeRestaurant = {
   categories?: HomeCategory[];
   productCategories?: HomeCategory[];
   branches?: { address?: string }[];
+  isOpen?: boolean;
+  closesAt?: string | null;
+  closingSoon?: boolean;
+  minutesUntilClose?: number | null;
 };
 
 export type HomeBanner = {

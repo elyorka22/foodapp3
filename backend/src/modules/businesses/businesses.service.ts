@@ -3,6 +3,7 @@ import { BusinessRepository } from '../../domain/business/business.repository';
 import { toBusinessPublicDto } from '../../domain/business/business.mapper';
 import { paginatedResponse } from '../../common/dto/pagination.dto';
 import { BusinessesQueryDto } from './dto/businesses-query.dto';
+import { RestaurantScheduleService } from '../restaurants/restaurant-schedule.service';
 
 /**
  * Canonical business (merchant) application service.
@@ -10,24 +11,42 @@ import { BusinessesQueryDto } from './dto/businesses-query.dto';
  */
 @Injectable()
 export class BusinessesService {
-  constructor(private readonly businessRepo: BusinessRepository) {}
+  constructor(
+    private readonly businessRepo: BusinessRepository,
+    private readonly schedule: RestaurantScheduleService,
+  ) {}
 
   async findAllPublic(query: BusinessesQueryDto) {
     const { rows, total, page, limit } = await this.businessRepo.findAllPublic(query);
-    const data = this.businessRepo.serializePublicList(rows);
+    const availabilityMap = await this.schedule.getAvailabilityBatch(rows.map((r) => r.id));
+    const data = rows.map((r) => ({
+      ...toBusinessPublicDto(r),
+      ...availabilityMap.get(r.id),
+    }));
     return paginatedResponse(data, total, page, limit);
   }
 
   async findById(id: string) {
     const row = await this.businessRepo.findById(id);
     if (!row) throw new NotFoundException('Business not found');
-    return row;
+    return this.withAvailability(row);
   }
 
   async findBySlug(slug: string) {
     const row = await this.businessRepo.findBySlug(slug);
     if (!row) throw new NotFoundException('Business not found');
-    return row;
+    return this.withAvailability(row);
+  }
+
+  private async withAvailability<T extends { id: string }>(row: T) {
+    const availability = await this.schedule.getAvailability(row.id);
+    return {
+      ...row,
+      isOpen: availability.isOpen,
+      closesAt: availability.closesAt,
+      closingSoon: availability.closingSoon,
+      minutesUntilClose: availability.minutesUntilClose,
+    };
   }
 
   async findOnePublic(idOrSlug: string) {

@@ -23,10 +23,9 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xxl),
-          child: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: AppSpacing.lg),
@@ -107,7 +106,6 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

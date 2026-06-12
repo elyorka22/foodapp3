@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MANIFEST="${ROOT}/android/app/src/main/AndroidManifest.xml"
 STRINGS="${ROOT}/android/app/src/main/res/values/strings.xml"
-APP_LABEL="FoodApp Business"
+APP_LABEL="Foodapp Business"
 
 if [[ ! -f "${MANIFEST}" ]]; then
   echo "SKIP: AndroidManifest.xml not found"

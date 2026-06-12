@@ -58,6 +58,10 @@ class BusinessModel {
     this.products,
     this.productCategories,
     this.catalogMode,
+    this.isOpen,
+    this.closesAt,
+    this.closingSoon,
+    this.minutesUntilClose,
   });
 
   final String id;
@@ -80,6 +84,10 @@ class BusinessModel {
   final List<ProductModel>? products;
   final List<ProductCategoryModel>? productCategories;
   final String? catalogMode;
+  final bool? isOpen;
+  final String? closesAt;
+  final bool? closingSoon;
+  final int? minutesUntilClose;
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
     final bt = json['businessType'];
@@ -106,6 +114,10 @@ class BusinessModel {
           : null,
       category: json['category'] as String?,
       catalogMode: json['catalogMode'] as String?,
+      isOpen: json['isOpen'] as bool?,
+      closesAt: json['closesAt'] as String?,
+      closingSoon: json['closingSoon'] as bool?,
+      minutesUntilClose: parseIntOrNull(json['minutesUntilClose']),
       products: prods is List
           ? prods
               .whereType<Map>()

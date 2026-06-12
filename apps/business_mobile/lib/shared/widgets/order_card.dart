@@ -9,12 +9,13 @@ import 'app_card.dart';
 import 'food_app_button.dart';
 import 'status_badge.dart';
 
-class OrderCard extends StatelessWidget {
+class OrderCard extends StatefulWidget {
   const OrderCard({
     super.key,
     required this.order,
     this.showRestaurant = false,
     this.showAssignCourier = true,
+    this.compact = false,
     this.onStatusChange,
     this.onRequestCourier,
     this.onAssignCourier,
@@ -25,6 +26,7 @@ class OrderCard extends StatelessWidget {
   final StaffOrderModel order;
   final bool showRestaurant;
   final bool showAssignCourier;
+  final bool compact;
   final void Function(String nextStatus)? onStatusChange;
   final VoidCallback? onRequestCourier;
   final VoidCallback? onAssignCourier;
@@ -32,8 +34,22 @@ class OrderCard extends StatelessWidget {
   final bool isLoading;
 
   @override
+  State<OrderCard> createState() => _OrderCardState();
+}
+
+class _OrderCardState extends State<OrderCard> {
+  bool _expanded = false;
+
+  StaffOrderModel get order => widget.order;
+
+  bool get _showDetails => !widget.compact || _expanded;
+
+  @override
   Widget build(BuildContext context) {
     return AppCard(
+      padding: widget.compact && !_expanded
+          ? const EdgeInsets.all(AppSpacing.md)
+          : const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -45,7 +61,7 @@ class OrderCard extends StatelessWidget {
               StatusBadge(status: order.status),
             ],
           ),
-          if (showRestaurant && order.restaurantName != null) ...[
+          if (widget.showRestaurant && order.restaurantName != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
@@ -57,104 +73,177 @@ class OrderCard extends StatelessWidget {
               ],
             ),
           ],
-          if (order.customerPhone != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                const Icon(Icons.phone_outlined, size: 16, color: AppColors.textMuted),
-                const SizedBox(width: 6),
-                Text(order.customerPhone!, style: AppTypography.body),
-              ],
-            ),
-          ],
-          if (order.items.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.sm),
-            ...order.items.take(3).map(
-                  (item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      '${item.quantity}x ${item.name}',
-                      style: AppTypography.bodySmall,
-                    ),
-                  ),
-                ),
-            if (order.items.length > 3)
-              Text(
-                '+${order.items.length - 3} ta',
-                style: AppTypography.caption,
-              ),
-          ],
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            formatSum(order.total),
-            style: AppTypography.subtitle.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          if (order.courierRequested) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.warningSoft,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+          const SizedBox(height: AppSpacing.sm),
+          _AmountBreakdown(order: order),
+          if (_showDetails) ...[
+            if (order.customerPhone != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Row(
                 children: [
-                  const Icon(Icons.delivery_dining, size: 16, color: AppColors.warning),
+                  const Icon(Icons.phone_outlined, size: 16, color: AppColors.textMuted),
                   const SizedBox(width: 6),
-                  Text(
-                    AppStrings.courierRequested,
-                    style: AppTypography.caption.copyWith(color: AppColors.warning),
-                  ),
+                  Text(order.customerPhone!, style: AppTypography.body),
                 ],
               ),
+            ],
+            if (order.items.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              ...order.items.take(3).map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        '${item.quantity}x ${item.name}',
+                        style: AppTypography.bodySmall,
+                      ),
+                    ),
+                  ),
+              if (order.items.length > 3)
+                Text(
+                  '+${order.items.length - 3} ta',
+                  style: AppTypography.caption,
+                ),
+            ],
+            if (order.courierRequested) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.warningSoft,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.delivery_dining, size: 16, color: AppColors.warning),
+                    const SizedBox(width: 6),
+                    Text(
+                      AppStrings.courierRequested,
+                      style: AppTypography.caption.copyWith(color: AppColors.warning),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (order.courierName != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text('Kuryer: ${order.courierName}', style: AppTypography.bodySmall),
+            ],
+            if (!order.isCancelled) ...[
+              const SizedBox(height: AppSpacing.md),
+              if (order.canRequestCourier && widget.onRequestCourier != null)
+                FoodAppButton(
+                  label: AppStrings.requestCourier,
+                  isLoading: widget.isLoading,
+                  onPressed: widget.isLoading ? null : widget.onRequestCourier,
+                ),
+              if (widget.showAssignCourier && order.canAssignCourier && widget.onAssignCourier != null) ...[
+                if (order.canRequestCourier) const SizedBox(height: AppSpacing.sm),
+                FoodAppButton(
+                  label: order.courierId == null
+                      ? AppStrings.assignCourier
+                      : AppStrings.reassignCourier,
+                  isLoading: widget.isLoading,
+                  onPressed: widget.isLoading ? null : widget.onAssignCourier,
+                ),
+              ],
+              if (order.nextStatus != null && widget.onStatusChange != null) ...[
+                if (order.canRequestCourier ||
+                    (widget.showAssignCourier && order.canAssignCourier))
+                  const SizedBox(height: AppSpacing.sm),
+                FoodAppButton(
+                  label:
+                      '${AppStrings.nextStatus}: ${AppStrings.orderStatusLabel(order.nextStatus!)}',
+                  variant: FoodAppButtonVariant.secondary,
+                  isLoading: widget.isLoading,
+                  onPressed: widget.isLoading
+                      ? null
+                      : () => widget.onStatusChange!(order.nextStatus!),
+                ),
+              ],
+              if (order.canCancel && widget.onCancel != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                FoodAppButton(
+                  label: AppStrings.cancelOrder,
+                  variant: FoodAppButtonVariant.danger,
+                  isLoading: widget.isLoading,
+                  onPressed: widget.isLoading ? null : widget.onCancel,
+                ),
+              ],
+            ],
+          ],
+          if (widget.compact) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => setState(() => _expanded = !_expanded),
+                icon: Icon(
+                  _expanded ? Icons.expand_less : Icons.expand_more,
+                  size: 18,
+                ),
+                label: Text(_expanded ? AppStrings.hideDetails : AppStrings.showDetails),
+              ),
             ),
           ],
-          if (order.courierName != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text('Kuryer: ${order.courierName}', style: AppTypography.bodySmall),
-          ],
-          if (!order.isCancelled) ...[
-            const SizedBox(height: AppSpacing.md),
-            if (order.canRequestCourier && onRequestCourier != null)
-              FoodAppButton(
-                label: AppStrings.requestCourier,
-                isLoading: isLoading,
-                onPressed: isLoading ? null : onRequestCourier,
-              ),
-            if (showAssignCourier && order.canAssignCourier && onAssignCourier != null) ...[
-              if (order.canRequestCourier) const SizedBox(height: AppSpacing.sm),
-              FoodAppButton(
-                label: order.courierId == null
-                    ? AppStrings.assignCourier
-                    : AppStrings.reassignCourier,
-                isLoading: isLoading,
-                onPressed: isLoading ? null : onAssignCourier,
-              ),
-            ],
-            if (order.nextStatus != null && onStatusChange != null) ...[
-              if (order.canRequestCourier || (showAssignCourier && order.canAssignCourier))
-                const SizedBox(height: AppSpacing.sm),
-              FoodAppButton(
-                label: '${AppStrings.nextStatus}: ${AppStrings.orderStatusLabel(order.nextStatus!)}',
-                variant: FoodAppButtonVariant.secondary,
-                isLoading: isLoading,
-                onPressed: isLoading ? null : () => onStatusChange!(order.nextStatus!),
-              ),
-            ],
-            if (order.canCancel && onCancel != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              FoodAppButton(
-                label: AppStrings.cancelOrder,
-                variant: FoodAppButtonVariant.danger,
-                isLoading: isLoading,
-                onPressed: isLoading ? null : onCancel,
-              ),
-            ],
-          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AmountBreakdown extends StatelessWidget {
+  const _AmountBreakdown({required this.order});
+
+  final StaffOrderModel order;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _AmountTile(
+            label: AppStrings.orderAmount,
+            value: formatSum(order.itemsTotal),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _AmountTile(
+            label: AppStrings.deliveryAmount,
+            value: formatSum(order.deliveryFee),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AmountTile extends StatelessWidget {
+  const _AmountTile({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceMuted,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTypography.caption),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

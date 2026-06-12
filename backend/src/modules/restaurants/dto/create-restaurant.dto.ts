@@ -1,5 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUUID, Max, Min, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+import { WorkingHourDto } from './set-working-hours.dto';
 
 export class CreateRestaurantDto {
   @ApiProperty()
@@ -89,4 +104,33 @@ export class CreateRestaurantDto {
   @Min(-180)
   @Max(180)
   longitude?: number;
+
+  @ApiPropertyOptional({ enum: ['RESTAURANT', 'STORE'] })
+  @IsOptional()
+  @IsIn(['RESTAURANT', 'STORE'])
+  kind?: 'RESTAURANT' | 'STORE';
+
+  @ApiPropertyOptional({ description: 'Owner login — email or phone for business panel' })
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  ownerLogin?: string;
+
+  @ApiPropertyOptional({ description: 'Owner password for business panel login' })
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  ownerPassword?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  ownerFullName?: string;
+
+  @ApiPropertyOptional({ type: [WorkingHourDto], description: 'Weekly schedule; empty = always open' })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WorkingHourDto)
+  workingHours?: WorkingHourDto[];
 }
