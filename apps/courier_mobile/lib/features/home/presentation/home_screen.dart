@@ -255,7 +255,7 @@ class _OfflineWelcome extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xxl),
       children: [
         const SizedBox(height: 48),
-        Icon(Icons.hub_outlined, size: 56, color: AppColors.textMuted),
+        const Icon(Icons.hub_outlined, size: 56, color: AppColors.textMuted),
         const SizedBox(height: AppSpacing.md),
         Text(
           AppStrings.goOnlineToSeeOrders,
