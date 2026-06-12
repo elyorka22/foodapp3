@@ -48,10 +48,9 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
         }
       }
       order ??= await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
-      if (order != null && order.isCancelled) {
-        order = null;
+      if (mounted) {
+        setState(() => _order = order.isCancelled ? null : order);
       }
-      if (mounted) setState(() => _order = order);
     } catch (_) {
       if (mounted) setState(() => _order = null);
     } finally {
