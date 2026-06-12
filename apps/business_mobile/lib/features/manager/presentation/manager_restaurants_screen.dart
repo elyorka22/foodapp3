@@ -26,7 +26,7 @@ class ManagerRestaurantsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ManagerBusinessesScreen(
+    return ManagerBusinessesScreen(
       vertical: 'restaurant',
       title: AppStrings.restaurants,
       subtitle: 'Restoranlar va menyularni boshqaring',
@@ -44,7 +44,7 @@ class ManagerStoresScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ManagerBusinessesScreen(
+    return ManagerBusinessesScreen(
       vertical: 'store',
       title: AppStrings.stores,
       subtitle: 'Do\'konlar va mahsulotlarni boshqaring',
