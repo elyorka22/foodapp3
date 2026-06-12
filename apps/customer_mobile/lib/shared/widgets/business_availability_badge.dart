@@ -152,24 +152,24 @@ class BusinessAvailabilityBanner extends StatelessWidget {
     }
 
     if (open) {
-      return _StatusCard(
+      return const _StatusCard(
         icon: Icons.check_circle_rounded,
         iconColor: AppColors.success,
-        iconBackground: const Color(0xFFDCFCE7),
-        borderColor: const Color(0xFFBBF7D0),
-        backgroundColor: const Color(0xFFF0FDF4),
+        iconBackground: Color(0xFFDCFCE7),
+        borderColor: Color(0xFFBBF7D0),
+        backgroundColor: Color(0xFFF0FDF4),
         title: AppStrings.open,
         subtitle: AppStrings.openNowHint,
-        titleColor: const Color(0xFF166534),
-        subtitleColor: const Color(0xFF15803D),
+        titleColor: Color(0xFF166534),
+        subtitleColor: Color(0xFF15803D),
       );
     }
 
-    return _StatusCard(
+    return const _StatusCard(
       icon: Icons.storefront_outlined,
-      iconColor: const Color(0xFF6B7280),
-      iconBackground: const Color(0xFFF3F4F6),
-      borderColor: const Color(0xFFE5E7EB),
+      iconColor: Color(0xFF6B7280),
+      iconBackground: Color(0xFFF3F4F6),
+      borderColor: Color(0xFFE5E7EB),
       backgroundColor: AppColors.surface,
       title: AppStrings.closed,
       subtitle: AppStrings.closedHint,

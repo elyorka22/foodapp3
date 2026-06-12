@@ -225,7 +225,7 @@ class BookingVenueScreen extends ConsumerWidget {
                                   child: FilledButton.icon(
                                     onPressed: () => _callPhone(phone),
                                     icon: const Icon(Icons.phone),
-                                    label: Text(AppStrings.bookingCallToReserve),
+                                    label: const Text(AppStrings.bookingCallToReserve),
                                     style: FilledButton.styleFrom(
                                       backgroundColor: _amber,
                                       foregroundColor: Colors.black,
@@ -271,7 +271,7 @@ class BookingVenueScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
                 FilledButton(
                   onPressed: () => context.go(AppRoutes.booking),
-                  child: Text(AppStrings.back),
+                  child: const Text(AppStrings.back),
                 ),
               ],
             ),
@@ -295,16 +295,16 @@ class _BackChip extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-              const SizedBox(width: 6),
+              Icon(Icons.arrow_back, size: 16, color: Colors.white),
+              SizedBox(width: 6),
               Text(
                 AppStrings.back,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: Colors.white, fontSize: 14),
               ),
             ],
           ),

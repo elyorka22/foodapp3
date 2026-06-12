@@ -110,9 +110,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           const SizedBox(height: AppSpacing.md),
                           _HeaderBadge(),
                           const SizedBox(height: AppSpacing.sm),
-                          Text(
+                          const Text(
                             AppStrings.bookingTitle,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
@@ -162,9 +162,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           const SizedBox(height: AppSpacing.lg),
                           const _FeatureGrid(),
                           const SizedBox(height: AppSpacing.lg),
-                          Text(
+                          const Text(
                             AppStrings.bookingVenuesTitle,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -245,7 +245,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                             ),
                             TextButton(
                               onPressed: () => ref.invalidate(bookingVenuesProvider),
-                              child: Text(AppStrings.retry),
+                              child: const Text(AppStrings.retry),
                             ),
                           ],
                         ),
@@ -439,7 +439,7 @@ class _HeroSlide extends StatelessWidget {
                             vertical: 10,
                           ),
                         ),
-                        child: Text(AppStrings.bookingViewVenue),
+                        child: const Text(AppStrings.bookingViewVenue),
                       ),
                     ],
                   ],
@@ -483,7 +483,7 @@ class _FeatureGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       children: [
         Expanded(
           child: _FeatureTile(
@@ -492,7 +492,7 @@ class _FeatureGrid extends StatelessWidget {
             hint: AppStrings.bookingFeatureTablesHint,
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        SizedBox(width: AppSpacing.sm),
         Expanded(
           child: _FeatureTile(
             icon: Icons.celebration,
