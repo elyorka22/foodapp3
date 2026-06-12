@@ -1,6 +1,6 @@
 class ProductModel {
   const ProductModel({
-    required this.id,
+    this.id,
     required this.name,
     required this.price,
     this.isAvailable = true,
@@ -8,7 +8,7 @@ class ProductModel {
     this.businessId,
   });
 
-  final String id;
+  final String? id;
   final String name;
   final num price;
   final bool isAvailable;

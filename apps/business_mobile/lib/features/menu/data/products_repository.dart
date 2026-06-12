@@ -34,8 +34,12 @@ class ProductsRepository {
   }
 
   Future<ProductModel> updateProduct(ProductModel product) async {
+    final id = product.id;
+    if (id == null || id.isEmpty) {
+      throw ArgumentError('Product id is required for update');
+    }
     final res = await _dio.patch<Map<String, dynamic>>(
-      ApiPaths.product(product.id),
+      ApiPaths.product(id),
       data: product.toUpdateJson(),
     );
     return ProductModel.fromJson(res.data!);

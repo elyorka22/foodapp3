@@ -187,11 +187,13 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   }
 
   Future<void> _toggleAvailability(ProductModel product, String businessId) async {
-    setState(() => _actingId = product.id);
+    final id = product.id;
+    if (id == null) return;
+    setState(() => _actingId = id);
     try {
       await ref.read(productsRepositoryProvider).updateProduct(
             ProductModel(
-              id: product.id,
+              id: id,
               name: product.name,
               price: product.price,
               isAvailable: !product.isAvailable,
@@ -224,9 +226,11 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     );
     if (ok != true) return;
 
-    setState(() => _actingId = product.id);
+    final id = product.id;
+    if (id == null) return;
+    setState(() => _actingId = id);
     try {
-      await ref.read(productsRepositoryProvider).deleteProduct(product.id);
+      await ref.read(productsRepositoryProvider).deleteProduct(id);
       ref.invalidate(_productsProvider(businessId));
     } catch (e) {
       if (mounted) {
