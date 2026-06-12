@@ -14,6 +14,8 @@ if [[ ! -d "${ANDROID_DIR}" ]]; then
   exit 1
 fi
 
+REQUIRED_PACKAGE="com.foodapp.business_mobile"
+
 validate_json() {
   python3 - "$1" <<'PY'
 import json, sys
@@ -28,57 +30,114 @@ except json.JSONDecodeError as exc:
 PY
 }
 
-write_google_services() {
-  mkdir -p "$(dirname "$DEST")"
-
-  if [[ -n "${GOOGLE_SERVICES_JSON_B64:-}" ]]; then
-    printf '%s' "${GOOGLE_SERVICES_JSON_B64}" | base64 --decode > "$DEST"
-    if validate_json "$DEST"; then
-      echo "Wrote google-services.json from GOOGLE_SERVICES_JSON_B64"
-      return 0
-    fi
-    echo "WARN: GOOGLE_SERVICES_JSON_B64 decoded to invalid JSON"
-  fi
-
-  if [[ -n "${GOOGLE_SERVICES_JSON:-}" ]]; then
-    printf '%s' "${GOOGLE_SERVICES_JSON}" > "$DEST"
-    if validate_json "$DEST"; then
-      echo "Wrote google-services.json from GOOGLE_SERVICES_JSON"
-      return 0
-    fi
-    echo "WARN: GOOGLE_SERVICES_JSON is malformed"
-  fi
-
-  if [[ -f "${ROOT}/google-services.json" ]]; then
-    cp "${ROOT}/google-services.json" "$DEST"
-    if validate_json "$DEST"; then
-      echo "Copied google-services.json → android/app/"
-      return 0
-    fi
-    echo "WARN: local google-services.json is invalid"
-  fi
-
-  if [[ -f "${ROOT}/google-services.json.example" ]]; then
-    cp "${ROOT}/google-services.json.example" "$DEST"
-    validate_json "$DEST"
-    echo "Using google-services.json.example → android/app/"
-    return 0
-  fi
-
-  echo "ERROR: no valid google-services.json source found" >&2
-  exit 1
-}
-
-write_google_services
-
-python3 - "${DEST}" <<'PY'
+google_services_has_required_package() {
+  python3 - "$1" "$REQUIRED_PACKAGE" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-data = json.loads(path.read_text())
-package = "com.foodapp.business_mobile"
+required = sys.argv[2]
+try:
+    data = json.loads(path.read_text(encoding="utf-8"))
+except json.JSONDecodeError:
+    sys.exit(1)
+
+packages = [
+    c.get("client_info", {}).get("android_client_info", {}).get("package_name")
+    for c in data.get("client", [])
+]
+packages = [p for p in packages if p]
+if required in packages:
+    sys.exit(0)
+print(
+    f"WARN: missing Android app {required}; found: {', '.join(packages) or '(none)'}",
+    file=sys.stderr,
+)
+sys.exit(1)
+PY
+}
+
+decode_b64_google_services() {
+  printf '%s' "${GOOGLE_SERVICES_JSON_B64}" | tr -d '\n\r' | base64 --decode
+}
+
+write_raw_google_services() {
+  printf '%s' "${GOOGLE_SERVICES_JSON}"
+}
+
+copy_local_google_services() {
+  cat "${ROOT}/google-services.json"
+}
+
+copy_example_google_services() {
+  cat "${ROOT}/google-services.json.example"
+}
+
+try_google_services_source() {
+  local label="$1"
+  shift
+  if ! "$@" > "$DEST"; then
+    echo "WARN: ${label} could not be read"
+    return 1
+  fi
+  if ! validate_json "$DEST" >/dev/null 2>&1; then
+    echo "WARN: ${label} is not valid JSON"
+    return 1
+  fi
+  if ! google_services_has_required_package "$DEST"; then
+    return 1
+  fi
+  validate_json "$DEST"
+  echo "Wrote google-services.json from ${label}"
+  return 0
+}
+
+write_google_services() {
+  mkdir -p "$(dirname "$DEST")"
+
+  if [[ -n "${GOOGLE_SERVICES_JSON_B64:-}" ]]; then
+    if try_google_services_source "GOOGLE_SERVICES_JSON_B64" decode_b64_google_services; then
+      return 0
+    fi
+    echo "WARN: GOOGLE_SERVICES_JSON_B64 ignored — re-encode with:"
+    echo "  base64 -i google-services.json | tr -d '\\n'"
+  fi
+
+  if [[ -n "${GOOGLE_SERVICES_JSON:-}" ]]; then
+    if try_google_services_source "GOOGLE_SERVICES_JSON" write_raw_google_services; then
+      return 0
+    fi
+    echo "WARN: GOOGLE_SERVICES_JSON ignored — must include ${REQUIRED_PACKAGE}"
+  fi
+
+  if [[ -f "${ROOT}/google-services.json" ]]; then
+    if try_google_services_source "local google-services.json" copy_local_google_services; then
+      return 0
+    fi
+  fi
+
+  if [[ -f "${ROOT}/google-services.json.example" ]]; then
+    if try_google_services_source "google-services.json.example" copy_example_google_services; then
+      return 0
+    fi
+  fi
+
+  echo "ERROR: no google-services.json source contains ${REQUIRED_PACKAGE}" >&2
+  echo "Download Firebase config for package ${REQUIRED_PACKAGE} and update GOOGLE_SERVICES_JSON_BUSINESS_B64." >&2
+  exit 1
+}
+
+write_google_services
+
+python3 - "${DEST}" "$REQUIRED_PACKAGE" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+package = sys.argv[2]
+data = json.loads(path.read_text(encoding="utf-8"))
 client = next(
     (
         c
@@ -87,10 +146,6 @@ client = next(
     ),
     None,
 )
-if client is None:
-    print(f"ERROR: google-services.json has no Android app for {package}", file=sys.stderr)
-    sys.exit(1)
-
 app_id = client.get("client_info", {}).get("mobilesdk_app_id", "")
 print(f"OK: Firebase Android app for {package} ({app_id})")
 PY
