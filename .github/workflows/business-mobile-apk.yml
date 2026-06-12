@@ -37,7 +37,11 @@ jobs:
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('apps/business_mobile/pubspec.yaml') }}
 
       - name: Create Android platform project
-        run: flutter create . --org com.foodapp --project-name business_mobile --platforms=android --no-overwrite
+        run: |
+          flutter create . --org com.foodapp --project-name business_mobile --platforms=android --no-overwrite
+          chmod +x scripts/patch_android_permissions.sh scripts/patch_android_app_name.sh
+          ./scripts/patch_android_permissions.sh
+          ./scripts/patch_android_app_name.sh
 
       - name: Install dependencies
         run: flutter pub get

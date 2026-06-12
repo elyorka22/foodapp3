@@ -53,7 +53,7 @@ class ApiException implements Exception {
       case DioExceptionType.receiveTimeout:
         return 'Server javob bermadi (timeout)';
       case DioExceptionType.connectionError:
-        return 'Serverga ulanib bo\'lmadi';
+        return 'Serverga ulanib bo\'lmadi (${err.requestOptions.uri})';
       case DioExceptionType.badCertificate:
         return 'SSL sertifikat xatosi';
       case DioExceptionType.badResponse:

@@ -4,7 +4,7 @@ Flutter app for restaurant staff (`BUSINESS`) and platform managers (`MANAGER`, 
 
 ## Features
 
-- Phone + password login (same API as courier app)
+- Phone or email + password login (same `/auth/login` API as web staff panel)
 - Role-based routing after login
 - **Restaurant panel:** orders, status updates, request courier, shift stats
 - **Manager panel:** all orders, assign courier, couriers list
@@ -29,5 +29,5 @@ flutter build apk --release \
 
 Use staff accounts from backend seed (`Admin123!`):
 
-- Restaurant: `owner@foodapp.local` (or phone from seed)
-- Manager: `manager@foodapp.local`
+- Restaurant: `owner@foodapp.local` or `+998900000003`
+- Manager: `manager@foodapp.local` or `+998900000002`

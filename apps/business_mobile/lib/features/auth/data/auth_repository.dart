@@ -23,12 +23,12 @@ class AuthRepository {
   final TokenStorage _storage;
 
   Future<AuthResponseModel> login({
-    required String phone,
+    required String loginId,
     required String password,
   }) async {
     final res = await _dio.post<Map<String, dynamic>>(
       ApiPaths.authLogin,
-      data: {'phone': normalizePhone(phone), 'password': password},
+      data: _buildLoginPayload(loginId, password),
     );
     final auth = AuthResponseModel.fromJson(res.data!);
     if (!auth.user.isRestaurant && !auth.user.isManager) {
@@ -51,6 +51,14 @@ class AuthRepository {
 
   Future<void> logout() async {
     await _storage.clear();
+  }
+
+  Map<String, dynamic> _buildLoginPayload(String loginId, String password) {
+    final id = loginId.trim();
+    if (id.contains('@')) {
+      return {'email': id.toLowerCase(), 'password': password};
+    }
+    return {'phone': normalizePhone(id), 'password': password};
   }
 
   Future<void> _persist(AuthResponseModel auth) async {

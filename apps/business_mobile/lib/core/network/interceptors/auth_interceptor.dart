@@ -11,7 +11,7 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    if (!_isPublicAuthPath(options.path)) {
+    if (!_isPublicAuthPath(options)) {
       try {
         final token = await _storage.getAccessToken();
         if (token != null && token.isNotEmpty) {
@@ -22,7 +22,8 @@ class AuthInterceptor extends Interceptor {
     handler.next(options);
   }
 
-  bool _isPublicAuthPath(String path) {
+  bool _isPublicAuthPath(RequestOptions options) {
+    final path = options.uri.path;
     return path.endsWith('/auth/login') || path.endsWith('/auth/staff/login');
   }
 }

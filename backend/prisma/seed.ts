@@ -29,7 +29,13 @@ async function main() {
 
   const manager = await prisma.user.upsert({
     where: { email: 'manager@foodapp.local' },
-    update: { passwordHash, adminPasswordNote: defaultAdminPassword, isActive: true, deletedAt: null },
+    update: {
+      passwordHash,
+      adminPasswordNote: defaultAdminPassword,
+      phone: '+998900000002',
+      isActive: true,
+      deletedAt: null,
+    },
     create: {
       email: 'manager@foodapp.local',
       phone: '+998900000002',

@@ -1,6 +1,8 @@
 abstract final class AppStrings {
   static const appName = 'FoodApp Business';
   static const phone = 'Telefon';
+  static const loginId = 'Telefon yoki email';
+  static const loginIdHint = '+998901234567 yoki email@example.com';
   static const password = 'Parol';
   static const login = 'Kirish';
   static const logout = 'Chiqish';

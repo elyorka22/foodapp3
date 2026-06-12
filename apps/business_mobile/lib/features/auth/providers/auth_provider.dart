@@ -11,11 +11,11 @@ class AuthNotifier extends AsyncNotifier<AuthUserModel?> {
     return ref.read(authRepositoryProvider).currentUser();
   }
 
-  Future<void> login(String phone, String password) async {
+  Future<void> login(String loginId, String password) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final res = await ref.read(authRepositoryProvider).login(
-            phone: phone,
+            loginId: loginId,
             password: password,
           );
       return res.user;

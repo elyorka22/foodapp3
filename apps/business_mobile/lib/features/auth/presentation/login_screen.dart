@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
@@ -54,10 +56,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: AppSpacing.xxl),
               TextField(
                 controller: _phone,
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autocorrect: false,
                 decoration: const InputDecoration(
-                  labelText: AppStrings.phone,
-                  hintText: '+998901234567',
+                  labelText: AppStrings.loginId,
+                  hintText: AppStrings.loginIdHint,
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -71,6 +75,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 isLoading: _loading,
                 onPressed: _submit,
               ),
+              if (kDebugMode) ...[
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'API: ${AppConfig.normalizedApiBaseUrl}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                ),
+              ],
               const Spacer(),
             ],
           ),
