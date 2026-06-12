@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/router/routes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
@@ -56,7 +57,12 @@ class HomeBannerGrid extends StatelessWidget {
             flex: 1,
             child: Column(
               children: [
-                Expanded(child: BannerSlotCarousel(banners: topBanners)),
+                Expanded(
+                  child: BannerSlotCarousel(
+                    banners: topBanners,
+                    defaultRoute: AppRoutes.booking,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.sm),
                 Expanded(
                   child: HomeStoreSlotCarousel(stores: featuredStores),

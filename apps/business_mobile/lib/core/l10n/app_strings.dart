@@ -84,11 +84,16 @@ abstract final class AppStrings {
   static const storeName = 'Do\'kon nomi';
   static const restaurantPhone = 'Telefon';
   static const restaurantAddress = 'Manzil';
+  static const ownerAccountSection = 'Biznes paneli hisobi';
+  static const ownerAccountSectionCreate = 'Biznes paneli uchun hisob';
+  static const noOwnerAccountHint =
+      'Hisob hali yaratilmagan. Kirish va parol kiriting.';
   static const ownerLogin = 'Kirish (telefon yoki email)';
   static const ownerLoginHint = '+998901234567 yoki owner@example.com';
   static const ownerPassword = 'Parol';
   static const ownerPasswordHint = 'Kamida 6 ta belgi';
-  static const newOwnerPassword = 'Yangi parol (ixtiyoriy)';
+  static const newOwnerPassword = 'Parol';
+  static const newOwnerPasswordHint = 'Parolni o\'zgartirish uchun yangisini kiriting';
   static const workingHours = 'Ish vaqti';
   static const openTime = 'Ochilish';
   static const closeTime = 'Yopilish';
@@ -104,9 +109,21 @@ abstract final class AppStrings {
   static const hideDetails = 'Yopish';
 
   static const productName = 'Mahsulot nomi';
+  static const productDescription = 'Tavsif';
   static const productPrice = 'Narx';
+  static const productImage = 'Mahsulot rasmi';
+  static const pickProductImage = 'Rasm tanlang';
+  static const dishCategory = 'Taom kategoriyasi';
+  static const storeCategory = 'Do\'kon kategoriyasi';
+  static const selectDishCategory = 'Kategoriyani tanlang';
+  static const selectStoreCategory = 'Do\'kon kategoriyasini tanlang';
+  static const noDishCategoriesHint =
+      'Taom kategoriyalari yo\'q. Super admin umumiy ro\'yxatda yaratadi.';
+  static const noStoreCategoriesHint =
+      'Do\'kon kategoriyalari yo\'q. Avval kategoriya yarating.';
   static const addProduct = 'Mahsulot qo\'shish';
-  static const editPrice = 'Narxni o\'zgartirish';
+  static const editProduct = 'Mahsulotni tahrirlash';
+  static const editPrice = 'Tahrirlash';
   static const available = 'Mavjud';
   static const unavailable = 'Mavjud emas';
 

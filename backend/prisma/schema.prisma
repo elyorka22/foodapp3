@@ -919,3 +919,57 @@ model AccountDeletionRequest {
   @@index([status, createdAt])
   @@map("account_deletion_requests")
 }
+
+enum BookingVenueType {
+  TABLE
+  HALL
+  BOTH
+}
+
+/// Venues for table / celebration room booking (separate from food delivery).
+model BookingVenue {
+  id             String           @id @default(uuid()) @db.Uuid
+  name           String
+  slug           String           @unique
+  description    String?
+  address        String?
+  phone          String?
+  logoUrl        String?          @map("logo_url")
+  coverUrl       String?          @map("cover_url")
+  coverScale     Int              @default(100) @map("cover_scale")
+  coverPositionX Int              @default(50) @map("cover_position_x")
+  coverPositionY Int              @default(50) @map("cover_position_y")
+  venueType      BookingVenueType @default(BOTH) @map("venue_type")
+  highlights     String[]         @default([])
+  isActive       Boolean          @default(true) @map("is_active")
+  sortOrder      Int              @default(0) @map("sort_order")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  deletedAt      DateTime?        @map("deleted_at")
+
+  slides BookingSlide[]
+
+  @@index([isActive, sortOrder])
+  @@map("booking_venues")
+}
+
+/// Promo slides on the public /booking page (hero carousel).
+model BookingSlide {
+  id             String        @id @default(uuid()) @db.Uuid
+  bookingVenueId String?       @map("booking_venue_id") @db.Uuid
+  title          String        @default("")
+  subtitle       String?
+  imageUrl       String        @map("image_url")
+  imageScale     Int           @default(100) @map("image_scale")
+  imagePositionX Int           @default(50) @map("image_position_x")
+  imagePositionY Int           @default(50) @map("image_position_y")
+  sortOrder      Int           @default(0) @map("sort_order")
+  isActive       Boolean       @default(true) @map("is_active")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  deletedAt      DateTime?     @map("deleted_at")
+
+  venue BookingVenue? @relation(fields: [bookingVenueId], references: [id], onDelete: SetNull)
+
+  @@index([isActive, sortOrder])
+  @@map("booking_slides")
+}

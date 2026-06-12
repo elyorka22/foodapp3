@@ -116,7 +116,7 @@ class _BadgeRow extends StatelessWidget {
   }
 }
 
-/// Banner for detail pages (closed or closing soon).
+/// Status card for restaurant / store detail pages.
 class BusinessAvailabilityBanner extends StatelessWidget {
   const BusinessAvailabilityBanner({
     super.key,
@@ -134,37 +134,129 @@ class BusinessAvailabilityBanner extends StatelessWidget {
     if (isOpen == null) return const SizedBox.shrink();
 
     final open = isOpen!;
-    final showClosing = open && closingSoon && closesAt != null && closesAt!.isNotEmpty;
+    final showClosing =
+        open && closingSoon && closesAt != null && closesAt!.trim().isNotEmpty;
 
-    if (open && !showClosing) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFECFDF5),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const BusinessAvailabilityBadge(
-          isOpen: true,
-          compact: true,
-        ),
+    if (showClosing) {
+      return _StatusCard(
+        icon: Icons.schedule_rounded,
+        iconColor: const Color(0xFFD97706),
+        iconBackground: const Color(0xFFFEF3C7),
+        borderColor: const Color(0xFFFDE68A),
+        backgroundColor: const Color(0xFFFFFBEB),
+        title: AppStrings.closingSoonTitle,
+        subtitle: AppStrings.closesAt(closesAt!),
+        titleColor: const Color(0xFF92400E),
+        subtitleColor: const Color(0xFFB45309),
       );
     }
 
-    final message = showClosing
-        ? '${AppStrings.open} · ${AppStrings.closesAt(closesAt!)}'
-        : AppStrings.restaurantClosed;
+    if (open) {
+      return _StatusCard(
+        icon: Icons.check_circle_rounded,
+        iconColor: AppColors.success,
+        iconBackground: const Color(0xFFDCFCE7),
+        borderColor: const Color(0xFFBBF7D0),
+        backgroundColor: const Color(0xFFF0FDF4),
+        title: AppStrings.open,
+        subtitle: AppStrings.openNowHint,
+        titleColor: const Color(0xFF166534),
+        subtitleColor: const Color(0xFF15803D),
+      );
+    }
 
+    return _StatusCard(
+      icon: Icons.storefront_outlined,
+      iconColor: const Color(0xFF6B7280),
+      iconBackground: const Color(0xFFF3F4F6),
+      borderColor: const Color(0xFFE5E7EB),
+      backgroundColor: AppColors.surface,
+      title: AppStrings.closed,
+      subtitle: AppStrings.closedHint,
+      titleColor: AppColors.textPrimary,
+      subtitleColor: AppColors.textSecondary,
+    );
+  }
+}
+
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBackground,
+    required this.borderColor,
+    required this.backgroundColor,
+    required this.title,
+    required this.subtitle,
+    required this.titleColor,
+    required this.subtitleColor,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBackground;
+  final Color borderColor;
+  final Color backgroundColor;
+  final String title;
+  final String subtitle;
+  final Color titleColor;
+  final Color subtitleColor;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
-        borderRadius: BorderRadius.circular(12),
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
-      child: Text(
-        message,
-        style: AppTypography.bodySmall.copyWith(color: const Color(0xFF92400E)),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconBackground,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 22, color: iconColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.subtitle.copyWith(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: titleColor,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: AppTypography.caption.copyWith(
+                    fontSize: 13,
+                    color: subtitleColor,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

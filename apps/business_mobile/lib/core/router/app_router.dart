@@ -8,6 +8,7 @@ import '../../features/manager/presentation/manager_orders_screen.dart';
 import '../../features/manager/presentation/manager_restaurant_form_screen.dart';
 import '../../features/manager/presentation/manager_restaurants_screen.dart' show ManagerRestaurantsScreen, ManagerStoresScreen;
 import '../../features/menu/presentation/menu_screen.dart';
+import '../../features/menu/presentation/product_form_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/restaurant/presentation/restaurant_orders_screen.dart';
@@ -46,6 +47,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.notifications,
         builder: (_, __) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.productForm,
+        builder: (_, state) {
+          final extra = state.extra;
+          if (extra is ProductFormArgs) {
+            return ProductFormScreen(args: extra);
+          }
+          return const Scaffold(body: Center(child: Text('Invalid product form')));
+        },
       ),
       GoRoute(
         path: AppRoutes.managerRestaurantNew,

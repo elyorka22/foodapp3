@@ -360,13 +360,24 @@ export class RestaurantsService {
     const branch = restaurant.branches?.[0];
     let ownerLogin: string | null = null;
     let ownerFullName: string | null = null;
+    let ownerPassword: string | null = null;
     if (user && (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER)) {
       const staff = await this.prisma.businessStaff.findFirst({
         where: { businessId: id, deletedAt: null },
-        include: { user: { select: { email: true, phone: true, fullName: true } } },
+        include: {
+          user: {
+            select: {
+              email: true,
+              phone: true,
+              fullName: true,
+              adminPasswordNote: true,
+            },
+          },
+        },
       });
       ownerLogin = staff?.user?.email ?? staff?.user?.phone ?? null;
       ownerFullName = staff?.user?.fullName ?? null;
+      ownerPassword = staff?.user?.adminPasswordNote ?? null;
     }
 
     return {
@@ -377,6 +388,7 @@ export class RestaurantsService {
       longitude: branch ? Number(branch.longitude) : null,
       ownerLogin,
       ownerFullName,
+      ownerPassword,
     };
   }
 
@@ -630,7 +642,9 @@ export class RestaurantsService {
       latitude,
       longitude,
       branchAddress,
+      ownerLogin,
       ownerPassword,
+      ownerFullName,
       workingHours,
       ...rest
     } = dto;
@@ -669,9 +683,12 @@ export class RestaurantsService {
     if (workingHours?.length) {
       await this.schedule.setWorkingHours(id, workingHours);
     }
-    if (ownerPassword) {
-      await this.resetBusinessOwnerPassword(id, ownerPassword);
-    }
+
+    await this.syncBusinessOwnerOnUpdate(id, restaurant.name, {
+      ownerLogin,
+      ownerPassword,
+      ownerFullName,
+    });
 
     await this.audit.log({
       userId: user.sub,
@@ -681,6 +698,78 @@ export class RestaurantsService {
       metadata: dto,
     });
     return restaurant;
+  }
+
+  private async syncBusinessOwnerOnUpdate(
+    businessId: string,
+    businessName: string,
+    input: {
+      ownerLogin?: string;
+      ownerPassword?: string;
+      ownerFullName?: string;
+    },
+  ) {
+    const login = input.ownerLogin?.trim();
+    const password = input.ownerPassword;
+    if (!login && !password) return;
+
+    const staff = await this.prisma.businessStaff.findFirst({
+      where: { businessId, deletedAt: null },
+      include: { user: true },
+    });
+
+    if (!staff) {
+      if (!login || !password) {
+        throw new BadRequestException(
+          'ownerLogin and ownerPassword are required to create owner account',
+        );
+      }
+      await this.createBusinessOwner({
+        businessId,
+        login,
+        password,
+        fullName: input.ownerFullName ?? businessName,
+      });
+      return;
+    }
+
+    if (login) {
+      await this.updateBusinessOwnerLogin(staff.userId, login);
+    }
+    if (password) {
+      await this.resetBusinessOwnerPassword(businessId, password);
+    }
+  }
+
+  private async updateBusinessOwnerLogin(userId: string, login: string) {
+    const trimmed = login.trim();
+    if (!trimmed) return;
+
+    const isEmail = trimmed.includes('@');
+    const email = isEmail ? trimmed.toLowerCase() : null;
+    const phone = !isEmail ? normalizePhone(trimmed) : null;
+
+    const conflict = await this.prisma.user.findFirst({
+      where: {
+        deletedAt: null,
+        id: { not: userId },
+        OR: [
+          ...(email ? [{ email }] : []),
+          ...(phone ? [{ phone }] : []),
+        ],
+      },
+    });
+    if (conflict) {
+      throw new ConflictException('User with this email or phone already exists');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email,
+        phone,
+      },
+    });
   }
 
   private async createBusinessOwner(params: {

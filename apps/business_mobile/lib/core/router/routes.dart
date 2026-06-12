@@ -17,5 +17,6 @@ abstract final class AppRoutes {
   static const managerRestaurantNew = '/manager/restaurants/new';
   static String managerRestaurantEdit(String id) => '/manager/restaurants/$id/edit';
   static String managerRestaurantMenu(String id) => '/manager/restaurants/$id/menu';
+  static const productForm = '/product-form';
   static const managerCourierNew = '/manager/couriers/new';
 }

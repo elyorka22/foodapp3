@@ -143,6 +143,10 @@ abstract final class AppStrings {
   static const open = 'Ochiq';
   static const closed = 'Yopiq';
   static String closesAt(String time) => '$time da yopiladi';
+  static const openNowHint = 'Hozir buyurtma bera olasiz';
+  static const closingSoonTitle = 'Tez orada yopiladi';
+  static const closedHint =
+      'Menyuni ko\'rishingiz mumkin, buyurtma berib bo\'lmaydi.';
   static const restaurantClosed =
       'Restoran hozir yopiq. Menyuni ko\'rishingiz mumkin, buyurtma berib bo\'lmaydi.';
   static const menuEmpty = 'Menyu hozircha bo\'sh';
@@ -191,4 +195,23 @@ abstract final class AppStrings {
   static const promotionsTitle = 'Aksiyalar';
   static const promotionsHint =
       "Maxsus takliflar va promo kodlar tez orada shu yerda ko'rinadi.";
+
+  static const bookingBadge = 'Stol bron';
+  static const bookingTitle = 'Stol va zal bron qiling';
+  static const bookingSubtitle =
+      "Sevimli restoranlarda stol yoki bayram zalini oldindan band qiling";
+  static const bookingFeatureTables = 'Stollar';
+  static const bookingFeatureTablesHint = 'Romantik kechalar va uchrashuvlar';
+  static const bookingFeatureHalls = 'Bayram zallari';
+  static const bookingFeatureHallsHint = "Tug'ilgan kun, to'y va korporativ";
+  static const bookingVenuesTitle = 'Joylar';
+  static const bookingEmpty = "Hozircha joylar qo'shilmagan";
+  static const bookingViewVenue = "Batafsil ko'rish";
+  static const bookingCallToReserve = "Bron uchun qo'ng'iroq";
+  static const bookingNoPhone = "Telefon raqami qo'shilmagan";
+  static const bookingVenueNotFound = 'Joy topilmadi';
+  static const bookingTypeTable = 'Stol';
+  static const bookingTypeHall = 'Zal';
+  static const bookingTypeBoth = 'Stol va zal';
+  static const bookingLoadError = 'Joylar yuklanmadi';
 }

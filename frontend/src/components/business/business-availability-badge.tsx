@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import { clsx } from 'clsx';
+import { CheckCircle2, Clock3, Store } from 'lucide-react';
 import { uz } from '@/lib/uz';
 
 export type BusinessAvailability = {
@@ -60,6 +62,48 @@ export function BusinessAvailabilityBadge({
   );
 }
 
+type StatusCardProps = {
+  icon: ReactNode;
+  title: string;
+  subtitle: string;
+  className: string;
+  iconWrapClassName: string;
+  titleClassName: string;
+  subtitleClassName: string;
+};
+
+function StatusCard({
+  icon,
+  title,
+  subtitle,
+  className,
+  iconWrapClassName,
+  titleClassName,
+  subtitleClassName,
+}: StatusCardProps) {
+  return (
+    <div
+      className={clsx(
+        'mb-3 flex items-start gap-3 rounded-2xl border px-3.5 py-3 shadow-[0_4px_12px_rgba(0,0,0,0.05)]',
+        className,
+      )}
+    >
+      <div
+        className={clsx(
+          'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+          iconWrapClassName,
+        )}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0 pt-0.5">
+        <p className={clsx('text-[15px] font-bold leading-tight', titleClassName)}>{title}</p>
+        <p className={clsx('mt-0.5 text-[13px] leading-snug', subtitleClassName)}>{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
 export function BusinessAvailabilityBanner({
   isOpen,
   closesAt,
@@ -69,19 +113,43 @@ export function BusinessAvailabilityBanner({
 
   const showClosing = isOpen && closingSoon && closesAt;
 
-  if (isOpen && !showClosing) {
+  if (showClosing) {
     return (
-      <p className="mb-3 rounded-xl bg-emerald-50 px-3 py-2">
-        <BusinessAvailabilityBadge isOpen />
-      </p>
+      <StatusCard
+        className="border-amber-200 bg-amber-50"
+        iconWrapClassName="bg-amber-100 text-amber-600"
+        titleClassName="text-amber-950"
+        subtitleClassName="text-amber-700"
+        title={uz.closingSoonTitle}
+        subtitle={uz.closesAt(closesAt)}
+        icon={<Clock3 size={22} strokeWidth={2.25} />}
+      />
     );
   }
 
-  const message = showClosing
-    ? `${uz.open} · ${uz.closesAt(closesAt)}`
-    : uz.restaurantClosed;
+  if (isOpen) {
+    return (
+      <StatusCard
+        className="border-emerald-200 bg-emerald-50"
+        iconWrapClassName="bg-emerald-100 text-emerald-600"
+        titleClassName="text-emerald-950"
+        subtitleClassName="text-emerald-700"
+        title={uz.open}
+        subtitle={uz.openNowHint}
+        icon={<CheckCircle2 size={22} strokeWidth={2.25} />}
+      />
+    );
+  }
 
   return (
-    <p className="mb-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">{message}</p>
+    <StatusCard
+      className="border-zinc-200 bg-white"
+      iconWrapClassName="bg-zinc-100 text-zinc-500"
+      titleClassName="text-zinc-900"
+      subtitleClassName="text-zinc-500"
+      title={uz.closed}
+      subtitle={uz.closedHint}
+      icon={<Store size={22} strokeWidth={2.25} />}
+    />
   );
 }

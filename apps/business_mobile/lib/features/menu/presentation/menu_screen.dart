@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
+import '../../../core/utils/image_url.dart';
 import '../../../shared/models/product_model.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/screen_header.dart';
 import '../../restaurant/data/restaurant_repository.dart';
 import '../data/products_repository.dart';
+import 'product_form_screen.dart';
 
 class MenuScreen extends ConsumerStatefulWidget {
   const MenuScreen({super.key, this.restaurantId});
@@ -30,6 +34,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   Widget build(BuildContext context) {
     final businessId = widget.restaurantId ?? ref.watch(_myRestaurantIdProvider).valueOrNull;
     final products = ref.watch(_productsProvider(businessId));
+    final businessKind = ref.watch(_businessKindProvider(businessId));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -38,7 +43,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
           : null,
       floatingActionButton: businessId != null
           ? FloatingActionButton.extended(
-              onPressed: () => _showProductForm(businessId),
+              onPressed: () => _openProductForm(businessId),
               icon: const Icon(Icons.add),
               label: const Text(AppStrings.addProduct),
             )
@@ -47,6 +52,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         onRefresh: () async {
           ref.invalidate(_productsProvider(businessId));
           ref.invalidate(_myRestaurantIdProvider);
+          ref.invalidate(_businessKindProvider(businessId));
         },
         child: ListView(
           padding: const EdgeInsets.only(bottom: 88),
@@ -54,7 +60,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
             if (widget.restaurantId == null)
               const ScreenHeader(
                 title: AppStrings.menu,
-                subtitle: 'Narx va mavjudlikni boshqaring',
+                subtitle: 'Mahsulotlar, narx va mavjudlik',
               ),
             if (businessId == null)
               const EmptyState(
@@ -79,16 +85,21 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                       subtitle: 'Birinchi mahsulotni qo\'shing',
                     );
                   }
+                  final isStore = businessKind.valueOrNull ?? false;
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: Column(
-                      children: list.map((p) => _ProductTile(
-                            product: p,
-                            isLoading: _actingId == p.id,
-                            onEditPrice: () => _editPrice(p),
-                            onToggle: () => _toggleAvailability(p, businessId),
-                            onDelete: () => _deleteProduct(p, businessId),
-                          )).toList(),
+                      children: list
+                          .map(
+                            (p) => _ProductTile(
+                              product: p,
+                              isLoading: _actingId == p.id,
+                              onEdit: () => _openProductForm(businessId, existing: p),
+                              onToggle: () => _toggleAvailability(p, businessId, isStore),
+                              onDelete: () => _deleteProduct(p, businessId),
+                            ),
+                          )
+                          .toList(),
                     ),
                   );
                 },
@@ -99,94 +110,21 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     );
   }
 
-  Future<void> _showProductForm(String businessId, {ProductModel? existing}) async {
-    final nameCtrl = TextEditingController(text: existing?.name ?? '');
-    final priceCtrl = TextEditingController(
-      text: existing != null ? existing.price.toString() : '',
+  Future<void> _openProductForm(String businessId, {ProductModel? existing}) async {
+    final saved = await context.push<bool>(
+      AppRoutes.productForm,
+      extra: ProductFormArgs(businessId: businessId, existing: existing),
     );
-
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: AppSpacing.lg,
-            right: AppSpacing.lg,
-            top: AppSpacing.lg,
-            bottom: MediaQuery.viewInsetsOf(ctx).bottom + AppSpacing.lg,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                existing == null ? AppStrings.addProduct : AppStrings.editPrice,
-                style: AppTypography.subtitle,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(labelText: AppStrings.productName),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: priceCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: AppStrings.productPrice),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text(AppStrings.save),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (saved != true || !mounted) return;
-    final price = num.tryParse(priceCtrl.text.trim());
-    if (nameCtrl.text.trim().isEmpty || price == null) return;
-
-    setState(() => _actingId = existing?.id ?? 'new');
-    try {
-      if (existing == null) {
-        await ref.read(productsRepositoryProvider).createProduct(
-              ProductModel(name: nameCtrl.text.trim(), price: price),
-              businessId,
-            );
-      } else {
-        await ref.read(productsRepositoryProvider).updateProduct(
-              ProductModel(
-                id: existing.id,
-                name: nameCtrl.text.trim(),
-                price: price,
-                isAvailable: existing.isAvailable,
-                businessId: businessId,
-              ),
-            );
-      }
+    if (saved == true && mounted) {
       ref.invalidate(_productsProvider(businessId));
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiException.formatError(e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _actingId = null);
     }
   }
 
-  Future<void> _editPrice(ProductModel product) async {
-    final businessId = widget.restaurantId ?? await ref.read(_myRestaurantIdProvider.future);
-    if (businessId == null) return;
-    return _showProductForm(businessId, existing: product);
-  }
-
-  Future<void> _toggleAvailability(ProductModel product, String businessId) async {
+  Future<void> _toggleAvailability(
+    ProductModel product,
+    String businessId,
+    bool isStore,
+  ) async {
     final id = product.id;
     if (id == null) return;
     setState(() => _actingId = id);
@@ -196,9 +134,12 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
               id: id,
               name: product.name,
               price: product.price,
+              description: product.description,
               isAvailable: !product.isAvailable,
-              businessId: businessId,
+              dishCategoryId: product.dishCategoryId,
+              productCategoryId: product.productCategoryId,
             ),
+            isStore: isStore,
           );
       ref.invalidate(_productsProvider(businessId));
     } catch (e) {
@@ -248,27 +189,52 @@ class _ProductTile extends StatelessWidget {
   const _ProductTile({
     required this.product,
     required this.isLoading,
-    required this.onEditPrice,
+    required this.onEdit,
     required this.onToggle,
     required this.onDelete,
   });
 
   final ProductModel product;
   final bool isLoading;
-  final VoidCallback onEditPrice;
+  final VoidCallback onEdit;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = resolveImageUrl(product.imageUrl);
+
     return AppCard(
       child: Row(
         children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: imageUrl != null
+                  ? Image.network(imageUrl, fit: BoxFit.cover)
+                  : ColoredBox(
+                      color: AppColors.primarySoft,
+                      child: Icon(Icons.fastfood_outlined, color: AppColors.primary),
+                    ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(product.name, style: AppTypography.subtitle),
+                if ((product.description ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    product.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption,
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   formatSum(product.price),
@@ -295,9 +261,9 @@ class _ProductTile extends StatelessWidget {
             )
           else ...[
             IconButton(
-              onPressed: onEditPrice,
+              onPressed: onEdit,
               icon: const Icon(Icons.edit_outlined),
-              tooltip: AppStrings.editPrice,
+              tooltip: AppStrings.editProduct,
             ),
             Switch(
               value: product.isAvailable,
@@ -320,6 +286,14 @@ final _myRestaurantIdProvider = FutureProvider.autoDispose<String?>((ref) async 
   final restaurant = await ref.watch(restaurantRepositoryProvider).fetchMyRestaurant();
   return restaurant?.id;
 });
+
+final _businessKindProvider = FutureProvider.autoDispose.family<bool, String?>(
+  (ref, businessId) async {
+    if (businessId == null) return false;
+    final restaurant = await ref.watch(restaurantRepositoryProvider).fetchRestaurant(businessId);
+    return restaurant.isStore;
+  },
+);
 
 final _productsProvider = FutureProvider.autoDispose.family<List<ProductModel>, String?>(
   (ref, businessId) async {

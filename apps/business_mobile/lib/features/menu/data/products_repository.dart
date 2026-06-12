@@ -25,27 +25,38 @@ class ProductsRepository {
     return parseListResponse(res.data).map(ProductModel.fromJson).toList();
   }
 
-  Future<ProductModel> createProduct(ProductModel product, String businessId) async {
+  Future<ProductModel> createProduct(
+    ProductModel product,
+    String businessId, {
+    required bool isStore,
+  }) async {
     final res = await _dio.post<Map<String, dynamic>>(
       ApiPaths.products,
-      data: product.toCreateJson(businessId),
+      data: product.toCreateJson(businessId, isStore: isStore),
     );
     return ProductModel.fromJson(res.data!);
   }
 
-  Future<ProductModel> updateProduct(ProductModel product) async {
+  Future<ProductModel> updateProduct(
+    ProductModel product, {
+    required bool isStore,
+  }) async {
     final id = product.id;
     if (id == null || id.isEmpty) {
       throw ArgumentError('Product id is required for update');
     }
     final res = await _dio.patch<Map<String, dynamic>>(
       ApiPaths.product(id),
-      data: product.toUpdateJson(),
+      data: product.toUpdateJson(isStore: isStore),
     );
     return ProductModel.fromJson(res.data!);
   }
 
   Future<void> deleteProduct(String id) async {
     await _dio.delete(ApiPaths.product(id));
+  }
+
+  Future<void> addProductImage(String productId, String imageUrl) async {
+    await _dio.post(ApiPaths.productImage(productId), data: {'url': imageUrl});
   }
 }

@@ -6,6 +6,8 @@ abstract final class ApiPaths {
   static const couriers = '/couriers';
   static const productsAdmin = '/products/admin';
   static const products = '/products';
+  static const categories = '/categories';
+  static const uploadImage = '/upload/image';
   static const courierDispatch = '/settings/courier-dispatch';
   static const notificationsStaff = '/notifications/staff';
   static const notificationsStaffUnread = '/notifications/staff/unread-count';
@@ -24,6 +26,7 @@ abstract final class ApiPaths {
   static String restaurantWorkingHours(String id) => '/restaurants/$id/working-hours';
   static String restaurantStats(String id) => '/analytics/restaurant/$id';
   static String product(String id) => '/products/$id';
+  static String productImage(String id) => '/products/$id/image';
   static String courier(String id) => '/couriers/$id';
   static String courierStatus(String id) => '/couriers/$id/status';
 }

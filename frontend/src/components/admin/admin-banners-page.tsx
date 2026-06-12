@@ -189,10 +189,6 @@ export function AdminBannersPage({
       toast.error('Rasm yuklang');
       return;
     }
-    if (form.placement === 'HOME_SIDE_TOP' && !form.restaurantId) {
-      toast.error(t.banners.bannerRestaurantRequired);
-      return;
-    }
     const body: BannerForm = {
       ...form,
       placement:
@@ -201,9 +197,11 @@ export function AdminBannersPage({
           : placementMode === 'HERO' || placementMode === 'PROMO'
             ? placementMode
             : form.placement ?? 'HERO',
-      restaurantId:
-        form.placement === 'HOME_SIDE_TOP' ? form.restaurantId ?? null : null,
-      link: form.placement === 'HOME_SIDE_TOP' ? undefined : form.link,
+      restaurantId: null,
+      link:
+        form.placement === 'HOME_SIDE_TOP'
+          ? '/booking'
+          : form.link,
     };
     try {
       if (editId) {
@@ -451,27 +449,9 @@ export function AdminBannersPage({
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
           {form.placement === 'HOME_SIDE_TOP' ? (
-            <label className="block text-xs font-medium opacity-70">
-              {t.banners.bannerRestaurantLink}
-              <select
-                className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
-                value={form.restaurantId ?? ''}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    restaurantId: e.target.value || null,
-                  })
-                }
-              >
-                <option value="">{t.banners.bannerRestaurantPlaceholder}</option>
-                {restaurants.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-[11px] opacity-60">{t.banners.bannerRestaurantLinkHint}</p>
-            </label>
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+              {t.banners.bannerBookingLinkHint}
+            </p>
           ) : (
             <Input
               placeholder="Havola"

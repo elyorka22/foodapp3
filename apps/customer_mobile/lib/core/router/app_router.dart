@@ -20,6 +20,8 @@ import '../../features/restaurants/presentation/restaurant_detail_screen.dart';
 import '../../features/restaurants/presentation/restaurants_screen.dart';
 import '../../features/shell/main_shell_screen.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../features/booking/presentation/booking_screen.dart';
+import '../../features/booking/presentation/booking_venue_screen.dart';
 import '../../features/stores/presentation/store_detail_screen.dart';
 import '../../features/stores/presentation/stores_screen.dart';
 import 'routes.dart';
@@ -61,6 +63,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.promotions,
         builder: (_, __) => const PromotionsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.booking,
+        builder: (_, __) => const BookingScreen(),
+        routes: [
+          GoRoute(
+            path: ':slug',
+            builder: (_, state) => BookingVenueScreen(
+              slug: state.pathParameters['slug']!,
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.networkHealth,

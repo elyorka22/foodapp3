@@ -102,11 +102,21 @@ export class UpdateRestaurantDto {
   @Max(180)
   longitude?: number;
 
-  @ApiPropertyOptional({ description: 'Reset business owner password' })
+  @ApiPropertyOptional({ description: 'Business owner login (phone or email)' })
+  @IsOptional()
+  @IsString()
+  ownerLogin?: string;
+
+  @ApiPropertyOptional({ description: 'Create or reset business owner password' })
   @IsOptional()
   @IsString()
   @MinLength(6)
   ownerPassword?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  ownerFullName?: string;
 
   @ApiPropertyOptional({ type: [WorkingHourDto] })
   @IsOptional()

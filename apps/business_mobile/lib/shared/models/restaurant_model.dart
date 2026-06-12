@@ -47,6 +47,7 @@ class RestaurantModel {
       longitude: _toDouble(branch?['longitude'] ?? json['longitude']),
       ownerLogin: json['ownerLogin'] as String?,
       ownerFullName: json['ownerFullName'] as String?,
+      ownerPassword: json['ownerPassword'] as String?,
     );
   }
 
@@ -74,7 +75,9 @@ class RestaurantModel {
         if (longitude != null) 'longitude': longitude,
         'isActive': isActive,
         if (description != null) 'description': description,
+        if (ownerLogin != null && ownerLogin!.isNotEmpty) 'ownerLogin': ownerLogin,
         if (ownerPassword != null && ownerPassword!.isNotEmpty) 'ownerPassword': ownerPassword,
+        if (ownerFullName != null && ownerFullName!.isNotEmpty) 'ownerFullName': ownerFullName,
         if (workingHours != null && workingHours!.isNotEmpty)
           'workingHours': workingHours!.map((h) => h.toJson()).toList(),
       };

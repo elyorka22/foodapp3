@@ -33,6 +33,7 @@ import { GoogleAuthModule } from './modules/google-auth/google-auth.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { FirebaseModule } from './common/firebase/firebase.module';
 import { AccountDeletionModule } from './modules/account-deletion/account-deletion.module';
+import { BookingVenuesModule } from './modules/booking-venues/booking-venues.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { AccountDeletionModule } from './modules/account-deletion/account-deleti
     GoogleAuthModule,
     NotificationsModule,
     AccountDeletionModule,
+    BookingVenuesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })

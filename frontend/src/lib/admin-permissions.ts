@@ -13,6 +13,7 @@ export type AdminPermission =
   | 'store.products'
   | 'store.types'
   | 'banners'
+  | 'booking'
   | 'promotions'
   | 'notifications'
   | 'couriers'
@@ -34,6 +35,7 @@ const MANAGER_PERMISSIONS: ReadonlySet<AdminPermission> = new Set([
   'store.categories',
   'store.products',
   'banners',
+  'booking',
   'promotions',
   'notifications',
   'couriers',

@@ -129,7 +129,7 @@ export function HomeBannerGrid({ banners, featuredStores, isLoading }: Props) {
           <Slot banners={mainBanners} tall />
         </div>
         <div className="flex min-h-0 flex-col">
-          <Slot banners={topBanners} />
+          <Slot banners={topBanners} defaultHref="/booking" placeholderHref="/booking" placeholderLabel="Stol bron qilish" />
         </div>
         <div className="flex min-h-0 flex-col">
           <HomeStoreSlotCarousel stores={featuredStores ?? []} />

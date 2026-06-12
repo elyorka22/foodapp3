@@ -58,7 +58,11 @@ export class BannersService {
     return rows.map((row) => {
       const linkUrl =
         row.linkUrl?.trim() ||
-        (row.business ? this.businessPublicPath(row.business) : null);
+        (row.placement === 'HOME_SIDE_TOP'
+          ? '/booking'
+          : row.business
+            ? this.businessPublicPath(row.business)
+            : null);
       return {
         ...row,
         ...resolveBannerFraming(row, defaults),

@@ -12,7 +12,6 @@ import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_framing.dart';
 import '../../core/utils/image_url.dart';
 import '../models/business_model.dart';
-import 'business_availability_badge.dart';
 
 class HomeStoreSlotCarousel extends StatefulWidget {
   const HomeStoreSlotCarousel({
@@ -153,40 +152,6 @@ class _HomeStoreSlotCarouselState extends State<HomeStoreSlotCarousel> {
   }
 }
 
-class _StoreMeta extends StatelessWidget {
-  const _StoreMeta({required this.store});
-
-  final BusinessModel store;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          store.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.subtitle.copyWith(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            shadows: const [Shadow(color: Color(0x99000000), blurRadius: 4)],
-          ),
-        ),
-        const SizedBox(height: 2),
-        BusinessAvailabilityBadge(
-          isOpen: store.isOpen,
-          closesAt: store.closesAt,
-          closingSoon: store.closingSoon ?? false,
-          compact: true,
-          onDarkBackground: true,
-        ),
-      ],
-    );
-  }
-}
-
 String _storeRoute(BusinessModel store) {
   final slug = store.slug.trim();
   if (slug.isNotEmpty) return '${AppRoutes.stores}/$slug';
@@ -228,24 +193,6 @@ class _StoreTile extends StatelessWidget {
               )
             else
               const ColoredBox(color: AppColors.primarySoft),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [Color(0xCC000000), Colors.transparent],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 24, 10, 10),
-                  child: _StoreMeta(store: store),
-                ),
-              ),
-            ),
           ],
         ),
       ),

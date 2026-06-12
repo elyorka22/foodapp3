@@ -35,7 +35,7 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
   bool _loading = false;
   bool _initialized = false;
   String _vertical = 'restaurant';
-  String? _existingOwnerLogin;
+  bool _hasOwnerAccount = false;
 
   bool get _isEdit => widget.restaurantId != null;
   bool get _isStore => _vertical == 'store';
@@ -67,7 +67,9 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
       _phone.text = restaurant.phone ?? '';
       _address.text = restaurant.branchAddress ?? '';
       _isActive = restaurant.isActive;
-      _existingOwnerLogin = restaurant.ownerLogin;
+      _ownerLogin.text = restaurant.ownerLogin ?? '';
+      _ownerPassword.text = restaurant.ownerPassword ?? '';
+      _hasOwnerAccount = (restaurant.ownerLogin ?? '').trim().isNotEmpty;
       _vertical = restaurant.isStore ? 'store' : 'restaurant';
 
       if (hours.isNotEmpty) {
@@ -155,34 +157,51 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   Text(
-                    _isEdit ? 'Hisob' : 'Restoran paneli uchun hisob',
+                    _isEdit
+                        ? AppStrings.ownerAccountSection
+                        : AppStrings.ownerAccountSectionCreate,
                     style: AppTypography.subtitle,
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  if (_isEdit && _existingOwnerLogin != null) ...[
-                    InputDecorator(
-                      decoration: const InputDecoration(labelText: AppStrings.ownerLogin),
-                      child: Text(_existingOwnerLogin!, style: AppTypography.body),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    PasswordTextField(
-                      controller: _ownerPassword,
-                      labelText: AppStrings.newOwnerPassword,
-                    ),
-                  ] else if (!_isEdit) ...[
-                    TextField(
-                      controller: _ownerLogin,
-                      keyboardType: TextInputType.emailAddress,
-                      autocorrect: false,
-                      decoration: const InputDecoration(
-                        labelText: AppStrings.ownerLogin,
-                        hintText: AppStrings.ownerLoginHint,
+                  if (_isEdit && !_hasOwnerAccount) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF7ED),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFDE68A)),
+                      ),
+                      child: Text(
+                        AppStrings.noOwnerAccountHint,
+                        style: AppTypography.caption.copyWith(
+                          color: const Color(0xFF92400E),
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    PasswordTextField(
-                      controller: _ownerPassword,
-                      labelText: AppStrings.ownerPassword,
+                  ],
+                  TextField(
+                    controller: _ownerLogin,
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    decoration: const InputDecoration(
+                      labelText: AppStrings.ownerLogin,
+                      hintText: AppStrings.ownerLoginHint,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  PasswordTextField(
+                    controller: _ownerPassword,
+                    labelText: _isEdit && _hasOwnerAccount
+                        ? AppStrings.newOwnerPassword
+                        : AppStrings.ownerPassword,
+                  ),
+                  if (_isEdit && _hasOwnerAccount) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      AppStrings.newOwnerPasswordHint,
+                      style: AppTypography.caption,
                     ),
                   ],
                   const SizedBox(height: AppSpacing.md),
@@ -214,15 +233,21 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
 
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) return;
+
+    final login = _ownerLogin.text.trim();
+    final password = _ownerPassword.text;
+
     if (!_isEdit) {
-      if (_ownerLogin.text.trim().isEmpty || _ownerPassword.text.length < 6) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Kirish va parol (kamida 6 belgi) kerak')),
-          );
-        }
+      if (login.isEmpty || password.length < 6) {
+        _showAccountError();
         return;
       }
+    } else if (!_hasOwnerAccount && login.isNotEmpty && password.length < 6) {
+      _showAccountError();
+      return;
+    } else if (_hasOwnerAccount && password.isNotEmpty && password.length < 6) {
+      _showAccountError();
+      return;
     }
 
     setState(() => _loading = true);
@@ -238,7 +263,9 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
           phone: _phone.text.trim(),
           branchAddress: _address.text.trim(),
           isActive: _isActive,
-          ownerPassword: _ownerPassword.text.isNotEmpty ? _ownerPassword.text : null,
+          ownerLogin: login.isNotEmpty ? login : null,
+          ownerPassword: password.isNotEmpty ? password : null,
+          ownerFullName: _name.text.trim(),
           workingHours: hours,
         );
         await ref.read(restaurantRepositoryProvider).updateRestaurant(model);
@@ -274,5 +301,14 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  void _showAccountError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Kirish va parol (kamida 6 belgi) kerak'),
+      ),
+    );
   }
 }

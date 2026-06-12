@@ -17,6 +17,7 @@ import {
   UserCog,
   Users,
   Bell,
+  CalendarHeart,
 } from 'lucide-react';
 import { adminI18n as t } from '@/lib/admin-i18n';
 import { hasAdminPermission, type AdminPermission } from '@/lib/admin-permissions';
@@ -92,6 +93,18 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: t.nav.storeBanners,
         icon: ImageIcon,
         permission: 'stores',
+      },
+    ],
+  },
+  {
+    id: 'booking',
+    title: t.nav.booking,
+    items: [
+      {
+        href: '/admin/booking-venues',
+        label: t.nav.bookingVenues,
+        icon: CalendarHeart,
+        permission: 'booking',
       },
     ],
   },
