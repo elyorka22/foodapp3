@@ -144,7 +144,7 @@ class BusinessAvailabilityBanner extends StatelessWidget {
           color: const Color(0xFFECFDF5),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: BusinessAvailabilityBadge(
+        child: const BusinessAvailabilityBadge(
           isOpen: true,
           compact: true,
         ),
