@@ -5,7 +5,7 @@ import '../../core/theme/app_typography.dart';
 import '../../core/utils/format_sum.dart';
 import '../models/courier_order_model.dart';
 
-/// Shows order amount, delivery earnings, and total to collect from customer.
+/// Shows what the courier pays at the merchant, collects from customer, and earns.
 class OrderMoneySummary extends StatelessWidget {
   const OrderMoneySummary({
     super.key,
@@ -25,18 +25,21 @@ class OrderMoneySummary extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            formatSum(order.orderAmount),
-            style: AppTypography.body.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+          _CompactMoneyLine(
+            label: AppStrings.payAtRestaurantShort,
+            value: order.orderAmount,
           ),
-          Text(
-            '+ ${formatSum(order.courierEarnings)}',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
+          const SizedBox(height: 2),
+          _CompactMoneyLine(
+            label: AppStrings.collectFromCustomerShort,
+            value: order.collectFromCustomer,
+            emphasized: true,
+          ),
+          const SizedBox(height: 2),
+          _CompactMoneyLine(
+            label: AppStrings.courierIncomeShort,
+            value: order.courierEarnings,
+            valueColor: AppColors.primary,
           ),
         ],
       );
@@ -48,6 +51,11 @@ class OrderMoneySummary extends StatelessWidget {
         _MoneyRow(
           label: AppStrings.payAtRestaurant,
           value: order.orderAmount,
+        ),
+        const SizedBox(height: 6),
+        _MoneyRow(
+          label: AppStrings.customerDeliveryFee,
+          value: order.customerDeliveryFee,
         ),
         const SizedBox(height: 6),
         _MoneyRow(
@@ -63,6 +71,38 @@ class OrderMoneySummary extends StatelessWidget {
             emphasized: true,
           ),
         ],
+      ],
+    );
+  }
+}
+
+class _CompactMoneyLine extends StatelessWidget {
+  const _CompactMoneyLine({
+    required this.label,
+    required this.value,
+    this.emphasized = false,
+    this.valueColor,
+  });
+
+  final String label;
+  final num value;
+  final bool emphasized;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final valueStyle = emphasized
+        ? AppTypography.body.copyWith(fontWeight: FontWeight.w800)
+        : AppTypography.caption.copyWith(
+            fontWeight: FontWeight.w700,
+            color: valueColor ?? AppColors.textPrimary,
+          );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('$label: ', style: AppTypography.caption),
+        Text(formatSum(value), style: valueStyle),
       ],
     );
   }

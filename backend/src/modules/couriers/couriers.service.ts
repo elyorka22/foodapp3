@@ -520,6 +520,7 @@ export class CouriersService {
       return {
       ...order,
       subtotal: Number(order.subtotal),
+      discountAmount: Number(order.discountAmount ?? 0),
       total: Number(order.total),
       deliveryFee: Number(order.deliveryFee),
       estimatedCourierFee,

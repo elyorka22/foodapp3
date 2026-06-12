@@ -75,7 +75,9 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
     ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
       orderId: newest.id,
       title: newest.restaurantName ?? newest.orderNumber,
-      fee: newest.initialDeliveryFee,
+      payAtRestaurant: newest.orderAmount,
+      collectFromCustomer: newest.collectFromCustomer,
+      courierEarnings: newest.courierEarnings,
     );
   }
 }

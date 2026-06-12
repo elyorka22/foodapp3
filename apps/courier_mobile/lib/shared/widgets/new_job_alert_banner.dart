@@ -71,8 +71,13 @@ class NewJobAlertBanner extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        '${formatSum(alert.fee)} · ${AppStrings.newJobAlertTap}',
+                        '${AppStrings.payAtRestaurantShort}: ${formatSum(alert.payAtRestaurant)} · '
+                        '${AppStrings.collectFromCustomerShort}: ${formatSum(alert.collectFromCustomer)}',
                         style: AppTypography.caption,
+                      ),
+                      Text(
+                        '${AppStrings.courierIncomeShort}: ${formatSum(alert.courierEarnings)} · ${AppStrings.newJobAlertTap}',
+                        style: AppTypography.caption.copyWith(color: AppColors.primary),
                       ),
                     ],
                   ),

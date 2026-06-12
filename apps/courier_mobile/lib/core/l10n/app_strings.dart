@@ -51,7 +51,11 @@ abstract final class AppStrings {
   static const orderAmount = 'Buyurtma summasi';
   static const payAtRestaurant = 'Restoranda to\'lash';
   static const collectFromCustomer = 'Mijozdan olish';
-  static const deliveryEarnings = 'Yetkazish haqi';
+  static const customerDeliveryFee = 'Mijoz yetkazish to\'lovi';
+  static const deliveryEarnings = 'Kuryer daromadi';
+  static const payAtRestaurantShort = 'Restoran';
+  static const collectFromCustomerShort = 'Mijozdan';
+  static const courierIncomeShort = 'Daromad';
   static const address = 'Manzil';
   static const openOrder = 'Vazifani ochish';
   static const newOrder = 'Yangi vazifa';

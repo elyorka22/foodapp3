@@ -79,12 +79,20 @@ class _HistoryCard extends StatelessWidget {
             children: [
               ServiceTypeBadge(type: order.serviceType, compact: true),
               const Spacer(),
-              Text(
-                formatSum(order.courierFee ?? order.deliveryFee),
-                style: AppTypography.subtitle.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w800,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    formatSum(order.collectFromCustomer),
+                    style: AppTypography.subtitle.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    '${AppStrings.courierIncomeShort}: ${formatSum(order.courierFee ?? order.courierEarnings)}',
+                    style: AppTypography.caption.copyWith(color: AppColors.primary),
+                  ),
+                ],
               ),
             ],
           ),

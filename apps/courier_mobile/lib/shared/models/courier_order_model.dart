@@ -31,6 +31,7 @@ class CourierOrderModel {
     required this.status,
     required this.subtotal,
     required this.deliveryFee,
+    required this.discountAmount,
     required this.total,
     this.distanceKm,
     this.restaurantName,
@@ -54,6 +55,7 @@ class CourierOrderModel {
   final String status;
   final num subtotal;
   final num deliveryFee;
+  final num discountAmount;
   final num total;
   final double? distanceKm;
   final String? restaurantName;
@@ -81,14 +83,20 @@ class CourierOrderModel {
   num get initialDeliveryFee =>
       estimatedCourierFee ?? courierFee ?? deliveryFee;
 
-  /// Courier keeps this as delivery earnings.
+  /// Courier keeps this as delivery earnings (may differ from customer deliveryFee).
   num get courierEarnings => initialDeliveryFee;
 
-  /// Food amount the courier pays at the merchant.
+  /// What the customer pays for delivery (part of order total).
+  num get customerDeliveryFee => deliveryFee;
+
+  /// Net food amount the courier pays at the merchant (after promo).
   num get orderAmount {
-    if (subtotal > 0) return subtotal;
-    final fromTotal = total - deliveryFee;
-    return fromTotal > 0 ? fromTotal : 0;
+    if (total > 0) {
+      final netFood = total - deliveryFee;
+      return netFood > 0 ? netFood : 0;
+    }
+    final netFood = subtotal - discountAmount;
+    return netFood > 0 ? netFood : 0;
   }
 
   /// Full amount to collect from the customer (food + delivery).
@@ -132,6 +140,7 @@ class CourierOrderModel {
       status: json['status'] as String? ?? 'PENDING',
       subtotal: json['subtotal'] as num? ?? 0,
       deliveryFee: json['deliveryFee'] as num? ?? 0,
+      discountAmount: json['discountAmount'] as num? ?? 0,
       total: json['total'] as num? ?? 0,
       distanceKm: parseDouble(json['distanceKm']),
       restaurantName: restaurant?['name'] as String? ?? business?['name'] as String?,
