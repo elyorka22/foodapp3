@@ -20,7 +20,9 @@ import {
 } from '../../common/utils/menu-order.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { AuthService } from '../auth/auth.service';
 import { AdminNotificationsService } from '../admin-notifications/admin-notifications.service';
+import { normalizePhone } from '../../common/utils/phone.util';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
