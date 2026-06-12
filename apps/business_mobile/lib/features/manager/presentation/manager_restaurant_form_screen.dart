@@ -27,6 +27,7 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
   final _phone = TextEditingController();
   final _address = TextEditingController();
   final _ownerLogin = TextEditingController();
+  final _ownerFullName = TextEditingController();
   final _ownerPassword = TextEditingController();
   final _openTime = TextEditingController(text: '09:00');
   final _closeTime = TextEditingController(text: '22:00');
@@ -37,6 +38,8 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
   String _vertical = 'restaurant';
   bool _hasOwnerAccount = false;
 
+  String _originalOwnerLogin = '';
+
   bool get _isEdit => widget.restaurantId != null;
   bool get _isStore => _vertical == 'store';
 
@@ -46,6 +49,7 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
     _phone.dispose();
     _address.dispose();
     _ownerLogin.dispose();
+    _ownerFullName.dispose();
     _ownerPassword.dispose();
     _openTime.dispose();
     _closeTime.dispose();
@@ -68,6 +72,8 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
       _address.text = restaurant.branchAddress ?? '';
       _isActive = restaurant.isActive;
       _ownerLogin.text = restaurant.ownerLogin ?? '';
+      _originalOwnerLogin = restaurant.ownerLogin ?? '';
+      _ownerFullName.text = restaurant.ownerFullName ?? '';
       _ownerPassword.text = restaurant.ownerPassword ?? '';
       _hasOwnerAccount = (restaurant.ownerLogin ?? '').trim().isNotEmpty;
       _vertical = restaurant.isStore ? 'store' : 'restaurant';
@@ -182,6 +188,16 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
                     const SizedBox(height: AppSpacing.md),
                   ],
                   TextField(
+                    controller: _ownerFullName,
+                    readOnly: _isEdit && _hasOwnerAccount,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: AppStrings.ownerFullName,
+                      hintText: AppStrings.ownerFullNameHint,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  TextField(
                     controller: _ownerLogin,
                     keyboardType: TextInputType.emailAddress,
                     autocorrect: false,
@@ -231,6 +247,41 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
     );
   }
 
+  ({String? login, String? password, String? fullName}) _ownerPayload() {
+    final login = _ownerLogin.text.trim();
+    final password = _ownerPassword.text;
+    final fullName = _ownerFullName.text.trim().isNotEmpty
+        ? _ownerFullName.text.trim()
+        : _name.text.trim();
+
+    if (!_isEdit) {
+      return (login: login, password: password, fullName: fullName);
+    }
+
+    if (!_hasOwnerAccount) {
+      if (login.isEmpty && password.isEmpty) {
+        return (login: null, password: null, fullName: null);
+      }
+      return (
+        login: login,
+        password: password.isNotEmpty ? password : null,
+        fullName: fullName,
+      );
+    }
+
+    final loginChanged = login.isNotEmpty && login != _originalOwnerLogin;
+    final passwordChange = password.isNotEmpty;
+    if (!loginChanged && !passwordChange) {
+      return (login: null, password: null, fullName: null);
+    }
+
+    return (
+      login: loginChanged ? login : null,
+      password: passwordChange ? password : null,
+      fullName: null,
+    );
+  }
+
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) return;
 
@@ -254,6 +305,7 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
     try {
       final hours = _buildWorkingHours();
       final kind = _isStore ? 'STORE' : 'RESTAURANT';
+      final owner = _ownerPayload();
 
       if (_isEdit) {
         final model = RestaurantModel(
@@ -263,9 +315,9 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
           phone: _phone.text.trim(),
           branchAddress: _address.text.trim(),
           isActive: _isActive,
-          ownerLogin: login.isNotEmpty ? login : null,
-          ownerPassword: password.isNotEmpty ? password : null,
-          ownerFullName: _name.text.trim(),
+          ownerLogin: owner.login,
+          ownerPassword: owner.password,
+          ownerFullName: owner.fullName,
           workingHours: hours,
         );
         await ref.read(restaurantRepositoryProvider).updateRestaurant(model);
@@ -277,9 +329,9 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
           phone: _phone.text.trim(),
           branchAddress: _address.text.trim(),
           isActive: _isActive,
-          ownerLogin: _ownerLogin.text.trim(),
-          ownerPassword: _ownerPassword.text,
-          ownerFullName: _name.text.trim(),
+          ownerLogin: owner.login,
+          ownerPassword: owner.password,
+          ownerFullName: owner.fullName,
           workingHours: hours,
         );
         await ref.read(restaurantRepositoryProvider).createRestaurant(model);

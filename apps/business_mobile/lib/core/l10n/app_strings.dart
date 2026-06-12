@@ -90,6 +90,8 @@ abstract final class AppStrings {
       'Hisob hali yaratilmagan. Kirish va parol kiriting.';
   static const ownerLogin = 'Kirish (telefon yoki email)';
   static const ownerLoginHint = '+998901234567 yoki owner@example.com';
+  static const ownerFullName = 'Egasi ismi';
+  static const ownerFullNameHint = 'Biznes panelida ko\'rinadigan ism';
   static const ownerPassword = 'Parol';
   static const ownerPasswordHint = 'Kamida 6 ta belgi';
   static const newOwnerPassword = 'Parol';
