@@ -23,6 +23,8 @@ export type BusinessMenuDetail = {
   name: string;
   kind?: string;
   isOpen?: boolean;
+  closesAt?: string | null;
+  closingSoon?: boolean;
   phone?: string | null;
   logoUrl?: string | null;
   coverUrl?: string | null;
