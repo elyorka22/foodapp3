@@ -50,11 +50,14 @@ function placementLabel(placement?: string) {
   return t.banners.placementHero;
 }
 
+type RestaurantOption = { id: string; name: string; slug: string };
+
 const emptyBanner = (placement: BannerForm['placement']): BannerForm => ({
   title: '',
   description: '',
   imageUrl: '',
   link: '',
+  restaurantId: null,
   placement,
   sortOrder: 0,
   isActive: true,
@@ -94,6 +97,16 @@ export function AdminBannersPage({
 
   const [form, setForm] = useState<BannerForm>(() => emptyBanner(defaultPlacement));
   const [preview, setPreview] = useState(false);
+  const [restaurants, setRestaurants] = useState<RestaurantOption[]>([]);
+
+  useEffect(() => {
+    if (!token || !homepageOnly || placementMode !== 'HOME_GRID') return;
+    api<{ data: RestaurantOption[] }>('/restaurants/admin?limit=200&vertical=restaurant', {
+      token,
+    })
+      .then((res) => setRestaurants(res.data))
+      .catch(() => setRestaurants([]));
+  }, [token, homepageOnly, placementMode]);
 
   useEffect(() => {
     if (!token || !vertical) return;
@@ -107,7 +120,7 @@ export function AdminBannersPage({
   const filtered = useMemo(() => {
     const raw = (list.data ?? []) as BannerRow[];
     return raw.filter((b) => {
-      if (homepageOnly && merchantId(b)) return false;
+      if (homepageOnly && merchantId(b) && b.placement !== 'HOME_SIDE_TOP') return false;
       if (placementMode === 'PROMO' && homepageOnly) {
         return (b.placement ?? 'HERO') === 'PROMO' || (b.placement ?? 'HERO') === 'HERO';
       }
@@ -142,6 +155,7 @@ export function AdminBannersPage({
       description: b.description ?? '',
       imageUrl: b.imageUrl,
       link: b.linkUrl ?? '',
+      restaurantId: merchantId(b),
       placement:
         placementMode === 'HOME_GRID'
           ? ((b.placement as HomePlacement) ?? 'HOME_MAIN')
@@ -167,9 +181,16 @@ export function AdminBannersPage({
     }
   };
 
+  const restaurantName = (id: string | null | undefined) =>
+    restaurants.find((r) => r.id === id)?.name;
+
   const save = async () => {
     if (!form.imageUrl?.trim()) {
       toast.error('Rasm yuklang');
+      return;
+    }
+    if (form.placement === 'HOME_SIDE_TOP' && !form.restaurantId) {
+      toast.error(t.banners.bannerRestaurantRequired);
       return;
     }
     const body: BannerForm = {
@@ -180,6 +201,9 @@ export function AdminBannersPage({
           : placementMode === 'HERO' || placementMode === 'PROMO'
             ? placementMode
             : form.placement ?? 'HERO',
+      restaurantId:
+        form.placement === 'HOME_SIDE_TOP' ? form.restaurantId ?? null : null,
+      link: form.placement === 'HOME_SIDE_TOP' ? undefined : form.link,
     };
     try {
       if (editId) {
@@ -344,7 +368,11 @@ export function AdminBannersPage({
                 )}
                 <p className="truncate text-xs opacity-50">
                   {placementLabel(b.placement)}
-                  {b.linkUrl ? ` · ${b.linkUrl}` : ''}
+                  {b.placement === 'HOME_SIDE_TOP' && merchantId(b)
+                    ? ` · ${restaurantName(merchantId(b)) ?? b.linkUrl ?? ''}`
+                    : b.linkUrl
+                      ? ` · ${b.linkUrl}`
+                      : ''}
                 </p>
               </div>
               <ActiveBadge active={b.isActive} />
@@ -382,12 +410,15 @@ export function AdminBannersPage({
               <select
                 className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
                 value={form.placement ?? defaultPlacement}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const placement = e.target.value as BannerForm['placement'];
                   setForm({
                     ...form,
-                    placement: e.target.value as BannerForm['placement'],
-                  })
-                }
+                    placement,
+                    restaurantId: placement === 'HOME_SIDE_TOP' ? form.restaurantId : null,
+                    link: placement === 'HOME_SIDE_TOP' ? '' : form.link,
+                  });
+                }}
               >
                 {placementMode === 'HOME_GRID' ? (
                   <>
@@ -419,11 +450,35 @@ export function AdminBannersPage({
             value={form.description ?? ''}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
-          <Input
-            placeholder="Havola"
-            value={form.link ?? ''}
-            onChange={(e) => setForm({ ...form, link: e.target.value })}
-          />
+          {form.placement === 'HOME_SIDE_TOP' ? (
+            <label className="block text-xs font-medium opacity-70">
+              {t.banners.bannerRestaurantLink}
+              <select
+                className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
+                value={form.restaurantId ?? ''}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    restaurantId: e.target.value || null,
+                  })
+                }
+              >
+                <option value="">{t.banners.bannerRestaurantPlaceholder}</option>
+                {restaurants.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] opacity-60">{t.banners.bannerRestaurantLinkHint}</p>
+            </label>
+          ) : (
+            <Input
+              placeholder="Havola"
+              value={form.link ?? ''}
+              onChange={(e) => setForm({ ...form, link: e.target.value })}
+            />
+          )}
           <label className="text-xs opacity-70">
             Rasm *
             <input

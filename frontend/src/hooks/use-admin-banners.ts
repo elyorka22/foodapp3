@@ -9,6 +9,7 @@ export type BannerForm = {
   description?: string;
   imageUrl: string;
   link?: string;
+  restaurantId?: string | null;
   placement?: 'HERO' | 'PROMO' | 'HOME_MAIN' | 'HOME_SIDE_TOP' | 'HOME_SIDE_BOTTOM';
   sortOrder?: number;
   isActive?: boolean;

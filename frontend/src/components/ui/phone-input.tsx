@@ -42,6 +42,7 @@ export function PhoneInput({
     <div
       className={clsx(
         'flex w-full items-center overflow-hidden',
+        isCheckout ? 'gap-3' : 'gap-2.5',
         isCheckout
           ? 'h-14 rounded-2xl bg-[#FAF7F2] ring-1 ring-zinc-100 focus-within:ring-2 focus-within:ring-[#FF7A00]/30'
           : 'min-h-[52px] rounded-2xl border border-zinc-200 bg-white focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-500/30 dark:border-white/20 dark:bg-zinc-900',
@@ -52,7 +53,7 @@ export function PhoneInput({
       <span
         className={clsx(
           'shrink-0 select-none pl-4 text-base font-semibold text-zinc-900 dark:text-zinc-50',
-          isCheckout && 'text-[17px]',
+          isCheckout && 'pr-0.5 text-[17px]',
         )}
         aria-hidden
       >
@@ -71,7 +72,7 @@ export function PhoneInput({
         placeholder={uz.phoneHint}
         maxLength={12}
         className={clsx(
-          'min-w-0 flex-1 border-0 bg-transparent py-3 pr-4 text-base text-foreground caret-foreground outline-none placeholder:text-foreground-muted',
+          'min-w-0 flex-1 border-0 bg-transparent py-3 pl-0.5 pr-4 text-base text-foreground caret-foreground outline-none placeholder:text-foreground-muted',
           isCheckout && 'text-[17px] font-semibold placeholder:font-normal placeholder:text-zinc-400',
         )}
       />

@@ -16,6 +16,20 @@ export class BannersService {
     private settings: SettingsService,
   ) {}
 
+  private businessPublicPath(business: { id: string; slug: string | null }) {
+    const slug = business.slug?.trim();
+    return slug ? `/restaurants/${slug}` : `/restaurants/${business.id}`;
+  }
+
+  private async resolveRestaurantLink(restaurantId: string) {
+    const business = await this.prisma.business.findUnique({
+      where: { id: restaurantId },
+      select: { id: true, slug: true },
+    });
+    if (!business) return null;
+    return this.businessPublicPath(business);
+  }
+
   private async mapBanner<T extends {
     imageScale?: number | null;
     imagePositionX?: number | null;
@@ -35,13 +49,23 @@ export class BannersService {
         OR: [{ startsAt: null }, { startsAt: { lte: now } }],
         AND: [{ OR: [{ endsAt: null }, { endsAt: { gte: now } }] }],
       },
+      include: {
+        business: { select: { id: true, slug: true } },
+      },
       orderBy: { sortOrder: 'asc' },
     });
     const defaults = await this.settings.getImageFramingDefaults();
-    return rows.map((row) => ({
-      ...row,
-      ...resolveBannerFraming(row, defaults),
-    }));
+    return rows.map((row) => {
+      const linkUrl =
+        row.linkUrl?.trim() ||
+        (row.business ? this.businessPublicPath(row.business) : null);
+      return {
+        ...row,
+        ...resolveBannerFraming(row, defaults),
+        linkUrl,
+        restaurantId: row.businessId,
+      };
+    });
   }
 
   findAllAdmin() {
@@ -52,12 +76,17 @@ export class BannersService {
   }
 
   async create(dto: CreateBannerDto, user?: JwtPayload) {
+    let linkUrl = dto.link?.trim() || null;
+    if (dto.restaurantId) {
+      linkUrl = await this.resolveRestaurantLink(dto.restaurantId);
+    }
+
     const banner = await this.prisma.banner.create({
       data: {
         title: dto.title?.trim() ?? '',
         description: dto.description?.trim() || null,
         imageUrl: dto.imageUrl,
-        linkUrl: dto.link,
+        linkUrl,
         placement: dto.placement ?? 'HERO',
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
@@ -88,7 +117,6 @@ export class BannersService {
     if (dto.description !== undefined) data.description = dto.description.trim() || null;
     if (dto.placement !== undefined) data.placement = dto.placement;
     if (dto.imageUrl !== undefined) data.imageUrl = dto.imageUrl;
-    if (dto.link !== undefined) data.linkUrl = dto.link;
     if (dto.sortOrder !== undefined) data.sortOrder = dto.sortOrder;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
     if (dto.imageScale !== undefined) data.imageScale = dto.imageScale;
@@ -98,6 +126,13 @@ export class BannersService {
       data.business = dto.restaurantId
         ? { connect: { id: dto.restaurantId } }
         : { disconnect: true };
+      if (dto.restaurantId) {
+        data.linkUrl = await this.resolveRestaurantLink(dto.restaurantId);
+      } else if (dto.link !== undefined) {
+        data.linkUrl = dto.link?.trim() || null;
+      }
+    } else if (dto.link !== undefined) {
+      data.linkUrl = dto.link?.trim() || null;
     }
 
     const updated = await this.prisma.banner.update({ where: { id }, data });
