@@ -314,6 +314,8 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
         await ref.read(courierRepositoryProvider).updateStatus(order.id, 'DELIVERED');
         ref.invalidate(activeOrderProvider);
         ref.invalidate(courierEarningsProvider);
+        ref.invalidate(shiftStatsProvider);
+        ref.invalidate(courierProfileProvider);
         if (!mounted) return;
         context.go(AppRoutes.orderComplete);
       }

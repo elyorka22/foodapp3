@@ -360,7 +360,17 @@ export class CouriersService {
         },
       },
     });
-    return courier;
+    if (!courier) return null;
+
+    const deliveredCount = await this.prisma.order.count({
+      where: this.deliveredOrdersWhere(courier.id),
+    });
+
+    return {
+      ...courier,
+      totalDeliveries: deliveredCount,
+      totalEarnings: Number(courier.totalEarnings),
+    };
   }
 
   async setOnline(userId: string, isOnline: boolean) {
@@ -633,17 +643,36 @@ export class CouriersService {
     const courier = await this.prisma.courier.findFirst({ where: { userId } });
     if (!courier) return null;
 
-    const assignments = await this.prisma.courierAssignment.aggregate({
-      where: { courierId: courier.id },
-      _sum: { courierFee: true },
-      _count: true,
-    });
+    const [deliveredCount, earningsAgg, ordersWithoutAssignment] = await Promise.all([
+      this.prisma.order.count({ where: this.deliveredOrdersWhere(courier.id) }),
+      this.prisma.courierAssignment.aggregate({
+        where: {
+          courierId: courier.id,
+          order: {
+            status: OrderStatus.DELIVERED,
+            deletedAt: null,
+          },
+        },
+        _sum: { courierFee: true },
+      }),
+      this.prisma.order.findMany({
+        where: {
+          ...this.deliveredOrdersWhere(courier.id),
+          assignment: { is: null },
+        },
+        select: { deliveryFee: true },
+      }),
+    ]);
+
+    const totalEarnings =
+      Number(earningsAgg._sum.courierFee ?? 0) +
+      ordersWithoutAssignment.reduce((sum, order) => sum + Number(order.deliveryFee), 0);
 
     return {
-      totalEarnings: Number(courier.totalEarnings),
-      assignmentEarnings: Number(assignments._sum.courierFee ?? 0),
-      totalDeliveries: courier.totalDeliveries,
-      completedAssignments: assignments._count,
+      totalEarnings,
+      assignmentEarnings: totalEarnings,
+      totalDeliveries: deliveredCount,
+      completedAssignments: deliveredCount,
     };
   }
 
@@ -655,12 +684,16 @@ export class CouriersService {
     start.setDate(start.getDate() - 6);
     start.setHours(0, 0, 0, 0);
 
-    const assignments = await this.prisma.courierAssignment.findMany({
+    const deliveredOrders = await this.prisma.order.findMany({
       where: {
-        courierId: courier.id,
+        ...this.deliveredOrdersWhere(courier.id),
         deliveredAt: { gte: start },
       },
-      select: { deliveredAt: true, courierFee: true },
+      select: {
+        deliveredAt: true,
+        deliveryFee: true,
+        assignment: { select: { courierFee: true } },
+      },
     });
 
     const days: {
@@ -676,7 +709,7 @@ export class CouriersService {
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
 
-      const dayRows = assignments.filter(
+      const dayRows = deliveredOrders.filter(
         (row) =>
           row.deliveredAt &&
           row.deliveredAt >= dayStart &&
@@ -686,7 +719,10 @@ export class CouriersService {
       days.push({
         date: dayStart.toISOString().slice(0, 10),
         deliveries: dayRows.length,
-        earnings: dayRows.reduce((sum, row) => sum + Number(row.courierFee), 0),
+        earnings: dayRows.reduce(
+          (sum, row) => sum + this.feeFromDeliveredOrder(row),
+          0,
+        ),
       });
     }
 
@@ -704,20 +740,67 @@ export class CouriersService {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const today = await this.prisma.courierAssignment.aggregate({
-      where: {
-        courierId: courier.id,
-        deliveredAt: { gte: startOfDay },
-      },
-      _sum: { courierFee: true },
-      _count: true,
-    });
+    const [todayOrders, totalDelivered, earningsAgg, ordersWithoutAssignment] =
+      await Promise.all([
+        this.prisma.order.findMany({
+          where: {
+            ...this.deliveredOrdersWhere(courier.id),
+            deliveredAt: { gte: startOfDay },
+          },
+          select: {
+            deliveryFee: true,
+            assignment: { select: { courierFee: true } },
+          },
+        }),
+        this.prisma.order.count({ where: this.deliveredOrdersWhere(courier.id) }),
+        this.prisma.courierAssignment.aggregate({
+          where: {
+            courierId: courier.id,
+            order: {
+              status: OrderStatus.DELIVERED,
+              deletedAt: null,
+            },
+          },
+          _sum: { courierFee: true },
+        }),
+        this.prisma.order.findMany({
+          where: {
+            ...this.deliveredOrdersWhere(courier.id),
+            assignment: { is: null },
+          },
+          select: { deliveryFee: true },
+        }),
+      ]);
+
+    const assignmentEarnings = Number(earningsAgg._sum.courierFee ?? 0);
+    const fallbackEarnings = ordersWithoutAssignment.reduce(
+      (sum, order) => sum + Number(order.deliveryFee),
+      0,
+    );
 
     return {
-      todayDeliveries: today._count,
-      todayEarnings: Number(today._sum.courierFee ?? 0),
-      totalDeliveries: courier.totalDeliveries,
-      totalEarnings: Number(courier.totalEarnings),
+      todayDeliveries: todayOrders.length,
+      todayEarnings: todayOrders.reduce(
+        (sum, order) => sum + this.feeFromDeliveredOrder(order),
+        0,
+      ),
+      totalDeliveries: totalDelivered,
+      totalEarnings: assignmentEarnings + fallbackEarnings,
     };
+  }
+
+  private deliveredOrdersWhere(courierId: string): Prisma.OrderWhereInput {
+    return {
+      courierId,
+      status: OrderStatus.DELIVERED,
+      deletedAt: null,
+    };
+  }
+
+  private feeFromDeliveredOrder(order: {
+    deliveryFee: Prisma.Decimal;
+    assignment?: { courierFee: Prisma.Decimal } | null;
+  }): number {
+    return Number(order.assignment?.courierFee ?? order.deliveryFee);
   }
 }

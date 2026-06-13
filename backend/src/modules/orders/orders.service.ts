@@ -512,6 +512,10 @@ export class OrdersService {
       dto.cancelReason ?? undefined,
     );
 
+    if (dto.status === OrderStatus.DELIVERED && updated.deliveredAt) {
+      await this.finalizeCourierDelivery(orderId, updated.deliveredAt);
+    }
+
     if (dto.status === OrderStatus.DELIVERED) {
       await this.loyalty.onOrderDelivered(orderId);
     }
@@ -1049,6 +1053,41 @@ export class OrdersService {
       latitude: Number(address.latitude),
       longitude: Number(address.longitude),
     };
+  }
+
+  /** Marks assignment delivered and syncs courier lifetime stats (idempotent). */
+  private async finalizeCourierDelivery(orderId: string, deliveredAt: Date) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, deletedAt: null },
+      select: {
+        courierId: true,
+        deliveryFee: true,
+        assignment: { select: { deliveredAt: true, courierFee: true } },
+      },
+    });
+    if (!order?.courierId) return;
+
+    const assignment = order.assignment;
+    if (assignment?.deliveredAt) return;
+
+    const courierFee = Number(assignment?.courierFee ?? order.deliveryFee ?? 0);
+
+    await this.prisma.$transaction(async (tx) => {
+      if (assignment) {
+        await tx.courierAssignment.update({
+          where: { orderId },
+          data: { deliveredAt },
+        });
+      }
+
+      await tx.courier.update({
+        where: { id: order.courierId! },
+        data: {
+          totalDeliveries: { increment: 1 },
+          totalEarnings: { increment: courierFee },
+        },
+      });
+    });
   }
 
   private serializeOrder(order: Record<string, unknown>) {
