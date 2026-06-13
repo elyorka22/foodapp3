@@ -343,16 +343,18 @@ export class OrdersService {
     if (user.role === UserRole.COURIER) {
       const courier = await this.prisma.courier.findFirst({ where: { userId: user.sub } });
       if (courier) {
-        const dispatchMode = await this.settings.getCourierDispatchMode();
-        const access: Prisma.OrderWhereInput[] = [{ courierId: courier.id }];
-        if (dispatchMode === 'auto') {
-          access.push({
-            courierId: null,
-            status: OrderStatus.PREPARING,
-            courierRequestedAt: { not: null },
-          });
-        }
-        where.AND = [{ OR: access }];
+        where.AND = [
+          {
+            OR: [
+              { courierId: courier.id },
+              {
+                courierId: null,
+                status: OrderStatus.PREPARING,
+                courierRequestedAt: { not: null },
+              },
+            ],
+          },
+        ];
       }
     }
 
@@ -616,10 +618,17 @@ export class OrdersService {
     assignedBy?: string,
     note?: string,
   ) {
-    return this.assignCourier(orderId, courierId, assignedBy, note, {
-      requireOnline: false,
-      allowReassign: false,
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, deletedAt: null },
+      select: { courierId: true },
     });
+    if (!order) throw new NotFoundException('Order not found');
+    if (!order.courierId) {
+      throw new BadRequestException(
+        'Couriers accept orders from the pool — managers can only reassign an assigned courier',
+      );
+    }
+    return this.reassignCourier(orderId, courierId, assignedBy, note);
   }
 
   async reassignCourier(
@@ -684,7 +693,33 @@ export class OrdersService {
       });
     }
 
-    return this.emitOrderPayload(orderId);
+    const payload = await this.emitOrderPayload(orderId);
+    await this.renotifyCourierPoolIfOpen(orderId);
+    return payload;
+  }
+
+  private async renotifyCourierPoolIfOpen(orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, deletedAt: null },
+      select: {
+        id: true,
+        orderNumber: true,
+        courierId: true,
+        courierRequestedAt: true,
+        status: true,
+      },
+    });
+    if (
+      order &&
+      !order.courierId &&
+      order.courierRequestedAt &&
+      order.status === OrderStatus.PREPARING
+    ) {
+      await this.notifications.notifyCouriersPoolOrder({
+        id: order.id,
+        orderNumber: order.orderNumber,
+      });
+    }
   }
 
   private async emitOrderPayload(orderId: string) {
@@ -894,19 +929,10 @@ export class OrdersService {
       'Restaurant requested courier',
     );
 
-    const mode = await this.settings.getCourierDispatchMode();
-    if (mode === 'auto') {
-      await this.notifications.notifyOnlineCouriersPoolOrder({
-        id: order.id,
-        orderNumber: order.orderNumber,
-      });
-    } else {
-      await this.notifications.notifyManagersCourierRequested({
-        id: order.id,
-        orderNumber: order.orderNumber,
-        businessName: order.business?.name,
-      });
-    }
+    await this.notifications.notifyCouriersPoolOrder({
+      id: order.id,
+      orderNumber: order.orderNumber,
+    });
 
     return this.emitOrderPayload(orderId);
   }
@@ -914,8 +940,6 @@ export class OrdersService {
   async acceptOrderAsCourier(orderId: string, userId: string) {
     const courier = await this.prisma.courier.findFirst({ where: { userId } });
     if (!courier) throw new ForbiddenException();
-
-    const dispatchMode = await this.settings.getCourierDispatchMode();
 
     const order = await this.prisma.order.findFirst({
       where: {
@@ -928,13 +952,8 @@ export class OrdersService {
     });
     if (!order) throw new NotFoundException('Order not available');
 
-    if (!order.courierId) {
-      if (dispatchMode !== 'auto') {
-        throw new BadRequestException('Courier pool is disabled — wait for manager assignment');
-      }
-      if (!order.courierRequestedAt) {
-        throw new BadRequestException('Restaurant has not requested a courier yet');
-      }
+    if (!order.courierId && !order.courierRequestedAt) {
+      throw new BadRequestException('Restaurant has not requested a courier yet');
     }
 
     if (order.courierId === courier.id) {
@@ -957,7 +976,7 @@ export class OrdersService {
     }
 
     return this.assignCourier(orderId, courier.id, userId, 'Courier accepted', {
-      requireOnline: true,
+      requireOnline: false,
       allowReassign: false,
     });
   }

@@ -97,7 +97,7 @@ const DEFAULT_ADMIN: AdminSettings = {
   free_delivery_threshold: 100000,
   default_delivery_fee: 8000,
   commission_default: 10,
-  courier_dispatch_mode: 'manager',
+  courier_dispatch_mode: 'auto',
 };
 
 @Injectable()
@@ -235,8 +235,7 @@ export class SettingsService {
   }
 
   async getCourierDispatchMode(): Promise<'auto' | 'manager'> {
-    const admin = await this.getAdminSettings();
-    return admin.courier_dispatch_mode === 'auto' ? 'auto' : 'manager';
+    return 'auto';
   }
 
   async getCommissionDefault(): Promise<number> {

@@ -19,6 +19,7 @@ class OrderCard extends StatefulWidget {
     this.onStatusChange,
     this.onRequestCourier,
     this.onAssignCourier,
+    this.onRemoveCourier,
     this.onCancel,
     this.isLoading = false,
   });
@@ -30,6 +31,7 @@ class OrderCard extends StatefulWidget {
   final void Function(String nextStatus)? onStatusChange;
   final VoidCallback? onRequestCourier;
   final VoidCallback? onAssignCourier;
+  final VoidCallback? onRemoveCourier;
   final VoidCallback? onCancel;
   final bool isLoading;
 
@@ -136,19 +138,26 @@ class _OrderCardState extends State<OrderCard> {
                   isLoading: widget.isLoading,
                   onPressed: widget.isLoading ? null : widget.onRequestCourier,
                 ),
-              if (widget.showAssignCourier && order.canAssignCourier && widget.onAssignCourier != null) ...[
+              if (widget.showAssignCourier && order.canReassignCourier && widget.onAssignCourier != null) ...[
                 if (order.canRequestCourier) const SizedBox(height: AppSpacing.sm),
                 FoodAppButton(
-                  label: order.courierId == null
-                      ? AppStrings.assignCourier
-                      : AppStrings.reassignCourier,
+                  label: AppStrings.reassignCourier,
                   isLoading: widget.isLoading,
                   onPressed: widget.isLoading ? null : widget.onAssignCourier,
                 ),
               ],
+              if (order.canReassignCourier && widget.onRemoveCourier != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                FoodAppButton(
+                  label: AppStrings.removeCourier,
+                  variant: FoodAppButtonVariant.secondary,
+                  isLoading: widget.isLoading,
+                  onPressed: widget.isLoading ? null : widget.onRemoveCourier,
+                ),
+              ],
               if (order.nextStatus != null && widget.onStatusChange != null) ...[
                 if (order.canRequestCourier ||
-                    (widget.showAssignCourier && order.canAssignCourier))
+                    (widget.showAssignCourier && order.canReassignCourier))
                   const SizedBox(height: AppSpacing.sm),
                 FoodAppButton(
                   label:

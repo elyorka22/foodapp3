@@ -476,11 +476,17 @@ export class CouriersService {
     this.gateway.emitBusinessOrder(refreshed!.businessId, payload);
     this.gateway.emitAdminOrderUpdate(payload);
 
+    if (refreshed?.courierRequestedAt) {
+      await this.notifications.notifyCouriersPoolOrder({
+        id: refreshed.id,
+        orderNumber: refreshed.orderNumber,
+      });
+    }
+
     return { ok: true, orderId, status: OrderStatus.PREPARING };
   }
 
   async getCourierInbox(userId: string) {
-    const mode = await this.settings.getCourierDispatchMode();
     const courier = await this.prisma.courier.findFirst({
       where: { userId, deletedAt: null },
     });
@@ -519,19 +525,17 @@ export class CouriersService {
         orderBy: { updatedAt: 'desc' },
         take: 50,
       }),
-      mode === 'auto'
-        ? this.prisma.order.findMany({
-            where: {
-              status: OrderStatus.PREPARING,
-              courierId: null,
-              courierRequestedAt: { not: null },
-              deletedAt: null,
-            },
-            include: orderInclude,
-            orderBy: { createdAt: 'asc' },
-            take: 50,
-          })
-        : Promise.resolve([]),
+      this.prisma.order.findMany({
+        where: {
+          status: OrderStatus.PREPARING,
+          courierId: null,
+          courierRequestedAt: { not: null },
+          deletedAt: null,
+        },
+        include: orderInclude,
+        orderBy: { createdAt: 'asc' },
+        take: 50,
+      }),
     ]);
 
     const seen = new Set<string>();

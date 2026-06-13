@@ -68,9 +68,12 @@ class StaffOrderModel {
   bool get courierRequested =>
       status == 'PREPARING' && courierRequestedAt != null;
 
-  bool get canAssignCourier =>
-      (status == 'PREPARING' && courierRequestedAt != null && courierId == null) ||
-      (status == 'COURIER_ASSIGNED' && courierId != null);
+  bool get canReassignCourier =>
+      courierId != null &&
+      (status == 'PREPARING' || status == 'COURIER_ASSIGNED');
+
+  /// @deprecated Use [canReassignCourier]
+  bool get canAssignCourier => canReassignCourier;
 
   bool get canCancel =>
       status == 'PENDING' || status == 'ACCEPTED' || status == 'PREPARING';

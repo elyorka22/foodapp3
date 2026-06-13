@@ -85,17 +85,21 @@ export function OrderDrawer({
   }, [data, history]);
 
   const hasCourier = !!data?.courier?.id;
-  const canAssign =
+  const waitingInPool =
+    data &&
+    !hasCourier &&
+    data.status === 'PREPARING' &&
+    !!data.courierRequestedAt;
+  const canReassign =
+    hasCourier &&
     data &&
     ['PREPARING', 'COURIER_ASSIGNED'].includes(data.status);
 
   const handleCourierAction = async () => {
-    if (!orderId || !selectedCourierId || !data) return;
-    if (hasCourier && data.courier?.id === selectedCourierId) return;
-    if (hasCourier && onReassignCourier) {
+    if (!orderId || !selectedCourierId || !data || !hasCourier) return;
+    if (data.courier?.id === selectedCourierId) return;
+    if (onReassignCourier) {
       await onReassignCourier(orderId, selectedCourierId);
-    } else if (!hasCourier && onAssignCourier) {
-      await onAssignCourier(orderId, selectedCourierId);
     }
     refresh();
   };
@@ -192,7 +196,12 @@ export function OrderDrawer({
               {(data.courier?.phone ?? data.courier?.user?.phone) && (
                 <p className="text-sm opacity-70">{data.courier?.phone ?? data.courier?.user?.phone}</p>
               )}
-              {canAssign && onAssignCourier && (
+              {waitingInPool && (
+                <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                  Restoran kuryerni chaqirdi — barcha kuryerlar buyurtmani ko&apos;rmoqda.
+                </p>
+              )}
+              {canReassign && onReassignCourier && (
                 <div className="mt-3 space-y-2">
                   <select
                     className="w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
@@ -215,7 +224,7 @@ export function OrderDrawer({
                       disabled={!selectedCourierId || courierActionPending}
                       onClick={handleCourierAction}
                     >
-                      {hasCourier ? 'Reassign courier' : 'Assign courier'}
+                      Reassign courier
                     </Button>
                     {hasCourier && onRemoveCourier && (
                       <Button

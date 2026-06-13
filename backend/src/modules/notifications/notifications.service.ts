@@ -327,10 +327,10 @@ export class NotificationService {
     });
   }
 
-  async notifyOnlineCouriersPoolOrder(order: { id: string; orderNumber: string }) {
+  /** Push new pool order to every active courier (online and offline). */
+  async notifyCouriersPoolOrder(order: { id: string; orderNumber: string }) {
     const couriers = await this.prisma.courier.findMany({
       where: {
-        isOnline: true,
         deletedAt: null,
         user: { isActive: true, deletedAt: null },
       },
@@ -351,6 +351,11 @@ export class NotificationService {
       'NEW_ORDER',
       metadata,
     );
+  }
+
+  /** @deprecated Use notifyCouriersPoolOrder */
+  async notifyOnlineCouriersPoolOrder(order: { id: string; orderNumber: string }) {
+    return this.notifyCouriersPoolOrder(order);
   }
 
   async notifyManagersCourierRequested(order: {

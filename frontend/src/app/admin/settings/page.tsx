@@ -252,26 +252,10 @@ function AdminSettingsContent() {
       </SettingsSection>
 
       <SettingsSection title="Kuryer boshqaruvi">
-        <div className="sm:col-span-2 flex flex-wrap gap-3">
-          <Button
-            type="button"
-            variant={form.courier_dispatch_mode === 'auto' ? 'primary' : 'secondary'}
-            onClick={() => setForm({ ...form, courier_dispatch_mode: 'auto' })}
-          >
-            Avtoto&apos;ldirish
-          </Button>
-          <Button
-            type="button"
-            variant={form.courier_dispatch_mode === 'manager' ? 'primary' : 'secondary'}
-            onClick={() => setForm({ ...form, courier_dispatch_mode: 'manager' })}
-          >
-            Menejerga boshqarish
-          </Button>
-        </div>
-        <p className="sm:col-span-2 text-xs text-zinc-500">
-          <strong>Avtoto&apos;ldirish:</strong> restoran «Kuryerni chaqirish» bosganda buyurtma
-          onlayn kuryerlarga chiqadi. <strong>Menejerga boshqarish:</strong> menejer qo&apos;lda
-          kuryer biriktiradi.
+        <p className="sm:col-span-2 text-sm text-zinc-600 dark:text-zinc-400">
+          Restoran «Kuryerni chaqirish» bosganda buyurtma avtomatik ravishda barcha faol
+          kuryerlarga chiqadi. Menejer va super-admin faqat biriktirilgan kuryerni ko&apos;radi,
+          olib tashlaydi yoki boshqa kuryerga o&apos;tkazadi.
         </p>
       </SettingsSection>
 

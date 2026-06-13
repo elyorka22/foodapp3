@@ -28,40 +28,19 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
   Widget build(BuildContext context) {
     final orders = ref.watch(ordersPollingProvider);
     final filter = ref.watch(orderFilterProvider);
-    final dispatchMode = ref.watch(dispatchModeProvider);
-    final isManagerDispatch = dispatchMode.valueOrNull == 'manager';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(ordersPollingProvider);
-          ref.invalidate(dispatchModeProvider);
         },
         child: ListView(
           padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
           children: [
-            ScreenHeader(
+            const ScreenHeader(
               title: AppStrings.managerPanel,
               subtitle: AppStrings.orders,
-              trailing: dispatchMode.when(
-                data: (mode) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySoft,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    mode == 'manager' ? 'Menejer' : 'Avto',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -72,7 +51,7 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  isManagerDispatch ? AppStrings.dispatchManager : AppStrings.dispatchAuto,
+                  AppStrings.dispatchAuto,
                   style: AppTypography.caption.copyWith(color: AppColors.info),
                 ),
               ),
@@ -116,11 +95,14 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
                             order: order,
                             compact: true,
                             showRestaurant: true,
-                            showAssignCourier: isManagerDispatch,
+                            showAssignCourier: order.canReassignCourier,
                             isLoading: _actingOrderId == order.id,
                             onStatusChange: (next) => _updateStatus(order.id, next),
-                            onAssignCourier: isManagerDispatch && order.canAssignCourier
-                                ? () => _showAssignDialog(order)
+                            onAssignCourier: order.canReassignCourier
+                                ? () => _showReassignDialog(order)
+                                : null,
+                            onRemoveCourier: order.canReassignCourier
+                                ? () => _removeCourier(order.id)
                                 : null,
                             onCancel: order.canCancel
                                 ? () => _cancelOrder(order.id)
@@ -174,13 +156,29 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
     }
   }
 
-  Future<void> _showAssignDialog(StaffOrderModel order) async {
+  Future<void> _removeCourier(String orderId) async {
+    setState(() => _actingOrderId = orderId);
+    try {
+      await ref.read(ordersRepositoryProvider).removeCourier(orderId);
+      ref.invalidate(ordersPollingProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ApiException.formatError(e))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _actingOrderId = null);
+    }
+  }
+
+  Future<void> _showReassignDialog(StaffOrderModel order) async {
     try {
       final couriers = await ref.read(couriersRepositoryProvider).fetchCouriers();
       if (!mounted) return;
 
-      final online = couriers.where((c) => c.isOnline && c.isActive).toList();
-      if (online.isEmpty) {
+      final active = couriers.where((c) => c.isActive).toList();
+      if (active.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.noOnlineCouriers)),
         );
@@ -202,9 +200,9 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
                 Flexible(
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: online.length,
+                    itemCount: active.length,
                     itemBuilder: (context, index) {
-                      final courier = online[index];
+                      final courier = active[index];
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: AppColors.primarySoft,
@@ -212,7 +210,11 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
                         ),
                         title: Text(courier.fullName),
                         subtitle: Text(courier.phone ?? ''),
-                        trailing: const Icon(Icons.circle, color: AppColors.success, size: 10),
+                        trailing: Icon(
+                          Icons.circle,
+                          color: courier.isOnline ? AppColors.success : AppColors.textMuted,
+                          size: 10,
+                        ),
                         onTap: () => Navigator.pop(context, courier.id),
                       );
                     },
@@ -226,11 +228,7 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
 
       if (selected == null) return;
       setState(() => _actingOrderId = order.id);
-      if (order.courierId == null) {
-        await ref.read(ordersRepositoryProvider).assignCourier(order.id, selected);
-      } else {
-        await ref.read(ordersRepositoryProvider).reassignCourier(order.id, selected);
-      }
+      await ref.read(ordersRepositoryProvider).reassignCourier(order.id, selected);
       ref.invalidate(ordersPollingProvider);
     } catch (e) {
       if (mounted) {
