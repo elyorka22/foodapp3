@@ -424,6 +424,7 @@ export class OrdersService {
           guestOrder: { include: { customer: true } },
           business: { select: { name: true } },
           courier: { include: { user: { select: { fullName: true } } } },
+          assignment: true,
         },
       }),
       this.prisma.order.count({ where }),

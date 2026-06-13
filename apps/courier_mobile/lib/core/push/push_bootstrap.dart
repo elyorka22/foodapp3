@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../audio/alert_preferences.dart';
 import '../audio/new_order_sound_service.dart';
 import '../router/app_router.dart';
+import '../../features/home/providers/courier_home_provider.dart';
 import 'device_registration_service.dart';
 import 'notification_deep_link.dart';
 import 'notification_permissions.dart';
@@ -38,6 +39,12 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindi
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ref.read(deviceRegistrationServiceProvider).registerAfterAuth();
+      ref.read(courierOnlineProvider.notifier).load().then((_) {
+        if (!mounted) return;
+        syncShiftSessionFromBackend(ref);
+        ref.invalidate(availableOrdersProvider);
+        ref.invalidate(activeOrderProvider);
+      });
     }
   }
 
@@ -55,6 +62,7 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindi
           soundEnabled: prefs.soundEnabled,
           vibrationEnabled: prefs.vibrationEnabled,
         );
+        handleOrderPush(ref, orderId);
       }
     });
 

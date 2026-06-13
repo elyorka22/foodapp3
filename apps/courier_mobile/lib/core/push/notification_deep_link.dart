@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/home/providers/courier_home_provider.dart';
 import '../../features/orders/data/courier_repository.dart';
 import '../router/routes.dart';
 
@@ -17,6 +18,7 @@ Future<void> navigateFromPushData(
   }
 
   if (orderId != null && orderId.isNotEmpty) {
+    await handleOrderPush(ref, orderId);
     try {
       final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
       if (order.isActive || order.needsCourierAcceptance) {

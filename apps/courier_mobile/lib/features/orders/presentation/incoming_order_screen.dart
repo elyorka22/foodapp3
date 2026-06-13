@@ -39,16 +39,7 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
 
   Future<void> _load() async {
     try {
-      CourierOrderModel? order;
-      final available = await ref.read(courierRepositoryProvider).fetchAvailableOrders();
-      for (final item in available) {
-        if (item.id == widget.orderId) {
-          order = item;
-          break;
-        }
-      }
-      final loaded =
-          order ?? await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
+      final loaded = await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
       final nextOrder = loaded.isCancelled ? null : loaded;
       if (mounted) setState(() => _order = nextOrder);
     } catch (_) {
@@ -142,6 +133,7 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
   Future<void> _accept() async {
     setState(() => _acting = true);
     try {
+      syncShiftSessionFromBackend(ref);
       final online = ref.read(courierOnlineProvider).valueOrNull ?? false;
       if (!online) {
         throw ApiException(message: AppStrings.mustBeOnline);

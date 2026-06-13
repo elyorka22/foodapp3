@@ -10,10 +10,52 @@ import '../../../shared/models/courier_shift_stats_model.dart';
 import '../../../shared/models/courier_model.dart';
 import '../../../shared/models/courier_order_model.dart';
 
+import '../../orders/providers/new_job_alert_provider.dart';
+
 const _pollInterval = Duration(seconds: 5);
 
 /// True only after courier taps "Start shift" in current app session.
 final shiftSessionOpenProvider = StateProvider<bool>((ref) => false);
+
+/// Align local shift UI with backend `isOnline` (e.g. after app restart while still on shift).
+void syncShiftSessionFromBackend(Ref ref) {
+  final isOnline = ref.read(courierOnlineProvider).valueOrNull ?? false;
+  if (isOnline) {
+    ref.read(shiftSessionOpenProvider.notifier).state = true;
+  }
+}
+
+/// Refresh lists and show in-app banner when a push about a new order arrives.
+Future<void> handleOrderPush(Ref ref, String orderId) async {
+  syncShiftSessionFromBackend(ref);
+  ref.invalidate(availableOrdersProvider);
+  ref.invalidate(activeOrderProvider);
+
+  try {
+    final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
+    if (order.isCancelled) return;
+    ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
+      orderId: order.id,
+      title: order.restaurantName ?? order.orderNumber,
+      payAtRestaurant: order.orderAmount,
+      collectFromCustomer: order.collectFromCustomer,
+      courierEarnings: order.courierEarnings,
+    );
+  } catch (_) {
+    ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
+      orderId: orderId,
+      title: orderId,
+      payAtRestaurant: 0,
+      collectFromCustomer: 0,
+      courierEarnings: 0,
+    );
+  }
+}
+
+bool _shouldPollOrders(Ref ref) {
+  if (ref.watch(shiftSessionOpenProvider)) return true;
+  return ref.watch(courierOnlineProvider).valueOrNull ?? false;
+}
 
 final courierProfileProvider = FutureProvider.autoDispose<CourierProfileModel>((ref) async {
   ref.watch(authStateProvider);
@@ -51,8 +93,7 @@ final notificationsUnreadProvider = FutureProvider.autoDispose<int>((ref) async 
 
 final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref) async* {
   ref.watch(authStateProvider);
-  final shiftOpen = ref.watch(shiftSessionOpenProvider);
-  if (!shiftOpen) {
+  if (!_shouldPollOrders(ref)) {
     yield null;
     return;
   }
@@ -64,9 +105,17 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
           .fetchMyOrders(statusGroup: 'active');
       CourierOrderModel? active;
       for (final order in orders) {
-        if (order.isActive) {
+        if (order.needsCourierAcceptance) {
           active = order;
           break;
+        }
+      }
+      if (active == null) {
+        for (final order in orders) {
+          if (order.isActive && !order.isDelivered && !order.isCancelled) {
+            active = order;
+            break;
+          }
         }
       }
       yield active;
@@ -80,7 +129,7 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
 final availableOrdersProvider =
     StreamProvider.autoDispose<List<CourierOrderModel>>((ref) async* {
   ref.watch(authStateProvider);
-  if (!ref.watch(shiftSessionOpenProvider)) {
+  if (!_shouldPollOrders(ref)) {
     yield [];
     return;
   }

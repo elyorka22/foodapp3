@@ -37,11 +37,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _loadProfile() async {
     await ref.read(courierOnlineProvider.notifier).load();
+    syncShiftSessionFromBackend(ref);
     if (mounted) setState(() => _profileLoaded = true);
   }
 
   Future<void> _refresh() async {
-    if (!ref.read(shiftSessionOpenProvider)) return;
+    if (!ref.read(shiftSessionOpenProvider) &&
+        !(ref.read(courierOnlineProvider).valueOrNull ?? false)) {
+      return;
+    }
     ref.invalidate(activeOrderProvider);
     ref.invalidate(availableOrdersProvider);
     ref.invalidate(shiftStatsProvider);
@@ -101,6 +105,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final shiftOpen = ref.watch(shiftSessionOpenProvider);
+    final backendOnline = ref.watch(courierOnlineProvider).valueOrNull ?? false;
+    final showInbox = shiftOpen || backendOnline;
     final activeOrder = ref.watch(activeOrderProvider);
     final available = ref.watch(availableOrdersProvider);
     final shiftStats = ref.watch(shiftStatsProvider);
@@ -141,7 +147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 : RefreshIndicator(
                     onRefresh: _refresh,
                     color: AppColors.primary,
-                    child: shiftOpen
+                    child: showInbox
                         ? _JobsInbox(
                             activeOrder: activeOrder,
                             available: available,
@@ -153,7 +159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         : const _OfflineWelcome(),
                   ),
           ),
-          if (shiftOpen)
+          if (showInbox)
             shiftStats.when(
               loading: () => const SizedBox(
                 height: 72,
