@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/time_format.dart';
+import '../../core/utils/time_format.dart';
 
 /// Tap to pick time in 12-hour AM/PM format; stores 24h HH:mm internally.
 class TimeAmPmField extends StatelessWidget {
