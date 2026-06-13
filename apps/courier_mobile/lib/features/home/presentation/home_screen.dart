@@ -118,10 +118,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       data: (orders) => orders,
       orElse: () => const <CourierOrderModel>[],
     );
-    final showJobBanner = jobAlert != null &&
-        !inboxOrders.any(
-          (order) => order.id == jobAlert.orderId && order.isPendingOffer,
-        );
+    final visibleJobAlert = jobAlert != null &&
+            !inboxOrders.any(
+              (order) => order.id == jobAlert.orderId && order.isPendingOffer,
+            )
+        ? jobAlert
+        : null;
 
     ref.listen(homeInboxProvider, (_, next) {
       next.whenData((orders) {
@@ -144,12 +146,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onHistory: () => context.push(AppRoutes.orderHistory),
             ),
           ),
-          if (showJobBanner)
+          if (visibleJobAlert != null)
             NewJobAlertBanner(
-              alert: jobAlert!,
+              alert: visibleJobAlert,
               onTap: () {
                 ref.read(newJobAlertProvider.notifier).state = null;
-                context.push(AppRoutes.incomingOrder, extra: jobAlert.orderId);
+                context.push(AppRoutes.incomingOrder, extra: visibleJobAlert.orderId);
               },
               onDismiss: () => ref.read(newJobAlertProvider.notifier).state = null,
             ),

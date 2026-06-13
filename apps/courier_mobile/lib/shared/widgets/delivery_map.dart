@@ -195,7 +195,7 @@ class _DeliveryMapState extends State<DeliveryMap> {
                       point: courier,
                       width: 36,
                       height: 36,
-                      child: _MapMarker(
+                      child: const _MapMarker(
                         icon: Icons.navigation_rounded,
                         color: AppColors.primary,
                       ),
@@ -205,7 +205,7 @@ class _DeliveryMapState extends State<DeliveryMap> {
                       point: restaurant,
                       width: 36,
                       height: 36,
-                      child: _MapMarker(
+                      child: const _MapMarker(
                         icon: Icons.storefront_rounded,
                         color: AppColors.serviceFood,
                       ),
@@ -215,7 +215,7 @@ class _DeliveryMapState extends State<DeliveryMap> {
                       point: customer,
                       width: 36,
                       height: 36,
-                      child: _MapMarker(
+                      child: const _MapMarker(
                         icon: Icons.home_rounded,
                         color: AppColors.success,
                       ),
