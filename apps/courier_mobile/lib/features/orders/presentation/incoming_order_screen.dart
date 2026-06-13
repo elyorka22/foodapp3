@@ -150,7 +150,7 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
       }
       await ref.read(courierRepositoryProvider).acceptOrder(widget.orderId);
       ref.invalidate(activeOrderProvider);
-      ref.invalidate(availableOrdersProvider);
+      ref.invalidate(homeInboxProvider);
       if (!mounted) return;
       context.go(AppRoutes.activeOrder, extra: widget.orderId);
     } on DioException catch (e) {

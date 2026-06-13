@@ -115,6 +115,13 @@ class CourierOrderModel {
       !isDelivered &&
       (status == 'PREPARING' || needsCourierAcceptance);
 
+  /// New job the courier must accept (pool or manager assignment).
+  bool get isPendingOffer => isAvailableInPool;
+
+  /// Order already accepted and in progress.
+  bool get isOngoingJob =>
+      isActive && !isCancelled && !isDelivered && !isPendingOffer;
+
   factory CourierOrderModel.fromJson(Map<String, dynamic> json) {
     final restaurant = json['restaurant'] as Map<String, dynamic>?;
     final business = json['business'] as Map<String, dynamic>?;

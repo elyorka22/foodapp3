@@ -42,7 +42,7 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindi
       ref.read(courierOnlineProvider.notifier).load().then((_) {
         if (!mounted) return;
         syncShiftSessionFromBackend(ref);
-        ref.invalidate(availableOrdersProvider);
+        ref.invalidate(homeInboxProvider);
         ref.invalidate(activeOrderProvider);
       });
     }

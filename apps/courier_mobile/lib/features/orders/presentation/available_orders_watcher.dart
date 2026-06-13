@@ -45,7 +45,8 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
     final active = ref.read(activeOrderProvider).valueOrNull;
     if (active != null) return;
 
-    final currentIds = orders.map((o) => o.id).toSet();
+    final currentIds =
+        orders.where((order) => order.isPendingOffer).map((order) => order.id).toSet();
 
     if (!_initialized) {
       _seenOrderIds
@@ -68,9 +69,12 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
       vibrationEnabled: prefs.vibrationEnabled,
     );
 
-    final newest = orders.firstWhere(
+    final pendingOffers = orders.where((order) => order.isPendingOffer).toList();
+    if (pendingOffers.isEmpty) return;
+
+    final newest = pendingOffers.firstWhere(
       (o) => newIds.contains(o.id),
-      orElse: () => orders.first,
+      orElse: () => pendingOffers.first,
     );
 
     ref.read(newJobAlertProvider.notifier).state = NewJobAlert(

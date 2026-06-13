@@ -49,22 +49,37 @@ class CourierRepository {
   }
 
   Future<List<CourierOrderModel>> fetchAvailableOrders() async {
-    final res = await _dio.get<List<dynamic>>(ApiPaths.courierAvailableOrders);
-    return (res.data ?? [])
+    final res = await _dio.get<dynamic>(ApiPaths.courierAvailableOrders);
+    final raw = res.data;
+    final List<dynamic> rows;
+    if (raw is List) {
+      rows = raw;
+    } else if (raw is Map<String, dynamic>) {
+      rows = raw['data'] as List<dynamic>? ?? [];
+    } else {
+      rows = const [];
+    }
+    return rows
         .map((e) => CourierOrderModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  /// Pool (auto) + manager assignments; also merges pending assignments from my orders.
-  Future<List<CourierOrderModel>> fetchInboxOffers() async {
-    final offers = <CourierOrderModel>[];
+  /// Active assigned work + offers to accept (home screen inbox).
+  Future<List<CourierOrderModel>> fetchHomeInbox() async {
+    final items = <CourierOrderModel>[];
     final seen = <String>{};
 
     void add(CourierOrderModel order) {
       if (order.isCancelled || order.isDelivered) return;
-      if (!order.isAvailableInPool && !order.needsCourierAcceptance) return;
-      if (seen.add(order.id)) offers.add(order);
+      if (!order.isPendingOffer && !order.isOngoingJob) return;
+      if (seen.add(order.id)) items.add(order);
     }
+
+    try {
+      for (final order in await fetchMyOrders(statusGroup: 'active')) {
+        add(order);
+      }
+    } catch (_) {}
 
     try {
       for (final order in await fetchAvailableOrders()) {
@@ -72,17 +87,19 @@ class CourierRepository {
       }
     } catch (_) {}
 
-    try {
-      final mine = await fetchMyOrders(statusGroup: 'active');
-      for (final order in mine) {
-        if (order.needsCourierAcceptance || order.isAvailableInPool) {
-          add(order);
-        }
-      }
-    } catch (_) {}
+    items.sort((a, b) {
+      int rank(CourierOrderModel order) => order.isPendingOffer ? 0 : 1;
+      final byRank = rank(a).compareTo(rank(b));
+      if (byRank != 0) return byRank;
+      return (b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0))
+          .compareTo(a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0));
+    });
 
-    return offers;
+    return items;
   }
+
+  /// Backward-compatible alias used by push/incoming flows.
+  Future<List<CourierOrderModel>> fetchInboxOffers() => fetchHomeInbox();
 
   Future<List<CourierOrderModel>> fetchMyOrders({
     String? status,

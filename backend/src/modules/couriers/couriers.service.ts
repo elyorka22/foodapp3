@@ -560,6 +560,7 @@ export class CouriersService {
     );
     return {
       ...order,
+      restaurant: order.business,
       subtotal: Number(order.subtotal),
       discountAmount: Number(order.discountAmount ?? 0),
       total: Number(order.total),

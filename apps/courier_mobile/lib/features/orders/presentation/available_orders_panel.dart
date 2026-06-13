@@ -143,7 +143,9 @@ class _AvailableOrdersPanelState extends ConsumerState<_AvailableOrdersPanel> {
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (e, _) => Center(child: Text(e.toString())),
                     data: (orders) {
-                      if (orders.isEmpty) {
+                      final offers =
+                          orders.where((order) => order.isPendingOffer).toList();
+                      if (offers.isEmpty) {
                         return Center(
                           child: Padding(
                             padding: const EdgeInsets.all(AppSpacing.xl),
@@ -176,10 +178,10 @@ class _AvailableOrdersPanelState extends ConsumerState<_AvailableOrdersPanel> {
                       return ListView.separated(
                         controller: scrollController,
                         padding: const EdgeInsets.all(AppSpacing.lg),
-                        itemCount: orders.length,
+                        itemCount: offers.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 6),
                         itemBuilder: (context, index) {
-                          final order = orders[index];
+                          final order = offers[index];
                           final isAccepting = _acceptingId == order.id;
                           return CompactOrderTile(
                             order: order,

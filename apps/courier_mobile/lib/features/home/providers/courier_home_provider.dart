@@ -34,11 +34,25 @@ List<CourierOrderModel> mergeInboxOrders(
 ) {
   final seen = <String>{};
   final merged = <CourierOrderModel>[];
-  for (final order in [...primary, ...extra]) {
-    if (order.isCancelled || order.isDelivered) continue;
-    if (!order.isAvailableInPool && !order.needsCourierAcceptance) continue;
+
+  void add(CourierOrderModel order) {
+    if (order.isCancelled || order.isDelivered) return;
+    if (!order.isPendingOffer && !order.isOngoingJob) return;
     if (seen.add(order.id)) merged.add(order);
   }
+
+  for (final order in [...primary, ...extra]) {
+    add(order);
+  }
+
+  merged.sort((a, b) {
+    int rank(CourierOrderModel order) => order.isPendingOffer ? 0 : 1;
+    final byRank = rank(a).compareTo(rank(b));
+    if (byRank != 0) return byRank;
+    return (b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0))
+        .compareTo(a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0));
+  });
+
   return merged;
 }
 
@@ -49,7 +63,7 @@ Future<CourierOrderModel?> _resolveOrderForPush(WidgetRef ref, String orderId) a
   } catch (_) {}
 
   try {
-    for (final order in await ref.read(courierRepositoryProvider).fetchInboxOffers()) {
+    for (final order in await ref.read(courierRepositoryProvider).fetchHomeInbox()) {
       if (order.id == orderId) return order;
     }
   } catch (_) {}
@@ -58,6 +72,9 @@ Future<CourierOrderModel?> _resolveOrderForPush(WidgetRef ref, String orderId) a
 }
 
 void _rememberPushOrder(WidgetRef ref, CourierOrderModel order) {
+  if (order.isCancelled || order.isDelivered) return;
+  if (!order.isPendingOffer && !order.isOngoingJob) return;
+
   final current = ref.read(pushInboxOrdersProvider);
   if (current.any((item) => item.id == order.id)) return;
   ref.read(pushInboxOrdersProvider.notifier).state = [...current, order];
@@ -67,7 +84,7 @@ void _rememberPushOrder(WidgetRef ref, CourierOrderModel order) {
 Future<void> handleOrderPush(WidgetRef ref, String orderId) async {
   ref.read(shiftSessionOpenProvider.notifier).state = true;
   syncShiftSessionFromBackend(ref);
-  ref.invalidate(availableOrdersProvider);
+  ref.invalidate(homeInboxProvider);
   ref.invalidate(activeOrderProvider);
 
   final order = await _resolveOrderForPush(ref, orderId);
@@ -130,6 +147,7 @@ final notificationsUnreadProvider = FutureProvider.autoDispose<int>((ref) async 
   return ref.read(notificationsRepositoryProvider).fetchUnreadCount();
 });
 
+/// Current in-progress delivery (blocks ending shift).
 final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref) async* {
   ref.watch(authStateProvider);
   if (!_shouldPollOrders(ref)) {
@@ -144,10 +162,7 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
           .fetchMyOrders(statusGroup: 'active');
       CourierOrderModel? active;
       for (final order in orders) {
-        if (order.isActive &&
-            !order.isDelivered &&
-            !order.isCancelled &&
-            !order.needsCourierAcceptance) {
+        if (order.isOngoingJob) {
           active = order;
           break;
         }
@@ -160,7 +175,8 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
   }
 });
 
-final availableOrdersProvider =
+/// Home screen list: pending offers + ongoing active orders.
+final homeInboxProvider =
     StreamProvider.autoDispose<List<CourierOrderModel>>((ref) async* {
   ref.watch(authStateProvider);
   ref.watch(pushInboxOrdersProvider);
@@ -171,7 +187,7 @@ final availableOrdersProvider =
 
   while (true) {
     try {
-      final fromApi = await ref.read(courierRepositoryProvider).fetchInboxOffers();
+      final fromApi = await ref.read(courierRepositoryProvider).fetchHomeInbox();
       final pushed = ref.read(pushInboxOrdersProvider);
       yield mergeInboxOrders(fromApi, pushed);
     } catch (_) {
@@ -181,6 +197,9 @@ final availableOrdersProvider =
     await Future<void>.delayed(_pollInterval);
   }
 });
+
+/// Alias kept for existing listeners (sound alert, bottom sheet panel).
+final availableOrdersProvider = homeInboxProvider;
 
 final courierOnlineProvider =
     NotifierProvider<CourierOnlineNotifier, AsyncValue<bool>>(CourierOnlineNotifier.new);
@@ -217,7 +236,7 @@ class CourierOnlineNotifier extends Notifier<AsyncValue<bool>> {
       ref.invalidate(courierProfileProvider);
       ref.invalidate(courierEarningsProvider);
       if (!value) {
-        ref.invalidate(availableOrdersProvider);
+        ref.invalidate(homeInboxProvider);
       }
     } catch (e, st) {
       state = AsyncValue.data(previous);
