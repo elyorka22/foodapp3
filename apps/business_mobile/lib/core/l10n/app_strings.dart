@@ -98,7 +98,9 @@ abstract final class AppStrings {
   static const newOwnerPasswordHint = 'Parolni o\'zgartirish uchun yangisini kiriting';
   static const workingHours = 'Ish vaqti';
   static const openTime = 'Ochilish';
+  static const openTimeHint = '9:00 AM';
   static const closeTime = 'Yopilish';
+  static const closeTimeHint = '10:00 PM';
   static const closedSunday = 'Yakshanba yopiq';
   static const editStore = 'Do\'konni tahrirlash';
   static const createRestaurant = 'Restoran yaratish';

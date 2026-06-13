@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   resolveRestaurantAvailability,
+  normalizeTimeTo24h,
   type RestaurantAvailability,
 } from '../../common/utils/restaurant-hours.util';
 
@@ -96,15 +97,24 @@ export class RestaurantScheduleService {
   async setWorkingHours(businessId: string, hours: WorkingHourInput[]) {
     await this.prisma.businessWorkingHours.deleteMany({ where: { businessId } });
     if (hours.length) {
-      await this.prisma.businessWorkingHours.createMany({
-        data: hours.map((h) => ({
+      const data = hours.map((h) => {
+        const openTime = normalizeTimeTo24h(h.openTime);
+        const closeTime = normalizeTimeTo24h(h.closeTime);
+        if (!openTime) {
+          throw new BadRequestException(`Invalid open time: ${h.openTime}`);
+        }
+        if (!closeTime) {
+          throw new BadRequestException(`Invalid close time: ${h.closeTime}`);
+        }
+        return {
           businessId,
           dayOfWeek: h.dayOfWeek,
-          openTime: h.openTime,
-          closeTime: h.closeTime,
+          openTime,
+          closeTime,
           isClosed: h.isClosed ?? false,
-        })),
+        };
       });
+      await this.prisma.businessWorkingHours.createMany({ data });
     }
     return this.getWorkingHours(businessId);
   }

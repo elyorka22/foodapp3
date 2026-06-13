@@ -8,6 +8,7 @@ import { api } from '@/lib/api';
 import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TimeAmPmInput } from '@/components/ui/time-am-pm-input';
 import { LoadingState } from '@/components/admin/ui';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -161,26 +162,22 @@ export default function RestaurantSchedulePage() {
                     />
                     Closed
                   </label>
-                  <Input
-                    type="time"
-                    className="w-32"
+                  <TimeAmPmInput
                     value={row.openTime}
                     disabled={row.isClosed}
-                    onChange={(e) => {
+                    onChange={(openTime) => {
                       const next = [...schedule];
-                      next[idx] = { ...row, openTime: e.target.value };
+                      next[idx] = { ...row, openTime };
                       setSchedule(next);
                     }}
                   />
                   <span>–</span>
-                  <Input
-                    type="time"
-                    className="w-32"
+                  <TimeAmPmInput
                     value={row.closeTime}
                     disabled={row.isClosed}
-                    onChange={(e) => {
+                    onChange={(closeTime) => {
                       const next = [...schedule];
-                      next[idx] = { ...row, closeTime: e.target.value };
+                      next[idx] = { ...row, closeTime };
                       setSchedule(next);
                     }}
                   />

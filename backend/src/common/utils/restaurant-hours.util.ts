@@ -1,3 +1,10 @@
+import {
+  formatTime12h,
+  normalizeTimeTo24h,
+  normalizeWorkingHourTime,
+  parseTimeToMinutes,
+} from './time-format.util';
+
 export type WorkingHourRow = {
   dayOfWeek: number;
   openTime: string;
@@ -12,10 +19,7 @@ export type RestaurantAvailability = {
   minutesUntilClose: number | null;
 };
 
-function parseTimeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + (m || 0);
-}
+export { formatTime12h, normalizeTimeTo24h, normalizeWorkingHourTime, parseTimeToMinutes };
 
 export function resolveRestaurantAvailability(
   workingHours: WorkingHourRow[],
@@ -41,9 +45,10 @@ export function resolveRestaurantAvailability(
   const day = now.getDay();
   const schedule = workingHours.find((w) => w.dayOfWeek === day);
   if (!schedule || schedule.isClosed) {
+    const closesAt = schedule?.closeTime ? formatTime12h(schedule.closeTime) : null;
     return {
       isOpen: false,
-      closesAt: schedule?.closeTime ?? null,
+      closesAt,
       closingSoon: false,
       minutesUntilClose: null,
     };
@@ -74,7 +79,7 @@ export function resolveRestaurantAvailability(
 
   return {
     isOpen,
-    closesAt: schedule.closeTime,
+    closesAt: formatTime12h(schedule.closeTime),
     closingSoon,
     minutesUntilClose,
   };
