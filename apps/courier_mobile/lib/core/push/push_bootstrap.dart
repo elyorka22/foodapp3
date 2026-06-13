@@ -62,7 +62,11 @@ class _PushBootstrapState extends ConsumerState<PushBootstrap> with WidgetsBindi
           soundEnabled: prefs.soundEnabled,
           vibrationEnabled: prefs.vibrationEnabled,
         );
-        handleOrderPush(ref, orderId);
+        handleOrderPush(
+          ref,
+          orderId,
+          orderNumber: data['orderNumber'] as String?,
+        );
       }
     });
 

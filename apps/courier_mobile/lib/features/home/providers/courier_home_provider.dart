@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../notifications/data/notifications_repository.dart';
@@ -68,7 +69,7 @@ List<CourierOrderModel> mergeInboxOrders(
 
 void _reconcilePushInbox(Ref ref, List<CourierOrderModel> fromApi) {
   final byApi = {for (final order in fromApi) order.id: order};
-  ref.read(pushInboxOrdersProvider.notifier).state = ref
+  final next = ref
       .read(pushInboxOrdersProvider)
       .where((order) => !order.isCancelled && !order.isDelivered)
       .map((order) => byApi[order.id] ?? order)
@@ -78,6 +79,13 @@ void _reconcilePushInbox(Ref ref, List<CourierOrderModel> fromApi) {
         return order.isPendingOffer;
       })
       .toList();
+
+  final current = ref.read(pushInboxOrdersProvider);
+  if (current.length == next.length &&
+      current.every((order) => next.any((item) => item.id == order.id))) {
+    return;
+  }
+  ref.read(pushInboxOrdersProvider.notifier).state = next;
 }
 
 Future<CourierOrderModel?> _resolveOrderForPush(WidgetRef ref, String orderId) async {
@@ -104,30 +112,30 @@ void _rememberPushOrder(WidgetRef ref, CourierOrderModel order) {
 }
 
 /// Refresh lists and show in-app banner when a push about a new order arrives.
-Future<void> handleOrderPush(WidgetRef ref, String orderId) async {
+Future<void> handleOrderPush(
+  WidgetRef ref,
+  String orderId, {
+  String? orderNumber,
+}) async {
   syncShiftSessionFromBackend(ref);
   ref.invalidate(homeInboxProvider);
   ref.invalidate(activeOrderProvider);
 
-  final order = await _resolveOrderForPush(ref, orderId);
-  if (order != null) {
-    _rememberPushOrder(ref, order);
-    ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
-      orderId: order.id,
-      title: order.restaurantName ?? order.orderNumber,
-      payAtRestaurant: order.orderAmount,
-      collectFromCustomer: order.collectFromCustomer,
-      courierEarnings: order.courierEarnings,
-    );
+  var order = await _resolveOrderForPush(ref, orderId);
+  order ??= CourierOrderModel.fromPush(orderId: orderId, orderNumber: orderNumber);
+
+  if (order.isCancelled || order.isDelivered) {
+    removePushInboxOrder(ref, orderId);
     return;
   }
 
+  _rememberPushOrder(ref, order);
   ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
-    orderId: orderId,
-    title: orderId,
-    payAtRestaurant: 0,
-    collectFromCustomer: 0,
-    courierEarnings: 0,
+    orderId: order.id,
+    title: order.restaurantName ?? order.orderNumber,
+    payAtRestaurant: order.orderAmount,
+    collectFromCustomer: order.collectFromCustomer,
+    courierEarnings: order.courierEarnings,
   );
 }
 
@@ -199,7 +207,6 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
 final homeInboxProvider =
     StreamProvider.autoDispose<List<CourierOrderModel>>((ref) async* {
   ref.watch(authStateProvider);
-  ref.watch(pushInboxOrdersProvider);
   if (!_shouldPollOrders(ref)) {
     yield [];
     return;
@@ -211,9 +218,15 @@ final homeInboxProvider =
       _reconcilePushInbox(ref, fromApi);
       final pushed = ref.read(pushInboxOrdersProvider);
       yield mergeInboxOrders(fromApi, pushed);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[homeInboxProvider] fetch failed: $e\n$st');
       final pushed = ref.read(pushInboxOrdersProvider);
-      yield pushed.where((order) => order.isPendingOffer || order.isOngoingJob).toList();
+      final fallback = pushed.where((order) => order.isPendingOffer || order.isOngoingJob).toList();
+      if (fallback.isNotEmpty) {
+        yield fallback;
+      } else {
+        rethrow;
+      }
     }
     await Future<void>.delayed(_pollInterval);
   }

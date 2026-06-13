@@ -18,7 +18,11 @@ Future<void> navigateFromPushData(
   }
 
   if (orderId != null && orderId.isNotEmpty) {
-    await handleOrderPush(ref, orderId);
+    await handleOrderPush(
+      ref,
+      orderId,
+      orderNumber: data['orderNumber'] as String?,
+    );
     try {
       final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
       if (order.isPendingOffer) {

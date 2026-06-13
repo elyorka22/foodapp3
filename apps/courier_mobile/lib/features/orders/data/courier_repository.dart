@@ -58,10 +58,31 @@ class CourierRepository {
     } else {
       rows = const [];
     }
-    return rows
-        .map((e) => CourierOrderModel.fromJson(e as Map<String, dynamic>))
+
+    final orders = <CourierOrderModel>[];
+    for (final row in rows) {
+      if (row is! Map<String, dynamic>) continue;
+      try {
+        orders.add(CourierOrderModel.fromJson(row));
+      } catch (_) {
+        // Skip malformed rows instead of failing the whole inbox.
+      }
+    }
+    return orders
         .where((order) => !order.isCancelled && !order.isDelivered)
         .toList();
+  }
+
+  List<CourierOrderModel> _mergeOrderLists(
+    List<CourierOrderModel> primary,
+    List<CourierOrderModel> secondary,
+  ) {
+    final merged = [...primary];
+    final seen = primary.map((order) => order.id).toSet();
+    for (final order in secondary) {
+      if (seen.add(order.id)) merged.add(order);
+    }
+    return merged;
   }
 
   Future<List<CourierOrderModel>> fetchAvailableOrders() async {
@@ -71,16 +92,27 @@ class CourierRepository {
 
   /// Primary home inbox — one API call with server-side accept/continue classification.
   Future<List<CourierOrderModel>> fetchHomeInbox() async {
+    List<CourierOrderModel> inbox;
     try {
       final res = await _dio.get<dynamic>(ApiPaths.courierInbox);
-      return _parseOrderList(res.data);
+      inbox = _parseOrderList(res.data);
     } on DioException catch (e) {
-      final status = (e.error is ApiException) ? (e.error as ApiException).statusCode : e.response?.statusCode;
+      final status =
+          (e.error is ApiException) ? (e.error as ApiException).statusCode : e.response?.statusCode;
       if (status == 404) {
         return _fetchHomeInboxLegacy();
       }
       rethrow;
     }
+
+    if (!inbox.any((order) => order.isPendingOffer || order.isOngoingJob)) {
+      try {
+        final available = await fetchAvailableOrders();
+        inbox = _mergeOrderLists(inbox, available);
+      } catch (_) {}
+    }
+
+    return inbox;
   }
 
   /// Fallback for servers without `/couriers/me/inbox` yet.

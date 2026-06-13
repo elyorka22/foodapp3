@@ -17,9 +17,9 @@ class CourierOrderLineItem {
   factory CourierOrderLineItem.fromJson(Map<String, dynamic> json) {
     return CourierOrderLineItem(
       name: json['name'] as String? ?? '—',
-      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
-      price: json['price'] as num? ?? 0,
-      subtotal: json['subtotal'] as num? ?? 0,
+      quantity: parseInt(json['quantity'], 1),
+      price: parseNum(json['price']),
+      subtotal: parseNum(json['subtotal']),
     );
   }
 }
@@ -163,10 +163,10 @@ class CourierOrderModel {
       id: json['id'] as String,
       orderNumber: json['orderNumber'] as String? ?? json['id'] as String,
       status: json['status'] as String? ?? 'PENDING',
-      subtotal: json['subtotal'] as num? ?? 0,
-      deliveryFee: json['deliveryFee'] as num? ?? 0,
-      discountAmount: json['discountAmount'] as num? ?? 0,
-      total: json['total'] as num? ?? 0,
+      subtotal: parseNum(json['subtotal']),
+      deliveryFee: parseNum(json['deliveryFee']),
+      discountAmount: parseNum(json['discountAmount']),
+      total: parseNum(json['total']),
       distanceKm: parseDouble(json['distanceKm']),
       restaurantName: restaurant?['name'] as String? ?? business?['name'] as String?,
       businessTypeSlug: _readBusinessTypeSlug(restaurant) ??
@@ -182,12 +182,30 @@ class CourierOrderModel {
       restaurantLng: parseDouble(json['restaurantLongitude']) ??
           parseDouble(restaurant?['longitude']) ??
           parseDouble(business?['longitude']),
-      courierFee: assignment?['courierFee'] as num?,
-      estimatedCourierFee: json['estimatedCourierFee'] as num?,
+      courierFee: assignment?['courierFee'] != null ? parseNum(assignment!['courierFee']) : null,
+      estimatedCourierFee:
+          json['estimatedCourierFee'] != null ? parseNum(json['estimatedCourierFee']) : null,
       assignmentAcceptedAt: _parseDateTime(assignment?['acceptedAt']),
       createdAt: _parseDateTime(json['createdAt']),
       inboxKind: json['inboxKind'] as String?,
       items: items,
+    );
+  }
+
+  /// Minimal order built from push metadata when inbox/order API is unavailable.
+  factory CourierOrderModel.fromPush({
+    required String orderId,
+    String? orderNumber,
+  }) {
+    return CourierOrderModel(
+      id: orderId,
+      orderNumber: orderNumber ?? orderId,
+      status: 'PREPARING',
+      subtotal: 0,
+      deliveryFee: 0,
+      discountAmount: 0,
+      total: 0,
+      inboxKind: 'accept',
     );
   }
 
