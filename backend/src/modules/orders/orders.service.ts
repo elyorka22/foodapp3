@@ -342,7 +342,18 @@ export class OrdersService {
 
     if (user.role === UserRole.COURIER) {
       const courier = await this.prisma.courier.findFirst({ where: { userId: user.sub } });
-      if (courier) where.courierId = courier.id;
+      if (courier) {
+        const dispatchMode = await this.settings.getCourierDispatchMode();
+        const access: Prisma.OrderWhereInput[] = [{ courierId: courier.id }];
+        if (dispatchMode === 'auto') {
+          access.push({
+            courierId: null,
+            status: OrderStatus.PREPARING,
+            courierRequestedAt: { not: null },
+          });
+        }
+        where.AND = [{ OR: access }];
+      }
     }
 
     const order = await this.prisma.order.findFirst({

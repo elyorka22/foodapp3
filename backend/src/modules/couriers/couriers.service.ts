@@ -479,45 +479,83 @@ export class CouriersService {
     return { ok: true, orderId, status: OrderStatus.PREPARING };
   }
 
-  async getAvailableOrders() {
+  async getAvailableOrders(userId: string) {
     const mode = await this.settings.getCourierDispatchMode();
-    if (mode !== 'auto') {
-      return [];
-    }
+    const courier = await this.prisma.courier.findFirst({
+      where: { userId, deletedAt: null },
+    });
+    if (!courier) return [];
+
+    const orderInclude = {
+      items: true,
+      guestOrder: true,
+      address: true,
+      assignment: true,
+      business: {
+        select: {
+          name: true,
+          businessType: { select: { slug: true, name: true } },
+        },
+      },
+      branch: true,
+    };
 
     const [orders, deliveryConfig] = await Promise.all([
-      this.prisma.order.findMany({
-        where: {
-          status: OrderStatus.PREPARING,
-          courierId: null,
-          courierRequestedAt: { not: null },
-          deletedAt: null,
-        },
-        include: {
-          items: true,
-          guestOrder: true,
-          address: true,
-          business: {
-            select: {
-              name: true,
-              businessType: { select: { slug: true, name: true } },
+      mode === 'manager'
+        ? this.prisma.order.findMany({
+            where: {
+              courierId: courier.id,
+              status: OrderStatus.COURIER_ASSIGNED,
+              deletedAt: null,
+              assignment: { acceptedAt: null },
             },
-          },
-          branch: true,
-        },
-        orderBy: { createdAt: 'asc' },
-        take: 50,
-      }),
+            include: orderInclude,
+            orderBy: { createdAt: 'asc' },
+            take: 50,
+          })
+        : this.prisma.order.findMany({
+            where: {
+              status: OrderStatus.PREPARING,
+              courierId: null,
+              courierRequestedAt: { not: null },
+              deletedAt: null,
+            },
+            include: orderInclude,
+            orderBy: { createdAt: 'asc' },
+            take: 50,
+          }),
       this.settings.getDeliveryPricing(),
     ]);
-    return orders.map((order) => {
-      const dist = Number(order.distanceKm ?? 0);
-      const estimatedCourierFee = calculateDeliveryFee(
-        dist,
-        deliveryConfig.courierPricePerKm,
-        deliveryConfig.courierMinFee,
-      );
-      return {
+
+    return orders.map((order) => this.mapAvailableOrder(order, deliveryConfig));
+  }
+
+  private mapAvailableOrder(
+    order: {
+      distanceKm: unknown;
+      subtotal: unknown;
+      discountAmount: unknown;
+      total: unknown;
+      deliveryFee: unknown;
+      guestOrder: {
+        latitude: unknown;
+        longitude: unknown;
+      } | null;
+      address: {
+        latitude: unknown;
+        longitude: unknown;
+      } | null;
+      assignment?: { courierFee: unknown } | null;
+    } & Record<string, unknown>,
+    deliveryConfig: { courierPricePerKm: number; courierMinFee: number },
+  ) {
+    const dist = Number(order.distanceKm ?? 0);
+    const estimatedCourierFee = calculateDeliveryFee(
+      dist,
+      deliveryConfig.courierPricePerKm,
+      deliveryConfig.courierMinFee,
+    );
+    return {
       ...order,
       subtotal: Number(order.subtotal),
       discountAmount: Number(order.discountAmount ?? 0),
@@ -539,7 +577,6 @@ export class CouriersService {
           }
         : null,
     };
-    });
   }
 
   async getEarnings(userId: string) {

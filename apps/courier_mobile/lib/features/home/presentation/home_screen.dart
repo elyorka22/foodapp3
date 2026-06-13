@@ -80,7 +80,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _acceptOrder(CourierOrderModel order) async {
-    if (_actingOrderId != null || !ref.read(shiftSessionOpenProvider)) return;
+    final showInbox = ref.read(shiftSessionOpenProvider) ||
+        (ref.read(courierOnlineProvider).valueOrNull ?? false);
+    if (_actingOrderId != null || !showInbox) return;
 
     setState(() => _actingOrderId = order.id);
     try {
@@ -305,9 +307,9 @@ class _JobsInbox extends StatelessWidget {
                 order: active,
                 onOpen: () => onOpenActive(active.id),
               ),
-            if (orders.isEmpty)
+            if (orders.isEmpty && active == null)
               const _EmptyInbox(message: AppStrings.noAvailableOrders)
-            else
+            else if (orders.isNotEmpty)
               ...orders.map(
                 (order) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),

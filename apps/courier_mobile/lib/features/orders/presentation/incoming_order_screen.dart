@@ -38,15 +38,25 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
   }
 
   Future<void> _load() async {
+    CourierOrderModel? loaded;
     try {
-      final loaded = await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
-      final nextOrder = loaded.isCancelled ? null : loaded;
-      if (mounted) setState(() => _order = nextOrder);
+      loaded = await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
     } catch (_) {
-      if (mounted) setState(() => _order = null);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      try {
+        final available = await ref.read(courierRepositoryProvider).fetchAvailableOrders();
+        for (final order in available) {
+          if (order.id == widget.orderId) {
+            loaded = order;
+            break;
+          }
+        }
+      } catch (_) {
+        loaded = null;
+      }
     }
+    final nextOrder = loaded != null && loaded.isCancelled ? null : loaded;
+    if (mounted) setState(() => _order = nextOrder);
+    if (mounted) setState(() => _loading = false);
   }
 
   @override

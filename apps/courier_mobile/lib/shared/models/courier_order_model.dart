@@ -109,9 +109,11 @@ class CourierOrderModel {
 
   bool get isDelivered => status == 'DELIVERED';
 
-  /// Order waiting in the auto-dispatch pool for any courier.
+  /// Order in the courier inbox: pool (auto) or manager assignment awaiting accept.
   bool get isAvailableInPool =>
-      !isCancelled && !isDelivered && status == 'PREPARING';
+      !isCancelled &&
+      !isDelivered &&
+      (status == 'PREPARING' || needsCourierAcceptance);
 
   factory CourierOrderModel.fromJson(Map<String, dynamic> json) {
     final restaurant = json['restaurant'] as Map<String, dynamic>?;

@@ -66,8 +66,8 @@ export class CouriersController {
 
   @Get('me/orders/available')
   @Roles(UserRole.COURIER)
-  availableOrders() {
-    return this.couriers.getAvailableOrders();
+  availableOrders(@CurrentUser() user: JwtPayload) {
+    return this.couriers.getAvailableOrders(user.sub);
   }
 
   @Get('me/earnings')

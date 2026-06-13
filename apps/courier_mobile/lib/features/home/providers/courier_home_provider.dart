@@ -105,17 +105,12 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
           .fetchMyOrders(statusGroup: 'active');
       CourierOrderModel? active;
       for (final order in orders) {
-        if (order.needsCourierAcceptance) {
+        if (order.isActive &&
+            !order.isDelivered &&
+            !order.isCancelled &&
+            !order.needsCourierAcceptance) {
           active = order;
           break;
-        }
-      }
-      if (active == null) {
-        for (final order in orders) {
-          if (order.isActive && !order.isDelivered && !order.isCancelled) {
-            active = order;
-            break;
-          }
         }
       }
       yield active;
