@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_paths.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../shared/models/courier_earnings_model.dart';
 import '../../../shared/models/courier_shift_stats_model.dart';
@@ -48,9 +49,7 @@ class CourierRepository {
     );
   }
 
-  Future<List<CourierOrderModel>> fetchAvailableOrders() async {
-    final res = await _dio.get<dynamic>(ApiPaths.courierAvailableOrders);
-    final raw = res.data;
+  List<CourierOrderModel> _parseOrderList(dynamic raw) {
     final List<dynamic> rows;
     if (raw is List) {
       rows = raw;
@@ -61,11 +60,31 @@ class CourierRepository {
     }
     return rows
         .map((e) => CourierOrderModel.fromJson(e as Map<String, dynamic>))
+        .where((order) => !order.isCancelled && !order.isDelivered)
         .toList();
   }
 
-  /// Active assigned work + offers to accept (home screen inbox).
+  Future<List<CourierOrderModel>> fetchAvailableOrders() async {
+    final res = await _dio.get<dynamic>(ApiPaths.courierAvailableOrders);
+    return _parseOrderList(res.data);
+  }
+
+  /// Primary home inbox — one API call with server-side accept/continue classification.
   Future<List<CourierOrderModel>> fetchHomeInbox() async {
+    try {
+      final res = await _dio.get<dynamic>(ApiPaths.courierInbox);
+      return _parseOrderList(res.data);
+    } on DioException catch (e) {
+      final status = (e.error is ApiException) ? (e.error as ApiException).statusCode : e.response?.statusCode;
+      if (status == 404) {
+        return _fetchHomeInboxLegacy();
+      }
+      rethrow;
+    }
+  }
+
+  /// Fallback for servers without `/couriers/me/inbox` yet.
+  Future<List<CourierOrderModel>> _fetchHomeInboxLegacy() async {
     final items = <CourierOrderModel>[];
     final seen = <String>{};
 
@@ -88,9 +107,8 @@ class CourierRepository {
     } catch (_) {}
 
     items.sort((a, b) {
-      int rank(CourierOrderModel order) => order.isPendingOffer ? 0 : 1;
-      final byRank = rank(a).compareTo(rank(b));
-      if (byRank != 0) return byRank;
+      final byKind = (a.isPendingOffer ? 0 : 1).compareTo(b.isPendingOffer ? 0 : 1);
+      if (byKind != 0) return byKind;
       return (b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0))
           .compareTo(a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0));
     });
@@ -98,7 +116,6 @@ class CourierRepository {
     return items;
   }
 
-  /// Backward-compatible alias used by push/incoming flows.
   Future<List<CourierOrderModel>> fetchInboxOffers() => fetchHomeInbox();
 
   Future<List<CourierOrderModel>> fetchMyOrders({

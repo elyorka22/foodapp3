@@ -86,6 +86,7 @@ abstract final class AppStrings {
   static const callCustomer = 'Qo\'ng\'iroq';
   static const total = 'Jami';
   static const errorGeneric = 'Xatolik yuz berdi';
+  static const retry = 'Qayta urinish';
   static const loginFailed = 'Kirish amalga oshmadi';
   static const mustBeOnline = 'Vazifa qabul qilish uchun onlayn bo\'ling';
   static const orderUnavailable = 'Vazifa endi mavjud emas';

@@ -479,7 +479,7 @@ export class CouriersService {
     return { ok: true, orderId, status: OrderStatus.PREPARING };
   }
 
-  async getAvailableOrders(userId: string) {
+  async getCourierInbox(userId: string) {
     const mode = await this.settings.getCourierDispatchMode();
     const courier = await this.prisma.courier.findFirst({
       where: { userId, deletedAt: null },
@@ -500,23 +500,27 @@ export class CouriersService {
       branch: true,
     };
 
-    const [orders, deliveryConfig] = await Promise.all([
-      mode === 'manager'
+    const deliveryConfig = await this.settings.getDeliveryPricing();
+    const myStatuses: OrderStatus[] = [
+      OrderStatus.COURIER_ASSIGNED,
+      OrderStatus.ARRIVED_AT_RESTAURANT,
+      OrderStatus.PICKED_UP,
+      OrderStatus.DELIVERING,
+    ];
+
+    const [myOrders, poolOrders] = await Promise.all([
+      this.prisma.order.findMany({
+        where: {
+          courierId: courier.id,
+          deletedAt: null,
+          status: { in: myStatuses },
+        },
+        include: orderInclude,
+        orderBy: { updatedAt: 'desc' },
+        take: 50,
+      }),
+      mode === 'auto'
         ? this.prisma.order.findMany({
-            where: {
-              courierId: courier.id,
-              status: OrderStatus.COURIER_ASSIGNED,
-              deletedAt: null,
-              OR: [
-                { assignment: { is: null } },
-                { assignment: { acceptedAt: null } },
-              ],
-            },
-            include: orderInclude,
-            orderBy: { createdAt: 'asc' },
-            take: 50,
-          })
-        : this.prisma.order.findMany({
             where: {
               status: OrderStatus.PREPARING,
               courierId: null,
@@ -526,11 +530,49 @@ export class CouriersService {
             include: orderInclude,
             orderBy: { createdAt: 'asc' },
             take: 50,
-          }),
-      this.settings.getDeliveryPricing(),
+          })
+        : Promise.resolve([]),
     ]);
 
-    return orders.map((order) => this.mapAvailableOrder(order, deliveryConfig));
+    const seen = new Set<string>();
+    const inbox: Array<
+      ReturnType<CouriersService['mapAvailableOrder']> & { inboxKind: 'accept' | 'continue' }
+    > = [];
+
+    const push = (
+      order: (typeof myOrders)[number],
+      inboxKind: 'accept' | 'continue',
+    ) => {
+      if (seen.has(order.id)) return;
+      seen.add(order.id);
+      inbox.push({
+        ...this.mapAvailableOrder(order, deliveryConfig),
+        inboxKind,
+      });
+    };
+
+    for (const order of poolOrders) {
+      push(order, 'accept');
+    }
+
+    for (const order of myOrders) {
+      const acceptedAt = order.assignment?.acceptedAt ?? null;
+      const needsAccept =
+        order.status === OrderStatus.COURIER_ASSIGNED && acceptedAt == null;
+      push(order, needsAccept ? 'accept' : 'continue');
+    }
+
+    inbox.sort((a, b) => {
+      const rank = (kind: 'accept' | 'continue') => (kind === 'accept' ? 0 : 1);
+      return rank(a.inboxKind) - rank(b.inboxKind);
+    });
+
+    return inbox;
+  }
+
+  async getAvailableOrders(userId: string) {
+    const inbox = await this.getCourierInbox(userId);
+    return inbox.filter((order) => order.inboxKind === 'accept');
   }
 
   private mapAvailableOrder(

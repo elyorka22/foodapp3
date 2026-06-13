@@ -156,6 +156,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       onAccept: _acceptOrder,
                       onOpenActive: (id) =>
                           context.push(AppRoutes.activeOrder, extra: id),
+                      onRetry: _refresh,
                     ),
                   ),
           ),
@@ -258,6 +259,7 @@ class _JobsInbox extends StatelessWidget {
     required this.actingOrderId,
     required this.onAccept,
     required this.onOpenActive,
+    required this.onRetry,
   });
 
   final bool isOnline;
@@ -265,12 +267,34 @@ class _JobsInbox extends StatelessWidget {
   final String? actingOrderId;
   final Future<void> Function(CourierOrderModel order) onAccept;
   final void Function(String orderId) onOpenActive;
+  final Future<void> Function() onRetry;
 
   @override
   Widget build(BuildContext context) {
     return inbox.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const _EmptyInbox(message: AppStrings.noAvailableOrders),
+      error: (error, _) {
+        final message = error is ApiException
+            ? error.message
+            : ApiException.formatError(error);
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
+          children: [
+            const SizedBox(height: 48),
+            const Icon(Icons.cloud_off_outlined, size: 48, color: AppColors.textMuted),
+            const SizedBox(height: AppSpacing.md),
+            Text(message, style: AppTypography.body, textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.lg),
+            Center(
+              child: FilledButton(
+                onPressed: () => onRetry(),
+                child: const Text(AppStrings.retry),
+              ),
+            ),
+          ],
+        );
+      },
       data: (orders) {
         if (!isOnline && orders.isEmpty) {
           return ListView(

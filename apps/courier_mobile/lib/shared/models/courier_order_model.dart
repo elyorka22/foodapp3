@@ -47,6 +47,7 @@ class CourierOrderModel {
     this.estimatedCourierFee,
     this.assignmentAcceptedAt,
     this.createdAt,
+    this.inboxKind,
     this.items = const [],
   });
 
@@ -77,6 +78,8 @@ class CourierOrderModel {
   final num? estimatedCourierFee;
   final DateTime? assignmentAcceptedAt;
   final DateTime? createdAt;
+  /// Server hint: `accept` = tap Accept, `continue` = open active delivery.
+  final String? inboxKind;
   final List<CourierOrderLineItem> items;
 
   /// Amount shown before accept: estimated courier payout from API or DB delivery fee.
@@ -116,11 +119,21 @@ class CourierOrderModel {
       (status == 'PREPARING' || needsCourierAcceptance);
 
   /// New job the courier must accept (pool or manager assignment).
-  bool get isPendingOffer => isAvailableInPool;
+  bool get isPendingOffer =>
+      inboxKind == 'accept' ||
+      (inboxKind == null &&
+          !isCancelled &&
+          !isDelivered &&
+          (status == 'PREPARING' || needsCourierAcceptance));
 
   /// Order already accepted and in progress.
   bool get isOngoingJob =>
-      isActive && !isCancelled && !isDelivered && !isPendingOffer;
+      inboxKind == 'continue' ||
+      (inboxKind == null &&
+          isActive &&
+          !isCancelled &&
+          !isDelivered &&
+          !isPendingOffer);
 
   factory CourierOrderModel.fromJson(Map<String, dynamic> json) {
     final restaurant = json['restaurant'] as Map<String, dynamic>?;
@@ -170,6 +183,7 @@ class CourierOrderModel {
       estimatedCourierFee: json['estimatedCourierFee'] as num?,
       assignmentAcceptedAt: _parseDateTime(assignment?['acceptedAt']),
       createdAt: _parseDateTime(json['createdAt']),
+      inboxKind: json['inboxKind'] as String?,
       items: items,
     );
   }

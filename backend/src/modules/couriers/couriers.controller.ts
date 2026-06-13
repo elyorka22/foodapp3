@@ -64,6 +64,12 @@ export class CouriersController {
     return this.couriers.getProfile(user.sub);
   }
 
+  @Get('me/inbox')
+  @Roles(UserRole.COURIER)
+  inbox(@CurrentUser() user: JwtPayload) {
+    return this.couriers.getCourierInbox(user.sub);
+  }
+
   @Get('me/orders/available')
   @Roles(UserRole.COURIER)
   availableOrders(@CurrentUser() user: JwtPayload) {

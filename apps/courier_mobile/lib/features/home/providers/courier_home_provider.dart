@@ -29,26 +29,20 @@ void syncShiftSessionFromBackend(WidgetRef ref) {
 }
 
 List<CourierOrderModel> mergeInboxOrders(
-  List<CourierOrderModel> primary,
-  List<CourierOrderModel> extra,
+  List<CourierOrderModel> fromApi,
+  List<CourierOrderModel> fromPush,
 ) {
   final seen = <String>{};
   final merged = <CourierOrderModel>[];
 
-  void add(CourierOrderModel order) {
-    if (order.isCancelled || order.isDelivered) return;
-    if (!order.isPendingOffer && !order.isOngoingJob) return;
+  for (final order in [...fromApi, ...fromPush]) {
+    if (order.isCancelled || order.isDelivered) continue;
     if (seen.add(order.id)) merged.add(order);
   }
 
-  for (final order in [...primary, ...extra]) {
-    add(order);
-  }
-
   merged.sort((a, b) {
-    int rank(CourierOrderModel order) => order.isPendingOffer ? 0 : 1;
-    final byRank = rank(a).compareTo(rank(b));
-    if (byRank != 0) return byRank;
+    final byKind = (a.isPendingOffer ? 0 : 1).compareTo(b.isPendingOffer ? 0 : 1);
+    if (byKind != 0) return byKind;
     return (b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0))
         .compareTo(a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0));
   });
@@ -73,7 +67,6 @@ Future<CourierOrderModel?> _resolveOrderForPush(WidgetRef ref, String orderId) a
 
 void _rememberPushOrder(WidgetRef ref, CourierOrderModel order) {
   if (order.isCancelled || order.isDelivered) return;
-  if (!order.isPendingOffer && !order.isOngoingJob) return;
 
   final current = ref.read(pushInboxOrdersProvider);
   if (current.any((item) => item.id == order.id)) return;
@@ -157,9 +150,7 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
 
   while (true) {
     try {
-      final orders = await ref
-          .read(courierRepositoryProvider)
-          .fetchMyOrders(statusGroup: 'active');
+      final orders = await ref.read(courierRepositoryProvider).fetchHomeInbox();
       CourierOrderModel? active;
       for (final order in orders) {
         if (order.isOngoingJob) {
@@ -175,7 +166,7 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
   }
 });
 
-/// Home screen list: pending offers + ongoing active orders.
+/// Home screen list: pending offers + ongoing deliveries.
 final homeInboxProvider =
     StreamProvider.autoDispose<List<CourierOrderModel>>((ref) async* {
   ref.watch(authStateProvider);
@@ -186,14 +177,9 @@ final homeInboxProvider =
   }
 
   while (true) {
-    try {
-      final fromApi = await ref.read(courierRepositoryProvider).fetchHomeInbox();
-      final pushed = ref.read(pushInboxOrdersProvider);
-      yield mergeInboxOrders(fromApi, pushed);
-    } catch (_) {
-      final pushed = ref.read(pushInboxOrdersProvider);
-      yield pushed.isEmpty ? <CourierOrderModel>[] : pushed;
-    }
+    final fromApi = await ref.read(courierRepositoryProvider).fetchHomeInbox();
+    final pushed = ref.read(pushInboxOrdersProvider);
+    yield mergeInboxOrders(fromApi, pushed);
     await Future<void>.delayed(_pollInterval);
   }
 });
