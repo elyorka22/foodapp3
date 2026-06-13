@@ -43,7 +43,7 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
       loaded = await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
     } catch (_) {
       try {
-        final available = await ref.read(courierRepositoryProvider).fetchAvailableOrders();
+        final available = await ref.read(courierRepositoryProvider).fetchInboxOffers();
         for (final order in available) {
           if (order.id == widget.orderId) {
             loaded = order;

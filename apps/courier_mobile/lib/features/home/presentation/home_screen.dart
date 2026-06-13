@@ -38,14 +38,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _loadProfile() async {
     await ref.read(courierOnlineProvider.notifier).load();
     syncShiftSessionFromBackend(ref);
+    ref.invalidate(activeOrderProvider);
+    ref.invalidate(availableOrdersProvider);
     if (mounted) setState(() => _profileLoaded = true);
   }
 
   Future<void> _refresh() async {
-    if (!ref.read(shiftSessionOpenProvider) &&
-        !(ref.read(courierOnlineProvider).valueOrNull ?? false)) {
-      return;
-    }
     ref.invalidate(activeOrderProvider);
     ref.invalidate(availableOrdersProvider);
     ref.invalidate(shiftStatsProvider);
@@ -80,14 +78,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _acceptOrder(CourierOrderModel order) async {
-    final showInbox = ref.read(shiftSessionOpenProvider) ||
-        (ref.read(courierOnlineProvider).valueOrNull ?? false);
-    if (_actingOrderId != null || !showInbox) return;
+    if (_actingOrderId != null) return;
 
     setState(() => _actingOrderId = order.id);
     try {
       await ref.read(courierRepositoryProvider).acceptOrder(order.id);
       ref.read(newJobAlertProvider.notifier).state = null;
+      ref.read(pushInboxOrdersProvider.notifier).state = ref
+          .read(pushInboxOrdersProvider)
+          .where((item) => item.id != order.id)
+          .toList();
       ref.invalidate(activeOrderProvider);
       ref.invalidate(availableOrdersProvider);
       if (!mounted) return;
@@ -108,7 +108,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final shiftOpen = ref.watch(shiftSessionOpenProvider);
     final backendOnline = ref.watch(courierOnlineProvider).valueOrNull ?? false;
-    final showInbox = shiftOpen || backendOnline;
+    final isOnline = shiftOpen || backendOnline;
     final activeOrder = ref.watch(activeOrderProvider);
     final available = ref.watch(availableOrdersProvider);
     final shiftStats = ref.watch(shiftStatsProvider);
@@ -149,19 +149,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 : RefreshIndicator(
                     onRefresh: _refresh,
                     color: AppColors.primary,
-                    child: showInbox
-                        ? _JobsInbox(
-                            activeOrder: activeOrder,
-                            available: available,
-                            actingOrderId: _actingOrderId,
-                            onAccept: _acceptOrder,
-                            onOpenActive: (id) =>
-                                context.push(AppRoutes.activeOrder, extra: id),
-                          )
-                        : const _OfflineWelcome(),
+                    child: _JobsInbox(
+                      isOnline: isOnline,
+                      activeOrder: activeOrder,
+                      available: available,
+                      actingOrderId: _actingOrderId,
+                      onAccept: _acceptOrder,
+                      onOpenActive: (id) =>
+                          context.push(AppRoutes.activeOrder, extra: id),
+                    ),
                   ),
           ),
-          if (showInbox)
+          if (isOnline)
             shiftStats.when(
               loading: () => const SizedBox(
                 height: 72,
@@ -253,30 +252,9 @@ class _HomeTopBar extends StatelessWidget {
   }
 }
 
-class _OfflineWelcome extends StatelessWidget {
-  const _OfflineWelcome();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      children: [
-        const SizedBox(height: 48),
-        const Icon(Icons.hub_outlined, size: 56, color: AppColors.textMuted),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          AppStrings.goOnlineToSeeOrders,
-          style: AppTypography.body,
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-}
-
 class _JobsInbox extends StatelessWidget {
   const _JobsInbox({
+    required this.isOnline,
     required this.activeOrder,
     required this.available,
     required this.actingOrderId,
@@ -284,6 +262,7 @@ class _JobsInbox extends StatelessWidget {
     required this.onOpenActive,
   });
 
+  final bool isOnline;
   final AsyncValue<CourierOrderModel?> activeOrder;
   final AsyncValue<List<CourierOrderModel>> available;
   final String? actingOrderId;
@@ -293,36 +272,50 @@ class _JobsInbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = activeOrder.valueOrNull;
+    final activeLoading = activeOrder.isLoading && active == null;
+    final availableLoading = available.isLoading && available.valueOrNull == null;
 
-    return available.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const _EmptyInbox(message: AppStrings.noAvailableOrders),
-      data: (orders) {
-        return ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
-          children: [
-            if (active != null)
-              ActiveJobHero(
-                order: active,
-                onOpen: () => onOpenActive(active.id),
+    if (activeLoading && availableLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final orders = available.valueOrNull ?? const <CourierOrderModel>[];
+    final visibleOffers = orders
+        .where((order) => order.id != active?.id)
+        .toList(growable: false);
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+      children: [
+        if (!isOnline && visibleOffers.isEmpty && active == null)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.lg),
+            child: Text(
+              AppStrings.goOnlineToSeeOrders,
+              style: AppTypography.body,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        if (active != null)
+          ActiveJobHero(
+            order: active,
+            onOpen: () => onOpenActive(active.id),
+          ),
+        if (visibleOffers.isEmpty && active == null)
+          const _EmptyInbox(message: AppStrings.noAvailableOrders)
+        else
+          ...visibleOffers.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: JobOfferCard(
+                order: order,
+                isLoading: actingOrderId == order.id,
+                onAccept: actingOrderId == null ? () => onAccept(order) : null,
               ),
-            if (orders.isEmpty && active == null)
-              const _EmptyInbox(message: AppStrings.noAvailableOrders)
-            else if (orders.isNotEmpty)
-              ...orders.map(
-                (order) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: JobOfferCard(
-                    order: order,
-                    isLoading: actingOrderId == order.id,
-                    onAccept: actingOrderId == null ? () => onAccept(order) : null,
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
+            ),
+          ),
+      ],
     );
   }
 }

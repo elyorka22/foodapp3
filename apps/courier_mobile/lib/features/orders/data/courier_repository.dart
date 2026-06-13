@@ -52,8 +52,36 @@ class CourierRepository {
     final res = await _dio.get<List<dynamic>>(ApiPaths.courierAvailableOrders);
     return (res.data ?? [])
         .map((e) => CourierOrderModel.fromJson(e as Map<String, dynamic>))
-        .where((order) => order.isAvailableInPool)
         .toList();
+  }
+
+  /// Pool (auto) + manager assignments; also merges pending assignments from my orders.
+  Future<List<CourierOrderModel>> fetchInboxOffers() async {
+    final offers = <CourierOrderModel>[];
+    final seen = <String>{};
+
+    void add(CourierOrderModel order) {
+      if (order.isCancelled || order.isDelivered) return;
+      if (!order.isAvailableInPool && !order.needsCourierAcceptance) return;
+      if (seen.add(order.id)) offers.add(order);
+    }
+
+    try {
+      for (final order in await fetchAvailableOrders()) {
+        add(order);
+      }
+    } catch (_) {}
+
+    try {
+      final mine = await fetchMyOrders(statusGroup: 'active');
+      for (final order in mine) {
+        if (order.needsCourierAcceptance || order.isAvailableInPool) {
+          add(order);
+        }
+      }
+    } catch (_) {}
+
+    return offers;
   }
 
   Future<List<CourierOrderModel>> fetchMyOrders({

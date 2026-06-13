@@ -17,6 +17,9 @@ const _pollInterval = Duration(seconds: 5);
 /// True only after courier taps "Start shift" in current app session.
 final shiftSessionOpenProvider = StateProvider<bool>((ref) => false);
 
+/// Orders loaded from push before API inbox catches up.
+final pushInboxOrdersProvider = StateProvider<List<CourierOrderModel>>((ref) => []);
+
 /// Align local shift UI with backend `isOnline` (e.g. after app restart while still on shift).
 void syncShiftSessionFromBackend(WidgetRef ref) {
   final isOnline = ref.read(courierOnlineProvider).valueOrNull ?? false;
@@ -25,15 +28,51 @@ void syncShiftSessionFromBackend(WidgetRef ref) {
   }
 }
 
+List<CourierOrderModel> mergeInboxOrders(
+  List<CourierOrderModel> primary,
+  List<CourierOrderModel> extra,
+) {
+  final seen = <String>{};
+  final merged = <CourierOrderModel>[];
+  for (final order in [...primary, ...extra]) {
+    if (order.isCancelled || order.isDelivered) continue;
+    if (!order.isAvailableInPool && !order.needsCourierAcceptance) continue;
+    if (seen.add(order.id)) merged.add(order);
+  }
+  return merged;
+}
+
+Future<CourierOrderModel?> _resolveOrderForPush(WidgetRef ref, String orderId) async {
+  try {
+    final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
+    if (!order.isCancelled) return order;
+  } catch (_) {}
+
+  try {
+    for (final order in await ref.read(courierRepositoryProvider).fetchInboxOffers()) {
+      if (order.id == orderId) return order;
+    }
+  } catch (_) {}
+
+  return null;
+}
+
+void _rememberPushOrder(WidgetRef ref, CourierOrderModel order) {
+  final current = ref.read(pushInboxOrdersProvider);
+  if (current.any((item) => item.id == order.id)) return;
+  ref.read(pushInboxOrdersProvider.notifier).state = [...current, order];
+}
+
 /// Refresh lists and show in-app banner when a push about a new order arrives.
 Future<void> handleOrderPush(WidgetRef ref, String orderId) async {
+  ref.read(shiftSessionOpenProvider.notifier).state = true;
   syncShiftSessionFromBackend(ref);
   ref.invalidate(availableOrdersProvider);
   ref.invalidate(activeOrderProvider);
 
-  try {
-    final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
-    if (order.isCancelled) return;
+  final order = await _resolveOrderForPush(ref, orderId);
+  if (order != null) {
+    _rememberPushOrder(ref, order);
     ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
       orderId: order.id,
       title: order.restaurantName ?? order.orderNumber,
@@ -41,20 +80,20 @@ Future<void> handleOrderPush(WidgetRef ref, String orderId) async {
       collectFromCustomer: order.collectFromCustomer,
       courierEarnings: order.courierEarnings,
     );
-  } catch (_) {
-    ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
-      orderId: orderId,
-      title: orderId,
-      payAtRestaurant: 0,
-      collectFromCustomer: 0,
-      courierEarnings: 0,
-    );
+    return;
   }
+
+  ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
+    orderId: orderId,
+    title: orderId,
+    payAtRestaurant: 0,
+    collectFromCustomer: 0,
+    courierEarnings: 0,
+  );
 }
 
 bool _shouldPollOrders(Ref ref) {
-  if (ref.watch(shiftSessionOpenProvider)) return true;
-  return ref.watch(courierOnlineProvider).valueOrNull ?? false;
+  return ref.watch(authStateProvider).valueOrNull != null;
 }
 
 final courierProfileProvider = FutureProvider.autoDispose<CourierProfileModel>((ref) async {
@@ -124,6 +163,7 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
 final availableOrdersProvider =
     StreamProvider.autoDispose<List<CourierOrderModel>>((ref) async* {
   ref.watch(authStateProvider);
+  ref.watch(pushInboxOrdersProvider);
   if (!_shouldPollOrders(ref)) {
     yield [];
     return;
@@ -131,9 +171,12 @@ final availableOrdersProvider =
 
   while (true) {
     try {
-      yield await ref.read(courierRepositoryProvider).fetchAvailableOrders();
+      final fromApi = await ref.read(courierRepositoryProvider).fetchInboxOffers();
+      final pushed = ref.read(pushInboxOrdersProvider);
+      yield mergeInboxOrders(fromApi, pushed);
     } catch (_) {
-      yield [];
+      final pushed = ref.read(pushInboxOrdersProvider);
+      yield pushed.isEmpty ? <CourierOrderModel>[] : pushed;
     }
     await Future<void>.delayed(_pollInterval);
   }

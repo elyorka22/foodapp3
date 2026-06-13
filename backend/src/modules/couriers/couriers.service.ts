@@ -507,7 +507,10 @@ export class CouriersService {
               courierId: courier.id,
               status: OrderStatus.COURIER_ASSIGNED,
               deletedAt: null,
-              assignment: { acceptedAt: null },
+              OR: [
+                { assignment: { is: null } },
+                { assignment: { acceptedAt: null } },
+              ],
             },
             include: orderInclude,
             orderBy: { createdAt: 'asc' },
