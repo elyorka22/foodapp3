@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# Prints SHA-1/SHA-256 for the configured release keystore or a signed APK/AAB.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ANDROID_DIR="${ROOT}/android"
+KEY_PROPS="${ANDROID_DIR}/key.properties"
+DEBUG_KEYSTORE="${HOME}/.android/debug.keystore"
+ARTIFACT_PATH="${1:-${ROOT}/build/app/outputs/flutter-apk/app-release.apk}"
+
+extract_sha1() {
+  sed -nE 's/.*SHA-?1[^:]*:[[:space:]]*//Ip' | head -1 | tr -d '\r'
+}
+
+extract_sha256() {
+  sed -nE 's/.*SHA-?256[^:]*:[[:space:]]*//Ip' | head -1 | tr -d '\r'
+}
+
+print_fingerprints_from_output() {
+  local output="$1"
+  local sha1 sha256
+  sha1="$(printf '%s\n' "$output" | extract_sha1)"
+  sha256="$(printf '%s\n' "$output" | extract_sha256)"
+  if [[ -z "$sha1" ]]; then
+    return 1
+  fi
+  echo "SHA1: $sha1"
+  if [[ -n "$sha256" ]]; then
+    echo "SHA256: $sha256"
+  fi
+  return 0
+}
+
+find_apksigner() {
+  if command -v apksigner >/dev/null 2>&1; then
+    command -v apksigner
+    return 0
+  fi
+  if [[ -n "${ANDROID_HOME:-}" ]]; then
+    find "${ANDROID_HOME}/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -1
+  fi
+}
+
+print_with_keytool_keystore() {
+  local keystore="$1"
+  local alias="$2"
+  local storepass="$3"
+  local output
+  output="$(keytool -list -v -keystore "$keystore" -alias "$alias" -storepass "$storepass" 2>&1)"
+  print_fingerprints_from_output "$output"
+}
+
+print_with_openssl_p12() {
+  local keystore="$1"
+  local storepass="$2"
+  local cert
+  cert="$(openssl pkcs12 -in "$keystore" -clcerts -nokeys -passin "pass:${storepass}" 2>/dev/null | openssl x509)"
+  echo "SHA1: $(echo "$cert" | openssl x509 -noout -fingerprint -sha1 | sed 's/sha1 Fingerprint=//i')"
+  echo "SHA256: $(echo "$cert" | openssl x509 -noout -fingerprint -sha256 | sed 's/sha256 Fingerprint=//i')"
+}
+
+print_apk_cert() {
+  local artifact="$1"
+  local output apksigner_bin
+
+  if [[ ! -f "$artifact" ]]; then
+    echo "Artifact not found: $artifact" >&2
+    return 1
+  fi
+
+  echo "Signed artifact: $artifact"
+
+  apksigner_bin="$(find_apksigner || true)"
+  if [[ -n "$apksigner_bin" && -x "$apksigner_bin" ]]; then
+    output="$("$apksigner_bin" verify --print-certs "$artifact" 2>&1 || true)"
+    if print_fingerprints_from_output "$output"; then
+      return 0
+    fi
+  fi
+
+  if command -v keytool >/dev/null 2>&1; then
+    output="$(keytool -printcert -jarfile "$artifact" 2>&1 || true)"
+    if print_fingerprints_from_output "$output"; then
+      return 0
+    fi
+    echo "keytool output:" >&2
+    printf '%s\n' "$output" >&2
+  fi
+
+  echo "ERROR: could not extract SHA-1/SHA-256 from signed artifact" >&2
+  return 1
+}
+
+echo "=== Android signing certificate fingerprints ==="
+
+if [[ -f "$ARTIFACT_PATH" ]]; then
+  print_apk_cert "$ARTIFACT_PATH"
+  exit 0
+fi
+
+if [[ -f "${KEY_PROPS}" ]]; then
+  store_file="$(grep '^storeFile=' "${KEY_PROPS}" | cut -d= -f2-)"
+  store_password="$(grep '^storePassword=' "${KEY_PROPS}" | cut -d= -f2-)"
+  key_alias="$(grep '^keyAlias=' "${KEY_PROPS}" | cut -d= -f2-)"
+  keystore="${ANDROID_DIR}/app/${store_file}"
+  if [[ -f "${keystore}" ]]; then
+    echo "Release keystore: ${keystore}"
+    if command -v keytool >/dev/null 2>&1; then
+      print_with_keytool_keystore "$keystore" "$key_alias" "$store_password"
+    else
+      print_with_openssl_p12 "$keystore" "$store_password"
+    fi
+    exit 0
+  fi
+fi
+
+if [[ -f "${DEBUG_KEYSTORE}" ]]; then
+  echo "Using default debug keystore: ${DEBUG_KEYSTORE}"
+  if command -v keytool >/dev/null 2>&1; then
+    output="$(keytool -list -v -keystore "${DEBUG_KEYSTORE}" -alias androiddebugkey -storepass android -keypass android 2>&1)"
+    print_fingerprints_from_output "$output"
+  else
+    echo "WARN: keytool not available" >&2
+    exit 1
+  fi
+  exit 0
+fi
+
+echo "WARN: no keystore or signed artifact found to print fingerprints" >&2
+exit 1

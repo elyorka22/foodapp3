@@ -50,6 +50,19 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Configure Android release signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: chmod +x scripts/configure_android_signing.sh && ./scripts/configure_android_signing.sh
+
+      - name: Print configured release keystore fingerprints
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: chmod +x scripts/print_android_signing_sha1.sh && ./scripts/print_android_signing_sha1.sh
+
       - name: Apply launcher icons
         run: chmod +x scripts/apply_app_icons.sh && ./scripts/apply_app_icons.sh
 
@@ -59,7 +72,7 @@ jobs:
       - name: Test
         run: flutter test
 
-      - name: Build release APK and App Bundle
+      - name: Build release APK and App Bundle (Play Store)
         run: |
           API_URL="$(printf '%s' "${API_BASE_URL}" | tr -d '[:space:]')"
           flutter build apk --release \
@@ -68,6 +81,9 @@ jobs:
           flutter build appbundle --release \
             --dart-define=API_BASE_URL="${API_URL}" \
             --dart-define=ENABLE_FCM=true
+
+      - name: Print signed AAB fingerprints
+        run: chmod +x scripts/print_android_signing_sha1.sh && ./scripts/print_android_signing_sha1.sh build/app/outputs/bundle/release/app-release.aab
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
