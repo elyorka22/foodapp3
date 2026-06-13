@@ -13,3 +13,9 @@ coverage/
 
 # OS
 .DS_Store
+
+# Android signing (generated locally / in CI)
+**/android/key.properties
+*.jks
+*.p12
+.secrets/
