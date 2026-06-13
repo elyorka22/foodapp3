@@ -18,7 +18,7 @@ const _pollInterval = Duration(seconds: 5);
 final shiftSessionOpenProvider = StateProvider<bool>((ref) => false);
 
 /// Align local shift UI with backend `isOnline` (e.g. after app restart while still on shift).
-void syncShiftSessionFromBackend(Ref ref) {
+void syncShiftSessionFromBackend(WidgetRef ref) {
   final isOnline = ref.read(courierOnlineProvider).valueOrNull ?? false;
   if (isOnline) {
     ref.read(shiftSessionOpenProvider.notifier).state = true;
@@ -26,7 +26,7 @@ void syncShiftSessionFromBackend(Ref ref) {
 }
 
 /// Refresh lists and show in-app banner when a push about a new order arrives.
-Future<void> handleOrderPush(Ref ref, String orderId) async {
+Future<void> handleOrderPush(WidgetRef ref, String orderId) async {
   syncShiftSessionFromBackend(ref);
   ref.invalidate(availableOrdersProvider);
   ref.invalidate(activeOrderProvider);
