@@ -28,7 +28,7 @@ void syncShiftSessionFromBackend(WidgetRef ref) {
   }
 }
 
-void removePushInboxOrder(Ref ref, String orderId) {
+void removePushInboxOrder(WidgetRef ref, String orderId) {
   ref.read(pushInboxOrdersProvider.notifier).state = ref
       .read(pushInboxOrdersProvider)
       .where((item) => item.id != orderId)
