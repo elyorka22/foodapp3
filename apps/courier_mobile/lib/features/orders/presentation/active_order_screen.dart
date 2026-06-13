@@ -13,13 +13,11 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/courier_order_model.dart';
-import '../../../shared/widgets/call_phone_button.dart';
+import '../../../shared/widgets/active_stop_panel.dart';
 import '../../../shared/widgets/delivery_map.dart';
 import '../../../shared/widgets/food_app_button.dart';
-import '../../../shared/widgets/food_app_card.dart';
 import '../../../shared/widgets/job_step_indicator.dart';
 import '../../../shared/widgets/order_line_items_card.dart';
-import '../../../shared/widgets/order_money_summary.dart';
 import '../../../shared/widgets/service_type_badge.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
@@ -37,6 +35,7 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
   CourierOrderModel? _order;
   bool _loading = true;
   bool _acting = false;
+  bool _showItems = false;
   double? _courierLat;
   double? _courierLng;
 
@@ -87,11 +86,30 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
 
   bool get _needsAcceptance => _order?.needsCourierAcceptance ?? false;
 
+  JobStop? _activeStop(CourierOrderModel order) {
+    final stops = order.stops;
+    if (stops.isEmpty) return null;
+
+    final toCustomer = order.status == 'PICKED_UP' || order.status == 'DELIVERING';
+    if (toCustomer) {
+      return stops.firstWhere(
+        (stop) => stop.role == JobStopRole.dropoff,
+        orElse: () => stops.last,
+      );
+    }
+
+    return stops.firstWhere(
+      (stop) => stop.role == JobStopRole.pickup,
+      orElse: () => stops.first,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
     final order = _order;
     if (order == null) {
       return Scaffold(
@@ -118,11 +136,11 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
 
     final steps = JobWorkflow.stepsFor(order);
     final phase = JobWorkflow.phaseLabel(order);
-    final stops = order.stops;
+    final activeStop = _activeStop(order);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${AppStrings.orderId} #${order.orderNumber}'),
+        title: Text('#${order.orderNumber}', style: AppTypography.subtitle),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -132,79 +150,68 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(phase, style: AppTypography.title.copyWith(fontSize: 20)),
+                const SizedBox(height: 8),
+                JobStepIndicator(steps: steps),
+              ],
+            ),
+          ),
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: _load,
-              color: AppColors.primary,
-              child: ListView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                children: [
-                  Text(phase, style: AppTypography.title.copyWith(fontSize: 22)),
-                  const SizedBox(height: AppSpacing.md),
-                  JobStepIndicator(steps: steps),
-                  const SizedBox(height: AppSpacing.lg),
-                  FoodAppCard(
-                    padding: const EdgeInsets.all(14),
-                    child: OrderMoneySummary(order: order, showCollectTotal: true),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  DeliveryMap(
-                    courierLat: _courierLat,
-                    courierLng: _courierLng,
-                    restaurantLat: order.restaurantLat,
-                    restaurantLng: order.restaurantLng,
-                    customerLat: order.customerLat,
-                    customerLng: order.customerLng,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  ...stops.map(
-                    (stop) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: FoodAppCard(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.primarySoft,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                stop.role == JobStopRole.pickup
-                                    ? Icons.storefront_outlined
-                                    : Icons.location_on_outlined,
-                                color: AppColors.primary,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(stop.roleLabel, style: AppTypography.caption),
-                                  Text(stop.title, style: AppTypography.subtitle),
-                                  if (stop.subtitle != null)
-                                    Text(stop.subtitle!, style: AppTypography.bodySmall),
-                                ],
-                              ),
-                            ),
-                            if (stop.phone != null)
-                              CallPhoneButton(phone: stop.phone!),
-                          ],
-                        ),
+            child: DeliveryMap(
+              expanded: true,
+              courierLat: _courierLat,
+              courierLng: _courierLng,
+              restaurantLat: order.restaurantLat,
+              restaurantLng: order.restaurantLng,
+              customerLat: order.customerLat,
+              customerLng: order.customerLng,
+              orderStatus: order.status,
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: AppColors.background,
+              border: Border(top: BorderSide(color: AppColors.border)),
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (activeStop != null)
+                  ActiveStopPanel(stop: activeStop, order: order),
+                if (order.items.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () => setState(() => _showItems = !_showItems),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Buyurtma tarkibi (${order.items.length})',
+                            style: AppTypography.bodySmall,
+                          ),
+                          const Spacer(),
+                          Icon(
+                            _showItems ? Icons.expand_less : Icons.expand_more,
+                            size: 20,
+                            color: AppColors.textMuted,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  if (order.items.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    OrderLineItemsCard(items: order.items),
-                  ],
+                  if (_showItems) OrderLineItemsCard(items: order.items),
                 ],
-              ),
+              ],
             ),
           ),
           Container(

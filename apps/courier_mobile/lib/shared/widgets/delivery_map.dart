@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/l10n/app_strings.dart';
+import '../../core/maps/route_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
-import 'food_app_button.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/utils/map_launcher.dart';
 
-class DeliveryMap extends StatelessWidget {
+class DeliveryMap extends StatefulWidget {
   const DeliveryMap({
     super.key,
     this.courierLat,
@@ -16,6 +17,9 @@ class DeliveryMap extends StatelessWidget {
     this.restaurantLng,
     this.customerLat,
     this.customerLng,
+    this.orderStatus,
+    this.expanded = false,
+    this.showNavButtons = true,
   });
 
   final double? courierLat;
@@ -24,122 +28,377 @@ class DeliveryMap extends StatelessWidget {
   final double? restaurantLng;
   final double? customerLat;
   final double? customerLng;
+  final String? orderStatus;
+  final bool expanded;
+  final bool showNavButtons;
 
-  List<LatLng> get _points {
+  @override
+  State<DeliveryMap> createState() => _DeliveryMapState();
+}
+
+class _DeliveryMapState extends State<DeliveryMap> {
+  final RouteService _routeService = RouteService();
+  List<LatLng> _routePoints = const [];
+  bool _routeLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoute();
+  }
+
+  @override
+  void didUpdateWidget(covariant DeliveryMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.courierLat != widget.courierLat ||
+        oldWidget.courierLng != widget.courierLng ||
+        oldWidget.restaurantLat != widget.restaurantLat ||
+        oldWidget.restaurantLng != widget.restaurantLng ||
+        oldWidget.customerLat != widget.customerLat ||
+        oldWidget.customerLng != widget.customerLng ||
+        oldWidget.orderStatus != widget.orderStatus) {
+      _loadRoute();
+    }
+  }
+
+  bool get _navigateToCustomer {
+    final status = widget.orderStatus;
+    return status == 'PICKED_UP' || status == 'DELIVERING';
+  }
+
+  LatLng? get _restaurantPoint {
+    if (widget.restaurantLat == null || widget.restaurantLng == null) return null;
+    return LatLng(widget.restaurantLat!, widget.restaurantLng!);
+  }
+
+  LatLng? get _customerPoint {
+    if (widget.customerLat == null || widget.customerLng == null) return null;
+    return LatLng(widget.customerLat!, widget.customerLng!);
+  }
+
+  LatLng? get _courierPoint {
+    if (widget.courierLat == null || widget.courierLng == null) return null;
+    return LatLng(widget.courierLat!, widget.courierLng!);
+  }
+
+  List<LatLng> get _markerPoints {
     final points = <LatLng>[];
-    if (courierLat != null && courierLng != null) {
-      points.add(LatLng(courierLat!, courierLng!));
-    }
-    if (restaurantLat != null && restaurantLng != null) {
-      points.add(LatLng(restaurantLat!, restaurantLng!));
-    }
-    if (customerLat != null && customerLng != null) {
-      points.add(LatLng(customerLat!, customerLng!));
-    }
+    final courier = _courierPoint;
+    final restaurant = _restaurantPoint;
+    final customer = _customerPoint;
+    if (courier != null) points.add(courier);
+    if (restaurant != null) points.add(restaurant);
+    if (customer != null) points.add(customer);
     return points;
   }
 
   LatLng? get _center {
-    final points = _points;
+    final points = _routePoints.isNotEmpty ? _routePoints : _markerPoints;
     if (points.isEmpty) return null;
     if (points.length == 1) return points.first;
     var lat = 0.0;
     var lng = 0.0;
-    for (final p in points) {
-      lat += p.latitude;
-      lng += p.longitude;
+    for (final point in points) {
+      lat += point.latitude;
+      lng += point.longitude;
     }
     return LatLng(lat / points.length, lng / points.length);
+  }
+
+  List<LatLng> _waypointsForRoute() {
+    final restaurant = _restaurantPoint;
+    final customer = _customerPoint;
+    final courier = _courierPoint;
+
+    if (_navigateToCustomer) {
+      final start = courier ?? restaurant;
+      if (start != null && customer != null) return [start, customer];
+    } else {
+      if (courier != null && restaurant != null) return [courier, restaurant];
+      if (restaurant != null && customer != null) return [restaurant, customer];
+    }
+
+    return _markerPoints;
+  }
+
+  Future<void> _loadRoute() async {
+    final waypoints = _waypointsForRoute();
+    if (waypoints.length < 2) {
+      if (mounted) setState(() => _routePoints = waypoints);
+      return;
+    }
+
+    setState(() => _routeLoading = true);
+    try {
+      final route = await _routeService.fetchDrivingRoute(waypoints);
+      if (mounted) setState(() => _routePoints = route);
+    } catch (_) {
+      if (mounted) setState(() => _routePoints = waypoints);
+    } finally {
+      if (mounted) setState(() => _routeLoading = false);
+    }
+  }
+
+  void _openNavigation(double lat, double lng, String label) {
+    showMapPicker(context, lat, lng, label: label);
   }
 
   @override
   Widget build(BuildContext context) {
     final center = _center;
     if (center == null) {
-      return const SizedBox(
-        height: 220,
-        child: Center(child: Text('Xarita uchun koordinatalar yo\'q')),
+      return SizedBox(
+        height: widget.expanded ? double.infinity : 220,
+        child: const Center(child: Text('Xarita uchun koordinatalar yo\'q')),
+      );
+    }
+
+    final restaurant = _restaurantPoint;
+    final customer = _customerPoint;
+    final courier = _courierPoint;
+    final routeLine = _routePoints.length >= 2 ? _routePoints : _waypointsForRoute();
+
+    final map = ClipRRect(
+      borderRadius: widget.expanded
+          ? BorderRadius.zero
+          : BorderRadius.circular(AppSpacing.cardRadius),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          FlutterMap(
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: 13,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all,
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.foodapp.courier',
+              ),
+              if (routeLine.length >= 2)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: routeLine,
+                      color: AppColors.mapRoute,
+                      strokeWidth: 5,
+                    ),
+                  ],
+                ),
+              MarkerLayer(
+                markers: [
+                  if (courier != null)
+                    Marker(
+                      point: courier,
+                      width: 36,
+                      height: 36,
+                      child: _MapMarker(
+                        icon: Icons.navigation_rounded,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  if (restaurant != null)
+                    Marker(
+                      point: restaurant,
+                      width: 36,
+                      height: 36,
+                      child: _MapMarker(
+                        icon: Icons.storefront_rounded,
+                        color: AppColors.serviceFood,
+                      ),
+                    ),
+                  if (customer != null)
+                    Marker(
+                      point: customer,
+                      width: 36,
+                      height: 36,
+                      child: _MapMarker(
+                        icon: Icons.home_rounded,
+                        color: AppColors.success,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          if (_routeLoading)
+            const Positioned(
+              top: 12,
+              right: 12,
+              child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (widget.expanded) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: map),
+          if (widget.showNavButtons) _CompactNavButtons(
+            restaurant: restaurant,
+            customer: customer,
+            navigateToCustomer: _navigateToCustomer,
+            onNavigate: _openNavigation,
+          ),
+        ],
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-          child: SizedBox(
-            height: 220,
-            child: FlutterMap(
-              options: MapOptions(initialCenter: center, initialZoom: 13),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.foodapp.courier',
-                ),
-                if (_points.length >= 2)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: _points,
-                        color: AppColors.mapRoute,
-                        strokeWidth: 4,
-                      ),
-                    ],
-                  ),
-                MarkerLayer(
-                  markers: [
-                    if (courierLat != null && courierLng != null)
-                      Marker(
-                        point: LatLng(courierLat!, courierLng!),
-                        width: 36,
-                        height: 36,
-                        child: const Icon(Icons.navigation, color: AppColors.primary),
-                      ),
-                    if (restaurantLat != null && restaurantLng != null)
-                      Marker(
-                        point: LatLng(restaurantLat!, restaurantLng!),
-                        width: 36,
-                        height: 36,
-                        child: const Icon(Icons.store, color: AppColors.serviceFood),
-                      ),
-                    if (customerLat != null && customerLng != null)
-                      Marker(
-                        point: LatLng(customerLat!, customerLng!),
-                        width: 36,
-                        height: 36,
-                        child: const Icon(Icons.person_pin_circle, color: AppColors.success),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if (restaurantLat != null && restaurantLng != null)
-          FoodAppButton(
-            label: AppStrings.navigateToRestaurant,
-            variant: FoodAppButtonVariant.secondary,
-            onPressed: () => _openMaps(restaurantLat!, restaurantLng!),
-          ),
-        if (customerLat != null && customerLng != null) ...[
-          const SizedBox(height: AppSpacing.sm),
-          FoodAppButton(
-            label: AppStrings.navigateToCustomer,
-            variant: FoodAppButtonVariant.secondary,
-            onPressed: () => _openMaps(customerLat!, customerLng!),
+        SizedBox(height: 240, child: map),
+        if (widget.showNavButtons) ...[
+          const SizedBox(height: AppSpacing.md),
+          _CompactNavButtons(
+            restaurant: restaurant,
+            customer: customer,
+            navigateToCustomer: _navigateToCustomer,
+            onNavigate: _openNavigation,
           ),
         ],
       ],
     );
   }
+}
 
-  Future<void> _openMaps(double lat, double lng) async {
-    final uri = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving',
+class _CompactNavButtons extends StatelessWidget {
+  const _CompactNavButtons({
+    required this.restaurant,
+    required this.customer,
+    required this.navigateToCustomer,
+    required this.onNavigate,
+  });
+
+  final LatLng? restaurant;
+  final LatLng? customer;
+  final bool navigateToCustomer;
+  final void Function(double lat, double lng, String label) onNavigate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      child: Row(
+        children: [
+          if (restaurant != null)
+            Expanded(
+              child: _NavChip(
+                icon: Icons.storefront_outlined,
+                label: AppStrings.navigateToRestaurant,
+                primary: !navigateToCustomer,
+                onTap: () => onNavigate(
+                  restaurant!.latitude,
+                  restaurant!.longitude,
+                  AppStrings.navigateToRestaurant,
+                ),
+              ),
+            ),
+          if (restaurant != null && customer != null) const SizedBox(width: 8),
+          if (customer != null)
+            Expanded(
+              child: _NavChip(
+                icon: Icons.home_outlined,
+                label: AppStrings.navigateToCustomer,
+                primary: navigateToCustomer,
+                onTap: () => onNavigate(
+                  customer!.latitude,
+                  customer!.longitude,
+                  AppStrings.navigateToCustomer,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+  }
+}
+
+class _NavChip extends StatelessWidget {
+  const _NavChip({
+    required this.icon,
+    required this.label,
+    required this.primary,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool primary;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: primary ? AppColors.primary : AppColors.surfaceElevated,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: primary ? AppColors.onPrimary : AppColors.textPrimary,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                    color: primary ? AppColors.onPrimary : AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MapMarker extends StatelessWidget {
+  const _MapMarker({
+    required this.icon,
+    required this.color,
+  });
+
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Icon(icon, color: Colors.white, size: 18),
+    );
   }
 }

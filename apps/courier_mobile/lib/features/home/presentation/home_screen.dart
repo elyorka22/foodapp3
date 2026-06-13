@@ -114,6 +114,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final hasActiveOrder = activeOrder.valueOrNull != null;
     final shiftBusy = _shiftLoading || !_profileLoaded;
     final jobAlert = ref.watch(newJobAlertProvider);
+    final inboxOrders = inbox.maybeWhen(
+      data: (orders) => orders,
+      orElse: () => const <CourierOrderModel>[],
+    );
+    final showJobBanner = jobAlert != null &&
+        !inboxOrders.any(
+          (order) => order.id == jobAlert.orderId && order.isPendingOffer,
+        );
+
+    ref.listen(homeInboxProvider, (_, next) {
+      next.whenData((orders) {
+        final alert = ref.read(newJobAlertProvider);
+        if (alert == null) return;
+        if (orders.any((order) => order.id == alert.orderId && order.isPendingOffer)) {
+          ref.read(newJobAlertProvider.notifier).state = null;
+        }
+      });
+    });
 
     return Scaffold(
       body: Column(
@@ -126,9 +144,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onHistory: () => context.push(AppRoutes.orderHistory),
             ),
           ),
-          if (jobAlert != null)
+          if (showJobBanner)
             NewJobAlertBanner(
-              alert: jobAlert,
+              alert: jobAlert!,
               onTap: () {
                 ref.read(newJobAlertProvider.notifier).state = null;
                 context.push(AppRoutes.incomingOrder, extra: jobAlert.orderId);

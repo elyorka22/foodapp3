@@ -6,7 +6,7 @@ import '../../../shared/models/courier_order_model.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../providers/new_job_alert_provider.dart';
 
-/// Plays sound/vibration and shows banner when a new pool job appears.
+/// Plays sound/vibration when a new pool job appears in the inbox poll.
 class AvailableOrdersWatcher extends ConsumerStatefulWidget {
   const AvailableOrdersWatcher({required this.child, super.key});
 
@@ -63,22 +63,6 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
     NewOrderSoundService.instance.play(
       soundEnabled: prefs.soundEnabled,
       vibrationEnabled: prefs.vibrationEnabled,
-    );
-
-    final pendingOffers = orders.where((order) => order.isPendingOffer).toList();
-    if (pendingOffers.isEmpty) return;
-
-    final newest = pendingOffers.firstWhere(
-      (o) => newIds.contains(o.id),
-      orElse: () => pendingOffers.first,
-    );
-
-    ref.read(newJobAlertProvider.notifier).state = NewJobAlert(
-      orderId: newest.id,
-      title: newest.restaurantName ?? newest.orderNumber,
-      payAtRestaurant: newest.orderAmount,
-      collectFromCustomer: newest.collectFromCustomer,
-      courierEarnings: newest.courierEarnings,
     );
   }
 }

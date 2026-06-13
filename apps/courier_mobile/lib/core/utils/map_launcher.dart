@@ -1,53 +1,98 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Opens Google Maps or Yandex Maps for navigation to a destination.
-Future<void> showMapPicker(BuildContext context, double lat, double lng) async {
+/// Opens external map apps for turn-by-turn navigation (free — no SDK/API key).
+Future<void> showMapPicker(
+  BuildContext context,
+  double lat,
+  double lng, {
+  String? label,
+}) async {
   await showModalBottomSheet<void>(
     context: context,
+    showDragHandle: true,
     builder: (ctx) => SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            child: Text(
+              label ?? 'Navigatsiya',
+              style: Theme.of(ctx).textTheme.titleMedium,
+            ),
+          ),
           ListTile(
             leading: const Icon(Icons.map_outlined),
             title: const Text('Google Maps'),
-            onTap: () {
+            subtitle: const Text('Yo\'l-yo\'riq bilan ochish'),
+            onTap: () async {
               Navigator.pop(ctx);
-              _openGoogleMaps(lat, lng);
+              final ok = await openGoogleNavigation(lat, lng);
+              if (!ok && context.mounted) {
+                _showLaunchError(context);
+              }
             },
           ),
           ListTile(
             leading: const Icon(Icons.navigation_outlined),
-            title: const Text('Yandex Maps'),
-            onTap: () {
+            title: const Text('Yandex Navigator'),
+            subtitle: const Text('Yo\'l-yo\'riq bilan ochish'),
+            onTap: () async {
               Navigator.pop(ctx);
-              _openYandexMaps(lat, lng);
+              final ok = await openYandexNavigation(lat, lng);
+              if (!ok && context.mounted) {
+                _showLaunchError(context);
+              }
             },
           ),
+          const SizedBox(height: 8),
         ],
       ),
     ),
   );
 }
 
-Future<void> _openGoogleMaps(double lat, double lng) async {
-  final uri = Uri.parse(
-    'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving',
-  );
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+Future<bool> openGoogleNavigation(double lat, double lng) async {
+  final candidates = <Uri>[
+    if (Platform.isAndroid) Uri.parse('google.navigation:q=$lat,$lng&mode=d'),
+    Uri.parse('geo:$lat,$lng?q=$lat,$lng'),
+    Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving',
+    ),
+  ];
+
+  for (final uri in candidates) {
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (launched) return true;
+    } catch (_) {}
   }
+  return false;
 }
 
-Future<void> _openYandexMaps(double lat, double lng) async {
-  final appUri = Uri.parse('yandexmaps://maps.yandex.ru/?pt=$lng,$lat&z=16&l=map');
-  if (await canLaunchUrl(appUri)) {
-    await launchUrl(appUri, mode: LaunchMode.externalApplication);
-    return;
+Future<bool> openYandexNavigation(double lat, double lng) async {
+  final candidates = <Uri>[
+    Uri.parse('yandexnavi://build_route_on_map?lat_to=$lat&lon_to=$lng'),
+    Uri.parse('yandexmaps://maps.yandex.ru/?rtext=~$lat,$lng&rtt=auto'),
+    Uri.parse('https://yandex.com/maps/?rtext=~$lat,$lng&rtt=auto'),
+  ];
+
+  for (final uri in candidates) {
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (launched) return true;
+    } catch (_) {}
   }
-  final webUri = Uri.parse('https://yandex.com/maps/?pt=$lng,$lat&z=16&l=map');
-  if (await canLaunchUrl(webUri)) {
-    await launchUrl(webUri, mode: LaunchMode.externalApplication);
-  }
+  return false;
+}
+
+void _showLaunchError(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Xarita ilovasini ochib bo\'lmadi. Google yoki Yandex Maps o\'rnating.'),
+    ),
+  );
 }
