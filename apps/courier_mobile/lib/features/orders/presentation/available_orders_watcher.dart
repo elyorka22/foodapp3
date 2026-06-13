@@ -38,10 +38,6 @@ class _AvailableOrdersWatcherState extends ConsumerState<AvailableOrdersWatcher>
   }
 
   void _onOrdersUpdated(List<CourierOrderModel> orders) {
-    final shiftOpen = ref.read(shiftSessionOpenProvider);
-    final backendOnline = ref.read(courierOnlineProvider).valueOrNull ?? false;
-    if (!shiftOpen && !backendOnline) return;
-
     final active = ref.read(activeOrderProvider).valueOrNull;
     if (active != null) return;
 

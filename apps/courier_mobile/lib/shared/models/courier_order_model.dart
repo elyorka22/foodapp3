@@ -118,13 +118,16 @@ class CourierOrderModel {
       !isDelivered &&
       (status == 'PREPARING' || needsCourierAcceptance);
 
-  /// New job the courier must accept (pool or manager assignment).
+  /// New job the courier must accept (pool or manager reassignment).
   bool get isPendingOffer =>
       inboxKind == 'accept' ||
       (inboxKind == null &&
           !isCancelled &&
           !isDelivered &&
           (status == 'PREPARING' || needsCourierAcceptance));
+
+  /// Assigned delivery in progress (blocks ending shift).
+  bool get isActiveJob => isOngoingJob || needsCourierAcceptance;
 
   /// Order already accepted and in progress.
   bool get isOngoingJob =>

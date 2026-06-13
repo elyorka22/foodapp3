@@ -28,16 +28,32 @@ void syncShiftSessionFromBackend(WidgetRef ref) {
   }
 }
 
+void removePushInboxOrder(Ref ref, String orderId) {
+  ref.read(pushInboxOrdersProvider.notifier).state = ref
+      .read(pushInboxOrdersProvider)
+      .where((item) => item.id != orderId)
+      .toList();
+}
+
 List<CourierOrderModel> mergeInboxOrders(
   List<CourierOrderModel> fromApi,
   List<CourierOrderModel> fromPush,
 ) {
   final seen = <String>{};
   final merged = <CourierOrderModel>[];
+  final byApi = {for (final order in fromApi) order.id: order};
 
-  for (final order in [...fromApi, ...fromPush]) {
+  for (final order in fromApi) {
     if (order.isCancelled || order.isDelivered) continue;
     if (seen.add(order.id)) merged.add(order);
+  }
+
+  for (final order in fromPush) {
+    if (order.isCancelled || order.isDelivered) continue;
+    if (seen.contains(order.id)) continue;
+    if (!order.isPendingOffer) continue;
+    seen.add(order.id);
+    merged.add(byApi[order.id] ?? order);
   }
 
   merged.sort((a, b) {
@@ -50,23 +66,37 @@ List<CourierOrderModel> mergeInboxOrders(
   return merged;
 }
 
-Future<CourierOrderModel?> _resolveOrderForPush(WidgetRef ref, String orderId) async {
-  try {
-    final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
-    if (!order.isCancelled) return order;
-  } catch (_) {}
+void _reconcilePushInbox(Ref ref, List<CourierOrderModel> fromApi) {
+  final byApi = {for (final order in fromApi) order.id: order};
+  ref.read(pushInboxOrdersProvider.notifier).state = ref
+      .read(pushInboxOrdersProvider)
+      .where((order) => !order.isCancelled && !order.isDelivered)
+      .map((order) => byApi[order.id] ?? order)
+      .where((order) {
+        final fresh = byApi[order.id];
+        if (fresh != null) return fresh.isPendingOffer || fresh.isOngoingJob;
+        return order.isPendingOffer;
+      })
+      .toList();
+}
 
+Future<CourierOrderModel?> _resolveOrderForPush(WidgetRef ref, String orderId) async {
   try {
     for (final order in await ref.read(courierRepositoryProvider).fetchHomeInbox()) {
       if (order.id == orderId) return order;
     }
   } catch (_) {}
 
+  try {
+    final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
+    if (!order.isCancelled) return order;
+  } catch (_) {}
+
   return null;
 }
 
 void _rememberPushOrder(WidgetRef ref, CourierOrderModel order) {
-  if (order.isCancelled || order.isDelivered) return;
+  if (order.isCancelled || order.isDelivered || !order.isPendingOffer) return;
 
   final current = ref.read(pushInboxOrdersProvider);
   if (current.any((item) => item.id == order.id)) return;
@@ -75,7 +105,6 @@ void _rememberPushOrder(WidgetRef ref, CourierOrderModel order) {
 
 /// Refresh lists and show in-app banner when a push about a new order arrives.
 Future<void> handleOrderPush(WidgetRef ref, String orderId) async {
-  ref.read(shiftSessionOpenProvider.notifier).state = true;
   syncShiftSessionFromBackend(ref);
   ref.invalidate(homeInboxProvider);
   ref.invalidate(activeOrderProvider);
@@ -153,7 +182,7 @@ final activeOrderProvider = StreamProvider.autoDispose<CourierOrderModel?>((ref)
       final orders = await ref.read(courierRepositoryProvider).fetchHomeInbox();
       CourierOrderModel? active;
       for (final order in orders) {
-        if (order.isOngoingJob) {
+        if (order.isActiveJob) {
           active = order;
           break;
         }
@@ -177,9 +206,15 @@ final homeInboxProvider =
   }
 
   while (true) {
-    final fromApi = await ref.read(courierRepositoryProvider).fetchHomeInbox();
-    final pushed = ref.read(pushInboxOrdersProvider);
-    yield mergeInboxOrders(fromApi, pushed);
+    try {
+      final fromApi = await ref.read(courierRepositoryProvider).fetchHomeInbox();
+      _reconcilePushInbox(ref, fromApi);
+      final pushed = ref.read(pushInboxOrdersProvider);
+      yield mergeInboxOrders(fromApi, pushed);
+    } catch (_) {
+      final pushed = ref.read(pushInboxOrdersProvider);
+      yield pushed.where((order) => order.isPendingOffer || order.isOngoingJob).toList();
+    }
     await Future<void>.delayed(_pollInterval);
   }
 });

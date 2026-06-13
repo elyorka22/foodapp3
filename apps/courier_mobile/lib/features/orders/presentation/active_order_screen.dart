@@ -62,8 +62,24 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
 
   Future<void> _load() async {
     try {
-      final order = await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
-      if (mounted) setState(() => _order = order);
+      CourierOrderModel? order;
+      try {
+        for (final item in await ref.read(courierRepositoryProvider).fetchHomeInbox()) {
+          if (item.id == widget.orderId) {
+            order = item;
+            break;
+          }
+        }
+      } catch (_) {}
+
+      order ??= await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
+
+      if (!mounted) return;
+      if (order.isPendingOffer && order.status == 'PREPARING') {
+        context.go(AppRoutes.incomingOrder, extra: widget.orderId);
+        return;
+      }
+      setState(() => _order = order);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

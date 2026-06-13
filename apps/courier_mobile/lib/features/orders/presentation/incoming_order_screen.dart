@@ -40,16 +40,17 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
   Future<void> _load() async {
     CourierOrderModel? loaded;
     try {
-      loaded = await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
-    } catch (_) {
-      try {
-        final available = await ref.read(courierRepositoryProvider).fetchInboxOffers();
-        for (final order in available) {
-          if (order.id == widget.orderId) {
-            loaded = order;
-            break;
-          }
+      for (final order in await ref.read(courierRepositoryProvider).fetchHomeInbox()) {
+        if (order.id == widget.orderId) {
+          loaded = order;
+          break;
         }
+      }
+    } catch (_) {}
+
+    if (loaded == null) {
+      try {
+        loaded = await ref.read(courierRepositoryProvider).fetchOrder(widget.orderId);
       } catch (_) {
         loaded = null;
       }
@@ -144,19 +145,18 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
     setState(() => _acting = true);
     try {
       syncShiftSessionFromBackend(ref);
-      final online = ref.read(courierOnlineProvider).valueOrNull ?? false;
-      if (!online) {
-        throw ApiException(message: AppStrings.mustBeOnline);
-      }
       await ref.read(courierRepositoryProvider).acceptOrder(widget.orderId);
+      removePushInboxOrder(ref, widget.orderId);
       ref.invalidate(activeOrderProvider);
       ref.invalidate(homeInboxProvider);
       if (!mounted) return;
       context.go(AppRoutes.activeOrder, extra: widget.orderId);
     } on DioException catch (e) {
+      removePushInboxOrder(ref, widget.orderId);
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      ref.invalidate(homeInboxProvider);
     } finally {
       if (mounted) setState(() => _acting = false);
     }

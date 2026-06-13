@@ -807,7 +807,8 @@ export class OrdersService {
     );
 
     const statusChanged = order.status !== OrderStatus.COURIER_ASSIGNED;
-    const acceptedAt = requireOnline ? new Date() : null;
+    const isPoolClaim = !allowReassign && !order.courierId;
+    const acceptedAt = requireOnline || isPoolClaim ? new Date() : null;
 
     await this.prisma.$transaction(async (tx) => {
       if (!allowReassign && !order.courierId) {

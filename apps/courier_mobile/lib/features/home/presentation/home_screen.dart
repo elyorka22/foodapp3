@@ -84,15 +84,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     try {
       await ref.read(courierRepositoryProvider).acceptOrder(order.id);
       ref.read(newJobAlertProvider.notifier).state = null;
-      ref.read(pushInboxOrdersProvider.notifier).state = ref
-          .read(pushInboxOrdersProvider)
-          .where((item) => item.id != order.id)
-          .toList();
+      removePushInboxOrder(ref, order.id);
       ref.invalidate(activeOrderProvider);
       ref.invalidate(homeInboxProvider);
       if (!mounted) return;
       context.push(AppRoutes.activeOrder, extra: order.id);
     } on DioException catch (e) {
+      removePushInboxOrder(ref, order.id);
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
       if (mounted) {
@@ -296,21 +294,6 @@ class _JobsInbox extends StatelessWidget {
         );
       },
       data: (orders) {
-        if (!isOnline && orders.isEmpty) {
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppSpacing.xxl),
-            children: [
-              const SizedBox(height: 48),
-              Text(
-                AppStrings.goOnlineToSeeOrders,
-                style: AppTypography.body,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          );
-        }
-
         if (orders.isEmpty) {
           return ListView(
             physics: const AlwaysScrollableScrollPhysics(),

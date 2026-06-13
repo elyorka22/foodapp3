@@ -47,24 +47,17 @@ class _AvailableOrdersPanelState extends ConsumerState<_AvailableOrdersPanel> {
   Future<void> _acceptOrder(CourierOrderModel order) async {
     if (_acceptingId != null) return;
 
-    final online = ref.read(courierOnlineProvider).valueOrNull ?? false;
-    if (!online) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStrings.mustBeOnline)),
-      );
-      return;
-    }
-
     setState(() => _acceptingId = order.id);
     try {
       await ref.read(courierRepositoryProvider).acceptOrder(order.id);
+      removePushInboxOrder(ref, order.id);
       ref.invalidate(activeOrderProvider);
       ref.invalidate(availableOrdersProvider);
       if (!mounted) return;
       Navigator.of(context).pop();
       context.push(AppRoutes.activeOrder, extra: order.id);
     } on DioException catch (e) {
+      removePushInboxOrder(ref, order.id);
       final err = e.error;
       final msg = err is ApiException ? err.message : AppStrings.errorGeneric;
       if (mounted) {

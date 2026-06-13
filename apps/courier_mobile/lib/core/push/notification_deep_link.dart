@@ -21,7 +21,9 @@ Future<void> navigateFromPushData(
     await handleOrderPush(ref, orderId);
     try {
       final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
-      if (order.isActive || order.needsCourierAcceptance) {
+      if (order.isPendingOffer) {
+        router.push(AppRoutes.incomingOrder, extra: orderId);
+      } else if (order.isOngoingJob || order.isActive) {
         router.push(AppRoutes.activeOrder, extra: orderId);
       } else {
         router.push(AppRoutes.incomingOrder, extra: orderId);
