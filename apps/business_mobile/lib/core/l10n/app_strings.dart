@@ -97,6 +97,12 @@ abstract final class AppStrings {
   static const newOwnerPassword = 'Parol';
   static const newOwnerPasswordHint = 'Parolni o\'zgartirish uchun yangisini kiriting';
   static const workingHours = 'Ish vaqti';
+  static const closedHoursHint =
+      'Ishlamaydigan vaqt — qolgan vaqtda ochiq (masalan 01:00 dan 09:00 gacha yopiq)';
+  static const closedFrom = 'Yopiq (dan)';
+  static const closedFromHint = '1:00 AM';
+  static const closedUntil = 'Yopiq (gacha)';
+  static const closedUntilHint = '9:00 AM';
   static const openTime = 'Ochilish';
   static const openTimeHint = '9:00 AM';
   static const closeTime = 'Yopilish';

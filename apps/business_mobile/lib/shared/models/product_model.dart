@@ -1,3 +1,5 @@
+import '../../core/utils/json_parse.dart';
+
 class ProductModel {
   const ProductModel({
     this.id,
@@ -45,7 +47,7 @@ class ProductModel {
     return ProductModel(
       id: json['id'] as String,
       name: json['name'] as String? ?? '',
-      price: json['price'] as num? ?? 0,
+      price: parseNum(json['price']),
       isAvailable: json['isAvailable'] as bool? ?? true,
       description: json['description'] as String?,
       businessId: json['businessId'] as String? ?? json['restaurantId'] as String?,

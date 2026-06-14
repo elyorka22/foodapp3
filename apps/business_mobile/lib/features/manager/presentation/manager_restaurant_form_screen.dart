@@ -31,8 +31,8 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
   final _ownerLogin = TextEditingController();
   final _ownerFullName = TextEditingController();
   final _ownerPassword = TextEditingController();
-  String _openTime24 = '09:00';
-  String _closeTime24 = '22:00';
+  String _closedFrom24 = '01:00';
+  String _closedUntil24 = '09:00';
   bool _isActive = true;
   bool _closedSunday = false;
   bool _loading = false;
@@ -80,8 +80,8 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
 
       if (hours.isNotEmpty) {
         final sample = hours.firstWhere((h) => !h.isClosed, orElse: () => hours.first);
-        _openTime24 = normalizeWorkingHourTime(sample.openTime, fallback: '09:00');
-        _closeTime24 = normalizeWorkingHourTime(sample.closeTime, fallback: '22:00');
+        _closedFrom24 = normalizeWorkingHourTime(sample.closedFrom, fallback: '01:00');
+        _closedUntil24 = normalizeWorkingHourTime(sample.closedUntil, fallback: '09:00');
         _closedSunday = hours.any((h) => h.dayOfWeek == 0 && h.isClosed);
       }
     }
@@ -130,24 +130,29 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   Text(AppStrings.workingHours, style: AppTypography.subtitle),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppStrings.closedHoursHint,
+                    style: AppTypography.caption,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
                       Expanded(
                         child: TimeAmPmField(
-                          labelText: AppStrings.openTime,
-                          hintText: AppStrings.openTimeHint,
-                          value24: _openTime24,
-                          onChanged: (v) => setState(() => _openTime24 = v),
+                          labelText: AppStrings.closedFrom,
+                          hintText: AppStrings.closedFromHint,
+                          value24: _closedFrom24,
+                          onChanged: (v) => setState(() => _closedFrom24 = v),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: TimeAmPmField(
-                          labelText: AppStrings.closeTime,
-                          hintText: AppStrings.closeTimeHint,
-                          value24: _closeTime24,
-                          onChanged: (v) => setState(() => _closeTime24 = v),
+                          labelText: AppStrings.closedUntil,
+                          hintText: AppStrings.closedUntilHint,
+                          value24: _closedUntil24,
+                          onChanged: (v) => setState(() => _closedUntil24 = v),
                         ),
                       ),
                     ],
@@ -239,8 +244,8 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
 
   List<WorkingHourModel> _buildWorkingHours() {
     return buildWeeklyHours(
-      openTime: normalizeWorkingHourTime(_openTime24, fallback: '09:00'),
-      closeTime: normalizeWorkingHourTime(_closeTime24, fallback: '22:00'),
+      closedFrom: normalizeWorkingHourTime(_closedFrom24, fallback: '01:00'),
+      closedUntil: normalizeWorkingHourTime(_closedUntil24, fallback: '09:00'),
       closedSunday: _closedSunday,
     );
   }

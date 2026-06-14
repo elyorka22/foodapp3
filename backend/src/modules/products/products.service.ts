@@ -242,7 +242,7 @@ export class ProductsService {
       entityId: product.id,
       metadata: { name: product.name },
     });
-    return product;
+    return this.mapProduct(product);
   }
 
   async update(id: string, dto: Partial<CreateProductDto>, user: JwtPayload) {
@@ -321,7 +321,7 @@ export class ProductsService {
       entityId: id,
       metadata: dto,
     });
-    return product;
+    return this.mapProduct(product);
   }
 
   async addImage(id: string, url: string, user: JwtPayload) {

@@ -7,15 +7,23 @@ class WorkingHourModel {
   });
 
   final int dayOfWeek;
+  /// When work resumes (end of non-working block). Stored as openTime in API.
   final String openTime;
+  /// When work pauses (start of non-working block). Stored as closeTime in API.
   final String closeTime;
   final bool isClosed;
+
+  /// Non-working period start (UI).
+  String get closedFrom => closeTime;
+
+  /// Non-working period end (UI).
+  String get closedUntil => openTime;
 
   factory WorkingHourModel.fromJson(Map<String, dynamic> json) {
     return WorkingHourModel(
       dayOfWeek: (json['dayOfWeek'] as num?)?.toInt() ?? 0,
       openTime: json['openTime'] as String? ?? '09:00',
-      closeTime: json['closeTime'] as String? ?? '22:00',
+      closeTime: json['closeTime'] as String? ?? '01:00',
       isClosed: json['isClosed'] as bool? ?? false,
     );
   }
@@ -28,17 +36,18 @@ class WorkingHourModel {
       };
 }
 
+/// Same non-working hours for every day (e.g. closed 01:00–09:00 → open rest of day).
 List<WorkingHourModel> buildWeeklyHours({
-  required String openTime,
-  required String closeTime,
+  required String closedFrom,
+  required String closedUntil,
   bool closedSunday = false,
 }) {
   return List.generate(
     7,
     (day) => WorkingHourModel(
       dayOfWeek: day,
-      openTime: openTime,
-      closeTime: closeTime,
+      openTime: closedUntil,
+      closeTime: closedFrom,
       isClosed: day == 0 && closedSunday,
     ),
   );

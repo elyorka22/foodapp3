@@ -62,7 +62,7 @@ export default function BusinessSchedulePage() {
         DAY_NAMES.map((_, dayOfWeek) => ({
           dayOfWeek,
           openTime: '09:00',
-          closeTime: '22:00',
+          closeTime: '01:00',
           isClosed: false,
         })),
       );
@@ -139,9 +139,10 @@ export default function BusinessSchedulePage() {
       ) : (
         <div className="space-y-8">
           <section>
-            <h2 className="mb-3 font-semibold">Working hours</h2>
+            <h2 className="mb-3 font-semibold">Non-working hours</h2>
             <p className="mb-4 text-sm opacity-70">
-              Customers cannot order outside these hours. Leave a day closed if needed.
+              Specify when the restaurant is closed each day. It stays open the rest of the day
+              (e.g. closed 1:00 AM–9:00 AM). Check &quot;Closed&quot; for a full day off.
             </p>
             <ul className="space-y-3">
               {schedule.map((row, idx) => (
@@ -162,22 +163,23 @@ export default function BusinessSchedulePage() {
                     />
                     Closed
                   </label>
-                  <TimeAmPmInput
-                    value={row.openTime}
-                    disabled={row.isClosed}
-                    onChange={(openTime) => {
-                      const next = [...schedule];
-                      next[idx] = { ...row, openTime };
-                      setSchedule(next);
-                    }}
-                  />
-                  <span>–</span>
+                  <span className="text-xs opacity-60">Closed from</span>
                   <TimeAmPmInput
                     value={row.closeTime}
                     disabled={row.isClosed}
                     onChange={(closeTime) => {
                       const next = [...schedule];
                       next[idx] = { ...row, closeTime };
+                      setSchedule(next);
+                    }}
+                  />
+                  <span className="text-xs opacity-60">to</span>
+                  <TimeAmPmInput
+                    value={row.openTime}
+                    disabled={row.isClosed}
+                    onChange={(openTime) => {
+                      const next = [...schedule];
+                      next[idx] = { ...row, openTime };
                       setSchedule(next);
                     }}
                   />

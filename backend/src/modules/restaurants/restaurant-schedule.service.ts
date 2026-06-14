@@ -3,6 +3,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import {
   resolveRestaurantAvailability,
   normalizeTimeTo24h,
+  getAppTimezone,
+  getLocalDateKey,
   type RestaurantAvailability,
 } from '../../common/utils/restaurant-hours.util';
 
@@ -43,20 +45,14 @@ export class RestaurantScheduleService {
     const result = new Map<string, RestaurantAvailability>();
     if (!businessIds.length) return result;
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    const todayKey = getLocalDateKey(new Date(), getAppTimezone());
 
     const [allHours, allHolidays] = await Promise.all([
       this.prisma.businessWorkingHours.findMany({
         where: { businessId: { in: businessIds } },
       }),
       this.prisma.businessHoliday.findMany({
-        where: {
-          businessId: { in: businessIds },
-          date: { gte: todayStart, lte: todayEnd },
-        },
+        where: { businessId: { in: businessIds } },
       }),
     ]);
 
@@ -69,6 +65,7 @@ export class RestaurantScheduleService {
 
     const holidaysByBusiness = new Map<string, typeof allHolidays>();
     for (const row of allHolidays) {
+      if (getLocalDateKey(row.date, getAppTimezone()) !== todayKey) continue;
       const list = holidaysByBusiness.get(row.businessId) ?? [];
       list.push(row);
       holidaysByBusiness.set(row.businessId, list);

@@ -28,6 +28,7 @@ import { TableSkeleton } from '@/components/admin/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { resolveFormSlug } from '@/lib/slugify';
+import { resolveImageUrl } from '@/lib/image-url';
 
 const emptyProduct: ProductForm = {
   restaurantId: '',
@@ -136,7 +137,7 @@ export function AdminProductsPage({ vertical }: Props) {
         id: 'image',
         header: 'Image',
         cell: ({ row }) => {
-          const url = row.original.images?.[0]?.url;
+          const url = resolveImageUrl(row.original.images?.[0]?.url);
           return url ? (
             <img src={url} alt="" className="h-10 w-10 rounded object-cover" />
           ) : (
@@ -269,7 +270,21 @@ export function AdminProductsPage({ vertical }: Props) {
     }
     try {
       const created: any = await create.mutateAsync(buildProductPayload());
-      if (imageFile && created?.id) await saveWithImage(created.id);
+      if (imageFile && created?.id) {
+        try {
+          await saveWithImage(created.id);
+        } catch (imageError) {
+          toast.error(
+            imageError instanceof Error
+              ? `Product saved, but image upload failed: ${imageError.message}`
+              : 'Product saved, but image upload failed',
+          );
+          setCreateOpen(false);
+          setForm(emptyProduct);
+          setImageFile(null);
+          return;
+        }
+      }
       setCreateOpen(false);
       setForm(emptyProduct);
       setImageFile(null);
@@ -312,7 +327,21 @@ export function AdminProductsPage({ vertical }: Props) {
         id: editRow.id,
         body,
       });
-      if (imageFile) await saveWithImage(editRow.id);
+      if (imageFile) {
+        try {
+          await saveWithImage(editRow.id);
+        } catch (imageError) {
+          toast.error(
+            imageError instanceof Error
+              ? `Product updated, but image upload failed: ${imageError.message}`
+              : 'Product updated, but image upload failed',
+          );
+          setEditRow(null);
+          setForm(emptyProduct);
+          setImageFile(null);
+          return;
+        }
+      }
       setEditRow(null);
       setForm(emptyProduct);
       setImageFile(null);
