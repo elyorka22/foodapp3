@@ -126,6 +126,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         isAvailable: _isAvailable,
         dishCategoryId: _isStore ? null : _categoryId,
         productCategoryId: _isStore ? _categoryId : null,
+        slug: widget.args.existing?.slug,
       );
 
       ProductModel saved;

@@ -11,6 +11,7 @@ class ProductModel {
     this.dishCategoryId,
     this.productCategoryId,
     this.imageUrl,
+    this.slug,
   });
 
   final String? id;
@@ -22,6 +23,7 @@ class ProductModel {
   final String? dishCategoryId;
   final String? productCategoryId;
   final String? imageUrl;
+  final String? slug;
 
   String? get categoryId => dishCategoryId ?? productCategoryId;
 
@@ -54,6 +56,7 @@ class ProductModel {
       dishCategoryId: dishCategoryId,
       productCategoryId: productCategoryId,
       imageUrl: imageUrl,
+      slug: json['slug'] as String?,
     );
   }
 
@@ -76,7 +79,7 @@ class ProductModel {
     final categoryId = dishCategoryId ?? productCategoryId;
     return {
       'name': name,
-      'slug': _slugify(name),
+      'slug': _resolveProductSlug(name, slug),
       'price': price,
       if (description != null) 'description': description,
       'isAvailable': isAvailable,
@@ -84,6 +87,14 @@ class ProductModel {
       if (!isStore && categoryId != null) 'dishCategoryId': categoryId,
     };
   }
+}
+
+String _resolveProductSlug(String name, String? existingSlug) {
+  final kept = existingSlug?.trim();
+  if (kept != null && kept.isNotEmpty) return kept;
+  final generated = _slugify(name);
+  if (generated.isNotEmpty) return generated;
+  return 'item-${DateTime.now().millisecondsSinceEpoch}';
 }
 
 String _slugify(String name) {
