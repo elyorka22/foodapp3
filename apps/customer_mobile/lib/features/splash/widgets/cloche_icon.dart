@@ -36,14 +36,15 @@ class ClocheIcon extends StatelessWidget {
           ),
           Positioned(
             bottom: plateHeight * 0.42,
-            child: Transform(
-              alignment: Alignment.bottomCenter,
-              transform: Matrix4.identity()
-                ..translateByDouble(0.0, lidLift, 0.0)
-                ..rotateZ(lidRotationDegrees * math.pi / 180),
-              child: CustomPaint(
-                size: Size(size * 0.92, lidHeight),
-                painter: const _ClocheLidPainter(),
+            child: Transform.translate(
+              offset: Offset(0, lidLift),
+              child: Transform.rotate(
+                alignment: Alignment.bottomCenter,
+                angle: lidRotationDegrees * math.pi / 180,
+                child: CustomPaint(
+                  size: Size(size * 0.92, lidHeight),
+                  painter: const _ClocheLidPainter(),
+                ),
               ),
             ),
           ),
