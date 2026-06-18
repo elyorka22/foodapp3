@@ -6,14 +6,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/image_framing.dart';
 import '../../../core/utils/image_url.dart';
 import '../models/booking_models.dart';
 import '../providers/booking_provider.dart';
 
-const _bookingBg = Color(0xFF0C0A09);
-const _amber = Color(0xFFF59E0B);
+const _bookingBg = AppColors.pageBackground;
 
 class BookingScreen extends ConsumerStatefulWidget {
   const BookingScreen({super.key});
@@ -54,37 +55,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
     return Scaffold(
       backgroundColor: _bookingBg,
-      body: Stack(
-        children: [
-          Positioned(
-            left: -80,
-            top: 80,
-            child: Container(
-              width: 288,
-              height: 288,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _amber.withValues(alpha: 0.2),
-              ),
-            ),
-          ),
-          Positioned(
-            right: -64,
-            bottom: 128,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFEA580C).withValues(alpha: 0.15),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: RefreshIndicator(
-              color: _amber,
-              backgroundColor: _bookingBg,
-              onRefresh: () async {
+      body: SafeArea(
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          backgroundColor: AppColors.surface,
+          onRefresh: () async {
                 ref.invalidate(bookingSlidesProvider);
                 ref.invalidate(bookingVenuesProvider);
                 await Future.wait([
@@ -113,20 +88,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           const Text(
                             AppStrings.bookingTitle,
                             style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
                               height: 1.15,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
                             AppStrings.bookingSubtitle,
-                            style: TextStyle(
-                              fontSize: 14,
-                              height: 1.5,
-                              color: Colors.grey.shade400,
-                            ),
+                            style: AppTypography.bodySmall.copyWith(height: 1.5),
                           ),
                           const SizedBox(height: AppSpacing.lg),
                           slidesAsync.when(
@@ -164,11 +135,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           const SizedBox(height: AppSpacing.lg),
                           const Text(
                             AppStrings.bookingVenuesTitle,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                            style: AppTypography.title,
                           ),
                           const SizedBox(height: AppSpacing.md),
                         ],
@@ -188,18 +155,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               padding: const EdgeInsets.all(AppSpacing.xl),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
+                                color: AppColors.surface,
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
+                                  color: AppColors.border,
                                   style: BorderStyle.solid,
                                 ),
                               ),
                               child: Text(
                                 AppStrings.bookingEmpty,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontSize: 14,
-                                ),
+                                style: AppTypography.bodySmall,
                               ),
                             ),
                           ),
@@ -230,7 +195,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       child: Center(
                         child: Padding(
                           padding: EdgeInsets.all(AppSpacing.xl),
-                          child: CircularProgressIndicator(color: _amber),
+                          child: CircularProgressIndicator(color: AppColors.primary),
                         ),
                       ),
                     ),
@@ -241,7 +206,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           children: [
                             Text(
                               AppStrings.bookingLoadError,
-                              style: TextStyle(color: Colors.grey.shade400),
+                              style: AppTypography.bodySmall,
                             ),
                             TextButton(
                               onPressed: () => ref.invalidate(bookingVenuesProvider),
@@ -256,8 +221,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ),
             ),
           ),
-        ],
-      ),
     );
   }
 }
@@ -270,25 +233,23 @@ class _BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.05),
+      color: AppColors.surface,
+      elevation: 1,
+      shadowColor: Colors.black12,
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.arrow_back, size: 16, color: Colors.grey.shade200),
+              const Icon(Icons.arrow_back, size: 16, color: AppColors.textSecondary),
               const SizedBox(width: 6),
               Text(
                 AppStrings.back,
-                style: TextStyle(color: Colors.grey.shade200, fontSize: 14),
+                style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -304,21 +265,20 @@ class _HeaderBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: _amber.withValues(alpha: 0.1),
+        color: AppColors.primarySoft,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _amber.withValues(alpha: 0.3)),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.calendar_month, size: 14, color: Color(0xFFFDE68A)),
+          Icon(Icons.calendar_month, size: 14, color: AppColors.primary),
           SizedBox(width: 6),
           Text(
             AppStrings.bookingBadge,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Color(0xFFFDE68A),
+              color: AppColors.primary,
             ),
           ),
         ],
@@ -336,11 +296,11 @@ class _HeroPlaceholder extends StatelessWidget {
       aspectRatio: 16 / 10,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          color: AppColors.surface,
         ),
         child: const Center(
-          child: CircularProgressIndicator(color: _amber),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       ),
     );
@@ -367,10 +327,17 @@ class _HeroSlide extends StatelessWidget {
     final url = resolveImageUrl(slide.imageUrl)!;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          color: AppColors.surface,
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: AspectRatio(
           aspectRatio: 16 / 10,
@@ -432,8 +399,8 @@ class _HeroSlide extends StatelessWidget {
                       FilledButton(
                         onPressed: onVenueTap,
                         style: FilledButton.styleFrom(
-                          backgroundColor: _amber,
-                          foregroundColor: Colors.black,
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 10,
@@ -462,8 +429,8 @@ class _HeroSlide extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(3),
                             color: active
-                                ? _amber
-                                : Colors.white.withValues(alpha: 0.4),
+                                ? AppColors.primary
+                                : Colors.white.withValues(alpha: 0.7),
                           ),
                         ),
                       );
@@ -521,28 +488,24 @@ class _FeatureTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: _amber, size: 22),
+          Icon(icon, color: AppColors.primary, size: 22),
           const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
+          Text(title, style: AppTypography.subtitle.copyWith(fontSize: 14)),
           const SizedBox(height: 4),
-          Text(
-            hint,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-          ),
+          Text(hint, style: AppTypography.caption),
         ],
       ),
     );
@@ -565,175 +528,150 @@ class _VenueCard extends StatelessWidget {
     final cover = resolveImageUrl(venue.coverUrl ?? venue.logoUrl);
 
     return Material(
-      color: Colors.white.withValues(alpha: 0.04),
-      borderRadius: BorderRadius.circular(24),
+      color: AppColors.surface,
+      elevation: 1,
+      shadowColor: Colors.black12,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-                child: AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (cover != null)
-                        applyImageFraming(
-                          imageScale: venue.coverScale,
-                          imagePositionX: venue.coverPositionX,
-                          imagePositionY: venue.coverPositionY,
-                          child: CachedNetworkImage(
-                            imageUrl: cover,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      else
-                        const DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0x4DF59E0B), Color(0x66C2410C)],
-                            ),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.auto_awesome,
-                              color: Color(0xCCFDE68A),
-                              size: 40,
-                            ),
-                          ),
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              child: AspectRatio(
+                aspectRatio: 4 / 3,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (cover != null)
+                      applyImageFraming(
+                        imageScale: venue.coverScale,
+                        imagePositionX: venue.coverPositionX,
+                        imagePositionY: venue.coverPositionY,
+                        child: CachedNetworkImage(
+                          imageUrl: cover,
+                          fit: BoxFit.cover,
                         ),
-                      DecoratedBox(
+                      )
+                    else
+                      const DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
                             colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.2),
-                              Colors.black.withValues(alpha: 0.85),
+                              AppColors.primarySoft,
+                              Color(0xFFFFE4CC),
                             ],
                           ),
                         ),
-                      ),
-                      Positioned(
-                        left: 12,
-                        top: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            typeLabel.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFFFDE68A),
-                              letterSpacing: 0.5,
-                            ),
+                        child: Center(
+                          child: Icon(
+                            Icons.auto_awesome,
+                            color: AppColors.primary,
+                            size: 40,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      venue.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Positioned(
+                      left: 12,
+                      top: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          typeLabel.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     ),
-                    if (venue.description != null &&
-                        venue.description!.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        venue.description!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade300,
-                        ),
-                      ),
-                    ],
-                    if (venue.highlights.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: venue.highlights.take(3).map((tag) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              tag,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFFFEF3C7),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                    if (venue.address != null && venue.address!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 14,
-                            color: Colors.grey.shade400,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              venue.address!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade400,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    venue.name,
+                    style: AppTypography.subtitle.copyWith(fontSize: 18),
+                  ),
+                  if (venue.description != null &&
+                      venue.description!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      venue.description!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall,
+                    ),
+                  ],
+                  if (venue.highlights.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: venue.highlights.take(3).map((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primarySoft,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            tag,
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                  if (venue.address != null && venue.address!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: AppColors.textMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            venue.address!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -5,13 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/image_framing.dart';
 import '../../../core/utils/image_url.dart';
 import '../providers/booking_provider.dart';
-
-const _bookingBg = Color(0xFF0C0A09);
-const _amber = Color(0xFFF59E0B);
 
 class BookingVenueScreen extends ConsumerWidget {
   const BookingVenueScreen({super.key, required this.slug});
@@ -37,7 +36,7 @@ class BookingVenueScreen extends ConsumerWidget {
     final venueAsync = ref.watch(bookingVenueDetailProvider(slug));
 
     return Scaffold(
-      backgroundColor: _bookingBg,
+      backgroundColor: AppColors.pageBackground,
       body: venueAsync.when(
         data: (venue) {
           final cover = resolveImageUrl(venue.coverUrl ?? venue.logoUrl);
@@ -68,24 +67,12 @@ class BookingVenueScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Color(0xFFD97706),
-                                    Color(0xFF7C2D12),
+                                    AppColors.primarySoft,
+                                    Color(0xFFFFE4CC),
                                   ],
                                 ),
                               ),
                             ),
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.3),
-                                  _bookingBg,
-                                ],
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -101,154 +88,137 @@ class BookingVenueScreen extends ConsumerWidget {
                 ),
               ),
               SliverToBoxAdapter(
-                child: Transform.translate(
-                  offset: const Offset(0, -32),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _amber,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _venueTypeLabel(venue.venueType).toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.xl,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySoft,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _venueTypeLabel(venue.venueType).toUpperCase(),
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        venue.name,
+                        style: AppTypography.display,
+                      ),
+                      if (venue.description != null &&
+                          venue.description!.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.md),
                         Text(
-                          venue.name,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
+                          venue.description!,
+                          style: AppTypography.bodySmall.copyWith(height: 1.5),
                         ),
-                        if (venue.description != null &&
-                            venue.description!.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            venue.description!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              height: 1.5,
-                              color: Colors.grey.shade300,
+                      ],
+                      if (venue.highlights.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: venue.highlights.map((tag) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primarySoft,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                tag,
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.primaryDark,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.lg),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x14000000),
+                              blurRadius: 12,
+                              offset: Offset(0, 4),
                             ),
-                          ),
-                        ],
-                        if (venue.highlights.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.md),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: venue.highlights.map((tag) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            if (venue.address != null &&
+                                venue.address!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.md,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: _amber.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: _amber.withValues(alpha: 0.3),
-                                  ),
-                                ),
-                                child: Text(
-                                  tag,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFFFEF3C7),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                        const SizedBox(height: AppSpacing.lg),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.1),
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              if (venue.address != null &&
-                                  venue.address!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: AppSpacing.md,
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on_outlined,
-                                        color: _amber,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          venue.address!,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey.shade300,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              if (phone != null && phone.isNotEmpty)
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: FilledButton.icon(
-                                    onPressed: () => _callPhone(phone),
-                                    icon: const Icon(Icons.phone),
-                                    label: const Text(AppStrings.bookingCallToReserve),
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: _amber,
-                                      foregroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 14,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on_outlined,
+                                      color: AppColors.primary,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        venue.address!,
+                                        style: AppTypography.bodySmall,
                                       ),
                                     ),
-                                  ),
-                                )
-                              else
-                                Text(
-                                  AppStrings.bookingNoPhone,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade500,
+                                  ],
+                                ),
+                              ),
+                            if (phone != null && phone.isNotEmpty)
+                              SizedBox(
+                                width: double.infinity,
+                                child: FilledButton.icon(
+                                  onPressed: () => _callPhone(phone),
+                                  icon: const Icon(Icons.phone),
+                                  label: const Text(AppStrings.bookingCallToReserve),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
                                   ),
                                 ),
-                            ],
-                          ),
+                              )
+                            else
+                              Text(
+                                AppStrings.bookingNoPhone,
+                                style: AppTypography.bodySmall,
+                              ),
+                          ],
                         ),
-                        const SizedBox(height: AppSpacing.xl),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -256,7 +226,7 @@ class BookingVenueScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(
-          child: CircularProgressIndicator(color: _amber),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (_, __) => SafeArea(
           child: Padding(
@@ -266,11 +236,15 @@ class BookingVenueScreen extends ConsumerWidget {
               children: [
                 Text(
                   AppStrings.bookingVenueNotFound,
-                  style: TextStyle(color: Colors.grey.shade300),
+                  style: AppTypography.bodySmall,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 FilledButton(
                   onPressed: () => context.go(AppRoutes.booking),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text(AppStrings.back),
                 ),
               ],
@@ -290,21 +264,23 @@ class _BackChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.black.withValues(alpha: 0.45),
+      color: AppColors.surface,
+      elevation: 1,
+      shadowColor: Colors.black12,
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.arrow_back, size: 16, color: Colors.white),
-              SizedBox(width: 6),
+              const Icon(Icons.arrow_back, size: 16, color: AppColors.textSecondary),
+              const SizedBox(width: 6),
               Text(
                 AppStrings.back,
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),

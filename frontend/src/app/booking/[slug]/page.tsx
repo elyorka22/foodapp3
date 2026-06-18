@@ -13,11 +13,11 @@ export default function BookingVenuePage() {
 
   if (venue.isLoading) {
     return (
-      <div className="min-h-screen bg-[#0c0a09]">
-        <Skeleton className="aspect-[4/3] w-full rounded-none bg-zinc-800" />
+      <div className="min-h-screen bg-[#F5F5F7]">
+        <Skeleton className="aspect-[4/3] w-full rounded-none shadow-none" />
         <div className="p-4">
-          <Skeleton className="h-8 w-2/3 rounded-lg bg-zinc-800" />
-          <Skeleton className="mt-4 h-24 w-full rounded-2xl bg-zinc-800" />
+          <Skeleton className="h-8 w-2/3 rounded-lg shadow-none" />
+          <Skeleton className="mt-4 h-24 w-full rounded-2xl shadow-none" />
         </div>
       </div>
     );
@@ -25,7 +25,7 @@ export default function BookingVenuePage() {
 
   if (!venue.data) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0c0a09] p-6 text-center text-zinc-400">
+      <div className="flex min-h-screen items-center justify-center bg-[#F5F5F7] p-6 text-center text-zinc-500">
         {uz.bookingVenueNotFound}
       </div>
     );
