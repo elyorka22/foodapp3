@@ -1,29 +1,19 @@
 'use client';
 
-import { useState } from 'react';
 import { Clock, MapPin, Sparkles, Truck } from 'lucide-react';
 import { clsx } from 'clsx';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
-import { isValidCoords } from '@/lib/maps';
 import type { DeliveryLocationValue } from './delivery-location';
-
-type CalculatePayload = {
-  address: string;
-  lat: number;
-  lng: number;
-};
 
 type Props = {
   value: DeliveryLocationValue;
-  onChange: (value: DeliveryLocationValue) => void;
-  onCalculate?: (payload: CalculatePayload) => void | Promise<void>;
   calculating?: boolean;
   quoted?: boolean;
   deliveryFee: number | null;
   billableDistanceKm: number | null;
   deliveryError?: string | null;
-  onError?: (message: string) => void;
+  onRecalculate?: () => void;
 };
 
 function estimateEtaMinutes(distanceKm: number): number {
@@ -32,45 +22,14 @@ function estimateEtaMinutes(distanceKm: number): number {
 
 export function CheckoutDeliveryCard({
   value,
-  onChange,
-  onCalculate,
   calculating = false,
   quoted = false,
   deliveryFee,
   billableDistanceKm,
   deliveryError,
-  onError,
+  onRecalculate,
 }: Props) {
-  const [gettingGps, setGettingGps] = useState(false);
-  const busy = gettingGps || calculating;
-
-  const calculate = () => {
-    if (!navigator.geolocation) {
-      onError?.(uz.locationSendFailed);
-      return;
-    }
-    setGettingGps(true);
-    onError?.('');
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const payload: CalculatePayload = {
-          address: value.address.trim(),
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
-        onChange({ ...value, lat: payload.lat, lng: payload.lng });
-        setGettingGps(false);
-        if (onCalculate) await onCalculate(payload);
-      },
-      () => {
-        onError?.(uz.locationSendFailed);
-        setGettingGps(false);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
-    );
-  };
-
-  const hasCoords = isValidCoords(value.lat, value.lng);
+  const busy = calculating;
   const eta =
     quoted && billableDistanceKm != null ? estimateEtaMinutes(billableDistanceKm) : null;
 
@@ -94,7 +53,7 @@ export function CheckoutDeliveryCard({
           </div>
         </div>
 
-        {quoted && hasCoords ? (
+        {quoted ? (
           <div className="mt-4 space-y-3 rounded-[20px] bg-white/70 p-4 backdrop-blur-sm">
             {value.address.trim() ? (
               <div className="flex items-start gap-3">
@@ -145,24 +104,16 @@ export function CheckoutDeliveryCard({
           </p>
         ) : null}
 
-        <button
-          type="button"
-          onClick={calculate}
-          disabled={busy}
-          className={clsx(
-            'mt-4 flex w-full items-center justify-center gap-2 rounded-[18px] px-4 py-4 text-[15px] font-bold transition disabled:opacity-60',
-            quoted
-              ? 'bg-white text-[#C2410C] shadow-sm hover:bg-[#FFF4E8]'
-              : 'bg-gradient-to-r from-[#FF8A1F] via-[#FF7A00] to-[#FF6B00] text-white shadow-[0_8px_24px_rgba(255,122,0,0.35)] hover:brightness-105 active:scale-[0.99]',
-          )}
-        >
-          <MapPin size={18} />
-          {busy
-            ? uz.deliveryCalculating
-            : quoted
-              ? uz.recalculateDeliveryPrice
-              : uz.calculateDeliveryPrice}
-        </button>
+        {quoted && onRecalculate ? (
+          <button
+            type="button"
+            onClick={onRecalculate}
+            disabled={busy}
+            className="mt-4 w-full text-center text-[13px] font-semibold text-[#C2410C] underline-offset-2 hover:underline disabled:opacity-50"
+          >
+            {busy ? uz.deliveryCalculating : uz.recalculateDeliveryPrice}
+          </button>
+        ) : null}
       </div>
     </div>
   );

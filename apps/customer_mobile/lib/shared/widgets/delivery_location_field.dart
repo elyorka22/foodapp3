@@ -4,29 +4,22 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import 'customer_page.dart';
-import 'food_app_button.dart';
 
-/// GPS button to calculate delivery fee (no manual address field on checkout).
+/// Delivery info on checkout (main action is the bottom bar button).
 class DeliveryLocationField extends StatelessWidget {
   const DeliveryLocationField({
     super.key,
     required this.quoted,
     required this.busy,
-    required this.onCalculate,
+    this.onRecalculate,
   });
 
   final bool quoted;
   final bool busy;
-  final VoidCallback? onCalculate;
+  final VoidCallback? onRecalculate;
 
   @override
   Widget build(BuildContext context) {
-    final label = busy
-        ? AppStrings.deliveryCalculating
-        : quoted
-            ? AppStrings.recalculateDeliveryPrice
-            : AppStrings.calculateDeliveryPrice;
-
     return CustomerCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -40,13 +33,19 @@ class DeliveryLocationField extends StatelessWidget {
             AppStrings.deliveryPriceHint,
             style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
           ),
-          const SizedBox(height: AppSpacing.md),
-          FoodAppButton(
-            label: label,
-            variant: quoted ? FoodAppButtonVariant.secondary : FoodAppButtonVariant.primary,
-            isLoading: busy,
-            onPressed: busy ? null : onCalculate,
-          ),
+          if (quoted && onRecalculate != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            TextButton(
+              onPressed: busy ? null : onRecalculate,
+              child: Text(
+                busy ? AppStrings.deliveryCalculating : AppStrings.recalculateDeliveryPrice,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

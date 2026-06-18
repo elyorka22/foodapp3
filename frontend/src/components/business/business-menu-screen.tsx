@@ -12,8 +12,6 @@ import { RestaurantCategoryTabs } from '@/components/restaurant/restaurant-categ
 import { ProductCard, type MenuProduct } from '@/components/restaurant/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
-import { BusinessAvailabilityBanner } from '@/components/business/business-availability-badge';
 import { uz } from '@/lib/uz';
 
 type MenuCategory = { id: string; name: string; slug?: string };
@@ -135,9 +133,9 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
 
   return (
     <div className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-3 pb-24">
-      <RestaurantMenuHeader title={business.name} backHref={backHref} />
-
-      <BusinessAvailabilityBanner
+      <RestaurantMenuHeader
+        title={business.name}
+        backHref={backHref}
         isOpen={business.isOpen}
         closesAt={business.closesAt}
         closingSoon={business.closingSoon}

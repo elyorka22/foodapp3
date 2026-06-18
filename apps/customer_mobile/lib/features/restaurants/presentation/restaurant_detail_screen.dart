@@ -117,18 +117,24 @@ class _RestaurantDetailBody extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    Text(
-                      restaurant.name,
-                      style: AppTypography.title.copyWith(fontSize: 26),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Text(
+                          restaurant.name,
+                          style: AppTypography.title.copyWith(fontSize: 26),
+                        ),
+                        if (restaurant.isOpen != null)
+                          BusinessAvailabilityBadge(
+                            isOpen: restaurant.isOpen,
+                            closesAt: restaurant.closesAt,
+                            closingSoon: restaurant.closingSoon ?? false,
+                            compact: true,
+                          ),
+                      ],
                     ),
-                    if (restaurant.isOpen != null) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      BusinessAvailabilityBanner(
-                        isOpen: restaurant.isOpen,
-                        closesAt: restaurant.closesAt,
-                        closingSoon: restaurant.closingSoon ?? false,
-                      ),
-                    ],
                     const SizedBox(height: AppSpacing.lg),
                     RestaurantCategoryTabs(
                       categories: categories,

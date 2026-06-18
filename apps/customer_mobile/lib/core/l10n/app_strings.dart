@@ -133,6 +133,8 @@ abstract final class AppStrings {
   static const deliveryMethod = 'Yetkazish usuli';
   static const paymentMethod = "To'lov usuli";
   static const placeOrder = 'Buyurtmani tasdiqlash';
+  static String checkoutPlaceOrderWithTotal(String total) => '🛵 ${total}ga buyurtma berish';
+  static const phoneRequiredForOrders = 'Buyurtma uchun telefon raqam kerak';
 
   static const loading = 'Yuklanmoqda...';
   static const retry = 'Qayta urinish';

@@ -2,14 +2,24 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Heart, Search } from 'lucide-react';
+import { BusinessAvailabilityBadge } from '@/components/business/business-availability-badge';
 import { uz } from '@/lib/uz';
 
 type Props = {
   title: string;
   backHref?: string;
+  isOpen?: boolean;
+  closesAt?: string | null;
+  closingSoon?: boolean;
 };
 
-export function RestaurantMenuHeader({ title, backHref = '/' }: Props) {
+export function RestaurantMenuHeader({
+  title,
+  backHref = '/',
+  isOpen,
+  closesAt,
+  closingSoon,
+}: Props) {
   return (
     <header className="sticky top-0 z-30 bg-[#F5F5F7]/95 backdrop-blur-md pt-[calc(env(safe-area-inset-top,0px)+8px)]">
       <div className="flex items-center justify-between gap-2 px-1 pb-2">
@@ -37,9 +47,19 @@ export function RestaurantMenuHeader({ title, backHref = '/' }: Props) {
           </button>
         </div>
       </div>
-      <h1 className="px-1 pb-3 text-[26px] font-bold leading-tight tracking-tight text-zinc-900">
-        {title}
-      </h1>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1 pb-3">
+        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-zinc-900">
+          {title}
+        </h1>
+        {isOpen != null ? (
+          <BusinessAvailabilityBadge
+            isOpen={isOpen}
+            closesAt={closesAt}
+            closingSoon={closingSoon}
+            compact
+          />
+        ) : null}
+      </div>
     </header>
   );
 }

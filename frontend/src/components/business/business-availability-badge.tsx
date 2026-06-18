@@ -12,6 +12,7 @@ export type BusinessAvailability = {
 type Props = BusinessAvailability & {
   className?: string;
   onDark?: boolean;
+  compact?: boolean;
 };
 
 export function BusinessAvailabilityBadge({
@@ -20,6 +21,7 @@ export function BusinessAvailabilityBadge({
   closingSoon,
   className,
   onDark = false,
+  compact = false,
 }: Props) {
   if (isOpen == null) return null;
 
@@ -47,8 +49,14 @@ export function BusinessAvailabilityBadge({
       : 'text-zinc-500';
 
   return (
-    <span className={clsx('inline-flex min-w-0 items-center gap-1.5 text-[13px]', className)}>
-      <span className={clsx('h-1.5 w-1.5 shrink-0 rounded-full', dotColor)} />
+    <span
+      className={clsx(
+        'inline-flex min-w-0 items-center gap-1',
+        compact ? 'text-[12px]' : 'text-[13px]',
+        className,
+      )}
+    >
+      <span className={clsx(compact ? 'h-1 w-1' : 'h-1.5 w-1.5', 'shrink-0 rounded-full', dotColor)} />
       <span className={clsx('font-semibold', labelColor)}>
         {isOpen ? uz.open : uz.closed}
       </span>

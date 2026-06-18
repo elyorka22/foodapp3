@@ -180,6 +180,34 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
+  bool _primaryActionEnabled(List<CartItemModel> cart, String? customerId) {
+    if (_loading || _calculateBusy) return false;
+    if (_deliveryQuoted) return _canPlaceOrder;
+    return cart.isNotEmpty;
+  }
+
+  String _primaryActionLabel(num subtotal, num promoDiscount) {
+    if (_loading) return AppStrings.placingOrder;
+    if (_calculateBusy) return AppStrings.deliveryCalculating;
+    if (_deliveryQuoted) {
+      final netSubtotal = subtotal - promoDiscount;
+      final total = _deliveryFee != null ? netSubtotal + _deliveryFee! : null;
+      if (total != null) {
+        return AppStrings.checkoutPlaceOrderWithTotal(formatSum(total));
+      }
+      return AppStrings.placeOrder;
+    }
+    return AppStrings.calculateDeliveryPrice;
+  }
+
+  Future<void> _onPrimaryAction(List<CartItemModel> cart, String? customerId) async {
+    if (_deliveryQuoted) {
+      await _submit(cart, customerId);
+      return;
+    }
+    await _calculateDelivery();
+  }
+
   Future<void> _submit(List<CartItemModel> items, String? customerId) async {
     final businessId = ref.read(cartProvider.notifier).businessId;
     if (businessId == null) return;
@@ -321,7 +349,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           DeliveryLocationField(
             quoted: _deliveryQuoted,
             busy: _calculateBusy,
-            onCalculate: _calculateDelivery,
+            onRecalculate: _deliveryQuoted ? _calculateDelivery : null,
           ),
           if (_deliveryError != null) ...[
             const SizedBox(height: AppSpacing.sm),
@@ -354,18 +382,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
             ),
           ],
-          if (!_canPlaceOrder && !_loading) ...[
+          if (!_canPlaceOrder && _deliveryQuoted && !_loading) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              AppStrings.deliveryPriceRequired,
+              AppStrings.phoneRequiredForOrders,
               style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
             ),
           ],
           const SizedBox(height: AppSpacing.xxl),
           FoodAppButton(
-            label: _loading ? AppStrings.placingOrder : AppStrings.placeOrder,
-            isLoading: _loading,
-            onPressed: _canPlaceOrder ? () => _submit(cart, user?.id) : null,
+            label: _primaryActionLabel(total, _promoDiscount),
+            isLoading: _loading || _calculateBusy,
+            onPressed: _primaryActionEnabled(cart, user?.id)
+                ? () => _onPrimaryAction(cart, user?.id)
+                : null,
           ),
         ],
       ),

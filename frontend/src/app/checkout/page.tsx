@@ -46,6 +46,7 @@ export default function CheckoutPage() {
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const [billableDistanceKm, setBillableDistanceKm] = useState<number | null>(null);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [gettingGps, setGettingGps] = useState(false);
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
 
   const itemCount = useMemo(
@@ -94,39 +95,55 @@ export default function CheckoutPage() {
     return () => clearTimeout(timer);
   }, [restaurantId, deliveryLocation.lat, deliveryLocation.lng]);
 
-  const calculateDelivery = async (payload: {
-    address: string;
-    lat: number;
-    lng: number;
-  }) => {
+  const requestDeliveryQuote = () => {
     if (!restaurantId) return;
-    setDeliveryLocation((prev) => ({
-      ...prev,
-      address: payload.address,
-      lat: payload.lat,
-      lng: payload.lng,
-    }));
-    setDeliveryLoading(true);
+    if (!navigator.geolocation) {
+      setDeliveryError(uz.locationSendFailed);
+      setError(uz.locationSendFailed);
+      return;
+    }
+    setGettingGps(true);
     setDeliveryError(null);
     setError('');
     setDeliveryFee(null);
     setBillableDistanceKm(null);
 
-    try {
-      const quote = await fetchDeliveryQuote({
-        restaurantId,
-        latitude: payload.lat,
-        longitude: payload.lng,
-      });
-      setDeliveryFee(quote.deliveryFee);
-      setBillableDistanceKm(quote.billableDistanceKm);
-    } catch (err) {
-      setDeliveryFee(null);
-      setBillableDistanceKm(null);
-      setDeliveryError(err instanceof Error ? err.message : uz.orderFailed);
-    } finally {
-      setDeliveryLoading(false);
-    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setDeliveryLocation((prev) => ({
+          ...prev,
+          lat,
+          lng,
+        }));
+        setGettingGps(false);
+        setDeliveryLoading(true);
+        try {
+          const quote = await fetchDeliveryQuote({
+            restaurantId,
+            latitude: lat,
+            longitude: lng,
+          });
+          setDeliveryFee(quote.deliveryFee);
+          setBillableDistanceKm(quote.billableDistanceKm);
+        } catch (err) {
+          setDeliveryFee(null);
+          setBillableDistanceKm(null);
+          const message = err instanceof Error ? err.message : uz.orderFailed;
+          setDeliveryError(message);
+          setError(message);
+        } finally {
+          setDeliveryLoading(false);
+        }
+      },
+      () => {
+        setGettingGps(false);
+        setDeliveryError(uz.locationSendFailed);
+        setError(uz.locationSendFailed);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+    );
   };
 
   const applyPromo = async () => {
@@ -170,7 +187,7 @@ export default function CheckoutPage() {
       setError(locationError);
       return;
     }
-    if (deliveryFee == null || deliveryLoading || deliveryError) {
+    if (deliveryFee == null || deliveryCalculating || deliveryError) {
       setError(uz.deliveryPriceRequired);
       return;
     }
@@ -212,10 +229,11 @@ export default function CheckoutPage() {
     }
   };
 
-  const deliveryQuoted = deliveryFee != null && !deliveryLoading && !deliveryError;
+  const deliveryCalculating = gettingGps || deliveryLoading;
+  const deliveryQuoted = deliveryFee != null && !deliveryCalculating && !deliveryError;
   const canPlaceOrder =
     !loading &&
-    !deliveryLoading &&
+    !deliveryCalculating &&
     deliveryQuoted &&
     isValidUzPhone(phone);
 
@@ -272,18 +290,12 @@ export default function CheckoutPage() {
 
           <CheckoutDeliveryCard
             value={deliveryLocation}
-            onChange={setDeliveryLocation}
-            onCalculate={calculateDelivery}
-            calculating={deliveryLoading}
+            calculating={deliveryCalculating}
             quoted={deliveryQuoted}
             deliveryFee={deliveryFee}
             billableDistanceKm={billableDistanceKm}
             deliveryError={deliveryError}
-            onError={(msg) => {
-              if (msg) setError(msg);
-              else setError('');
-              setDeliveryError(msg || null);
-            }}
+            onRecalculate={requestDeliveryQuote}
           />
 
           {deliveryQuoted ? (
@@ -300,16 +312,19 @@ export default function CheckoutPage() {
             </p>
           ) : null}
 
-          {!canPlaceOrder && !loading ? (
-            <p className="text-center text-[12px] text-zinc-500">{uz.deliveryPriceRequired}</p>
+          {!canPlaceOrder && deliveryQuoted && !loading ? (
+            <p className="text-center text-[12px] text-zinc-500">{uz.phoneRequiredForOrders}</p>
           ) : null}
         </div>
       </main>
 
       <CheckoutSubmitBar
+        quoted={deliveryQuoted}
         total={grandTotal}
-        loading={loading}
-        disabled={!canPlaceOrder}
+        placingOrder={loading}
+        calculating={deliveryCalculating}
+        canSubmit={canPlaceOrder}
+        onCalculate={requestDeliveryQuote}
         onSubmit={submit}
       />
     </>

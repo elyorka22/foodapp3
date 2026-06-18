@@ -96,18 +96,24 @@ class _StoreMenuBody extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    Text(
-                      business.name,
-                      style: AppTypography.title.copyWith(fontSize: 26),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Text(
+                          business.name,
+                          style: AppTypography.title.copyWith(fontSize: 26),
+                        ),
+                        if (business.isOpen != null)
+                          BusinessAvailabilityBadge(
+                            isOpen: business.isOpen,
+                            closesAt: business.closesAt,
+                            closingSoon: business.closingSoon ?? false,
+                            compact: true,
+                          ),
+                      ],
                     ),
-                    if (business.isOpen != null) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      BusinessAvailabilityBanner(
-                        isOpen: business.isOpen,
-                        closesAt: business.closesAt,
-                        closingSoon: business.closingSoon ?? false,
-                      ),
-                    ],
                     const SizedBox(height: AppSpacing.lg),
                     RestaurantCategoryTabs(
                       categories: categories,
