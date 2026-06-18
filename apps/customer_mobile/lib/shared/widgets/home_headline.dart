@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/config/public_settings_provider.dart';
-import '../../core/l10n/app_strings.dart';
 import '../../core/router/routes.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/cities/presentation/city_selector.dart';

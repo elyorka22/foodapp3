@@ -168,8 +168,9 @@ class _ClocheFoodPainter extends CustomPainter {
     );
 
     final accent = Paint()..color = const Color(0xFFEA580C);
+    final accentSoft = Paint()..color = const Color(0xFFEA580C).withValues(alpha: 0.8);
     canvas.drawCircle(Offset(w * 0.36, h * 0.46), w * 0.07, accent);
-    canvas.drawCircle(Offset(w * 0.62, h * 0.5), w * 0.055, accent.withValues(alpha: 0.8));
+    canvas.drawCircle(Offset(w * 0.62, h * 0.5), w * 0.055, accentSoft);
   }
 
   @override

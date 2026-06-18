@@ -27,7 +27,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   static const _brandYellow = Color(0xFFFFD400);
   static const _brandYellowDeep = Color(0xFFF2C200);
-  static const _brandOrange = Color(0xFFFF6B00);
 
   static const _clocheSize = 164.0;
   static const _lidLiftDistance = 58.0;
