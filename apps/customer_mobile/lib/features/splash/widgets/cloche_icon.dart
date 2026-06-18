@@ -39,7 +39,7 @@ class ClocheIcon extends StatelessWidget {
             child: Transform(
               alignment: Alignment.bottomCenter,
               transform: Matrix4.identity()
-                ..translate(0.0, lidLift)
+                ..translateByDouble(0.0, lidLift, 0.0)
                 ..rotateZ(lidRotationDegrees * math.pi / 180),
               child: CustomPaint(
                 size: Size(size * 0.92, lidHeight),
