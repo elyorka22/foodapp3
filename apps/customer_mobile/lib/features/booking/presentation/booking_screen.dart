@@ -133,7 +133,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           const SizedBox(height: AppSpacing.lg),
                           const _FeatureGrid(),
                           const SizedBox(height: AppSpacing.lg),
-                          const Text(
+                          Text(
                             AppStrings.bookingVenuesTitle,
                             style: AppTypography.title,
                           ),
@@ -329,9 +329,9 @@ class _HeroSlide extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.surface,
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
               color: Color(0x14000000),
               blurRadius: 12,
@@ -487,10 +487,10 @@ class _FeatureTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+        boxShadow: [
           BoxShadow(
             color: Color(0x14000000),
             blurRadius: 12,
