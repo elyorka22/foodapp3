@@ -19,7 +19,7 @@ import '../../features/restaurants/presentation/category_products_screen.dart';
 import '../../features/restaurants/presentation/restaurant_detail_screen.dart';
 import '../../features/restaurants/presentation/restaurants_screen.dart';
 import '../../features/shell/main_shell_screen.dart';
-import '../../features/splash/splash_screen.dart';
+import '../../features/splash/presentation/splash_page.dart';
 import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/booking/presentation/booking_venue_screen.dart';
 import '../../features/stores/presentation/store_detail_screen.dart';
@@ -46,7 +46,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: AppRoutes.splash,
-        builder: (_, __) => const SplashScreen(),
+        builder: (_, __) => const SplashPage(),
       ),
       GoRoute(
         path: AppRoutes.checkout,
