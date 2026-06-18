@@ -67,6 +67,7 @@ export const adminI18n = {
     orderStats: 'Buyurtmalar statistikasi',
     settings: 'Sozlamalar',
     siteSettings: 'Sayt sozlamalari',
+    cities: 'Shaharlar',
     telegramSettings: 'Telegram sozlamalari',
     paymentSettings: "To'lov sozlamalari",
     deliverySettings: 'Yetkazib berish sozlamalari',

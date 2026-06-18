@@ -34,6 +34,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { FirebaseModule } from './common/firebase/firebase.module';
 import { AccountDeletionModule } from './modules/account-deletion/account-deletion.module';
 import { BookingVenuesModule } from './modules/booking-venues/booking-venues.module';
+import { CitiesModule } from './modules/cities/cities.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { BookingVenuesModule } from './modules/booking-venues/booking-venues.mod
     NotificationsModule,
     AccountDeletionModule,
     BookingVenuesModule,
+    CitiesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })

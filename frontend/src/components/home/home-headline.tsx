@@ -5,6 +5,7 @@ import { Bell } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePublicSettings } from '@/hooks/use-public-settings';
 import { uz } from '@/lib/uz';
+import { CitySelector } from '@/components/home/city-selector';
 
 export function HomeHeadline() {
   const settings = usePublicSettings();
@@ -20,14 +21,13 @@ export function HomeHeadline() {
     );
   }
 
-  const title = settings.data?.home_title?.trim() || uz.cityName;
-  const subtitle = settings.data?.home_subtitle?.trim();
+  const subtitle = settings.data?.home_subtitle?.trim() || uz.citySubtitle;
 
   return (
     <header className="pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-zinc-900">{title}</h1>
+          <CitySelector />
           {subtitle ? (
             <p className="mt-1 text-sm font-medium text-zinc-500">{subtitle}</p>
           ) : null}

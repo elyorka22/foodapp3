@@ -5,6 +5,7 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   LineChart,
+  MapPin,
   Package,
   ScrollText,
   Server,
@@ -149,7 +150,10 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: 'settings',
     title: t.nav.settings,
-    items: [{ href: '/admin/settings', label: t.nav.siteSettings, icon: Settings, permission: 'settings' }],
+    items: [
+      { href: '/admin/cities', label: t.nav.cities, icon: MapPin, permission: 'settings' },
+      { href: '/admin/settings', label: t.nav.siteSettings, icon: Settings, permission: 'settings' },
+    ],
   },
   {
     id: 'system',

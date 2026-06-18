@@ -973,3 +973,19 @@ model BookingSlide {
   @@index([isActive, sortOrder])
   @@map("booking_slides")
 }
+
+/// Service cities — shown in customer app header; expandable to multi-city later.
+model City {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String    @unique
+  sortOrder Int       @default(0) @map("sort_order")
+  isActive  Boolean   @default(true) @map("is_active")
+  isDefault Boolean   @default(false) @map("is_default")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([isActive, sortOrder])
+  @@map("cities")
+}

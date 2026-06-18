@@ -5,6 +5,7 @@ import '../../core/config/public_settings_provider.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/router/routes.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../features/cities/presentation/city_selector.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
@@ -32,12 +33,8 @@ class HomeHeadline extends ConsumerWidget {
           const _BellButton(),
         ],
       ),
-      error: (_, __) => const _HeadlineRow(
-        title: AppStrings.navRestaurants,
-        subtitle: null,
-      ),
+      error: (_, __) => const _HeadlineRow(subtitle: null),
       data: (s) => _HeadlineRow(
-        title: s.homeTitle.trim().isNotEmpty ? s.homeTitle : AppStrings.navRestaurants,
         subtitle: s.homeSubtitle.trim().isNotEmpty ? s.homeSubtitle : null,
       ),
     );
@@ -45,9 +42,8 @@ class HomeHeadline extends ConsumerWidget {
 }
 
 class _HeadlineRow extends StatelessWidget {
-  const _HeadlineRow({required this.title, this.subtitle});
+  const _HeadlineRow({this.subtitle});
 
-  final String title;
   final String? subtitle;
 
   @override
@@ -59,7 +55,7 @@ class _HeadlineRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: AppTypography.title.copyWith(fontSize: 26)),
+              const CitySelector(),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
                 Text(subtitle!, style: AppTypography.bodySmall),
