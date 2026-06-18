@@ -6,6 +6,8 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../shared/models/banner_model.dart';
+import '../../../shared/models/business_model.dart';
 import '../../../shared/widgets/food_app_restaurant_card.dart';
 import '../../../shared/widgets/home_banner_grid.dart';
 import '../../../shared/widgets/home_headline.dart';
@@ -38,36 +40,9 @@ class RestaurantsScreen extends ConsumerWidget {
             children: [
               const HomeHeadline(),
               const SizedBox(height: AppSpacing.lg),
-              banners.when(
-                data: (items) => featuredStores.when(
-                  data: (stores) => HomeBannerGrid(
-                    banners: items,
-                    featuredStores: stores,
-                  ),
-                  loading: () => const SizedBox(
-                    height: 280,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (_, __) => HomeBannerGrid(
-                    banners: items,
-                    featuredStores: const [],
-                  ),
-                ),
-                loading: () => const SizedBox(
-                  height: 280,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (_, __) => featuredStores.when(
-                  data: (stores) => HomeBannerGrid(
-                    banners: const [],
-                    featuredStores: stores,
-                  ),
-                  loading: () => const SizedBox(
-                    height: 280,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (_, __) => const SizedBox.shrink(),
-                ),
+              _HomeBannerSection(
+                banners: banners,
+                featuredStores: featuredStores,
               ),
               const SizedBox(height: AppSpacing.md),
               const HomeSecondaryBanners(),
@@ -106,6 +81,33 @@ class RestaurantsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Shows banners and stores independently — one slow request must not block the other.
+class _HomeBannerSection extends StatelessWidget {
+  const _HomeBannerSection({
+    required this.banners,
+    required this.featuredStores,
+  });
+
+  final AsyncValue<List<BannerModel>> banners;
+  final AsyncValue<List<BusinessModel>> featuredStores;
+
+  @override
+  Widget build(BuildContext context) {
+    final bothLoading = banners.isLoading && featuredStores.isLoading;
+    if (bothLoading) {
+      return const SizedBox(
+        height: 280,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return HomeBannerGrid(
+      banners: banners.valueOrNull ?? const [],
+      featuredStores: featuredStores.valueOrNull ?? const [],
     );
   }
 }

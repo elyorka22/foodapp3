@@ -189,12 +189,19 @@ class ProfileScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.invalidate(authStateProvider);
-            });
-            return const Center(child: CircularProgressIndicator());
-          },
+          error: (_, __) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(AppStrings.errorGeneric, style: AppTypography.bodySmall),
+                const SizedBox(height: AppSpacing.md),
+                TextButton(
+                  onPressed: () => ref.invalidate(authStateProvider),
+                  child: const Text(AppStrings.retry),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

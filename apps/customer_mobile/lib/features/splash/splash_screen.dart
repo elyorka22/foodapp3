@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/router/routes.dart';
+import '../../shared/models/auth_model.dart';
 import '../auth/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
@@ -25,16 +26,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await Future<void>.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
 
+    CustomerUserModel? user;
     try {
-      final user = await ref.read(authStateProvider.future);
-      if (!mounted) return;
-      if (user?.needsPhone == true) {
-        context.go(AppRoutes.completeProfile);
-      } else {
-        context.go(AppRoutes.restaurants);
-      }
+      user = await ref.read(authStateProvider.future).timeout(
+        const Duration(seconds: 3),
+      );
     } catch (_) {
-      if (!mounted) return;
+      user = ref.read(authStateProvider).valueOrNull;
+    }
+
+    if (!mounted) return;
+    if (user?.needsPhone == true) {
+      context.go(AppRoutes.completeProfile);
+    } else {
       context.go(AppRoutes.restaurants);
     }
   }

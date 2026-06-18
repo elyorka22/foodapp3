@@ -25,7 +25,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!mounted) return;
 
     try {
-      final user = await ref.read(authStateProvider.future);
+      final user = await ref.read(authStateProvider.future).timeout(
+        const Duration(seconds: 3),
+      );
       if (!mounted) return;
       context.go(user?.homeRoute ?? AppRoutes.login);
     } catch (_) {
