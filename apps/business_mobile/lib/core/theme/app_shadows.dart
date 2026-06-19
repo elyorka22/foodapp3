@@ -11,7 +11,7 @@ abstract final class AppShadows {
 
   static List<BoxShadow> get button => [
         BoxShadow(
-          color: const Color(0xFF0F766E).withValues(alpha: 0.25),
+          color: AppColors.primary.withValues(alpha: 0.25),
           blurRadius: 8,
           offset: const Offset(0, 4),
         ),

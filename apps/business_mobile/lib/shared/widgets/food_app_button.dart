@@ -48,7 +48,7 @@ class FoodAppButton extends StatelessWidget {
                   ? const SizedBox(
                       height: 22,
                       width: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
                     )
                   : Text(label, style: AppTypography.button.copyWith(color: _foreground)),
             ),
@@ -72,6 +72,7 @@ class FoodAppButton extends StatelessWidget {
   Color get _foreground {
     switch (variant) {
       case FoodAppButtonVariant.primary:
+        return AppColors.onPrimary;
       case FoodAppButtonVariant.danger:
         return Colors.white;
       case FoodAppButtonVariant.secondary:
