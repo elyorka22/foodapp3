@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { resolveSlugForCreate, resolveSlugForUpdate } from '../../common/utils/slug.util';
+import { resolveSlugForCreate, resolveSlugForUpdate, slugifyName } from '../../common/utils/slug.util';
 import { CreateDishCategoryDto } from './dto/create-dish-category.dto';
 import { UpdateDishCategoryDto } from './dto/update-dish-category.dto';
 
@@ -82,14 +82,17 @@ export class DishCategoriesService {
   }
 
   async update(id: string, dto: UpdateDishCategoryDto) {
-    await this.ensure(id);
+    const existing = await this.ensure(id);
     const data: Prisma.DishCategoryUpdateInput = {};
     if (dto.name !== undefined) data.name = dto.name.trim();
     if (dto.slug !== undefined) {
-      data.slug = await resolveSlugForUpdate({
-        slug: dto.slug,
-        isTaken: (s) => this.isSlugTaken(s, id),
-      });
+      const normalized = slugifyName(dto.slug);
+      if (normalized !== existing.slug) {
+        data.slug = await resolveSlugForUpdate({
+          slug: dto.slug,
+          isTaken: (s) => this.isSlugTaken(s, id),
+        });
+      }
     }
     if (dto.description !== undefined) data.description = dto.description?.trim();
     if (dto.icon !== undefined) data.icon = dto.icon?.trim();

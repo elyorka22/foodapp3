@@ -52,18 +52,26 @@ export function GlobalDishCategoriesPage() {
       toast.error('Nom kiriting');
       return;
     }
-    const body = {
-      ...form,
-      slug: resolveFormSlug(form.name, editId ? form.slug : undefined),
+    const base = {
+      name: form.name.trim(),
       description: form.description?.trim() || undefined,
+      imageUrl: form.imageUrl,
+      imageScale: form.imageScale,
+      imagePositionX: form.imagePositionX,
+      imagePositionY: form.imagePositionY,
+      sortOrder: form.sortOrder,
+      isActive: form.isActive,
     };
     try {
       if (editId) {
-        await update.mutateAsync({ id: editId, body });
+        await update.mutateAsync({ id: editId, body: base });
         setEditId(null);
         toast.success('Saqlandi');
       } else {
-        await create.mutateAsync(body);
+        await create.mutateAsync({
+          ...base,
+          slug: resolveFormSlug(form.name, undefined),
+        });
         toast.success('Kategoriya yaratildi');
       }
       setForm(emptyForm);

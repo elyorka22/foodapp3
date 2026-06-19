@@ -8,7 +8,7 @@ import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { userBusinessId, resolveBusinessId } from '../../domain/business/business-id.util';
 import { businessWhereForVertical } from '../../domain/business/merchant-vertical';
-import { resolveSlugForCreate, resolveSlugForUpdate } from '../../common/utils/slug.util';
+import { resolveSlugForCreate, resolveSlugForUpdate, slugifyName } from '../../common/utils/slug.util';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AdminProductsQueryDto } from './dto/admin-products-query.dto';
 import { BulkProductAction, BulkProductsDto } from './dto/bulk-products.dto';
@@ -288,10 +288,13 @@ export class ProductsService {
 
     let nextSlug: string | undefined;
     if (dto.slug !== undefined) {
-      nextSlug = await resolveSlugForUpdate({
-        slug: dto.slug,
-        isTaken: (candidate) => this.isProductSlugTaken(existing.businessId, candidate, id),
-      });
+      const normalized = slugifyName(dto.slug);
+      if (normalized !== existing.slug) {
+        nextSlug = await resolveSlugForUpdate({
+          slug: dto.slug,
+          isTaken: (candidate) => this.isProductSlugTaken(existing.businessId, candidate, id),
+        });
+      }
     }
 
     const product = await this.prisma.product.update({
@@ -332,13 +335,17 @@ export class ProductsService {
     if (!product || product.deletedAt) throw new NotFoundException();
     this.assertAccess(product.businessId, user);
 
-    const isFirst = product.images.length === 0;
+    // Replace existing photos so a new upload becomes the visible product image.
+    if (product.images.length > 0) {
+      await this.prisma.productImage.deleteMany({ where: { productId: id } });
+    }
+
     return this.prisma.productImage.create({
       data: {
         productId: id,
         url,
-        isPrimary: isFirst,
-        sortOrder: product.images.length,
+        isPrimary: true,
+        sortOrder: 0,
       },
     });
   }
@@ -410,6 +417,7 @@ export class ProductsService {
       where: {
         businessId,
         slug,
+        deletedAt: null,
         ...(excludeId && { id: { not: excludeId } }),
       },
       select: { id: true },

@@ -31,10 +31,15 @@ class ProductModel {
     final images = json['images'];
     String? imageUrl;
     if (images is List && images.isNotEmpty) {
-      final first = images.first;
-      if (first is Map) {
-        imageUrl = first['url'] as String?;
+      Map? picked;
+      for (final item in images) {
+        if (item is Map && item['isPrimary'] == true) {
+          picked = item;
+          break;
+        }
       }
+      picked ??= images.last is Map ? images.last as Map : null;
+      imageUrl = picked?['url'] as String?;
     }
     final category = json['category'];
     String? dishCategoryId = json['dishCategoryId'] as String?;
@@ -77,9 +82,10 @@ class ProductModel {
 
   Map<String, dynamic> toUpdateJson({required bool isStore}) {
     final categoryId = dishCategoryId ?? productCategoryId;
+    final keptSlug = slug?.trim();
     return {
       'name': name,
-      'slug': _resolveProductSlug(name, slug),
+      if (keptSlug != null && keptSlug.isNotEmpty) 'slug': keptSlug,
       'price': price,
       if (description != null) 'description': description,
       'isAvailable': isAvailable,
@@ -87,14 +93,6 @@ class ProductModel {
       if (!isStore && categoryId != null) 'dishCategoryId': categoryId,
     };
   }
-}
-
-String _resolveProductSlug(String name, String? existingSlug) {
-  final kept = existingSlug?.trim();
-  if (kept != null && kept.isNotEmpty) return kept;
-  final generated = _slugify(name);
-  if (generated.isNotEmpty) return generated;
-  return 'item-${DateTime.now().millisecondsSinceEpoch}';
 }
 
 String _slugify(String name) {

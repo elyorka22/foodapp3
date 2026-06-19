@@ -137,7 +137,9 @@ export function AdminProductsPage({ vertical }: Props) {
         id: 'image',
         header: 'Image',
         cell: ({ row }) => {
-          const url = resolveImageUrl(row.original.images?.[0]?.url);
+          const images = row.original.images ?? [];
+          const primary = images.find((i: { isPrimary?: boolean }) => i.isPrimary) ?? images[0];
+          const url = resolveImageUrl(primary?.url);
           return url ? (
             <img src={url} alt="" className="h-10 w-10 rounded object-cover" />
           ) : (
@@ -305,22 +307,22 @@ export function AdminProductsPage({ vertical }: Props) {
       return;
     }
     try {
+      const nextSlug = resolveFormSlug(form.name.trim(), editRow.slug);
+      const shared = {
+        name: form.name.trim(),
+        ...(nextSlug !== editRow.slug ? { slug: nextSlug } : {}),
+        description: form.description?.trim() || undefined,
+        price: form.price,
+        isAvailable: form.isAvailable,
+      };
       const body =
         vertical === 'store'
           ? {
-              name: form.name.trim(),
-              slug: resolveFormSlug(form.name.trim(), editRow.slug),
-              description: form.description?.trim() || undefined,
-              price: form.price,
-              isAvailable: form.isAvailable,
+              ...shared,
               productCategoryId: form.categoryId,
             }
           : {
-              name: form.name.trim(),
-              slug: resolveFormSlug(form.name.trim(), editRow.slug),
-              description: form.description?.trim() || undefined,
-              price: form.price,
-              isAvailable: form.isAvailable,
+              ...shared,
               dishCategoryId: form.categoryId,
             };
       await update.mutateAsync({
