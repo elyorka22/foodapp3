@@ -66,12 +66,10 @@ class ProductModel {
   }
 
   Map<String, dynamic> toCreateJson(String businessId, {required bool isStore}) {
-    final slug = _slugify(name);
     final categoryId = dishCategoryId ?? productCategoryId;
     return {
       'businessId': businessId,
       'name': name,
-      'slug': slug.isEmpty ? 'item-${DateTime.now().millisecondsSinceEpoch}' : slug,
       'price': price,
       if (description != null && description!.isNotEmpty) 'description': description,
       'isAvailable': isAvailable,
@@ -93,11 +91,4 @@ class ProductModel {
       if (!isStore && categoryId != null) 'dishCategoryId': categoryId,
     };
   }
-}
-
-String _slugify(String name) {
-  return name
-      .toLowerCase()
-      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-      .replaceAll(RegExp(r'^-|-$'), '');
 }

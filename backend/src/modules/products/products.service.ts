@@ -413,11 +413,11 @@ export class ProductsService {
     slug: string,
     excludeId?: string,
   ): Promise<boolean> {
+    // Unique index is on (businessId, slug) for all rows, including soft-deleted.
     const row = await this.prisma.product.findFirst({
       where: {
         businessId,
         slug,
-        deletedAt: null,
         ...(excludeId && { id: { not: excludeId } }),
       },
       select: { id: true },

@@ -31,9 +31,13 @@ export class CreateProductDto {
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({
+    description:
+      'Optional URL slug. Omit or match auto slug from name for unique auto-generation (palov-2, …).',
+  })
+  @IsOptional()
   @IsString()
-  slug: string;
+  slug?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
