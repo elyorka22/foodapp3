@@ -148,7 +148,7 @@ export function AdminCitiesPage() {
           </Button>
           {editId ? (
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setEditId(null);
                 setForm(emptyForm);
@@ -197,10 +197,10 @@ export function AdminCitiesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm" onClick={() => startEdit(row)}>
+                      <Button variant="secondary" size="sm" onClick={() => startEdit(row)}>
                         Tahrirlash
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => toggleActive(row.id, row.isActive)}>
+                      <Button variant="secondary" size="sm" onClick={() => toggleActive(row.id, row.isActive)}>
                         {row.isActive ? 'O‘chirish' : 'Yoqish'}
                       </Button>
                       <Button variant="ghost" size="sm" className="text-red-600" onClick={() => setDeleteId(row.id)}>
@@ -217,9 +217,11 @@ export function AdminCitiesPage() {
 
       <ConfirmDialog
         open={!!deleteId}
-        onOpenChange={(open) => !open && setDeleteId(null)}
         title="Shaharni o‘chirish"
         description="Shahar ro‘yxatdan olib tashlanadi. Davom etasizmi?"
+        danger
+        confirmText="O‘chirish"
+        onCancel={() => setDeleteId(null)}
         onConfirm={confirmDelete}
       />
     </div>
