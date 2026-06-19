@@ -79,27 +79,32 @@ export class CitiesService {
     });
     if (!existing) throw new NotFoundException('City not found');
 
-    const slug = await resolveSlugForUpdate({
-      id,
-      name: dto.name ?? existing.name,
-      slug: dto.slug,
-      currentSlug: existing.slug,
-      isTaken: (s) => this.isSlugTaken(s, id),
-    });
-
     if (dto.isDefault === true) {
       await this.clearOtherDefaults(id);
     }
 
+    const data: {
+      name?: string;
+      slug?: string;
+      sortOrder?: number;
+      isActive?: boolean;
+      isDefault?: boolean;
+    } = {};
+
+    if (dto.name !== undefined) data.name = dto.name.trim();
+    if (dto.slug !== undefined) {
+      data.slug = await resolveSlugForUpdate({
+        slug: dto.slug,
+        isTaken: (s) => this.isSlugTaken(s, id),
+      });
+    }
+    if (dto.sortOrder !== undefined) data.sortOrder = dto.sortOrder;
+    if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    if (dto.isDefault !== undefined) data.isDefault = dto.isDefault;
+
     return this.prisma.city.update({
       where: { id },
-      data: {
-        ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
-        slug,
-        ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
-        ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
-        ...(dto.isDefault !== undefined ? { isDefault: dto.isDefault } : {}),
-      },
+      data,
     });
   }
 
