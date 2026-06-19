@@ -1,6 +1,6 @@
 abstract final class AppStrings {
-  static const appName = 'Foodapp Business';
-  static const appTagline = 'Restoran va menejerlar uchun';
+  static const appName = 'FoodApp Business';
+  static const appTagline = 'Sizning biznes yordamchingiz!';
 
   static const phone = 'Telefon';
   static const loginId = 'Telefon yoki email';

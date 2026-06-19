@@ -37,28 +37,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.xxl),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xxl,
+            vertical: AppSpacing.xl,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 48),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.asset(
-                  'assets/images/app_icon.png',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
+              const SizedBox(height: AppSpacing.xxl),
+              Text(
+                AppStrings.appName,
+                style: AppTypography.title.copyWith(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
-              Text(AppStrings.appName, style: AppTypography.title.copyWith(fontSize: 24)),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 AppStrings.appTagline,
-                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                style: AppTypography.body.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
               ),
-              const SizedBox(height: AppSpacing.xxl),
+              const SizedBox(height: 48),
               TextField(
                 controller: _phone,
                 keyboardType: TextInputType.emailAddress,
@@ -74,6 +77,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               PasswordTextField(
                 controller: _password,
                 labelText: AppStrings.password,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _submit(),
               ),
               const SizedBox(height: AppSpacing.xxl),
               FoodAppButton(
@@ -97,12 +102,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    final loginId = _phone.text.trim();
+    final password = _password.text;
+    if (loginId.isEmpty || password.isEmpty) {
+      _showError('Telefon/email va parolni kiriting');
+      return;
+    }
+
     setState(() => _loading = true);
     try {
-      await ref.read(authStateProvider.notifier).login(
-            _phone.text.trim(),
-            _password.text,
-          );
+      await ref.read(authStateProvider.notifier).login(loginId, password);
       if (!mounted) return;
       final user = ref.read(authStateProvider).valueOrNull;
       if (user == null) {
