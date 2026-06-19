@@ -54,3 +54,41 @@ export function formatTime12h(time24: string): string {
 export function normalizeWorkingHourTime(time: string, fallback: string): string {
   return normalizeTimeTo24h(time) ?? normalizeTimeTo24h(fallback) ?? fallback;
 }
+
+export function minutesToTime24(totalMinutes: number): string {
+  const minutes = ((totalMinutes % (24 * 60)) + 24 * 60) % (24 * 60);
+  const hour = Math.floor(minutes / 60);
+  const minute = minutes % 60;
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+/**
+ * DB: closeTime = closed-from, openTime = closed-until (work resumes).
+ * Fixes swapped same-day morning blocks (e.g. 08:00–01:00 → 01:00–08:00).
+ */
+export function normalizeNonWorkingPeriodTimes(
+  closeTime: string,
+  openTime: string,
+): { closeTime: string; openTime: string } {
+  const close24 = normalizeTimeTo24h(closeTime);
+  const open24 = normalizeTimeTo24h(openTime);
+  if (!close24 || !open24) {
+    return { closeTime: close24 ?? closeTime, openTime: open24 ?? openTime };
+  }
+
+  let closedFrom = parseTimeToMinutes(close24);
+  let closedUntil = parseTimeToMinutes(open24);
+  if (!Number.isFinite(closedFrom) || !Number.isFinite(closedUntil)) {
+    return { closeTime: close24, openTime: open24 };
+  }
+
+  if (closedFrom > closedUntil && closedUntil < 12 * 60 && closedFrom <= 12 * 60) {
+    [closedFrom, closedUntil] = [closedUntil, closedFrom];
+    return {
+      closeTime: minutesToTime24(closedFrom),
+      openTime: minutesToTime24(closedUntil),
+    };
+  }
+
+  return { closeTime: close24, openTime: open24 };
+}

@@ -53,13 +53,13 @@ export function getLocalDayAndMinutes(
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone,
     weekday: 'short',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
   }).formatToParts(now);
 
   const weekday = parts.find((part) => part.type === 'weekday')?.value ?? 'Sun';
-  const hour = parseInt(parts.find((part) => part.type === 'hour')?.value ?? '0', 10) % 24;
+  const hour = parseInt(parts.find((part) => part.type === 'hour')?.value ?? '0', 10);
   const minute = parseInt(parts.find((part) => part.type === 'minute')?.value ?? '0', 10);
 
   return {
@@ -115,7 +115,10 @@ function minutesUntilClosedPeriod(
 }
 
 function scheduleForDay(workingHours: WorkingHourRow[], dayOfWeek: number) {
-  return workingHours.find((row) => row.dayOfWeek === dayOfWeek);
+  const direct = workingHours.find((row) => row.dayOfWeek === dayOfWeek);
+  if (direct) return direct;
+  // Partial/legacy rows — reuse first active day template (same hours every day).
+  return workingHours.find((row) => !row.isClosed);
 }
 
 function openFromSchedule(
@@ -159,13 +162,6 @@ export function resolveRestaurantAvailability(
   const todaySchedule = scheduleForDay(workingHours, dayOfWeek);
   const todayOpen = todaySchedule ? openFromSchedule(todaySchedule, currentMinutes) : null;
   if (todayOpen) return todayOpen;
-
-  const previousDay = (dayOfWeek + 6) % 7;
-  const previousSchedule = scheduleForDay(workingHours, previousDay);
-  if (previousSchedule && !previousSchedule.isClosed) {
-    const previousOpen = openFromSchedule(previousSchedule, currentMinutes);
-    if (previousOpen) return previousOpen;
-  }
 
   const closesAt = todaySchedule?.closeTime ? formatTime12h(todaySchedule.closeTime) : null;
   return {

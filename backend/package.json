@@ -16,7 +16,7 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:studio": "prisma studio",
     "migrate:images": "ts-node ../scripts/migrate-local-images.ts",
-    "test": "node -r ts-node/register/transpile-only --test src/common/utils/slug.util.spec.ts src/common/utils/restaurant-hours.util.spec.ts"
+    "test": "node -r ts-node/register/transpile-only --test src/common/utils/slug.util.spec.ts src/common/utils/time-format.util.spec.ts src/common/utils/restaurant-hours.util.spec.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1056.0",

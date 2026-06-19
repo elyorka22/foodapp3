@@ -17,6 +17,16 @@ const hours = [
   { dayOfWeek: 6, openTime: '09:00', closeTime: '01:00', isClosed: false },
 ];
 
+const hoursEightAm = [
+  { dayOfWeek: 0, openTime: '08:00', closeTime: '01:00', isClosed: false },
+  { dayOfWeek: 1, openTime: '08:00', closeTime: '01:00', isClosed: false },
+  { dayOfWeek: 2, openTime: '08:00', closeTime: '01:00', isClosed: false },
+  { dayOfWeek: 3, openTime: '08:00', closeTime: '01:00', isClosed: false },
+  { dayOfWeek: 4, openTime: '08:00', closeTime: '01:00', isClosed: false },
+  { dayOfWeek: 5, openTime: '08:00', closeTime: '01:00', isClosed: false },
+  { dayOfWeek: 6, openTime: '08:00', closeTime: '01:00', isClosed: false },
+];
+
 describe('isOpenOutsideClosedPeriod', () => {
   it('treats 01:00-09:00 closed block as open the rest of the day', () => {
     const closedFrom = 1 * 60;
@@ -50,12 +60,25 @@ describe('resolveRestaurantAvailability', () => {
     assert.equal(result.isOpen, false);
   });
 
+  it('is open at 08:00 when closed block ends at 08:00 in Asia/Tashkent', () => {
+    const now = new Date('2026-06-02T03:00:00.000Z'); // 08:00 Tashkent
+    const result = resolveRestaurantAvailability(hoursEightAm, [], now, 'Asia/Tashkent');
+    assert.equal(result.isOpen, true);
+  });
+
   it('is open after midnight before closed block starts', () => {
     const now = new Date('2026-06-01T19:30:00.000Z'); // Tue 00:30 in Tashkent
     const { dayOfWeek } = getLocalDayAndMinutes(now, 'Asia/Tashkent');
     assert.equal(dayOfWeek, 2);
 
     const result = resolveRestaurantAvailability(hours, [], now, 'Asia/Tashkent');
+    assert.equal(result.isOpen, true);
+  });
+
+  it('uses template row when current weekday is missing from schedule', () => {
+    const partial = [{ dayOfWeek: 1, openTime: '08:00', closeTime: '01:00', isClosed: false }];
+    const now = new Date('2026-06-02T04:30:00.000Z'); // Tue 09:30 Tashkent
+    const result = resolveRestaurantAvailability(partial, [], now, 'Asia/Tashkent');
     assert.equal(result.isOpen, true);
   });
 });

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { normalizeNonWorkingPeriodTimes, normalizeTimeTo24h } from '../../common/utils/time-format.util';
 import {
   resolveRestaurantAvailability,
-  normalizeTimeTo24h,
   getAppTimezone,
   getLocalDateKey,
   type RestaurantAvailability,
@@ -95,13 +95,19 @@ export class RestaurantScheduleService {
     await this.prisma.businessWorkingHours.deleteMany({ where: { businessId } });
     if (hours.length) {
       const data = hours.map((h) => {
-        const openTime = normalizeTimeTo24h(h.openTime);
-        const closeTime = normalizeTimeTo24h(h.closeTime);
+        const normalized = normalizeNonWorkingPeriodTimes(h.closeTime, h.openTime);
+        const openTime = normalizeTimeTo24h(normalized.openTime);
+        const closeTime = normalizeTimeTo24h(normalized.closeTime);
         if (!openTime) {
-          throw new BadRequestException(`Invalid open time: ${h.openTime}`);
+          throw new BadRequestException(`Invalid resume time: ${h.openTime}`);
         }
         if (!closeTime) {
-          throw new BadRequestException(`Invalid close time: ${h.closeTime}`);
+          throw new BadRequestException(`Invalid closed-from time: ${h.closeTime}`);
+        }
+        if (openTime === closeTime && !(h.isClosed ?? false)) {
+          throw new BadRequestException(
+            'Non-working period start and end must differ (e.g. closed 1:00 AM – 8:00 AM)',
+          );
         }
         return {
           businessId,

@@ -52,7 +52,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFD400),
+      backgroundColor: Colors.white,
       body: SplashScreen(onAnimationComplete: _onAnimationComplete),
     );
   }
