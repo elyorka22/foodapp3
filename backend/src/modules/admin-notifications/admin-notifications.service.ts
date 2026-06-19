@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AdminNotificationType, Prisma } from '@prisma/client';
+import { notificationRetentionCutoff } from '../../common/utils/notification-retention.util';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -89,8 +90,24 @@ export class AdminNotificationsService {
     });
   }
 
+  private freshAdminNotificationWhere(): Prisma.AdminNotificationWhereInput {
+    return { createdAt: { gte: notificationRetentionCutoff() } };
+  }
+
+  private schedulePurgeExpiredNotifications() {
+    void this.purgeExpiredNotifications().catch(() => undefined);
+  }
+
+  async purgeExpiredNotifications() {
+    await this.prisma.adminNotification.deleteMany({
+      where: { createdAt: { lt: notificationRetentionCutoff() } },
+    });
+  }
+
   async listForUser(userId: string, limit = 30) {
+    this.schedulePurgeExpiredNotifications();
     const notifications = await this.prisma.adminNotification.findMany({
+      where: this.freshAdminNotificationWhere(),
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: {
@@ -106,12 +123,21 @@ export class AdminNotificationsService {
 
   async unreadCount(userId: string) {
     const count = await this.prisma.adminNotification.count({
-      where: { reads: { none: { userId } } },
+      where: {
+        ...this.freshAdminNotificationWhere(),
+        reads: { none: { userId } },
+      },
     });
     return { count };
   }
 
   async markRead(notificationId: string, userId: string) {
+    const row = await this.prisma.adminNotification.findFirst({
+      where: { id: notificationId, ...this.freshAdminNotificationWhere() },
+      select: { id: true },
+    });
+    if (!row) return { ok: true };
+
     await this.prisma.adminNotificationRead.upsert({
       where: {
         notificationId_userId: { notificationId, userId },
@@ -124,7 +150,10 @@ export class AdminNotificationsService {
 
   async markAllRead(userId: string) {
     const unread = await this.prisma.adminNotification.findMany({
-      where: { reads: { none: { userId } } },
+      where: {
+        ...this.freshAdminNotificationWhere(),
+        reads: { none: { userId } },
+      },
       select: { id: true },
     });
     if (unread.length) {

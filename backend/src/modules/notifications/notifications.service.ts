@@ -5,6 +5,7 @@ import {
   Prisma,
   UserRole,
 } from '@prisma/client';
+import { notificationRetentionCutoff } from '../../common/utils/notification-retention.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PushDeliveryService } from './push/push-delivery.service';
 import { NotificationsGateway } from './notifications.gateway';
@@ -132,14 +133,36 @@ export class NotificationService {
     return pref?.enabled ?? true;
   }
 
+  private freshNotificationWhere(
+    userId: string,
+    accountType: NotificationAccountType,
+  ): Prisma.NotificationWhereInput {
+    return {
+      userId,
+      accountType,
+      createdAt: { gte: notificationRetentionCutoff() },
+    };
+  }
+
+  private schedulePurgeExpiredNotifications() {
+    void this.purgeExpiredNotifications().catch(() => undefined);
+  }
+
+  async purgeExpiredNotifications() {
+    await this.prisma.notification.deleteMany({
+      where: { createdAt: { lt: notificationRetentionCutoff() } },
+    });
+  }
+
   async getUserNotifications(
     userId: string,
     accountType: NotificationAccountType,
     limit = 50,
     cursor?: string,
   ) {
+    this.schedulePurgeExpiredNotifications();
     return this.prisma.notification.findMany({
-      where: { userId, accountType },
+      where: this.freshNotificationWhere(userId, accountType),
       orderBy: { createdAt: 'desc' },
       take: limit,
       ...(cursor
@@ -153,7 +176,10 @@ export class NotificationService {
 
   async getUnreadCount(userId: string, accountType: NotificationAccountType) {
     const count = await this.prisma.notification.count({
-      where: { userId, accountType, isRead: false },
+      where: {
+        ...this.freshNotificationWhere(userId, accountType),
+        isRead: false,
+      },
     });
     return { count };
   }
@@ -164,7 +190,10 @@ export class NotificationService {
     accountType: NotificationAccountType,
   ) {
     const row = await this.prisma.notification.findFirst({
-      where: { id: notificationId, userId, accountType },
+      where: {
+        id: notificationId,
+        ...this.freshNotificationWhere(userId, accountType),
+      },
     });
     if (!row) throw new NotFoundException('Notification not found');
     return this.prisma.notification.update({
@@ -175,7 +204,10 @@ export class NotificationService {
 
   async markAllAsRead(userId: string, accountType: NotificationAccountType) {
     await this.prisma.notification.updateMany({
-      where: { userId, accountType, isRead: false },
+      where: {
+        ...this.freshNotificationWhere(userId, accountType),
+        isRead: false,
+      },
       data: { isRead: true },
     });
     return { ok: true };
