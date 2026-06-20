@@ -6,7 +6,6 @@ import {
 import { OrderStatus, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { paginate, paginatedResponse } from '../../common/dto/pagination.dto';
-import { calculateDeliveryFee } from '../../common/utils/geo.util';
 import { normalizePhone } from '../../common/utils/phone.util';
 import { AuthService } from '../auth/auth.service';
 import { AuditService } from '../audit/audit.service';
@@ -516,7 +515,6 @@ export class CouriersService {
       branch: true,
     };
 
-    const deliveryConfig = await this.settings.getDeliveryPricing();
     const myStatuses: OrderStatus[] = [
       OrderStatus.COURIER_ASSIGNED,
       OrderStatus.ARRIVED_AT_RESTAURANT,
@@ -560,7 +558,7 @@ export class CouriersService {
       if (seen.has(order.id)) return;
       seen.add(order.id);
       inbox.push({
-        ...this.mapAvailableOrder(order, deliveryConfig),
+        ...this.mapAvailableOrder(order),
         inboxKind,
       });
     };
@@ -606,22 +604,17 @@ export class CouriersService {
       } | null;
       assignment?: { courierFee: unknown } | null;
     } & Record<string, unknown>,
-    deliveryConfig: { courierPricePerKm: number; courierMinFee: number },
   ) {
-    const dist = Number(order.distanceKm ?? 0);
-    const estimatedCourierFee = calculateDeliveryFee(
-      dist,
-      deliveryConfig.courierPricePerKm,
-      deliveryConfig.courierMinFee,
-    );
+    const payout = Number(order.deliveryFee ?? 0);
     return {
       ...order,
       restaurant: order.business,
       subtotal: Number(order.subtotal),
       discountAmount: Number(order.discountAmount ?? 0),
       total: Number(order.total),
-      deliveryFee: Number(order.deliveryFee),
-      estimatedCourierFee,
+      deliveryFee: payout,
+      courierFee: order.assignment ? payout : undefined,
+      estimatedCourierFee: payout,
       guestOrder: order.guestOrder
         ? {
             ...order.guestOrder,
@@ -643,30 +636,18 @@ export class CouriersService {
     const courier = await this.prisma.courier.findFirst({ where: { userId } });
     if (!courier) return null;
 
-    const [deliveredCount, earningsAgg, ordersWithoutAssignment] = await Promise.all([
+    const [deliveredCount, deliveredOrders] = await Promise.all([
       this.prisma.order.count({ where: this.deliveredOrdersWhere(courier.id) }),
-      this.prisma.courierAssignment.aggregate({
-        where: {
-          courierId: courier.id,
-          order: {
-            status: OrderStatus.DELIVERED,
-            deletedAt: null,
-          },
-        },
-        _sum: { courierFee: true },
-      }),
       this.prisma.order.findMany({
-        where: {
-          ...this.deliveredOrdersWhere(courier.id),
-          assignment: { is: null },
-        },
+        where: this.deliveredOrdersWhere(courier.id),
         select: { deliveryFee: true },
       }),
     ]);
 
-    const totalEarnings =
-      Number(earningsAgg._sum.courierFee ?? 0) +
-      ordersWithoutAssignment.reduce((sum, order) => sum + Number(order.deliveryFee), 0);
+    const totalEarnings = deliveredOrders.reduce(
+      (sum, order) => sum + Number(order.deliveryFee),
+      0,
+    );
 
     return {
       totalEarnings,
@@ -692,7 +673,6 @@ export class CouriersService {
       select: {
         deliveredAt: true,
         deliveryFee: true,
-        assignment: { select: { courierFee: true } },
       },
     });
 
@@ -720,7 +700,7 @@ export class CouriersService {
         date: dayStart.toISOString().slice(0, 10),
         deliveries: dayRows.length,
         earnings: dayRows.reduce(
-          (sum, row) => sum + this.feeFromDeliveredOrder(row),
+          (sum, row) => sum + Number(row.deliveryFee),
           0,
         ),
       });
@@ -740,40 +720,22 @@ export class CouriersService {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const [todayOrders, totalDelivered, earningsAgg, ordersWithoutAssignment] =
-      await Promise.all([
+    const [todayOrders, totalDelivered, allDeliveredOrders] = await Promise.all([
         this.prisma.order.findMany({
           where: {
             ...this.deliveredOrdersWhere(courier.id),
             deliveredAt: { gte: startOfDay },
           },
-          select: {
-            deliveryFee: true,
-            assignment: { select: { courierFee: true } },
-          },
+          select: { deliveryFee: true },
         }),
         this.prisma.order.count({ where: this.deliveredOrdersWhere(courier.id) }),
-        this.prisma.courierAssignment.aggregate({
-          where: {
-            courierId: courier.id,
-            order: {
-              status: OrderStatus.DELIVERED,
-              deletedAt: null,
-            },
-          },
-          _sum: { courierFee: true },
-        }),
         this.prisma.order.findMany({
-          where: {
-            ...this.deliveredOrdersWhere(courier.id),
-            assignment: { is: null },
-          },
+          where: this.deliveredOrdersWhere(courier.id),
           select: { deliveryFee: true },
         }),
       ]);
 
-    const assignmentEarnings = Number(earningsAgg._sum.courierFee ?? 0);
-    const fallbackEarnings = ordersWithoutAssignment.reduce(
+    const totalEarnings = allDeliveredOrders.reduce(
       (sum, order) => sum + Number(order.deliveryFee),
       0,
     );
@@ -781,11 +743,11 @@ export class CouriersService {
     return {
       todayDeliveries: todayOrders.length,
       todayEarnings: todayOrders.reduce(
-        (sum, order) => sum + this.feeFromDeliveredOrder(order),
+        (sum, order) => sum + Number(order.deliveryFee),
         0,
       ),
       totalDeliveries: totalDelivered,
-      totalEarnings: assignmentEarnings + fallbackEarnings,
+      totalEarnings,
     };
   }
 
@@ -795,12 +757,5 @@ export class CouriersService {
       status: OrderStatus.DELIVERED,
       deletedAt: null,
     };
-  }
-
-  private feeFromDeliveredOrder(order: {
-    deliveryFee: Prisma.Decimal;
-    assignment?: { courierFee: Prisma.Decimal } | null;
-  }): number {
-    return Number(order.assignment?.courierFee ?? order.deliveryFee);
   }
 }

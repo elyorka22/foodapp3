@@ -89,7 +89,7 @@ class _HistoryCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${AppStrings.courierIncomeShort}: ${formatSum(order.courierFee ?? order.courierEarnings)}',
+                    '${AppStrings.courierIncomeShort}: ${formatSum(order.courierEarnings)}',
                     style: AppTypography.caption.copyWith(color: AppColors.primary),
                   ),
                 ],

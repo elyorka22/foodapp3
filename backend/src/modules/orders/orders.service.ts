@@ -21,7 +21,6 @@ import {
   generateOrderNumber,
   generateTrackingToken,
 } from '../../common/utils/order-number.util';
-import { calculateDeliveryFee } from '../../common/utils/geo.util';
 import { DeliveryPricingService } from '../../domain/delivery/delivery-pricing.service';
 import { DeliveryQuoteDto } from './dto/delivery-quote.dto';
 import { normalizePhone } from '../../common/utils/phone.util';
@@ -802,13 +801,8 @@ export class OrdersService {
         ? order.courier.userId
         : null;
 
-    const deliveryConfig = await this.settings.getDeliveryPricing();
+    const courierFee = Number(order.deliveryFee);
     const dist = Number(order.distanceKm ?? 0);
-    const courierFee = calculateDeliveryFee(
-      dist,
-      deliveryConfig.courierPricePerKm,
-      deliveryConfig.courierMinFee,
-    );
 
     const statusChanged = order.status !== OrderStatus.COURIER_ASSIGNED;
     const isPoolClaim = !allowReassign && !order.courierId;
@@ -1070,7 +1064,7 @@ export class OrdersService {
     const assignment = order.assignment;
     if (assignment?.deliveredAt) return;
 
-    const courierFee = Number(assignment?.courierFee ?? order.deliveryFee ?? 0);
+    const courierFee = Number(order.deliveryFee ?? 0);
 
     await this.prisma.$transaction(async (tx) => {
       if (assignment) {

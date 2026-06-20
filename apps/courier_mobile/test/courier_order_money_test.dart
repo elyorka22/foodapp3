@@ -33,12 +33,12 @@ void main() {
     expect(order.customerDeliveryFee, 10000);
   });
 
-  test('courierEarnings prefers estimated courier fee over customer delivery', () {
+  test('courierEarnings uses customer delivery fee from checkout', () {
     final order = _order(
       deliveryFee: 10000,
       estimatedCourierFee: 5000,
     );
-    expect(order.courierEarnings, 5000);
+    expect(order.courierEarnings, 10000);
     expect(order.customerDeliveryFee, 10000);
   });
 }

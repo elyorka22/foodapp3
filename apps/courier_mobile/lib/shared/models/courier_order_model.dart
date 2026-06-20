@@ -82,12 +82,8 @@ class CourierOrderModel {
   final String? inboxKind;
   final List<CourierOrderLineItem> items;
 
-  /// Amount shown before accept: estimated courier payout from API or DB delivery fee.
-  num get initialDeliveryFee =>
-      estimatedCourierFee ?? courierFee ?? deliveryFee;
-
-  /// Courier keeps this as delivery earnings (may differ from customer deliveryFee).
-  num get courierEarnings => initialDeliveryFee;
+  /// Courier payout equals the delivery fee quoted to the customer at checkout.
+  num get courierEarnings => deliveryFee;
 
   /// What the customer pays for delivery (part of order total).
   num get customerDeliveryFee => deliveryFee;
