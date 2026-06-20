@@ -19,6 +19,10 @@ import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
 import { MerchantLocationFields } from '@/components/admin/merchant-location-fields';
 import { BusinessImageUpload } from '@/components/admin/business-image-upload';
+import {
+  MerchantOwnerAccountFields,
+  MerchantOwnerCredentials,
+} from '@/components/admin/merchant-owner-credentials';
 import { resolveFormSlug } from '@/lib/slugify';
 
 const emptyForm: RestaurantForm = {
@@ -40,7 +44,7 @@ const emptyForm: RestaurantForm = {
 };
 
 export default function AdminStoresPage() {
-  const { ready, authorized } = useAdminAccess({ permission: 'stores' });
+  const { ready, authorized, isSuperAdmin } = useAdminAccess({ permission: 'stores' });
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
@@ -83,11 +87,20 @@ export default function AdminStoresPage() {
       return;
     }
     try {
-      await create.mutateAsync({
+      const payload: RestaurantForm = {
         ...form,
         slug: resolveFormSlug(form.name),
         phone: form.phone?.trim() || undefined,
-      });
+      };
+      if (isSuperAdmin && payload.ownerLogin?.trim() && !payload.ownerPassword?.trim()) {
+        toast.error('Owner parolini kiriting');
+        return;
+      }
+      if (isSuperAdmin && payload.ownerPassword?.trim() && !payload.ownerLogin?.trim()) {
+        toast.error('Owner login (telefon yoki email) kiriting');
+        return;
+      }
+      await create.mutateAsync(payload);
       setCreateOpen(false);
       setForm(emptyForm);
       toast.success("Do'kon yaratildi");
@@ -103,13 +116,21 @@ export default function AdminStoresPage() {
       return;
     }
     try {
+      const body: Partial<RestaurantForm> = {
+        ...form,
+        slug: resolveFormSlug(form.name, String(editRow.slug ?? '')),
+        phone: form.phone?.trim() || undefined,
+      };
+      if (!isSuperAdmin) {
+        delete body.ownerLogin;
+        delete body.ownerPassword;
+        delete body.ownerFullName;
+      } else if (!body.ownerPassword?.trim()) {
+        delete body.ownerPassword;
+      }
       await update.mutateAsync({
         id: String(editRow.id),
-        body: {
-          ...form,
-          slug: resolveFormSlug(form.name, String(editRow.slug ?? '')),
-          phone: form.phone?.trim() || undefined,
-        },
+        body,
       });
       setEditRow(null);
       setForm(emptyForm);
@@ -137,6 +158,9 @@ export default function AdminStoresPage() {
       branchAddress: String(row.branchAddress ?? ''),
       latitude: row.latitude != null ? Number(row.latitude) : undefined,
       longitude: row.longitude != null ? Number(row.longitude) : undefined,
+      ownerLogin: String(row.ownerLogin ?? ''),
+      ownerFullName: String(row.ownerFullName ?? ''),
+      ownerPassword: '',
     });
   };
 
@@ -205,6 +229,12 @@ export default function AdminStoresPage() {
         />
         Faol
       </label>
+      {isSuperAdmin ? (
+        <MerchantOwnerAccountFields
+          form={form}
+          setForm={(owner) => setForm({ ...form, ...owner })}
+        />
+      ) : null}
     </div>
   );
 
@@ -244,6 +274,7 @@ export default function AdminStoresPage() {
                 <th className="px-4 py-3">Kategoriya</th>
                 <th className="px-4 py-3">Telefon</th>
                 <th className="px-4 py-3">Holat</th>
+                {isSuperAdmin ? <th className="px-4 py-3">{t.merchant.ownerLogin}</th> : null}
                 <th className="px-4 py-3 text-right">Amallar</th>
               </tr>
             </thead>
@@ -261,6 +292,16 @@ export default function AdminStoresPage() {
                     <td className="px-4 py-3">
                       <ActiveBadge active={Boolean(r.isActive)} />
                     </td>
+                    {isSuperAdmin ? (
+                      <td className="px-4 py-3">
+                        <MerchantOwnerCredentials
+                          login={r.ownerLogin as string | null | undefined}
+                          password={r.ownerPassword as string | null | undefined}
+                          showPassword
+                          compact
+                        />
+                      </td>
+                    ) : null}
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         {r.approvalStatus === 'PENDING' && (

@@ -18,6 +18,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
 import { MerchantLocationFields } from '@/components/admin/merchant-location-fields';
+import {
+  MerchantOwnerAccountFields,
+  MerchantOwnerCredentials,
+} from '@/components/admin/merchant-owner-credentials';
 import { adminI18n as t } from '@/lib/admin-i18n';
 import { resolveFormSlug } from '@/lib/slugify';
 
@@ -43,11 +47,13 @@ function RestaurantFormFields({
   setForm,
   onLogo,
   onCover,
+  showOwnerFields = false,
 }: {
   form: RestaurantForm;
   setForm: (f: RestaurantForm) => void;
   onLogo: (file: File) => void;
   onCover: (file: File) => void;
+  showOwnerFields?: boolean;
 }) {
   return (
     <div className="space-y-3">
@@ -109,13 +115,19 @@ function RestaurantFormFields({
         New restaurants are published automatically if Active is checked. Existing pending
         restaurants need Approve in the list.
       </p>
+      {showOwnerFields ? (
+        <MerchantOwnerAccountFields
+          form={form}
+          setForm={(owner) => setForm({ ...form, ...owner })}
+        />
+      ) : null}
     </div>
   );
 }
 
 export default function AdminRestaurantsPage() {
   const token = getToken();
-  const { ready, authorized } = useAdminAccess({ permission: 'restaurants' });
+  const { ready, authorized, isSuperAdmin } = useAdminAccess({ permission: 'restaurants' });
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string>('');
   const [page, setPage] = useState(1);
@@ -149,10 +161,19 @@ export default function AdminRestaurantsPage() {
 
   const submitCreate = async () => {
     try {
-      const created = await create.mutateAsync({
+      const payload: RestaurantForm = {
         ...form,
         slug: resolveFormSlug(form.name),
-      });
+      };
+      if (isSuperAdmin && payload.ownerLogin?.trim() && !payload.ownerPassword?.trim()) {
+        toast.error('Owner parolini kiriting');
+        return;
+      }
+      if (isSuperAdmin && payload.ownerPassword?.trim() && !payload.ownerLogin?.trim()) {
+        toast.error('Owner login (telefon yoki email) kiriting');
+        return;
+      }
+      const created = await create.mutateAsync(payload);
       setCreateOpen(false);
       setForm(emptyForm);
       if (created?.approvalStatus === 'APPROVED' && created?.isActive) {
@@ -168,9 +189,20 @@ export default function AdminRestaurantsPage() {
   const submitEdit = async () => {
     if (!editRow) return;
     try {
+      const body: Partial<RestaurantForm> = {
+        ...form,
+        slug: resolveFormSlug(form.name, editRow.slug),
+      };
+      if (!isSuperAdmin) {
+        delete body.ownerLogin;
+        delete body.ownerPassword;
+        delete body.ownerFullName;
+      } else if (!body.ownerPassword?.trim()) {
+        delete body.ownerPassword;
+      }
       await update.mutateAsync({
         id: editRow.id,
-        body: { ...form, slug: resolveFormSlug(form.name, editRow.slug) },
+        body,
       });
       setEditRow(null);
       setForm(emptyForm);
@@ -217,6 +249,9 @@ export default function AdminRestaurantsPage() {
       branchAddress: row.branchAddress ?? '',
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
+      ownerLogin: row.ownerLogin ?? '',
+      ownerFullName: row.ownerFullName ?? '',
+      ownerPassword: '',
     });
   };
 
@@ -277,6 +312,7 @@ export default function AdminRestaurantsPage() {
                 <th className="px-4 py-3">Products</th>
                 <th className="px-4 py-3">Commission</th>
                 <th className="px-4 py-3">Location</th>
+                {isSuperAdmin ? <th className="px-4 py-3">{t.merchant.ownerLogin}</th> : null}
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -314,6 +350,16 @@ export default function AdminRestaurantsPage() {
                       ? `${Number(r.latitude).toFixed(4)}, ${Number(r.longitude).toFixed(4)}`
                       : '—'}
                   </td>
+                  {isSuperAdmin ? (
+                    <td className="px-4 py-3">
+                      <MerchantOwnerCredentials
+                        login={r.ownerLogin}
+                        password={r.ownerPassword}
+                        showPassword
+                        compact
+                      />
+                    </td>
+                  ) : null}
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       <Button type="button" variant="secondary" onClick={() => toggleActive(r)}>
@@ -362,6 +408,7 @@ export default function AdminRestaurantsPage() {
           setForm={setForm}
           onLogo={(f) => uploadField(f, 'logoUrl')}
           onCover={(f) => uploadField(f, 'coverUrl')}
+          showOwnerFields={isSuperAdmin}
         />
         <div className="mt-4 flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={() => setCreateOpen(false)}>
@@ -379,6 +426,7 @@ export default function AdminRestaurantsPage() {
           setForm={setForm}
           onLogo={(f) => uploadField(f, 'logoUrl')}
           onCover={(f) => uploadField(f, 'coverUrl')}
+          showOwnerFields={isSuperAdmin}
         />
         <div className="mt-4 flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={() => setEditRow(null)}>

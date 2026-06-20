@@ -28,6 +28,9 @@ export type RestaurantForm = {
   branchAddress?: string;
   latitude?: number;
   longitude?: number;
+  ownerLogin?: string;
+  ownerPassword?: string;
+  ownerFullName?: string;
 };
 
 export function useAdminRestaurants(query: AdminRestaurantsQuery) {

@@ -371,14 +371,16 @@ export class RestaurantsService {
               email: true,
               phone: true,
               fullName: true,
-              adminPasswordNote: true,
+              ...(user.role === UserRole.SUPER_ADMIN ? { adminPasswordNote: true } : {}),
             },
           },
         },
       });
       ownerLogin = staff?.user?.email ?? staff?.user?.phone ?? null;
       ownerFullName = staff?.user?.fullName ?? null;
-      ownerPassword = staff?.user?.adminPasswordNote ?? null;
+      if (user.role === UserRole.SUPER_ADMIN) {
+        ownerPassword = staff?.user?.adminPasswordNote ?? null;
+      }
     }
 
     return {
@@ -465,8 +467,11 @@ export class RestaurantsService {
     );
     const productCountMap = new Map(productGroups.map((g) => [g.businessId, g._count._all]));
 
+    const ownerMap = await this.loadOwnerCredentialsByBusinessIds(ids, user);
+
     const data = rows.map((r) => {
       const branch = r.branches?.[0];
+      const owner = ownerMap.get(r.id);
       return {
         ...r,
         commissionRate: Number(r.commissionRate),
@@ -476,6 +481,9 @@ export class RestaurantsService {
         latitude: branch ? Number(branch.latitude) : null,
         longitude: branch ? Number(branch.longitude) : null,
         branchAddress: branch?.address ?? null,
+        ownerLogin: owner?.ownerLogin ?? null,
+        ownerFullName: owner?.ownerFullName ?? null,
+        ownerPassword: owner?.ownerPassword ?? null,
       };
     });
 
@@ -795,6 +803,53 @@ export class RestaurantsService {
         phone,
       },
     });
+  }
+
+  private async loadOwnerCredentialsByBusinessIds(
+    businessIds: string[],
+    viewer: JwtPayload,
+  ): Promise<
+    Map<
+      string,
+      { ownerLogin: string | null; ownerFullName: string | null; ownerPassword: string | null }
+    >
+  > {
+    const map = new Map<
+      string,
+      { ownerLogin: string | null; ownerFullName: string | null; ownerPassword: string | null }
+    >();
+    if (!businessIds.length) return map;
+
+    const canSeeLogin =
+      viewer.role === UserRole.SUPER_ADMIN || viewer.role === UserRole.MANAGER;
+    if (!canSeeLogin) return map;
+
+    const canSeePassword = viewer.role === UserRole.SUPER_ADMIN;
+    const staffRows = await this.prisma.businessStaff.findMany({
+      where: { businessId: { in: businessIds }, deletedAt: null },
+      include: {
+        user: {
+          select: {
+            email: true,
+            phone: true,
+            fullName: true,
+            ...(canSeePassword ? { adminPasswordNote: true } : {}),
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    for (const row of staffRows) {
+      if (map.has(row.businessId)) continue;
+      map.set(row.businessId, {
+        ownerLogin: row.user?.email ?? row.user?.phone ?? null,
+        ownerFullName: row.user?.fullName ?? null,
+        ownerPassword: canSeePassword ? row.user?.adminPasswordNote ?? null : null,
+      });
+    }
+
+    return map;
   }
 
   private async createBusinessOwner(params: {

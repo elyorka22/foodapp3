@@ -95,6 +95,7 @@ export class UsersService {
           },
         },
       }),
+      actor,
     );
   }
 
@@ -119,7 +120,7 @@ export class UsersService {
       },
       orderBy: { createdAt: 'desc' },
     });
-    return users.map((u) => this.serializeUser(u));
+    return users.map((u) => this.serializeUser(u, actor));
   }
 
   async update(id: string, dto: UpdateUserDto, actor: JwtPayload) {
@@ -171,22 +172,26 @@ export class UsersService {
       },
     });
 
-    return this.serializeUser(updated);
+    return this.serializeUser(updated, actor);
   }
 
-  private serializeUser(user: {
-    id: string;
-    email: string | null;
-    phone: string | null;
-    fullName: string | null;
-    role: UserRole;
-    isActive: boolean;
-    adminPasswordNote?: string | null;
-    createdAt: Date;
-    businessStaff?: { business: { id: string; name: string } }[];
-  }) {
+  private serializeUser(
+    user: {
+      id: string;
+      email: string | null;
+      phone: string | null;
+      fullName: string | null;
+      role: UserRole;
+      isActive: boolean;
+      adminPasswordNote?: string | null;
+      createdAt: Date;
+      businessStaff?: { business: { id: string; name: string } }[];
+    },
+    actor?: JwtPayload,
+  ) {
     const staff = user.businessStaff?.[0];
     const merchant = staff?.business ?? null;
+    const canSeePassword = actor?.role === UserRole.SUPER_ADMIN;
     return {
       id: user.id,
       email: user.email,
@@ -194,7 +199,7 @@ export class UsersService {
       fullName: user.fullName,
       role: user.role,
       isActive: user.isActive,
-      adminPasswordNote: user.adminPasswordNote ?? null,
+      adminPasswordNote: canSeePassword ? user.adminPasswordNote ?? null : null,
       createdAt: user.createdAt,
       business: merchant,
       restaurant: merchant,

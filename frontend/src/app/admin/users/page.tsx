@@ -51,7 +51,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const currentUser = getUser();
   const token = getToken();
-  const { ready, authorized, isManager } = useAdminAccess({ permission: 'staff' });
+  const { ready, authorized, isSuperAdmin, isManager } = useAdminAccess({ permission: 'staff' });
   const [roleFilter, setRoleFilter] = useState<StaffRole | ''>('');
   const [createOpen, setCreateOpen] = useState(false);
   const [editRow, setEditRow] = useState<StaffUser | null>(null);
@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
                 <th className="p-3">Telefon</th>
                 <th className="p-3">Rol</th>
                 <th className="p-3">{t.staff.merchant}</th>
-                <th className="p-3">{t.staff.password}</th>
+                {isSuperAdmin ? <th className="p-3">{t.staff.password}</th> : null}
                 <th className="p-3">Holat</th>
                 <th className="p-3 text-right">{t.actions}</th>
               </tr>
@@ -207,25 +207,27 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="p-3">{merchantName(row)}</td>
-                    <td className="p-3">
-                      {row.adminPasswordNote ? (
-                        <div className="flex items-center gap-2">
-                          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs dark:bg-zinc-800">
-                            {row.adminPasswordNote}
-                          </code>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => copyPassword(row.adminPasswordNote)}
-                          >
-                            {t.staff.copyPassword}
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-zinc-400">{t.staff.noPassword}</span>
-                      )}
-                    </td>
+                    {isSuperAdmin ? (
+                      <td className="p-3">
+                        {row.adminPasswordNote ? (
+                          <div className="flex items-center gap-2">
+                            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs dark:bg-zinc-800">
+                              {row.adminPasswordNote}
+                            </code>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => copyPassword(row.adminPasswordNote)}
+                            >
+                              {t.staff.copyPassword}
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-zinc-400">{t.staff.noPassword}</span>
+                        )}
+                      </td>
+                    ) : null}
                     <td className="p-3">
                       <ActiveBadge
                         active={row.isActive}

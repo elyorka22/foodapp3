@@ -13,10 +13,11 @@ import { Button } from '@/components/ui/button';
 import { CategoryPanel } from '@/components/admin/category-panel';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { StatusBadge, StatCard, EmptyState, LoadingState } from '@/components/admin/ui';
+import { MerchantOwnerCredentials } from '@/components/admin/merchant-owner-credentials';
 
 export default function AdminRestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { ready, authorized } = useAdminAccess({ permission: 'restaurants' });
+  const { ready, authorized, isSuperAdmin } = useAdminAccess({ permission: 'restaurants' });
   const token = getToken();
   const { detail, stats } = useAdminRestaurant(id);
   const { updateApproval } = useAdminRestaurants({ page: 1, limit: 1 });
@@ -153,6 +154,15 @@ export default function AdminRestaurantDetailPage() {
           </div>
         </dl>
       </div>
+
+      {isSuperAdmin ? (
+        <MerchantOwnerCredentials
+          login={r.ownerLogin}
+          password={r.ownerPassword}
+          fullName={r.ownerFullName}
+          showPassword
+        />
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold">Menu categories</p>

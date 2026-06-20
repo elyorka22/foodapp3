@@ -130,6 +130,18 @@ export const adminI18n = {
     approve: 'Tasdiqlash',
     deactivate: 'O‘chirish',
     activate: 'Yoqish',
+    ownerCredentialsTitle: 'Kirish ma’lumotlari (business app)',
+    ownerCredentialsHint:
+      'Restoran parolini unutganda shu yerda ko‘rasiz. Faqat super admin uchun.',
+    ownerAccountSection: 'Business panel hisobi',
+    ownerAccountSectionHint:
+      'Telefon yoki email va parol — restoran business ilovasiga kiradi. Parol saqlanadi va keyin ko‘rinadi.',
+    ownerLogin: 'Login (telefon yoki email)',
+    ownerPassword: 'Parol',
+    ownerPasswordNew: 'Parol (kamida 6 belgi)',
+    ownerFullName: 'Egasi ismi',
+    noOwnerAccount: 'Hisob yaratilmagan',
+    copied: 'nusxalandi',
   },
 
   products: {
