@@ -99,15 +99,10 @@ class _OrderCardState extends State<OrderCard> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '${item.quantity}x ',
-                            style: AppTypography.bodySmall,
-                          ),
+                          OrderLineItemQuantity(quantity: item.quantity, compact: true),
+                          const SizedBox(width: 6),
                           Expanded(
-                            child: OrderLineItemTitle(
-                              item: item,
-                              baseStyle: AppTypography.bodySmall,
-                            ),
+                            child: OrderLineItemTitle(item: item),
                           ),
                         ],
                       ),

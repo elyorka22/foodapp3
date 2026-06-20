@@ -17,10 +17,16 @@ class OrderLineItemTitle extends StatelessWidget {
   final OrderLineItem item;
   final TextStyle? baseStyle;
 
+  static TextStyle get defaultTitleStyle => AppTypography.body.copyWith(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        height: 1.35,
+      );
+
   @override
   Widget build(BuildContext context) {
     final description = item.description?.trim();
-    final nameStyle = baseStyle ?? AppTypography.subtitle;
+    final nameStyle = baseStyle ?? defaultTitleStyle;
 
     if (description == null || description.isEmpty) {
       return Text(item.name, style: nameStyle);
@@ -43,6 +49,44 @@ class OrderLineItemTitle extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Quantity badge for order line items (`3` or compact `3x`).
+class OrderLineItemQuantity extends StatelessWidget {
+  const OrderLineItemQuantity({
+    super.key,
+    required this.quantity,
+    this.compact = false,
+  });
+
+  final int quantity;
+  final bool compact;
+
+  TextStyle _quantityStyle() => AppTypography.body.copyWith(
+        fontSize: compact ? 16 : 17,
+        fontWeight: FontWeight.w800,
+        color: AppColors.primaryDark,
+        height: 1.1,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    if (compact) {
+      return Text('${quantity}x', style: _quantityStyle());
+    }
+
+    return Container(
+      width: 36,
+      height: 36,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.accentSoft,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
+      ),
+      child: Text('${quantity}', style: _quantityStyle()),
     );
   }
 }
@@ -91,22 +135,7 @@ class _OrderItemRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 28,
-          height: 28,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.primarySoft,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '${item.quantity}',
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w800,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
+        OrderLineItemQuantity(quantity: item.quantity),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
@@ -117,7 +146,7 @@ class _OrderItemRow extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${formatSum(item.price)} × ${item.quantity} = ${formatSum(item.subtotal)}',
-                  style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                 ),
               ],
             ],
