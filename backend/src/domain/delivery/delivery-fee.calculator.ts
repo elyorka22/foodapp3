@@ -15,6 +15,7 @@ export function calculateBillableDistanceKm(straightLineKm: number): number {
  * Customer delivery fee:
  * distanceKm = haversine × 1.3
  * deliveryFee = baseDeliveryFee + (distanceKm × perKmFee), rounded to nearest 500 UZS
+ * Set perKmFee to 0 for a fixed delivery fee (base only).
  */
 export function calculateCustomerDeliveryFee(
   straightLineDistanceKm: number,

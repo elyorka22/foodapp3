@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AdminPageGuard } from '@/components/admin/admin-page-guard';
 import { useAdminSettings, type AdminSettings } from '@/hooks/use-admin-settings';
-import { useDeliveryPricing } from '@/hooks/use-delivery-pricing';
+import { useDeliveryPricing, type DeliveryPricing } from '@/hooks/use-delivery-pricing';
 import { LoadingState, EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,7 +105,7 @@ function AdminSettingsContent() {
     const email = form.support_email?.trim();
     if (email) settingsPayload.support_email = email;
 
-    const pricingPayload = {
+    const pricingPayload: Partial<DeliveryPricing> = {
       ...(pricing.data ?? {}),
       baseDeliveryFee: parseNumberInput(baseDeliveryFee),
       perKmFee: parseNumberInput(perKmFee),
@@ -235,7 +235,8 @@ function AdminSettingsContent() {
           onChange={setMaxDeliveryDistance}
         />
         <p className="sm:col-span-2 text-xs text-zinc-500">
-          Formula: distance = Haversine × 1.3; fee = base + distance × perKm; rounded to nearest 500 UZS.
+          Formula: distance = Haversine × 1.3; fee = base + distance × perKm; rounded to nearest
+          500 UZS. Set per km to 0 for a fixed delivery fee (base only).
         </p>
         <NumericField
           label="Min order amount (UZS)"

@@ -35,7 +35,7 @@ export class SettingsController {
 
   @Put('delivery-pricing')
   @Roles(UserRole.SUPER_ADMIN)
-  setDeliveryPricing(@Body() body: DeliveryPricing) {
+  setDeliveryPricing(@Body() body: Partial<DeliveryPricing>) {
     return this.settings.setDeliveryPricing(body);
   }
 

@@ -124,11 +124,17 @@ export class SettingsService {
     };
   }
 
-  async setDeliveryPricing(data: DeliveryPricing) {
+  async setDeliveryPricing(data: Partial<DeliveryPricing>) {
+    const current = await this.getDeliveryPricing();
+    const merged: DeliveryPricing = {
+      ...current,
+      ...data,
+    };
+
     await this.prisma.setting.upsert({
       where: { key: 'delivery_pricing' },
-      create: { key: 'delivery_pricing', value: data as object, group: 'delivery' },
-      update: { value: data as object },
+      create: { key: 'delivery_pricing', value: merged as object, group: 'delivery' },
+      update: { value: merged as object },
     });
     return this.getDeliveryPricing();
   }
