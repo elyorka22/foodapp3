@@ -162,9 +162,9 @@ class _OrderDetailBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         _SummaryRow(label: AppStrings.orderAmount, value: formatSum(order.itemsTotal)),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: AppSpacing.sm),
         _SummaryRow(label: AppStrings.deliveryAmount, value: formatSum(order.deliveryFee)),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: AppSpacing.sm),
         _SummaryRow(
           label: AppStrings.orderTotal,
           value: formatSum(order.total),
