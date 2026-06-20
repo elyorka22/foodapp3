@@ -27,7 +27,7 @@ class RestaurantOrderHistoryScreen extends ConsumerWidget {
         title: const Text(AppStrings.orderHistory),
       ),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(closedOrdersPollingProvider),
+        onRefresh: () async => ref.invalidate(restaurantAllOrdersPollingProvider),
         child: orders.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => ListView(

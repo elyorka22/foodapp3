@@ -1,3 +1,5 @@
+import '../../core/utils/json_parse.dart';
+
 class OrderLineItem {
   const OrderLineItem({
     required this.name,
@@ -17,8 +19,8 @@ class OrderLineItem {
     return OrderLineItem(
       name: json['name'] as String? ?? '—',
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
-      price: json['price'] as num? ?? 0,
-      subtotal: json['subtotal'] as num? ?? 0,
+      price: parseNum(json['price']),
+      subtotal: parseNum(json['subtotal']),
       description: json['description'] as String?,
     );
   }
@@ -121,12 +123,12 @@ class StaffOrderModel {
     final itemsRaw = json['items'];
 
     return StaffOrderModel(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? '',
       orderNumber: json['orderNumber'] as String? ?? '',
       status: json['status'] as String? ?? '',
-      total: json['total'] as num? ?? 0,
-      subtotal: json['subtotal'] as num? ?? 0,
-      deliveryFee: json['deliveryFee'] as num? ?? 0,
+      total: parseNum(json['total']),
+      subtotal: parseNum(json['subtotal']),
+      deliveryFee: parseNum(json['deliveryFee']),
       customerPhone: guest?['phone'] as String?,
       restaurantName: restaurant?['name'] as String? ?? business?['name'] as String?,
       restaurantId: restaurant?['id'] as String? ?? business?['id'] as String?,

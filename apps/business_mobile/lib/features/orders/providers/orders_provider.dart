@@ -13,45 +13,34 @@ final ordersPollingProvider = StreamProvider.autoDispose<List<StaffOrderModel>>(
   final filter = ref.watch(orderFilterProvider);
 
   while (true) {
-    try {
-      yield await ref.read(ordersRepositoryProvider).fetchOrders(
-            statusGroup: filter,
-          );
-    } catch (_) {
-      yield const [];
-    }
+    yield await ref.read(ordersRepositoryProvider).fetchOrders(
+          statusGroup: filter,
+        );
     await Future<void>.delayed(_pollInterval);
   }
 });
 
-/// New and in-progress restaurant orders before courier is called.
+/// All restaurant orders — filtered on the client for open/closed tabs.
+final restaurantAllOrdersPollingProvider =
+    StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
+  while (true) {
+    yield await ref.read(ordersRepositoryProvider).fetchOrders();
+    await Future<void>.delayed(_pollInterval);
+  }
+});
+
 final openOrdersPollingProvider =
-    StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
-  while (true) {
-    try {
-      yield await ref.read(ordersRepositoryProvider).fetchOrders(
-            statusGroup: 'open',
-          );
-    } catch (_) {
-      yield const [];
-    }
-    await Future<void>.delayed(_pollInterval);
-  }
+    Provider.autoDispose<AsyncValue<List<StaffOrderModel>>>((ref) {
+  return ref.watch(restaurantAllOrdersPollingProvider).whenData(
+        (orders) => orders.where((o) => o.isOpenForRestaurant).toList(),
+      );
 });
 
-/// Orders closed by restaurant after calling courier or reaching terminal status.
 final closedOrdersPollingProvider =
-    StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
-  while (true) {
-    try {
-      yield await ref.read(ordersRepositoryProvider).fetchOrders(
-            statusGroup: 'closed',
-          );
-    } catch (_) {
-      yield const [];
-    }
-    await Future<void>.delayed(_pollInterval);
-  }
+    Provider.autoDispose<AsyncValue<List<StaffOrderModel>>>((ref) {
+  return ref.watch(restaurantAllOrdersPollingProvider).whenData(
+        (orders) => orders.where((o) => o.isClosedForRestaurant).toList(),
+      );
 });
 
 @Deprecated('Use openOrdersPollingProvider')

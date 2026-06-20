@@ -65,8 +65,7 @@ class _RestaurantOrderDetailScreenState
 
   void _invalidateOrders() {
     ref.invalidate(restaurantOrderProvider(widget.orderId));
-    ref.invalidate(openOrdersPollingProvider);
-    ref.invalidate(closedOrdersPollingProvider);
+    ref.invalidate(restaurantAllOrdersPollingProvider);
   }
 
   Future<void> _requestCourier(String orderId) async {

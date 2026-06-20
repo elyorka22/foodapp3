@@ -33,7 +33,7 @@ class _RestaurantOrdersScreenState extends ConsumerState<RestaurantOrdersScreen>
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(openOrdersPollingProvider);
+          ref.invalidate(restaurantAllOrdersPollingProvider);
           ref.invalidate(_restaurantProvider);
         },
         child: ListView(
@@ -101,8 +101,7 @@ class _RestaurantOrdersScreenState extends ConsumerState<RestaurantOrdersScreen>
       final repo = ref.read(ordersRepositoryProvider);
       await repo.updateStatus(orderId, 'ACCEPTED');
       await repo.updateStatus(orderId, 'PREPARING');
-      ref.invalidate(openOrdersPollingProvider);
-      ref.invalidate(closedOrdersPollingProvider);
+      ref.invalidate(restaurantAllOrdersPollingProvider);
       if (mounted) {
         context.push(AppRoutes.restaurantOrderDetail(orderId));
       }
