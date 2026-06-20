@@ -86,7 +86,7 @@ class OrderLineItemQuantity extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
       ),
-      child: Text('${quantity}', style: _quantityStyle()),
+      child: Text('$quantity', style: _quantityStyle()),
     );
   }
 }
