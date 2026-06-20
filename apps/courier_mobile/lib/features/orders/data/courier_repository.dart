@@ -170,7 +170,14 @@ class CourierRepository {
 
   Future<CourierOrderModel> fetchOrder(String id) async {
     final res = await _dio.get<Map<String, dynamic>>(ApiPaths.order(id));
-    return CourierOrderModel.fromJson(res.data!);
+    final raw = res.data;
+    if (raw == null) {
+      throw StateError('Empty order response');
+    }
+    final json = raw['data'] is Map<String, dynamic>
+        ? raw['data'] as Map<String, dynamic>
+        : raw;
+    return CourierOrderModel.fromJson(json);
   }
 
   Future<CourierOrderModel> acceptOrder(String id) async {

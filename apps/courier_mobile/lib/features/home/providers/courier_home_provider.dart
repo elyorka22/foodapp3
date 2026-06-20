@@ -29,11 +29,20 @@ void syncShiftSessionFromBackend(WidgetRef ref) {
   }
 }
 
-void removePushInboxOrder(WidgetRef ref, String orderId) {
+void removePushInboxOrder(Ref ref, String orderId) {
   ref.read(pushInboxOrdersProvider.notifier).state = ref
       .read(pushInboxOrdersProvider)
       .where((item) => item.id != orderId)
       .toList();
+}
+
+/// Clears push cache and in-app "new job" banner for a finished or stale order.
+void dismissHomeJobOffer(Ref ref, String orderId) {
+  removePushInboxOrder(ref, orderId);
+  final alert = ref.read(newJobAlertProvider);
+  if (alert?.orderId == orderId) {
+    ref.read(newJobAlertProvider.notifier).state = null;
+  }
 }
 
 List<CourierOrderModel> mergeInboxOrders(
@@ -67,18 +76,25 @@ List<CourierOrderModel> mergeInboxOrders(
   return merged;
 }
 
-void _reconcilePushInbox(Ref ref, List<CourierOrderModel> fromApi) {
+/// Sync push cache with API inbox — drops stale push-only rows (e.g. after delivery).
+List<CourierOrderModel> syncPushInboxWithApi(
+  List<CourierOrderModel> pushOrders,
+  List<CourierOrderModel> fromApi,
+) {
   final byApi = {for (final order in fromApi) order.id: order};
-  final next = ref
-      .read(pushInboxOrdersProvider)
+  return pushOrders
       .where((order) => !order.isCancelled && !order.isDelivered)
       .map((order) => byApi[order.id] ?? order)
       .where((order) {
         final fresh = byApi[order.id];
         if (fresh != null) return fresh.isPendingOffer || fresh.isOngoingJob;
-        return order.isPendingOffer;
+        return false;
       })
       .toList();
+}
+
+void _reconcilePushInbox(Ref ref, List<CourierOrderModel> fromApi) {
+  final next = syncPushInboxWithApi(ref.read(pushInboxOrdersProvider), fromApi);
 
   final current = ref.read(pushInboxOrdersProvider);
   if (current.length == next.length &&
@@ -97,7 +113,7 @@ Future<CourierOrderModel?> _resolveOrderForPush(WidgetRef ref, String orderId) a
 
   try {
     final order = await ref.read(courierRepositoryProvider).fetchOrder(orderId);
-    if (!order.isCancelled) return order;
+    if (!order.isCancelled && !order.isDelivered) return order;
   } catch (_) {}
 
   return null;
@@ -125,7 +141,7 @@ Future<void> handleOrderPush(
   order ??= CourierOrderModel.fromPush(orderId: orderId, orderNumber: orderNumber);
 
   if (order.isCancelled || order.isDelivered) {
-    removePushInboxOrder(ref, orderId);
+    dismissHomeJobOffer(ref, orderId);
     return;
   }
 

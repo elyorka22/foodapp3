@@ -312,7 +312,9 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
       }
       if (order.status == 'DELIVERING') {
         await ref.read(courierRepositoryProvider).updateStatus(order.id, 'DELIVERED');
+        dismissHomeJobOffer(ref, order.id);
         ref.invalidate(activeOrderProvider);
+        ref.invalidate(homeInboxProvider);
         ref.invalidate(courierEarningsProvider);
         ref.invalidate(shiftStatsProvider);
         ref.invalidate(courierProfileProvider);
