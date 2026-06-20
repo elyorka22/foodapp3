@@ -65,8 +65,8 @@ class _RestaurantOrderDetailScreenState
 
   void _invalidateOrders() {
     ref.invalidate(restaurantOrderProvider(widget.orderId));
-    ref.invalidate(newOrdersPollingProvider);
-    ref.invalidate(historyOrdersPollingProvider);
+    ref.invalidate(openOrdersPollingProvider);
+    ref.invalidate(closedOrdersPollingProvider);
   }
 
   Future<void> _requestCourier(String orderId) async {
@@ -74,6 +74,7 @@ class _RestaurantOrderDetailScreenState
     try {
       await ref.read(ordersRepositoryProvider).requestCourier(orderId);
       _invalidateOrders();
+      if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -133,7 +134,7 @@ class _OrderDetailBody extends StatelessWidget {
             StatusBadge(status: order.status),
             const Spacer(),
             Text(
-              formatSum(order.total),
+              formatSum(order.itemsTotal),
               style: AppTypography.title.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppColors.primary,
@@ -161,13 +162,9 @@ class _OrderDetailBody extends StatelessWidget {
           child: OrderItemsList(items: order.items),
         ),
         const SizedBox(height: AppSpacing.md),
-        _SummaryRow(label: AppStrings.orderAmount, value: formatSum(order.itemsTotal)),
-        const SizedBox(height: AppSpacing.sm),
-        _SummaryRow(label: AppStrings.deliveryAmount, value: formatSum(order.deliveryFee)),
-        const SizedBox(height: AppSpacing.sm),
         _SummaryRow(
-          label: AppStrings.orderTotal,
-          value: formatSum(order.total),
+          label: AppStrings.orderAmount,
+          value: formatSum(order.itemsTotal),
           emphasized: true,
         ),
         if (order.courierRequested) ...[

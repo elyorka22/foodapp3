@@ -24,13 +24,13 @@ final ordersPollingProvider = StreamProvider.autoDispose<List<StaffOrderModel>>(
   }
 });
 
-/// Incoming orders awaiting restaurant accept (PENDING only).
-final newOrdersPollingProvider =
+/// New and in-progress restaurant orders before courier is called.
+final openOrdersPollingProvider =
     StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
   while (true) {
     try {
       yield await ref.read(ordersRepositoryProvider).fetchOrders(
-            statusGroup: 'pending',
+            statusGroup: 'open',
           );
     } catch (_) {
       yield const [];
@@ -39,13 +39,13 @@ final newOrdersPollingProvider =
   }
 });
 
-/// Accepted and completed orders (everything except PENDING).
-final historyOrdersPollingProvider =
+/// Orders closed by restaurant after calling courier or reaching terminal status.
+final closedOrdersPollingProvider =
     StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
   while (true) {
     try {
       yield await ref.read(ordersRepositoryProvider).fetchOrders(
-            statusGroup: 'history',
+            statusGroup: 'closed',
           );
     } catch (_) {
       yield const [];
@@ -53,6 +53,12 @@ final historyOrdersPollingProvider =
     await Future<void>.delayed(_pollInterval);
   }
 });
+
+@Deprecated('Use openOrdersPollingProvider')
+final newOrdersPollingProvider = openOrdersPollingProvider;
+
+@Deprecated('Use closedOrdersPollingProvider')
+final historyOrdersPollingProvider = closedOrdersPollingProvider;
 
 final restaurantOrderProvider =
     FutureProvider.autoDispose.family<StaffOrderModel, String>((ref, orderId) async {

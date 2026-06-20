@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/new_order_incoming_card.dart';
+import '../../../shared/widgets/open_order_in_progress_card.dart';
 import '../../../shared/widgets/screen_header.dart';
 import '../../orders/data/orders_repository.dart';
 import '../../orders/providers/orders_provider.dart';
@@ -26,13 +27,13 @@ class _RestaurantOrdersScreenState extends ConsumerState<RestaurantOrdersScreen>
   @override
   Widget build(BuildContext context) {
     final restaurant = ref.watch(_restaurantProvider);
-    final orders = ref.watch(newOrdersPollingProvider);
+    final orders = ref.watch(openOrdersPollingProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(newOrdersPollingProvider);
+          ref.invalidate(openOrdersPollingProvider);
           ref.invalidate(_restaurantProvider);
         },
         child: ListView(
@@ -40,7 +41,11 @@ class _RestaurantOrdersScreenState extends ConsumerState<RestaurantOrdersScreen>
           children: [
             ScreenHeader(
               title: restaurant.valueOrNull?.name ?? AppStrings.restaurantPanel,
-              subtitle: AppStrings.newOrders,
+              trailing: TextButton.icon(
+                onPressed: () => context.push(AppRoutes.restaurantHistory),
+                icon: const Icon(Icons.history, size: 20),
+                label: const Text(AppStrings.orderHistory),
+              ),
             ),
             orders.when(
               loading: () => const Padding(
@@ -65,11 +70,18 @@ class _RestaurantOrdersScreenState extends ConsumerState<RestaurantOrdersScreen>
                         .map(
                           (order) => Padding(
                             padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                            child: NewOrderIncomingCard(
-                              order: order,
-                              isLoading: _actingOrderId == order.id,
-                              onAccept: () => _acceptAndOpen(order.id),
-                            ),
+                            child: order.isPending
+                                ? NewOrderIncomingCard(
+                                    order: order,
+                                    isLoading: _actingOrderId == order.id,
+                                    onAccept: () => _acceptAndOpen(order.id),
+                                  )
+                                : OpenOrderInProgressCard(
+                                    order: order,
+                                    onTap: () => context.push(
+                                      AppRoutes.restaurantOrderDetail(order.id),
+                                    ),
+                                  ),
                           ),
                         )
                         .toList(),
@@ -89,8 +101,8 @@ class _RestaurantOrdersScreenState extends ConsumerState<RestaurantOrdersScreen>
       final repo = ref.read(ordersRepositoryProvider);
       await repo.updateStatus(orderId, 'ACCEPTED');
       await repo.updateStatus(orderId, 'PREPARING');
-      ref.invalidate(newOrdersPollingProvider);
-      ref.invalidate(historyOrdersPollingProvider);
+      ref.invalidate(openOrdersPollingProvider);
+      ref.invalidate(closedOrdersPollingProvider);
       if (mounted) {
         context.push(AppRoutes.restaurantOrderDetail(orderId));
       }

@@ -87,6 +87,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           orderId: state.pathParameters['id']!,
         ),
       ),
+      GoRoute(
+        path: AppRoutes.restaurantHistory,
+        builder: (_, __) => const RestaurantOrderHistoryScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (_, __, navigationShell) =>
             RestaurantShellScreen(navigationShell: navigationShell),
@@ -96,14 +100,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.restaurantHome,
                 builder: (_, __) => const RestaurantOrdersScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.restaurantHistory,
-                builder: (_, __) => const RestaurantOrderHistoryScreen(),
               ),
             ],
           ),

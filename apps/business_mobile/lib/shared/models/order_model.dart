@@ -59,6 +59,14 @@ class StaffOrderModel {
 
   bool get isPending => status == 'PENDING';
 
+  /// Restaurant still working on the order (courier not called yet).
+  bool get isOpenForRestaurant =>
+      courierRequestedAt == null &&
+      (status == 'PENDING' || status == 'ACCEPTED' || status == 'PREPARING');
+
+  /// Restaurant finished with the order (courier called or terminal status).
+  bool get isClosedForRestaurant => !isOpenForRestaurant;
+
   bool get isCancelled => status == 'CANCELLED';
   bool get isActive => !isCancelled && status != 'DELIVERED';
 

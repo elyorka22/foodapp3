@@ -64,10 +64,10 @@ export class OrdersQueryDto {
   @IsIn(['restaurant', 'store'])
   vertical?: 'restaurant' | 'store';
 
-  /** active = in-progress; cancelled = CANCELLED; pending = PENDING; history = non-PENDING */
-  @ApiPropertyOptional({ enum: ['active', 'cancelled', 'pending', 'history'] })
+  /** active = in-progress; cancelled = CANCELLED; pending = PENDING; history = non-PENDING; open = awaiting courier call; closed = courier called or finished */
+  @ApiPropertyOptional({ enum: ['active', 'cancelled', 'pending', 'history', 'open', 'closed'] })
   @IsOptional()
-  @IsIn(['active', 'cancelled', 'pending', 'history'])
-  statusGroup?: 'active' | 'cancelled' | 'pending' | 'history';
+  @IsIn(['active', 'cancelled', 'pending', 'history', 'open', 'closed'])
+  statusGroup?: 'active' | 'cancelled' | 'pending' | 'history' | 'open' | 'closed';
 }
 

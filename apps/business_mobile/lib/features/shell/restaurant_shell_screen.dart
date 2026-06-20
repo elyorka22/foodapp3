@@ -26,11 +26,6 @@ class RestaurantShellScreen extends StatelessWidget {
             label: AppStrings.newOrders,
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: AppStrings.orderHistory,
-          ),
-          NavigationDestination(
             icon: Icon(Icons.restaurant_menu_outlined),
             selectedIcon: Icon(Icons.restaurant_menu),
             label: AppStrings.menu,

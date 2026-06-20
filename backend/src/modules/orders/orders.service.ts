@@ -409,6 +409,24 @@ export class OrdersService {
       where.status = OrderStatus.PENDING;
     } else if (query.statusGroup === 'history') {
       where.status = { not: OrderStatus.PENDING };
+    } else if (query.statusGroup === 'open') {
+      where.courierRequestedAt = null;
+      where.status = {
+        in: [OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.PREPARING],
+      };
+    } else if (query.statusGroup === 'closed') {
+      where.OR = [
+        { courierRequestedAt: { not: null } },
+        {
+          status: {
+            notIn: [
+              OrderStatus.PENDING,
+              OrderStatus.ACCEPTED,
+              OrderStatus.PREPARING,
+            ],
+          },
+        },
+      ];
     } else if (query.status) {
       where.status = query.status;
     }

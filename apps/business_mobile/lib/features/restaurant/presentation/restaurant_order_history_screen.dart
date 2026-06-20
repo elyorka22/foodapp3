@@ -11,7 +11,6 @@ import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/order_model.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
-import '../../../shared/widgets/screen_header.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../../orders/providers/orders_provider.dart';
 
@@ -20,56 +19,52 @@ class RestaurantOrderHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orders = ref.watch(historyOrdersPollingProvider);
+    final orders = ref.watch(closedOrdersPollingProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text(AppStrings.orderHistory),
+      ),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(historyOrdersPollingProvider),
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
-          children: [
-            const ScreenHeader(
-              title: AppStrings.orderHistory,
-              subtitle: AppStrings.orders,
-            ),
-            orders.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.all(48),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (e, _) => Padding(
+        onRefresh: () async => ref.invalidate(closedOrdersPollingProvider),
+        child: orders.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => ListView(
+            children: [
+              Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Text(ApiException.formatError(e), textAlign: TextAlign.center),
               ),
-              data: (list) {
-                if (list.isEmpty) {
-                  return const EmptyState(
+            ],
+          ),
+          data: (list) {
+            if (list.isEmpty) {
+              return ListView(
+                children: const [
+                  SizedBox(height: 120),
+                  EmptyState(
                     icon: Icons.history,
                     title: AppStrings.noHistoryOrders,
-                  );
-                }
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  child: Column(
-                    children: list
-                        .map(
-                          (order) => Padding(
-                            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                            child: _HistoryOrderTile(
-                              order: order,
-                              onTap: () => context.push(
-                                AppRoutes.restaurantOrderDetail(order.id),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                  ),
+                ],
+              );
+            }
+            return ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              itemCount: list.length,
+              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (context, index) {
+                final order = list[index];
+                return _HistoryOrderTile(
+                  order: order,
+                  onTap: () => context.push(
+                    AppRoutes.restaurantOrderDetail(order.id),
                   ),
                 );
               },
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -110,7 +105,7 @@ class _HistoryOrderTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    formatSum(order.total),
+                    formatSum(order.itemsTotal),
                     style: AppTypography.subtitle.copyWith(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 4),

@@ -30,7 +30,7 @@ class NewOrderIncomingCard extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            formatSum(order.total),
+            formatSum(order.itemsTotal),
             style: AppTypography.title.copyWith(
               fontSize: 32,
               fontWeight: FontWeight.w800,
