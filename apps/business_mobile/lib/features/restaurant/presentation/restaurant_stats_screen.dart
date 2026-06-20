@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/screen_header.dart';
@@ -28,7 +29,10 @@ class RestaurantStatsScreen extends ConsumerWidget {
           ref.invalidate(_statsProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+          padding: scrollSafePadding(
+            context,
+            base: const EdgeInsets.only(bottom: AppSpacing.xxl),
+          ),
           children: [
             ScreenHeader(
               title: AppStrings.statistics,

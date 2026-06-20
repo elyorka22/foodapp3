@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/order_model.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -51,7 +52,10 @@ class RestaurantOrderHistoryScreen extends ConsumerWidget {
               );
             }
             return ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: scrollSafePadding(
+                context,
+                base: const EdgeInsets.all(AppSpacing.lg),
+              ),
               itemCount: list.length,
               separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {

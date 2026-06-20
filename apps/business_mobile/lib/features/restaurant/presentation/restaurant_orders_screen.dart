@@ -10,6 +10,7 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/new_order_incoming_card.dart';
 import '../../../shared/widgets/open_order_in_progress_card.dart';
 import '../../../shared/widgets/screen_header.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../orders/data/orders_repository.dart';
 import '../../orders/providers/orders_provider.dart';
 import '../data/restaurant_repository.dart';
@@ -37,7 +38,10 @@ class _RestaurantOrdersScreenState extends ConsumerState<RestaurantOrdersScreen>
           ref.invalidate(_restaurantProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+          padding: scrollSafePadding(
+            context,
+            base: const EdgeInsets.only(bottom: AppSpacing.xxl),
+          ),
           children: [
             ScreenHeader(
               title: restaurant.valueOrNull?.name ?? AppStrings.restaurantPanel,

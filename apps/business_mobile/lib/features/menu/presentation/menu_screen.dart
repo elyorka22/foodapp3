@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../core/utils/image_url.dart';
 import '../../../shared/models/product_model.dart';
 import '../../../shared/widgets/app_card.dart';
@@ -55,7 +56,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
           ref.invalidate(_businessKindProvider(businessId));
         },
         child: ListView(
-          padding: const EdgeInsets.only(bottom: 88),
+          padding: scrollFabPadding(context),
           children: [
             if (widget.restaurantId == null)
               const ScreenHeader(

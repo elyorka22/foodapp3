@@ -16,7 +16,9 @@ class RestaurantShellScreen extends StatelessWidget {
         bottom: false,
         child: navigationShell,
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: navigationShell.goBranch,
         destinations: const [
@@ -41,6 +43,7 @@ class RestaurantShellScreen extends StatelessWidget {
             label: AppStrings.profile,
           ),
         ],
+        ),
       ),
     );
   }

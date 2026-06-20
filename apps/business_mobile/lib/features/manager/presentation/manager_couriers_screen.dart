@@ -6,7 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/order_model.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -41,7 +41,7 @@ class _ManagerCouriersScreenState extends ConsumerState<ManagerCouriersScreen> {
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(couriersListProvider),
         child: ListView(
-          padding: const EdgeInsets.only(bottom: 88),
+          padding: scrollFabPadding(context),
           children: [
             const ScreenHeader(
               title: AppStrings.couriers,

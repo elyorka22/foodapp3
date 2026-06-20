@@ -6,6 +6,47 @@ import '../../core/theme/app_typography.dart';
 import '../../core/utils/format_sum.dart';
 import '../models/order_model.dart';
 
+/// Dish name with optional description: `Name / Description` (description highlighted).
+class OrderLineItemTitle extends StatelessWidget {
+  const OrderLineItemTitle({
+    super.key,
+    required this.item,
+    this.baseStyle,
+  });
+
+  final OrderLineItem item;
+  final TextStyle? baseStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final description = item.description?.trim();
+    final nameStyle = baseStyle ?? AppTypography.subtitle;
+
+    if (description == null || description.isEmpty) {
+      return Text(item.name, style: nameStyle);
+    }
+
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: item.name, style: nameStyle),
+          TextSpan(
+            text: ' / ',
+            style: nameStyle.copyWith(color: AppColors.textSecondary),
+          ),
+          TextSpan(
+            text: description,
+            style: nameStyle.copyWith(
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class OrderItemsList extends StatelessWidget {
   const OrderItemsList({
     super.key,
@@ -47,8 +88,6 @@ class _OrderItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final description = item.description?.trim();
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -73,14 +112,7 @@ class _OrderItemRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(item.name, style: AppTypography.subtitle),
-              if (description != null && description.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
-                ),
-              ],
+              OrderLineItemTitle(item: item),
               if (showPrices) ...[
                 const SizedBox(height: 4),
                 Text(

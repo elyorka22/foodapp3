@@ -11,6 +11,7 @@ import '../../../shared/widgets/filter_chips.dart';
 import '../../../shared/widgets/order_card.dart';
 import '../../../shared/widgets/screen_header.dart';
 import '../../manager/data/couriers_repository.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../orders/data/orders_repository.dart';
 import '../../orders/providers/orders_provider.dart';
 
@@ -36,7 +37,10 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
           ref.invalidate(ordersPollingProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+          padding: scrollSafePadding(
+            context,
+            base: const EdgeInsets.only(bottom: AppSpacing.xxl),
+          ),
           children: [
             const ScreenHeader(
               title: AppStrings.managerPanel,

@@ -6,7 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -93,7 +93,7 @@ class ManagerBusinessesScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(listProvider),
         child: ListView(
-          padding: const EdgeInsets.only(bottom: 88),
+          padding: scrollFabPadding(context),
           children: [
             ScreenHeader(title: title, subtitle: subtitle),
             businesses.when(

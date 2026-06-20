@@ -7,6 +7,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../data/notifications_repository.dart';
+import '../../../core/utils/safe_area_padding.dart';
 
 final notificationsListProvider =
     FutureProvider.autoDispose<List<NotificationItem>>((ref) async {
@@ -45,7 +46,10 @@ class NotificationsScreen extends ConsumerWidget {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: scrollSafePadding(
+              context,
+              base: const EdgeInsets.all(AppSpacing.lg),
+            ),
             itemCount: items.length,
             separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) {

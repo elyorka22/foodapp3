@@ -7,6 +7,7 @@ import '../../core/utils/format_sum.dart';
 import '../models/order_model.dart';
 import 'app_card.dart';
 import 'food_app_button.dart';
+import 'order_items_list.dart';
 import 'status_badge.dart';
 
 class OrderCard extends StatefulWidget {
@@ -95,9 +96,20 @@ class _OrderCardState extends State<OrderCard> {
               ...order.items.take(3).map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: 2),
-                      child: Text(
-                        '${item.quantity}x ${item.name}',
-                        style: AppTypography.bodySmall,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${item.quantity}x ',
+                            style: AppTypography.bodySmall,
+                          ),
+                          Expanded(
+                            child: OrderLineItemTitle(
+                              item: item,
+                              baseStyle: AppTypography.bodySmall,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

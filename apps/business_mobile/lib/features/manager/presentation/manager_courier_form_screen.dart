@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/password_text_field.dart';
@@ -36,8 +37,12 @@ class _ManagerCourierFormScreenState extends ConsumerState<ManagerCourierFormScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text(AppStrings.createCourier)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: scrollSafePadding(
+            context,
+            base: const EdgeInsets.all(AppSpacing.xxl),
+          ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -68,6 +73,7 @@ class _ManagerCourierFormScreenState extends ConsumerState<ManagerCourierFormScr
               onPressed: _submit,
             ),
           ],
+        ),
         ),
       ),
     );

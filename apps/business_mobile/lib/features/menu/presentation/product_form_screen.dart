@@ -10,7 +10,9 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format_sum.dart';
 import '../../../core/utils/image_url.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/category_model.dart';
 import '../../../shared/models/product_model.dart';
 import '../../../shared/widgets/food_app_button.dart';
@@ -168,10 +170,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: !_initialized
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
+      body: SafeArea(
+        child: !_initialized
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: scrollSafePadding(
+                  context,
+                  base: const EdgeInsets.all(AppSpacing.xxl),
+                ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -251,6 +257,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 }

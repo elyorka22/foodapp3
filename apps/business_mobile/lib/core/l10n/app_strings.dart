@@ -15,7 +15,7 @@ abstract final class AppStrings {
   static const restaurantPanel = 'Restoran';
   static const managerPanel = 'Menejer';
   static const orders = 'Buyurtmalar';
-  static const newOrders = 'Yangi buyurtmalar';
+  static const newOrders = 'Buyurtmalar';
   static const orderHistory = 'Tarix';
   static const noNewOrders = 'Yangi buyurtmalar yo\'q';
   static const noHistoryOrders = 'Tarix bo\'sh';

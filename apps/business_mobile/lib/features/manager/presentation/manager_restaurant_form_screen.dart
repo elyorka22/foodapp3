@@ -9,6 +9,7 @@ import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/models/working_hour_model.dart';
 import '../../../shared/widgets/password_text_field.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../core/utils/time_format.dart';
 import '../../../shared/widgets/time_am_pm_field.dart';
 import '../../restaurant/data/restaurant_repository.dart';
@@ -103,10 +104,14 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: !_initialized
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
+      body: SafeArea(
+        child: !_initialized
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: scrollSafePadding(
+                  context,
+                  base: const EdgeInsets.all(AppSpacing.xxl),
+                ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -239,6 +244,7 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
                 ],
               ),
             ),
+      ),
     );
   }
 
