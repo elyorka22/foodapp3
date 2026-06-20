@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/widgets/app_card.dart';
