@@ -13,29 +13,40 @@ class FoodAppButton extends StatelessWidget {
     required this.onPressed,
     this.variant = FoodAppButtonVariant.primary,
     this.isLoading = false,
+    this.compact = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final FoodAppButtonVariant variant;
   final bool isLoading;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !isLoading;
-    return SizedBox(
-      width: double.infinity,
-      child: Opacity(
-        opacity: enabled ? 1 : 0.5,
-        child: Material(
-          color: _background,
+    final minHeight = compact ? 40.0 : 52.0;
+    final padding = compact
+        ? const EdgeInsets.symmetric(horizontal: 10, vertical: 8)
+        : const EdgeInsets.symmetric(horizontal: 16, vertical: 14);
+    final labelStyle = compact
+        ? AppTypography.caption.copyWith(
+            color: _foreground,
+            fontWeight: FontWeight.w700,
+          )
+        : AppTypography.button.copyWith(color: _foreground);
+
+    final button = Opacity(
+      opacity: enabled ? 1 : 0.5,
+      child: Material(
+        color: _background,
+        borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+        child: InkWell(
+          onTap: enabled ? onPressed : null,
           borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-          child: InkWell(
-            onTap: enabled ? onPressed : null,
-            borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 52),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Container(
+            constraints: BoxConstraints(minHeight: minHeight),
+            padding: padding,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
                 border: variant == FoodAppButtonVariant.secondary
@@ -50,12 +61,15 @@ class FoodAppButton extends StatelessWidget {
                       width: 22,
                       child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
                     )
-                  : Text(label, style: AppTypography.button.copyWith(color: _foreground)),
-            ),
+                  : Text(label, style: labelStyle, textAlign: TextAlign.center),
           ),
         ),
       ),
     );
+
+    if (compact) return button;
+
+    return SizedBox(width: double.infinity, child: button);
   }
 
   Color get _background {

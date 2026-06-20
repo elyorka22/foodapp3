@@ -15,6 +15,7 @@ class OrderCard extends StatefulWidget {
     required this.order,
     this.showRestaurant = false,
     this.showAssignCourier = true,
+    this.restaurantActionsOnly = false,
     this.compact = false,
     this.onStatusChange,
     this.onRequestCourier,
@@ -27,6 +28,7 @@ class OrderCard extends StatefulWidget {
   final StaffOrderModel order;
   final bool showRestaurant;
   final bool showAssignCourier;
+  final bool restaurantActionsOnly;
   final bool compact;
   final void Function(String nextStatus)? onStatusChange;
   final VoidCallback? onRequestCourier;
@@ -132,51 +134,65 @@ class _OrderCardState extends State<OrderCard> {
             ],
             if (!order.isCancelled) ...[
               const SizedBox(height: AppSpacing.md),
-              if (order.canRequestCourier && widget.onRequestCourier != null)
-                FoodAppButton(
-                  label: AppStrings.requestCourier,
+              if (widget.restaurantActionsOnly)
+                _RestaurantOrderActions(
+                  order: order,
                   isLoading: widget.isLoading,
-                  onPressed: widget.isLoading ? null : widget.onRequestCourier,
-                ),
-              if (widget.showAssignCourier && order.canReassignCourier && widget.onAssignCourier != null) ...[
-                if (order.canRequestCourier) const SizedBox(height: AppSpacing.sm),
-                FoodAppButton(
-                  label: AppStrings.reassignCourier,
-                  isLoading: widget.isLoading,
-                  onPressed: widget.isLoading ? null : widget.onAssignCourier,
-                ),
-              ],
-              if (order.canReassignCourier && widget.onRemoveCourier != null) ...[
-                const SizedBox(height: AppSpacing.sm),
-                FoodAppButton(
-                  label: AppStrings.removeCourier,
-                  variant: FoodAppButtonVariant.secondary,
-                  isLoading: widget.isLoading,
-                  onPressed: widget.isLoading ? null : widget.onRemoveCourier,
-                ),
-              ],
-              if (order.nextStatus != null && widget.onStatusChange != null) ...[
-                if (order.canRequestCourier ||
-                    (widget.showAssignCourier && order.canReassignCourier))
+                  onAccept: order.canAcceptOrder && widget.onStatusChange != null
+                      ? () => widget.onStatusChange!(order.acceptTargetStatus!)
+                      : null,
+                  onRequestCourier:
+                      order.canRequestCourier && widget.onRequestCourier != null
+                          ? widget.onRequestCourier
+                          : null,
+                )
+              else ...[
+                if (order.canRequestCourier && widget.onRequestCourier != null)
+                  FoodAppButton(
+                    label: AppStrings.requestCourier,
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading ? null : widget.onRequestCourier,
+                  ),
+                if (widget.showAssignCourier && order.canReassignCourier && widget.onAssignCourier != null) ...[
+                  if (order.canRequestCourier) const SizedBox(height: AppSpacing.sm),
+                  FoodAppButton(
+                    label: AppStrings.reassignCourier,
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading ? null : widget.onAssignCourier,
+                  ),
+                ],
+                if (order.canReassignCourier && widget.onRemoveCourier != null) ...[
                   const SizedBox(height: AppSpacing.sm),
-                FoodAppButton(
-                  label:
-                      '${AppStrings.nextStatus}: ${AppStrings.orderStatusLabel(order.nextStatus!)}',
-                  variant: FoodAppButtonVariant.secondary,
-                  isLoading: widget.isLoading,
-                  onPressed: widget.isLoading
-                      ? null
-                      : () => widget.onStatusChange!(order.nextStatus!),
-                ),
-              ],
-              if (order.canCancel && widget.onCancel != null) ...[
-                const SizedBox(height: AppSpacing.sm),
-                FoodAppButton(
-                  label: AppStrings.cancelOrder,
-                  variant: FoodAppButtonVariant.danger,
-                  isLoading: widget.isLoading,
-                  onPressed: widget.isLoading ? null : widget.onCancel,
-                ),
+                  FoodAppButton(
+                    label: AppStrings.removeCourier,
+                    variant: FoodAppButtonVariant.secondary,
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading ? null : widget.onRemoveCourier,
+                  ),
+                ],
+                if (order.nextStatus != null && widget.onStatusChange != null) ...[
+                  if (order.canRequestCourier ||
+                      (widget.showAssignCourier && order.canReassignCourier))
+                    const SizedBox(height: AppSpacing.sm),
+                  FoodAppButton(
+                    label:
+                        '${AppStrings.nextStatus}: ${AppStrings.orderStatusLabel(order.nextStatus!)}',
+                    variant: FoodAppButtonVariant.secondary,
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading
+                        ? null
+                        : () => widget.onStatusChange!(order.nextStatus!),
+                  ),
+                ],
+                if (order.canCancel && widget.onCancel != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  FoodAppButton(
+                    label: AppStrings.cancelOrder,
+                    variant: FoodAppButtonVariant.danger,
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading ? null : widget.onCancel,
+                  ),
+                ],
               ],
             ],
           ],
@@ -196,6 +212,51 @@ class _OrderCardState extends State<OrderCard> {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _RestaurantOrderActions extends StatelessWidget {
+  const _RestaurantOrderActions({
+    required this.order,
+    required this.isLoading,
+    this.onAccept,
+    this.onRequestCourier,
+  });
+
+  final StaffOrderModel order;
+  final bool isLoading;
+  final VoidCallback? onAccept;
+  final VoidCallback? onRequestCourier;
+
+  @override
+  Widget build(BuildContext context) {
+    final showAccept = onAccept != null;
+    final showCourier = onRequestCourier != null;
+    if (!showAccept && !showCourier) return const SizedBox.shrink();
+
+    return Row(
+      children: [
+        if (showAccept)
+          Expanded(
+            child: FoodAppButton(
+              label: AppStrings.acceptOrder,
+              compact: true,
+              isLoading: isLoading,
+              onPressed: isLoading ? null : onAccept,
+            ),
+          ),
+        if (showAccept && showCourier) const SizedBox(width: AppSpacing.sm),
+        if (showCourier)
+          Expanded(
+            child: FoodAppButton(
+              label: AppStrings.requestCourier,
+              compact: true,
+              isLoading: isLoading,
+              onPressed: isLoading ? null : onRequestCourier,
+            ),
+          ),
+      ],
     );
   }
 }

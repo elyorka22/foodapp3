@@ -15,6 +15,10 @@ abstract final class AppStrings {
   static const restaurantPanel = 'Restoran';
   static const managerPanel = 'Menejer';
   static const orders = 'Buyurtmalar';
+  static const newOrders = 'Yangi buyurtmalar';
+  static const orderHistory = 'Tarix';
+  static const noNewOrders = 'Yangi buyurtmalar yo\'q';
+  static const noHistoryOrders = 'Tarix bo\'sh';
   static const restaurants = 'Restoranlar';
   static const stores = 'Do\'konlar';
   static const menu = 'Menyu';
@@ -40,6 +44,7 @@ abstract final class AppStrings {
   static const filterActive = 'Faol';
   static const filterCancelled = 'Bekor qilingan';
 
+  static const acceptOrder = 'Qabul qilish';
   static const requestCourier = 'Kuryerni chaqirish';
   static const courierRequested = 'Kuryer chaqirildi';
   static const assignCourier = 'Kuryer biriktirish';
@@ -47,6 +52,15 @@ abstract final class AppStrings {
   static const removeCourier = 'Kuryerni olib tashlash';
   static const nextStatus = 'Keyingi';
   static const cancelOrder = 'Bekor qilish';
+  static const cancelOrderConfirmTitle = 'Buyurtmani bekor qilasizmi?';
+  static const cancelOrderConfirmBody =
+      'Buyurtma bekor qilinadi va mijozga xabar beriladi.';
+  static const cancelOrderFinalTitle = 'Ishonchingiz komilmi?';
+  static const cancelOrderFinalBody = 'Bu amalni ortga qaytarib bo\'lmaydi.';
+  static const confirm = 'Ha, bekor qilish';
+  static const back = 'Orqaga';
+  static const orderTotal = 'Jami summa';
+  static const customerPhone = 'Mijoz telefoni';
 
   static const dispatchAuto = 'Avto: kuryerlar o\'zlari qabul qiladi';
   static const dispatchManager = 'Menejer kuryer biriktiradi';

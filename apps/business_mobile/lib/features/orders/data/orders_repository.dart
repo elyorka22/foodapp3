@@ -14,17 +14,29 @@ class OrdersRepository {
 
   final Dio _dio;
 
-  Future<List<StaffOrderModel>> fetchOrders({String? statusGroup}) async {
+  Future<List<StaffOrderModel>> fetchOrders({
+    String? statusGroup,
+    String? status,
+  }) async {
     final res = await _dio.get<dynamic>(
       ApiPaths.orders,
       queryParameters: {
         'limit': 50,
         if (statusGroup != null) 'statusGroup': statusGroup,
+        if (status != null) 'status': status,
       },
     );
     return parseListResponse(res.data)
         .map(StaffOrderModel.fromJson)
         .toList();
+  }
+
+  Future<StaffOrderModel> fetchOrder(String orderId) async {
+    final res = await _dio.get<Map<String, dynamic>>(ApiPaths.order(orderId));
+    final data = res.data;
+    if (data == null) throw Exception('Order not found');
+    final payload = data['data'] ?? data;
+    return StaffOrderModel.fromJson(payload as Map<String, dynamic>);
   }
 
   Future<void> updateStatus(String orderId, String status, {String? cancelReason}) async {

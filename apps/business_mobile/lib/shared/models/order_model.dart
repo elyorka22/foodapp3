@@ -4,12 +4,14 @@ class OrderLineItem {
     required this.quantity,
     required this.price,
     required this.subtotal,
+    this.description,
   });
 
   final String name;
   final int quantity;
   final num price;
   final num subtotal;
+  final String? description;
 
   factory OrderLineItem.fromJson(Map<String, dynamic> json) {
     return OrderLineItem(
@@ -17,6 +19,7 @@ class OrderLineItem {
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       price: json['price'] as num? ?? 0,
       subtotal: json['subtotal'] as num? ?? 0,
+      description: json['description'] as String?,
     );
   }
 }
@@ -36,6 +39,7 @@ class StaffOrderModel {
     this.courierName,
     this.courierId,
     this.items = const [],
+    this.createdAt,
   });
 
   final String id;
@@ -51,6 +55,9 @@ class StaffOrderModel {
   final String? courierName;
   final String? courierId;
   final List<OrderLineItem> items;
+  final DateTime? createdAt;
+
+  bool get isPending => status == 'PENDING';
 
   bool get isCancelled => status == 'CANCELLED';
   bool get isActive => !isCancelled && status != 'DELIVERED';
@@ -77,6 +84,14 @@ class StaffOrderModel {
 
   bool get canCancel =>
       status == 'PENDING' || status == 'ACCEPTED' || status == 'PREPARING';
+
+  bool get canAcceptOrder => status == 'PENDING' || status == 'ACCEPTED';
+
+  String? get acceptTargetStatus {
+    if (status == 'PENDING') return 'ACCEPTED';
+    if (status == 'ACCEPTED') return 'PREPARING';
+    return null;
+  }
 
   String? get nextStatus => _nextStatusMap[status];
 
@@ -112,6 +127,9 @@ class StaffOrderModel {
           : null,
       courierName: courierUser?['fullName'] as String?,
       courierId: courier?['id'] as String?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : null,
       items: itemsRaw is List
           ? itemsRaw
               .whereType<Map<String, dynamic>>()

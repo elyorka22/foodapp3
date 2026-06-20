@@ -29,12 +29,14 @@ export function OrderTable({
   onRequestCourier,
   showRestaurant,
   requestCourierPendingId,
+  restaurantMode = false,
 }: {
   orders: OrderRow[];
   onStatusChange: (id: string, status: string) => void;
   onRequestCourier?: (id: string) => void;
   showRestaurant?: boolean;
   requestCourierPendingId?: string | null;
+  restaurantMode?: boolean;
 }) {
   const rows = Array.isArray(orders) ? orders : [];
   if (!rows.length) return <p className="text-sm opacity-60">No orders</p>;
@@ -60,6 +62,10 @@ export function OrderTable({
               o.status === 'PREPARING' && !o.courierRequestedAt && !!onRequestCourier;
             const courierRequested =
               o.status === 'PREPARING' && !!o.courierRequestedAt;
+            const canAccept =
+              restaurantMode && (o.status === 'PENDING' || o.status === 'ACCEPTED');
+            const acceptTarget =
+              o.status === 'PENDING' ? 'ACCEPTED' : o.status === 'ACCEPTED' ? 'PREPARING' : null;
 
             return (
               <tr key={o.id} className="border-t dark:border-white/10">
@@ -87,23 +93,47 @@ export function OrderTable({
                 </td>
                 <td className="p-3">{Number(o.total).toLocaleString()}</td>
                 <td className="p-3">
-                  <div className="flex flex-col gap-2">
-                    {canRequestCourier && (
-                      <Button
-                        size="sm"
-                        className="bg-orange-500 hover:bg-orange-600"
-                        disabled={requestCourierPendingId === o.id}
-                        onClick={() => onRequestCourier?.(o.id)}
-                      >
-                        Kuryerni chaqirish
-                      </Button>
-                    )}
-                    {next && (
-                      <Button size="sm" variant="secondary" onClick={() => onStatusChange(o.id, next)}>
-                        → {next}
-                      </Button>
-                    )}
-                  </div>
+                  {restaurantMode ? (
+                    <div className="flex flex-wrap gap-2">
+                      {canAccept && acceptTarget && (
+                        <Button
+                          size="sm"
+                          className="h-8 px-3 text-xs"
+                          onClick={() => onStatusChange(o.id, acceptTarget)}
+                        >
+                          Qabul qilish
+                        </Button>
+                      )}
+                      {canRequestCourier && (
+                        <Button
+                          size="sm"
+                          className="h-8 bg-orange-500 px-3 text-xs hover:bg-orange-600"
+                          disabled={requestCourierPendingId === o.id}
+                          onClick={() => onRequestCourier?.(o.id)}
+                        >
+                          Kuryerni chaqirish
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {canRequestCourier && (
+                        <Button
+                          size="sm"
+                          className="bg-orange-500 hover:bg-orange-600"
+                          disabled={requestCourierPendingId === o.id}
+                          onClick={() => onRequestCourier?.(o.id)}
+                        >
+                          Kuryerni chaqirish
+                        </Button>
+                      )}
+                      {next && (
+                        <Button size="sm" variant="secondary" onClick={() => onStatusChange(o.id, next)}>
+                          → {next}
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </td>
               </tr>
             );

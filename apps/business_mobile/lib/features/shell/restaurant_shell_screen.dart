@@ -21,9 +21,14 @@ class RestaurantShellScreen extends StatelessWidget {
         onDestinationSelected: navigationShell.goBranch,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: AppStrings.orders,
+            icon: Icon(Icons.notifications_active_outlined),
+            selectedIcon: Icon(Icons.notifications_active),
+            label: AppStrings.newOrders,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: AppStrings.orderHistory,
           ),
           NavigationDestination(
             icon: Icon(Icons.restaurant_menu_outlined),

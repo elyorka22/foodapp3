@@ -405,6 +405,10 @@ export class OrdersService {
       };
     } else if (query.statusGroup === 'cancelled') {
       where.status = OrderStatus.CANCELLED;
+    } else if (query.statusGroup === 'pending') {
+      where.status = OrderStatus.PENDING;
+    } else if (query.statusGroup === 'history') {
+      where.status = { not: OrderStatus.PENDING };
     } else if (query.status) {
       where.status = query.status;
     }

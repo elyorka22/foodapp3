@@ -12,6 +12,8 @@ import '../../features/menu/presentation/menu_screen.dart';
 import '../../features/menu/presentation/product_form_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/restaurant/presentation/restaurant_order_detail_screen.dart';
+import '../../features/restaurant/presentation/restaurant_order_history_screen.dart';
 import '../../features/restaurant/presentation/restaurant_orders_screen.dart';
 import '../../features/restaurant/presentation/restaurant_stats_screen.dart';
 import '../../features/shell/manager_shell_screen.dart';
@@ -79,6 +81,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.managerCourierNew,
         builder: (_, __) => const ManagerCourierFormScreen(),
       ),
+      GoRoute(
+        path: '/restaurant/orders/:id',
+        builder: (_, state) => RestaurantOrderDetailScreen(
+          orderId: state.pathParameters['id']!,
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (_, __, navigationShell) =>
             RestaurantShellScreen(navigationShell: navigationShell),
@@ -88,6 +96,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.restaurantHome,
                 builder: (_, __) => const RestaurantOrdersScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.restaurantHistory,
+                builder: (_, __) => const RestaurantOrderHistoryScreen(),
               ),
             ],
           ),

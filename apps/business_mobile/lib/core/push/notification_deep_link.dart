@@ -13,7 +13,11 @@ Future<void> navigateFromPushData(
   final orderId = _resolveOrderId(data);
 
   if (orderId != null && orderId.isNotEmpty && user != null) {
-    router.go(user.homeRoute);
+    if (user.isRestaurant) {
+      router.push(AppRoutes.restaurantOrderDetail(orderId));
+    } else {
+      router.go(user.homeRoute);
+    }
     return;
   }
 

@@ -61,6 +61,7 @@ export default function RestaurantPanelPage() {
       </div>
       <OrderTable
         orders={orders}
+        restaurantMode
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
         onRequestCourier={(id) => requestCourier.mutate(id)}
         requestCourierPendingId={
