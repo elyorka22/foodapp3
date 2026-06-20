@@ -29,7 +29,7 @@ void syncShiftSessionFromBackend(WidgetRef ref) {
   }
 }
 
-void removePushInboxOrder(Ref ref, String orderId) {
+void removePushInboxOrder(WidgetRef ref, String orderId) {
   ref.read(pushInboxOrdersProvider.notifier).state = ref
       .read(pushInboxOrdersProvider)
       .where((item) => item.id != orderId)
@@ -37,7 +37,7 @@ void removePushInboxOrder(Ref ref, String orderId) {
 }
 
 /// Clears push cache and in-app "new job" banner for a finished or stale order.
-void dismissHomeJobOffer(Ref ref, String orderId) {
+void dismissHomeJobOffer(WidgetRef ref, String orderId) {
   removePushInboxOrder(ref, orderId);
   final alert = ref.read(newJobAlertProvider);
   if (alert?.orderId == orderId) {
