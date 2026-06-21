@@ -12,11 +12,13 @@ class UzPhoneField extends StatelessWidget {
     required this.controller,
     this.hint,
     this.label,
+    this.onChanged,
   });
 
   final TextEditingController controller;
   final String? hint;
   final String? label;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,7 @@ class UzPhoneField extends StatelessWidget {
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.phone,
+                onChanged: onChanged,
                 inputFormatters: const [_UzPhoneDisplayFormatter()],
                 style: AppTypography.body,
                 decoration: InputDecoration(

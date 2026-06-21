@@ -16,11 +16,11 @@ import {
   validateDeliveryLocation,
   type DeliveryLocationValue,
 } from '@/components/checkout/delivery-location';
+import type { CheckoutActionStep } from '@/lib/checkout-action-step';
 import { CheckoutHeader } from '@/components/checkout/checkout-header';
 import { CheckoutProductCard } from '@/components/checkout/checkout-product-card';
 import { CheckoutPromoCard } from '@/components/checkout/checkout-promo-card';
 import { CheckoutPhoneCard } from '@/components/checkout/checkout-phone-card';
-import { CheckoutDeliveryCard } from '@/components/checkout/checkout-delivery-card';
 import { CheckoutSummaryCard } from '@/components/checkout/checkout-summary-card';
 import { CheckoutSubmitBar } from '@/components/checkout/checkout-submit-bar';
 import { fetchDeliveryQuote } from '@/hooks/use-delivery-pricing';
@@ -28,15 +28,18 @@ import { formatSum } from '@/lib/format-sum';
 import { isValidUzPhone, normalizePhone } from '@/lib/phone';
 import { uz } from '@/lib/uz';
 
+const emptyLocation = (): DeliveryLocationValue => ({
+  address: '',
+  lat: null,
+  lng: null,
+});
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, restaurantId, total, clear, addItem, decrementItem, removeItem } = useCartStore();
   const [phone, setPhone] = useState('');
-  const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocationValue>({
-    address: '',
-    lat: null,
-    lng: null,
-  });
+  const [actionStep, setActionStep] = useState<CheckoutActionStep>('enter_phone');
+  const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocationValue>(emptyLocation);
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoMessage, setPromoMessage] = useState('');
@@ -44,7 +47,6 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
-  const [billableDistanceKm, setBillableDistanceKm] = useState<number | null>(null);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [gettingGps, setGettingGps] = useState(false);
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
@@ -55,10 +57,36 @@ export default function CheckoutPage() {
   );
 
   const subtotal = total();
+  const deliveryCalculating = gettingGps || deliveryLoading;
+  const deliveryQuoted =
+    deliveryFee != null && !deliveryCalculating && deliveryError == null && actionStep === 'place_order';
+
   const grandTotal = useMemo(() => {
     if (deliveryFee == null) return null;
     return Math.max(0, subtotal - promoDiscount) + deliveryFee;
   }, [subtotal, promoDiscount, deliveryFee]);
+
+  const clearDeliveryQuote = () => {
+    setDeliveryFee(null);
+    setDeliveryError(null);
+    setDeliveryLocation(emptyLocation());
+  };
+
+  const handlePhoneChange = (value: string) => {
+    setPhone(value);
+    setError('');
+
+    if (!isValidUzPhone(value)) {
+      clearDeliveryQuote();
+      setActionStep('enter_phone');
+      return;
+    }
+
+    if (actionStep === 'place_order' || actionStep === 'calculate_delivery') {
+      clearDeliveryQuote();
+    }
+    setActionStep('confirm_phone');
+  };
 
   useEffect(() => {
     if (isCustomerLoggedIn() && customerNeedsPhone()) {
@@ -66,34 +94,11 @@ export default function CheckoutPage() {
       return;
     }
     const c = getCustomer();
-    if (c?.phone) setPhone(c.phone);
-  }, [router]);
-
-  useEffect(() => {
-    if (!restaurantId || deliveryLocation.lat == null || deliveryLocation.lng == null) {
-      return;
+    if (c?.phone) {
+      handlePhoneChange(c.phone);
     }
-    const timer = setTimeout(async () => {
-      setDeliveryLoading(true);
-      setDeliveryError(null);
-      try {
-        const quote = await fetchDeliveryQuote({
-          restaurantId,
-          latitude: deliveryLocation.lat!,
-          longitude: deliveryLocation.lng!,
-        });
-        setDeliveryFee(quote.deliveryFee);
-        setBillableDistanceKm(quote.billableDistanceKm);
-      } catch (err) {
-        setDeliveryFee(null);
-        setBillableDistanceKm(null);
-        setDeliveryError(err instanceof Error ? err.message : uz.orderFailed);
-      } finally {
-        setDeliveryLoading(false);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [restaurantId, deliveryLocation.lat, deliveryLocation.lng]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
 
   const requestDeliveryQuote = () => {
     if (!restaurantId) return;
@@ -106,17 +111,12 @@ export default function CheckoutPage() {
     setDeliveryError(null);
     setError('');
     setDeliveryFee(null);
-    setBillableDistanceKm(null);
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        setDeliveryLocation((prev) => ({
-          ...prev,
-          lat,
-          lng,
-        }));
+        setDeliveryLocation({ address: '', lat, lng });
         setGettingGps(false);
         setDeliveryLoading(true);
         try {
@@ -126,10 +126,10 @@ export default function CheckoutPage() {
             longitude: lng,
           });
           setDeliveryFee(quote.deliveryFee);
-          setBillableDistanceKm(quote.billableDistanceKm);
+          setDeliveryError(null);
+          setActionStep('place_order');
         } catch (err) {
           setDeliveryFee(null);
-          setBillableDistanceKm(null);
           const message = err instanceof Error ? err.message : uz.orderFailed;
           setDeliveryError(message);
           setError(message);
@@ -229,14 +229,6 @@ export default function CheckoutPage() {
     }
   };
 
-  const deliveryCalculating = gettingGps || deliveryLoading;
-  const deliveryQuoted = deliveryFee != null && !deliveryCalculating && !deliveryError;
-  const canPlaceOrder =
-    !loading &&
-    !deliveryCalculating &&
-    deliveryQuoted &&
-    isValidUzPhone(phone);
-
   if (!items.length) {
     return (
       <main className="mx-auto min-h-screen max-w-lg bg-[#FAF7F2] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
@@ -286,17 +278,7 @@ export default function CheckoutPage() {
             message={promoMessage}
           />
 
-          <CheckoutPhoneCard phone={phone} onPhoneChange={setPhone} />
-
-          <CheckoutDeliveryCard
-            value={deliveryLocation}
-            calculating={deliveryCalculating}
-            quoted={deliveryQuoted}
-            deliveryFee={deliveryFee}
-            billableDistanceKm={billableDistanceKm}
-            deliveryError={deliveryError}
-            onRecalculate={requestDeliveryQuote}
-          />
+          <CheckoutPhoneCard phone={phone} onPhoneChange={handlePhoneChange} />
 
           {deliveryQuoted ? (
             <CheckoutSummaryCard
@@ -312,18 +294,20 @@ export default function CheckoutPage() {
             </p>
           ) : null}
 
-          {!canPlaceOrder && deliveryQuoted && !loading ? (
-            <p className="text-center text-[12px] text-zinc-500">{uz.phoneRequiredForOrders}</p>
+          {deliveryError && actionStep === 'calculate_delivery' ? (
+            <p className="rounded-2xl bg-red-50 px-4 py-3 text-[13px] font-medium text-red-600">
+              {deliveryError}
+            </p>
           ) : null}
         </div>
       </main>
 
       <CheckoutSubmitBar
-        quoted={deliveryQuoted}
+        step={actionStep}
         total={grandTotal}
         placingOrder={loading}
         calculating={deliveryCalculating}
-        canSubmit={canPlaceOrder}
+        onConfirmPhone={() => setActionStep('calculate_delivery')}
         onCalculate={requestDeliveryQuote}
         onSubmit={submit}
       />

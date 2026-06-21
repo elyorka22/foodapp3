@@ -2,48 +2,77 @@
 
 import { clsx } from 'clsx';
 import { formatSum } from '@/lib/format-sum';
+import type { CheckoutActionStep } from '@/lib/checkout-action-step';
 import { uz } from '@/lib/uz';
 
 type Props = {
-  quoted: boolean;
+  step: CheckoutActionStep;
   total: number | null;
   placingOrder: boolean;
   calculating: boolean;
-  canSubmit: boolean;
+  onConfirmPhone: () => void;
   onCalculate: () => void;
   onSubmit: () => void;
 };
 
+function buttonLabel(
+  step: CheckoutActionStep,
+  placingOrder: boolean,
+  calculating: boolean,
+  total: number | null,
+): string {
+  if (placingOrder) return uz.placingOrder;
+  if (calculating) return uz.deliveryCalculating;
+
+  switch (step) {
+    case 'enter_phone':
+      return uz.checkoutEnterPhone;
+    case 'confirm_phone':
+      return uz.checkoutPhoneEntered;
+    case 'calculate_delivery':
+      return uz.calculateDeliveryPrice;
+    case 'place_order':
+      return total != null
+        ? uz.checkoutPlaceOrderWithTotal(formatSum(total))
+        : uz.checkoutPlaceOrder;
+  }
+}
+
+function isButtonEnabled(
+  step: CheckoutActionStep,
+  placingOrder: boolean,
+  calculating: boolean,
+): boolean {
+  if (placingOrder || calculating) return false;
+  return step !== 'enter_phone';
+}
+
 export function CheckoutSubmitBar({
-  quoted,
+  step,
   total,
   placingOrder,
   calculating,
-  canSubmit,
+  onConfirmPhone,
   onCalculate,
   onSubmit,
 }: Props) {
   const busy = placingOrder || calculating;
-
-  const label = placingOrder
-    ? uz.placingOrder
-    : calculating
-      ? uz.deliveryCalculating
-      : quoted
-        ? total != null
-          ? uz.checkoutPlaceOrderWithTotal(formatSum(total))
-          : uz.placeOrder
-        : uz.calculateDeliveryPrice;
-
-  const disabled = busy || (quoted ? !canSubmit : false);
+  const label = buttonLabel(step, placingOrder, calculating, total);
+  const disabled = !isButtonEnabled(step, placingOrder, calculating);
 
   const handleClick = () => {
-    if (busy) return;
-    if (quoted) {
-      if (canSubmit) onSubmit();
-      return;
+    if (busy || disabled) return;
+    switch (step) {
+      case 'confirm_phone':
+        onConfirmPhone();
+        break;
+      case 'calculate_delivery':
+        onCalculate();
+        break;
+      case 'place_order':
+        onSubmit();
+        break;
     }
-    onCalculate();
   };
 
   return (

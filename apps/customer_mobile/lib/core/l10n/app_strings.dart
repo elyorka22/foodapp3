@@ -134,6 +134,9 @@ abstract final class AppStrings {
   static const paymentMethod = "To'lov usuli";
   static const placeOrder = 'Buyurtmani tasdiqlash';
   static String checkoutPlaceOrderWithTotal(String total) => '🛵 ${total}ga buyurtma berish';
+  static const checkoutEnterPhone = 'Telefon raqamini kiriting';
+  static const checkoutPhoneEntered = 'Raqam kiritildi';
+  static const checkoutPlaceOrder = 'Buyurtmani rasmiylashtirish';
   static const phoneRequiredForOrders = 'Buyurtma uchun telefon raqam kerak';
 
   static const loading = 'Yuklanmoqda...';

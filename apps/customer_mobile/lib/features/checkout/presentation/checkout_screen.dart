@@ -17,11 +17,17 @@ import '../../../shared/models/order_model.dart';
 import '../../../shared/widgets/checkout_promo_card.dart';
 import '../../../shared/widgets/customer_page.dart';
 import '../../../shared/widgets/uz_phone_field.dart';
-import '../../../shared/widgets/delivery_location_field.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../data/orders_repository.dart';
+
+enum _CheckoutStep {
+  enterPhone,
+  confirmPhone,
+  calculateDelivery,
+  placeOrder,
+}
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -46,6 +52,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _validatingPromo = false;
   bool _loading = false;
   String? _error;
+  _CheckoutStep _step = _CheckoutStep.enterPhone;
+
+  void _clearDeliveryQuote() {
+    _lat = null;
+    _lng = null;
+    _deliveryFee = null;
+    _billableDistanceKm = null;
+    _deliveryError = null;
+  }
+
+  void _onPhoneChanged(String value) {
+    final fullPhone = normalizePhone(value);
+    if (!isValidUzPhone(fullPhone)) {
+      setState(() {
+        _clearDeliveryQuote();
+        _step = _CheckoutStep.enterPhone;
+        _error = null;
+      });
+      return;
+    }
+
+    setState(() {
+      if (_step == _CheckoutStep.placeOrder || _step == _CheckoutStep.calculateDelivery) {
+        _clearDeliveryQuote();
+      }
+      _step = _CheckoutStep.confirmPhone;
+      _error = null;
+    });
+  }
 
   @override
   void dispose() {
@@ -58,12 +93,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       _deliveryFee != null && !_deliveryLoading && _deliveryError == null;
 
   bool get _calculateBusy => _sendingLocation || _deliveryLoading;
-
-  bool get _canPlaceOrder =>
-      !_loading &&
-      !_calculateBusy &&
-      _deliveryQuoted &&
-      isValidUzPhone(_phone.text);
 
   Future<void> _calculateDelivery() async {
     setState(() {
@@ -123,6 +152,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         _deliveryFee = quote.deliveryFee;
         _billableDistanceKm = quote.billableDistanceKm;
         _deliveryLoading = false;
+        _step = _CheckoutStep.placeOrder;
       });
     } on DioException catch (e) {
       final err = e.error;
@@ -180,32 +210,46 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
-  bool _primaryActionEnabled(List<CartItemModel> cart, String? customerId) {
-    if (_loading || _calculateBusy) return false;
-    if (_deliveryQuoted) return _canPlaceOrder;
-    return cart.isNotEmpty;
+  bool _primaryActionEnabled(List<CartItemModel> cart) {
+    if (_loading || _calculateBusy || cart.isEmpty) return false;
+    return _step != _CheckoutStep.enterPhone;
   }
 
   String _primaryActionLabel(num subtotal, num promoDiscount) {
     if (_loading) return AppStrings.placingOrder;
     if (_calculateBusy) return AppStrings.deliveryCalculating;
-    if (_deliveryQuoted) {
-      final netSubtotal = subtotal - promoDiscount;
-      final total = _deliveryFee != null ? netSubtotal + _deliveryFee! : null;
-      if (total != null) {
-        return AppStrings.checkoutPlaceOrderWithTotal(formatSum(total));
-      }
-      return AppStrings.placeOrder;
+
+    switch (_step) {
+      case _CheckoutStep.enterPhone:
+        return AppStrings.checkoutEnterPhone;
+      case _CheckoutStep.confirmPhone:
+        return AppStrings.checkoutPhoneEntered;
+      case _CheckoutStep.calculateDelivery:
+        return AppStrings.calculateDeliveryPrice;
+      case _CheckoutStep.placeOrder:
+        final netSubtotal = subtotal - promoDiscount;
+        final total = _deliveryFee != null ? netSubtotal + _deliveryFee! : null;
+        if (total != null) {
+          return AppStrings.checkoutPlaceOrderWithTotal(formatSum(total));
+        }
+        return AppStrings.checkoutPlaceOrder;
     }
-    return AppStrings.calculateDeliveryPrice;
   }
 
   Future<void> _onPrimaryAction(List<CartItemModel> cart, String? customerId) async {
-    if (_deliveryQuoted) {
-      await _submit(cart, customerId);
-      return;
+    switch (_step) {
+      case _CheckoutStep.enterPhone:
+        return;
+      case _CheckoutStep.confirmPhone:
+        setState(() => _step = _CheckoutStep.calculateDelivery);
+        return;
+      case _CheckoutStep.calculateDelivery:
+        await _calculateDelivery();
+        return;
+      case _CheckoutStep.placeOrder:
+        await _submit(cart, customerId);
+        return;
     }
-    await _calculateDelivery();
   }
 
   Future<void> _submit(List<CartItemModel> items, String? customerId) async {
@@ -277,6 +321,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     if (user?.phone != null && _phone.text.isEmpty) {
       setUzPhoneController(_phone, user!.phone);
+      _onPhoneChanged(_phone.text);
     }
 
     if (cart.isEmpty) {
@@ -344,28 +389,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           UzPhoneField(
             controller: _phone,
             hint: AppStrings.phonePlaceholder,
+            onChanged: _onPhoneChanged,
           ),
-          const SizedBox(height: AppSpacing.lg),
-          DeliveryLocationField(
-            quoted: _deliveryQuoted,
-            busy: _calculateBusy,
-            onRecalculate: _deliveryQuoted ? _calculateDelivery : null,
-          ),
-          if (_deliveryError != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              _deliveryError!,
-              style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
-            ),
-          ],
-          if (_deliveryQuoted) ...[
-            const SizedBox(height: AppSpacing.md),
-            _DeliveryQuoteBanner(
-              loading: false,
-              error: null,
-              billableDistanceKm: _billableDistanceKm,
-              deliveryFee: _deliveryFee,
-            ),
+          if (_step == _CheckoutStep.placeOrder && _deliveryQuoted) ...[
             const SizedBox(height: AppSpacing.md),
             _CheckoutTotals(
               subtotal: total,
@@ -375,6 +401,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               deliveryError: null,
             ),
           ],
+          if (_deliveryError != null && _step == _CheckoutStep.calculateDelivery) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              _deliveryError!,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
+            ),
+          ],
           if (_error != null) ...[
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -382,99 +415,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
             ),
           ],
-          if (!_canPlaceOrder && _deliveryQuoted && !_loading) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              AppStrings.phoneRequiredForOrders,
-              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
-            ),
-          ],
           const SizedBox(height: AppSpacing.xxl),
           FoodAppButton(
             label: _primaryActionLabel(total, _promoDiscount),
             isLoading: _loading || _calculateBusy,
-            onPressed: _primaryActionEnabled(cart, user?.id)
+            onPressed: _primaryActionEnabled(cart)
                 ? () => _onPrimaryAction(cart, user?.id)
                 : null,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DeliveryQuoteBanner extends StatelessWidget {
-  const _DeliveryQuoteBanner({
-    required this.loading,
-    required this.error,
-    required this.billableDistanceKm,
-    required this.deliveryFee,
-  });
-
-  final bool loading;
-  final String? error;
-  final num? billableDistanceKm;
-  final num? deliveryFee;
-
-  @override
-  Widget build(BuildContext context) {
-    if (error != null) {
-      return Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFEF2F2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFFECACA)),
-        ),
-        child: Text(error!, style: AppTypography.bodySmall.copyWith(color: AppColors.danger)),
-      );
-    }
-    if (loading) {
-      return Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.primarySoft,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
-        ),
-        child: Text(
-          AppStrings.deliveryCalculating,
-          textAlign: TextAlign.center,
-          style: AppTypography.bodySmall.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.primary,
-          ),
-        ),
-      );
-    }
-    if (deliveryFee == null || billableDistanceKm == null) return const SizedBox.shrink();
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppStrings.deliveryPriceCalculated,
-            style: AppTypography.bodySmall.copyWith(
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF166534),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            AppStrings.distanceKm(billableDistanceKm!),
-            style: AppTypography.bodySmall.copyWith(color: const Color(0xFF166534)),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${AppStrings.deliveryLabel}: ${formatSum(deliveryFee)}',
-            style: AppTypography.subtitle.copyWith(color: const Color(0xFF166534)),
           ),
         ],
       ),
