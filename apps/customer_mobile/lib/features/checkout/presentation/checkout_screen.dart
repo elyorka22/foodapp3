@@ -18,6 +18,7 @@ import '../../../shared/widgets/checkout_promo_card.dart';
 import '../../../shared/widgets/customer_page.dart';
 import '../../../shared/widgets/uz_phone_field.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../../shared/widgets/delivery_location_field.dart' show validateDeliveryLocation;
 import '../../auth/providers/auth_provider.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../data/orders_repository.dart';
@@ -44,7 +45,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   double? _lng;
   bool _sendingLocation = false;
   num? _deliveryFee;
-  num? _billableDistanceKm;
   bool _deliveryLoading = false;
   String? _deliveryError;
   num _promoDiscount = 0;
@@ -58,7 +58,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _lat = null;
     _lng = null;
     _deliveryFee = null;
-    _billableDistanceKm = null;
     _deliveryError = null;
   }
 
@@ -100,7 +99,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       _error = null;
       _deliveryError = null;
       _deliveryFee = null;
-      _billableDistanceKm = null;
     });
     final result = await ref.read(locationServiceProvider).resolveForCheckout(
           forceRefresh: true,
@@ -129,7 +127,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (businessId == null || _lat == null || _lng == null) {
       setState(() {
         _deliveryFee = null;
-        _billableDistanceKm = null;
         _deliveryError = null;
         _deliveryLoading = false;
       });
@@ -150,7 +147,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() {
         _deliveryFee = quote.deliveryFee;
-        _billableDistanceKm = quote.billableDistanceKm;
         _deliveryLoading = false;
         _step = _CheckoutStep.placeOrder;
       });
@@ -160,7 +156,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() {
         _deliveryFee = null;
-        _billableDistanceKm = null;
         _deliveryError = msg ?? AppStrings.orderFailed;
         _deliveryLoading = false;
       });
@@ -168,7 +163,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() {
         _deliveryFee = null;
-        _billableDistanceKm = null;
         _deliveryError = AppStrings.orderFailed;
         _deliveryLoading = false;
       });
