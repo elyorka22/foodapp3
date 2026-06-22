@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCategoryProducts, useDishCategories } from '@/hooks/use-dish-categories';
 import { resolveImageUrl } from '@/lib/image-url';
+import { MenuProductImage } from '@/components/restaurant/menu-product-image';
 import { uz } from '@/lib/uz';
 
 export default function CategoryProductsPage({ slug }: { slug: string }) {
@@ -50,11 +51,8 @@ export default function CategoryProductsPage({ slug }: { slug: string }) {
               href={restaurantSlug ? `/restaurants/${restaurantSlug}` : '#'}
               className="overflow-hidden rounded-2xl bg-white shadow-card active:scale-[0.98]"
             >
-              <div className="relative aspect-square bg-zinc-100">
-                {img ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={img} alt="" className="h-full w-full object-cover" />
-                ) : null}
+              <div className="relative aspect-square overflow-hidden bg-zinc-100">
+                {img ? <MenuProductImage src={img} alt={p.name} /> : null}
               </div>
               <div className="p-3">
                 <p className="line-clamp-2 text-sm font-semibold text-zinc-900">{p.name}</p>

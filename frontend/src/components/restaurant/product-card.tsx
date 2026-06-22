@@ -1,12 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import { Minus, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
 import { useCartStore } from '@/store/cart';
+import { MenuProductImage } from '@/components/restaurant/menu-product-image';
 
 export type MenuProduct = {
   id: string;
@@ -83,14 +83,7 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
     <article className="flex flex-col">
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-zinc-100">
         {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 430px) 50vw, 215px"
-            unoptimized
-          />
+          <MenuProductImage src={imageUrl} alt={product.name} />
         ) : (
           <div className="flex h-full items-center justify-center bg-zinc-100 text-3xl opacity-30">🍽</div>
         )}
