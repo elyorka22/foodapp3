@@ -17,7 +17,7 @@ type Props = {
 export function MenuProductImage({
   src,
   alt,
-  className = 'h-full w-full',
+  className = 'h-full w-full bg-white',
 }: Props) {
   const [style, setStyle] = useState<CSSProperties>(DEFAULT_STYLE);
 

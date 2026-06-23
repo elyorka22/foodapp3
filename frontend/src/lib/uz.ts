@@ -31,6 +31,8 @@ export const uz = {
   subtotal: 'Jami',
   clear: 'Tozalash',
   checkout: 'Buyurtma berish',
+  checkoutStepDetails: 'Ma\'lumotlar',
+  checkoutStepDelivery: 'Yetkazish',
   checkoutTitle: 'Buyurtmani rasmiylashtirish',
   checkoutHeading: 'Buyurtmangiz',
   checkoutItemCount: (count: number) => `${count} ta mahsulot`,

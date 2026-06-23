@@ -51,7 +51,7 @@ export default function CategoryProductsPage({ slug }: { slug: string }) {
               href={restaurantSlug ? `/restaurants/${restaurantSlug}` : '#'}
               className="overflow-hidden rounded-2xl bg-white shadow-card active:scale-[0.98]"
             >
-              <div className="relative aspect-square overflow-hidden bg-zinc-100">
+              <div className="relative aspect-square overflow-hidden bg-white">
                 {img ? <MenuProductImage src={img} alt={p.name} /> : null}
               </div>
               <div className="p-3">

@@ -1,25 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
-import { Button } from '@/components/ui/button';
+import { CheckoutProductCard } from '@/components/checkout/checkout-product-card';
+import { CheckoutDualActionBar } from '@/components/checkout/checkout-dual-action-bar';
+import { CheckoutHeader } from '@/components/checkout/checkout-header';
+import { checkoutMainClass } from '@/lib/checkout-layout';
 import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
-
-const mainClass =
-  'mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]';
+import { useCheckoutFlow } from '@/hooks/use-checkout-flow';
 
 export default function CartPage() {
-  const router = useRouter();
-  const { items, removeItem, total, clear } = useCartStore();
+  const { items, total, addItem, decrementItem, removeItem } = useCartStore();
+  const { clearAll, goToDetails } = useCheckoutFlow();
+
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   if (!items.length) {
     return (
-      <main className={mainClass}>
-        <div className="mt-8 text-center">
-          <p className="text-lg font-medium">{uz.cartEmpty}</p>
-          <Link href="/" className="mt-4 inline-block text-brand-600">
+      <main className={checkoutMainClass}>
+        <div className="mt-12 text-center">
+          <p className="text-lg font-semibold text-zinc-900">{uz.cartEmpty}</p>
+          <Link href="/" className="mt-4 inline-block text-[15px] font-semibold text-[#FF7A00]">
             {uz.browseRestaurants}
           </Link>
         </div>
@@ -28,41 +30,47 @@ export default function CartPage() {
   }
 
   return (
-    <main className={mainClass}>
-      <h1 className="text-xl font-bold">{uz.cartTitle}</h1>
-      <ul className="mt-4 space-y-3">
-        {items.map((i) => (
-          <li
-            key={i.productId}
-            className="flex items-center justify-between rounded-xl border bg-white p-4 shadow-card"
-          >
-            <div>
-              <p className="font-medium">{i.name}</p>
-              <p className="text-sm text-zinc-500">
-                {i.quantity} × {formatSum(i.price)}
-              </p>
+    <>
+      <main className={checkoutMainClass}>
+        <CheckoutHeader title={uz.cartTitle} subtitle={uz.checkoutItemCount(itemCount)} />
+
+        <div className="mt-6 space-y-4">
+          {items.map((item) => (
+            <CheckoutProductCard
+              key={item.productId}
+              item={item}
+              onIncrement={() =>
+                addItem(
+                  {
+                    productId: item.productId,
+                    name: item.name,
+                    price: item.price,
+                    restaurantId: item.restaurantId,
+                    imageUrl: item.imageUrl,
+                    restaurantName: item.restaurantName,
+                  },
+                  1,
+                )
+              }
+              onDecrement={() => decrementItem(item.productId)}
+              onRemove={() => removeItem(item.productId)}
+            />
+          ))}
+
+          <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_32px_rgba(15,23,42,0.06)]">
+            <div className="flex items-center justify-between text-[15px]">
+              <span className="font-medium text-zinc-600">{uz.subtotal}</span>
+              <span className="text-[20px] font-bold text-zinc-900">{formatSum(total())}</span>
             </div>
-            <button
-              type="button"
-              className="text-sm text-red-500"
-              onClick={() => removeItem(i.productId)}
-            >
-              {uz.remove}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-4 text-lg font-bold">
-        {uz.subtotal}: {formatSum(total())}
-      </p>
-      <div className="mt-4 flex gap-2">
-        <Button type="button" variant="secondary" onClick={() => clear()}>
-          {uz.clear}
-        </Button>
-        <Button type="button" size="lg" className="flex-1" onClick={() => router.push('/checkout')}>
-          {uz.checkout}
-        </Button>
-      </div>
-    </main>
+          </div>
+        </div>
+      </main>
+
+      <CheckoutDualActionBar
+        onSecondary={clearAll}
+        onPrimary={goToDetails}
+        primaryLabel={uz.checkout}
+      />
+    </>
   );
 }

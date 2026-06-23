@@ -19,7 +19,7 @@ const tabs = [
     href: '/cart',
     label: uz.navCart,
     icon: ShoppingBasket,
-    match: (path: string) => path === '/cart' || path === '/checkout',
+    match: (path: string) => path === '/cart' || path.startsWith('/checkout'),
   },
   {
     href: '/profile',

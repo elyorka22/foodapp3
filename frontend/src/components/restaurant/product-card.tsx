@@ -81,11 +81,11 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
 
   return (
     <article className="flex flex-col">
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-zinc-100">
+      <div className="relative aspect-square overflow-hidden rounded-2xl bg-white">
         {imageUrl ? (
           <MenuProductImage src={imageUrl} alt={product.name} />
         ) : (
-          <div className="flex h-full items-center justify-center bg-zinc-100 text-3xl opacity-30">🍽</div>
+          <div className="flex h-full items-center justify-center bg-white text-3xl opacity-30">🍽</div>
         )}
 
         {discount != null && discount > 0 && (

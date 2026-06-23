@@ -12,6 +12,7 @@ type Props = {
   onApply: () => void;
   validating: boolean;
   message: string;
+  defaultOpen?: boolean;
 };
 
 export function CheckoutPromoCard({
@@ -20,8 +21,9 @@ export function CheckoutPromoCard({
   onApply,
   validating,
   message,
+  defaultOpen = false,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div className="overflow-hidden rounded-[22px] bg-white shadow-[0_8px_32px_rgba(15,23,42,0.06)]">
