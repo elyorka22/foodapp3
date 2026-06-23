@@ -10,6 +10,7 @@ import '../../../core/utils/format_sum.dart';
 import '../../../shared/widgets/customer_page.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../providers/cart_provider.dart';
+import '../../checkout/providers/checkout_provider.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -91,7 +92,10 @@ class CartScreen extends ConsumerWidget {
                 child: FoodAppButton(
                   label: AppStrings.clear,
                   variant: FoodAppButtonVariant.secondary,
-                  onPressed: () => ref.read(cartProvider.notifier).clear(),
+                  onPressed: () {
+                    ref.read(cartProvider.notifier).clear();
+                    ref.read(checkoutProvider.notifier).reset();
+                  },
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),

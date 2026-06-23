@@ -7,7 +7,8 @@ import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/telegram_login_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/cart/presentation/cart_screen.dart';
-import '../../features/checkout/presentation/checkout_screen.dart';
+import '../../features/checkout/presentation/checkout_details_screen.dart';
+import '../../features/checkout/presentation/checkout_delivery_screen.dart';
 import '../../features/debug/presentation/network_health_screen.dart';
 import '../../features/orders/presentation/order_tracking_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
@@ -50,7 +51,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.checkout,
-        builder: (_, __) => const CheckoutScreen(),
+        builder: (_, __) => const CheckoutDetailsScreen(),
+        routes: [
+          GoRoute(
+            path: 'delivery',
+            builder: (_, __) => const CheckoutDeliveryScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.completeProfile,

@@ -13,19 +13,27 @@ class CheckoutPromoCard extends StatefulWidget {
     required this.onApply,
     required this.validating,
     required this.message,
+    this.initialOpen = false,
   });
 
   final TextEditingController controller;
   final VoidCallback? onApply;
   final bool validating;
   final String message;
+  final bool initialOpen;
 
   @override
   State<CheckoutPromoCard> createState() => _CheckoutPromoCardState();
 }
 
 class _CheckoutPromoCardState extends State<CheckoutPromoCard> {
-  bool _open = false;
+  late bool _open;
+
+  @override
+  void initState() {
+    super.initState();
+    _open = widget.initialOpen;
+  }
 
   @override
   Widget build(BuildContext context) {

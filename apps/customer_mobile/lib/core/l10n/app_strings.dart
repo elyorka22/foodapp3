@@ -41,6 +41,8 @@ abstract final class AppStrings {
   static const subtotal = 'Jami';
   static const clear = 'Tozalash';
   static const checkout = 'Buyurtma berish';
+  static const checkoutStepDetails = 'Ma\'lumotlar';
+  static const checkoutStepDelivery = 'Yetkazish';
   static const checkoutTitle = 'Buyurtmani rasmiylashtirish';
   static const noAccountRequired = "Ro'yxatdan o'tish shart emas";
   static const checkoutPromoLabel = '🎁 Promo kod';

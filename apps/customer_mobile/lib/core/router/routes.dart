@@ -8,6 +8,7 @@ abstract final class AppRoutes {
   static const profileHelp = '/profile/help';
   static const profilePartnership = '/profile/partnership';
   static const checkout = '/checkout';
+  static const checkoutDelivery = '/checkout/delivery';
   static const completeProfile = '/complete-profile';
   static const orderTrack = '/track';
   static const notifications = '/notifications';
