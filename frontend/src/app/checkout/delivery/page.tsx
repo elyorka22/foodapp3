@@ -93,14 +93,11 @@ export default function CheckoutDeliveryPage() {
       </main>
 
       <CheckoutDualActionBar
-        secondaryLabel={uz.recalculateDeliveryPrice}
-        onSecondary={deliveryQuoted ? requestDeliveryQuote : undefined}
         onPrimary={deliveryQuoted ? submitOrder : requestDeliveryQuote}
         primaryLabel={primaryLabel}
         primaryDisabled={deliveryCalculating}
         primaryLoading={loading || deliveryCalculating}
         primaryLoadingLabel={deliveryCalculating ? uz.deliveryCalculating : uz.placingOrder}
-        secondaryDisabled={deliveryCalculating || loading}
       />
     </>
   );
