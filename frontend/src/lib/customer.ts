@@ -1,3 +1,5 @@
+import { setActiveOrderToken } from '@/lib/active-order';
+
 export type CustomerProfile = {
   id: string;
   phone?: string;
@@ -67,6 +69,7 @@ export function customerNeedsPhone(): boolean {
 }
 
 export function saveTrackingToken(token: string, orderNumber?: string) {
+  setActiveOrderToken(token, orderNumber);
   const list = getTrackingHistory();
   if (list.some((o) => o.token === token)) return;
   list.unshift({ token, orderNumber, savedAt: new Date().toISOString() });

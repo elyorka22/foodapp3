@@ -1,6 +1,6 @@
 'use client';
 
-import { Send } from 'lucide-react';
+import { TelegramIcon } from '@/components/icons/telegram-icon';
 import { usePublicSettings } from '@/hooks/use-public-settings';
 import { openSocialUrl } from '@/lib/open-social-url';
 import { uz } from '@/lib/uz';
@@ -23,7 +23,7 @@ export function TelegramSocialButton({ className }: Props) {
       aria-label={uz.telegramSocialAria}
       className={`${className ?? iconButtonClass}${telegram ? '' : ' opacity-55'}`}
     >
-      <Send size={22} strokeWidth={2} />
+      <TelegramIcon size={24} />
     </button>
   );
 }
