@@ -1,20 +1,11 @@
 'use client';
 
 import { Instagram, Send, Youtube } from 'lucide-react';
-import { toast } from 'sonner';
 import { ProfileBannerGrid } from '@/components/profile/profile-banner-grid';
 import { ProfileBannerTile } from '@/components/profile/profile-banner-tile';
 import { usePublicSettings } from '@/hooks/use-public-settings';
+import { openSocialUrl } from '@/lib/open-social-url';
 import { uz } from '@/lib/uz';
-
-function openSocialUrl(url: string) {
-  const trimmed = url.trim();
-  if (!trimmed) {
-    toast.message(uz.profileSocialLinkMissing);
-    return;
-  }
-  window.open(trimmed, '_blank', 'noopener,noreferrer');
-}
 
 export function ProfileSocialSection() {
   const settings = usePublicSettings();
