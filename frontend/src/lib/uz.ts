@@ -229,6 +229,7 @@ export const uz = {
   pwaIosInstallStep1: 'Safari brauzerida pastdagi «Ulashish» tugmasini bosing',
   pwaIosInstallStep2: '«Bosh ekranga qo‘shish» bandini tanlang',
   pwaIosInstallStep3: '«Qo‘shish» tugmasini bosing',
+  telegramSocialAria: 'Telegramga o‘tish',
   activeOrderTitle: 'Joriy buyurtma',
   activeOrderTrack: 'Batafsil kuzatish',
   promotionsTitle: 'Aksiyalar',
