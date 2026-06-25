@@ -175,21 +175,27 @@ export class AnalyticsService {
       status: OrderStatus.DELIVERED,
     };
 
+    const restaurant = await this.prisma.business.findFirst({
+      where: { id: businessId, deletedAt: null },
+      select: { commissionRate: true },
+    });
+    const commissionRate = Number(restaurant?.commissionRate ?? 0);
+
     const [revenueToday, revenueWeek, revenueMonth, ordersToday, ordersWeek, ordersMonth, topProducts] =
       await Promise.all([
         this.prisma.order.aggregate({
           where: { ...baseDelivered, deliveredAt: { gte: startOfToday } },
-          _sum: { subtotal: true },
+          _sum: { subtotal: true, commissionAmount: true },
           _count: { _all: true },
         }),
         this.prisma.order.aggregate({
           where: { ...baseDelivered, deliveredAt: { gte: startOfWeek } },
-          _sum: { subtotal: true },
+          _sum: { subtotal: true, commissionAmount: true },
           _count: { _all: true },
         }),
         this.prisma.order.aggregate({
           where: { ...baseDelivered, deliveredAt: { gte: startOfMonth } },
-          _sum: { subtotal: true },
+          _sum: { subtotal: true, commissionAmount: true },
           _count: { _all: true },
         }),
         this.prisma.order.count({
@@ -213,6 +219,9 @@ export class AnalyticsService {
       ]);
 
     const revenueTodayVal = Number(revenueToday._sum.subtotal ?? 0);
+    const commissionToday = Number(revenueToday._sum.commissionAmount ?? 0);
+    const commissionWeek = Number(revenueWeek._sum.commissionAmount ?? 0);
+    const commissionMonth = Number(revenueMonth._sum.commissionAmount ?? 0);
     const deliveredToday = revenueToday._count._all;
     const averageOrderValue =
       deliveredToday > 0 ? revenueTodayVal / deliveredToday : 0;
@@ -225,6 +234,20 @@ export class AnalyticsService {
     >`
       SELECT date_trunc('day', delivered_at) as day,
              COALESCE(SUM(subtotal), 0)::float as revenue
+      FROM orders
+      WHERE deleted_at IS NULL
+        AND status = 'DELIVERED'
+        AND restaurant_id = ${businessId}::uuid
+        AND delivered_at >= ${last30Start}
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `) ?? [];
+
+    const commissionRows = (await this.prisma.$queryRaw<
+      { day: Date; commission: number }[]
+    >`
+      SELECT date_trunc('day', delivered_at) as day,
+             COALESCE(SUM(commission_amount), 0)::float as commission
       FROM orders
       WHERE deleted_at IS NULL
         AND status = 'DELIVERED'
@@ -248,22 +271,37 @@ export class AnalyticsService {
     `) ?? [];
 
     const byDayRevenue = new Map(revenueRows.map((r) => [r.day.toISOString().slice(0, 10), r.revenue]));
+    const byDayCommission = new Map(
+      commissionRows.map((r) => [r.day.toISOString().slice(0, 10), r.commission]),
+    );
     const byDayOrders = new Map(ordersRows.map((r) => [r.day.toISOString().slice(0, 10), r.count]));
 
     const revenueChart: { date: string; value: number }[] = [];
+    const commissionChart: { date: string; value: number }[] = [];
     const ordersChart: { date: string; value: number }[] = [];
     for (let i = 0; i < 30; i++) {
       const d = new Date(last30Start);
       d.setDate(last30Start.getDate() + i);
       const key = d.toISOString().slice(0, 10);
       revenueChart.push({ date: key, value: Number(byDayRevenue.get(key) ?? 0) });
+      commissionChart.push({ date: key, value: Number(byDayCommission.get(key) ?? 0) });
       ordersChart.push({ date: key, value: Number(byDayOrders.get(key) ?? 0) });
     }
 
+    const revenueWeekVal = Number(revenueWeek._sum.subtotal ?? 0);
+    const revenueMonthVal = Number(revenueMonth._sum.subtotal ?? 0);
+
     return {
+      commissionRate,
       revenueToday: revenueTodayVal,
-      revenueWeek: Number(revenueWeek._sum.subtotal ?? 0),
-      revenueMonth: Number(revenueMonth._sum.subtotal ?? 0),
+      revenueWeek: revenueWeekVal,
+      revenueMonth: revenueMonthVal,
+      commissionToday,
+      commissionWeek,
+      commissionMonth,
+      netRevenueToday: revenueTodayVal - commissionToday,
+      netRevenueWeek: revenueWeekVal - commissionWeek,
+      netRevenueMonth: revenueMonthVal - commissionMonth,
       ordersToday,
       ordersWeek,
       ordersMonth,
@@ -274,9 +312,10 @@ export class AnalyticsService {
         revenue: Number(p._sum.subtotal ?? 0),
       })),
       revenueChart,
+      commissionChart,
       ordersChart,
       totalOrders: ordersMonth,
-      revenue: Number(revenueMonth._sum.subtotal ?? 0),
+      revenue: revenueMonthVal,
     };
   }
 

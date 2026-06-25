@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { clearAuth, getUser } from '@/lib/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { PwaInstallButton } from '@/components/pwa/pwa-install-button';
+import { adminI18n } from '@/lib/admin-i18n';
+import { PWA_PROFILES } from '@/lib/pwa-profiles';
 import { clsx } from 'clsx';
 
 type NavItem = { href: string; label: string };
@@ -23,7 +26,7 @@ export function DashboardShell({
 
   const logout = () => {
     clearAuth();
-    router.push('/login');
+    router.push(PWA_PROFILES.business.loginUrl);
   };
 
   return (
@@ -35,9 +38,10 @@ export function DashboardShell({
             <p className="text-xs opacity-60">{user?.fullName ?? user?.email}</p>
           </div>
           <div className="flex items-center gap-2">
+            <PwaInstallButton profile="business" variant="panel" />
             <ThemeToggle />
             <button type="button" onClick={logout} className="text-sm text-red-500">
-              Logout
+              {adminI18n.logout}
             </button>
           </div>
         </div>

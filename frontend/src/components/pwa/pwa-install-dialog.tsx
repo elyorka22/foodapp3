@@ -5,13 +5,14 @@ import Image from 'next/image';
 import { Share, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { colors, shadows } from '@/lib/design-tokens';
-import { uz } from '@/lib/uz';
+import type { PwaInstallCopy } from '@/lib/pwa-profiles';
 
 type View = 'offer' | 'ios' | 'manual';
 
 type Props = {
   open: boolean;
   view: View;
+  copy: PwaInstallCopy;
   onClose: () => void;
   onConfirmInstall: () => void | Promise<void>;
   installing: boolean;
@@ -20,6 +21,7 @@ type Props = {
 export function PwaInstallDialog({
   open,
   view,
+  copy,
   onClose,
   onConfirmInstall,
   installing,
@@ -46,7 +48,7 @@ export function PwaInstallDialog({
         type="button"
         className="absolute inset-0"
         style={{ backgroundColor: colors.overlay }}
-        aria-label={uz.close}
+        aria-label={copy.close}
         onClick={onClose}
       />
       <div
@@ -64,21 +66,21 @@ export function PwaInstallDialog({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 pr-2">
               <h2 id="pwa-install-title" className="text-xl font-bold tracking-tight text-zinc-900">
-                {view === 'ios' ? uz.pwaIosInstallTitle : uz.pwaInstallTitle}
+                {view === 'ios' ? copy.iosTitle : copy.title}
               </h2>
               <p className="mt-1.5 text-sm leading-6 text-zinc-500">
                 {view === 'ios'
-                  ? uz.pwaIosInstallSubtitle
+                  ? copy.iosSubtitle
                   : view === 'manual'
-                    ? uz.pwaManualInstallSubtitle
-                    : uz.pwaInstallSubtitle}
+                    ? copy.manualSubtitle
+                    : copy.subtitle}
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-50 text-zinc-500 shadow-sm"
-              aria-label={uz.close}
+              aria-label={copy.close}
             >
               <X size={20} />
             </button>
@@ -89,11 +91,11 @@ export function PwaInstallDialog({
           {view === 'offer' ? (
             <div className="flex flex-col items-center py-2 text-center">
               <div className="relative h-20 w-20 overflow-hidden rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-                <Image src="/icons/icon-192.png" alt="FoodApp" fill className="object-cover" unoptimized />
+                <Image src={copy.iconSrc} alt={copy.appName} fill className="object-cover" unoptimized />
               </div>
-              <p className="mt-4 text-[17px] font-semibold text-zinc-900">FoodApp</p>
+              <p className="mt-4 text-[17px] font-semibold text-zinc-900">{copy.appName}</p>
               <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-zinc-500">
-                {uz.pwaInstallDescription}
+                {copy.description}
               </p>
             </div>
           ) : null}
@@ -104,7 +106,7 @@ export function PwaInstallDialog({
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-[#FF7A00]">
                   1
                 </span>
-                <p className="pt-0.5 text-[15px] leading-snug text-zinc-800">{uz.pwaIosInstallStep1}</p>
+                <p className="pt-0.5 text-[15px] leading-snug text-zinc-800">{copy.iosStep1}</p>
               </li>
               <li className="flex gap-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-[#FF7A00]">
@@ -112,20 +114,20 @@ export function PwaInstallDialog({
                 </span>
                 <div className="flex min-w-0 items-start gap-2 pt-0.5">
                   <Share size={18} className="mt-0.5 shrink-0 text-[#FF7A00]" aria-hidden />
-                  <p className="text-[15px] leading-snug text-zinc-800">{uz.pwaIosInstallStep2}</p>
+                  <p className="text-[15px] leading-snug text-zinc-800">{copy.iosStep2}</p>
                 </div>
               </li>
               <li className="flex gap-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-[#FF7A00]">
                   3
                 </span>
-                <p className="pt-0.5 text-[15px] leading-snug text-zinc-800">{uz.pwaIosInstallStep3}</p>
+                <p className="pt-0.5 text-[15px] leading-snug text-zinc-800">{copy.iosStep3}</p>
               </li>
             </ol>
           ) : null}
 
           {view === 'manual' ? (
-            <p className="py-1 text-[15px] leading-relaxed text-zinc-700">{uz.pwaManualInstallHint}</p>
+            <p className="py-1 text-[15px] leading-relaxed text-zinc-700">{copy.manualHint}</p>
           ) : null}
         </div>
 
@@ -138,14 +140,14 @@ export function PwaInstallDialog({
                 onClick={() => void onConfirmInstall()}
                 className="flex h-[52px] w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#FF8A1F] via-[#FF7A00] to-[#FF6B00] text-[16px] font-bold text-white shadow-[0_12px_32px_rgba(255,122,0,0.35)] transition active:scale-[0.98] disabled:opacity-60"
               >
-                {installing ? uz.pwaInstallInstalling : uz.pwaInstallConfirm}
+                {installing ? copy.installing : copy.confirm}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="flex h-11 w-full items-center justify-center rounded-2xl text-[15px] font-semibold text-zinc-500 active:bg-zinc-50"
               >
-                {uz.pwaInstallCancel}
+                {copy.cancel}
               </button>
             </>
           ) : (
@@ -154,7 +156,7 @@ export function PwaInstallDialog({
               onClick={onClose}
               className="flex h-[52px] w-full items-center justify-center rounded-2xl bg-zinc-100 text-[16px] font-semibold text-zinc-800 active:scale-[0.98]"
             >
-              {uz.close}
+              {copy.close}
             </button>
           )}
         </div>

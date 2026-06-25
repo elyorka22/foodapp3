@@ -6,12 +6,15 @@ import { api } from '@/lib/api';
 import { useStaffOrders } from '@/hooks/use-staff-orders';
 import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
 import { OrderTable } from '@/components/orders/order-table';
+import { businessPanelI18n } from '@/lib/business-panel-i18n';
+import { businessPanelNav } from '@/lib/business-panel-nav';
 
 export default function RestaurantPanelPage() {
   const { ready, authorized, token } = useRequireStaffRole({
     roles: 'BUSINESS',
   });
   const { orders, updateStatus, requestCourier } = useStaffOrders();
+  const t = businessPanelI18n;
 
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants-admin'],
@@ -33,7 +36,7 @@ export default function RestaurantPanelPage() {
   if (!ready) {
     return (
       <main className="flex min-h-screen items-center justify-center p-8 text-sm text-zinc-500">
-        Loading...
+        {t.loading}
       </main>
     );
   }
@@ -42,20 +45,16 @@ export default function RestaurantPanelPage() {
 
   return (
     <DashboardShell
-      title={restaurants?.data?.[0]?.name ?? 'Restaurant'}
-      nav={[
-        { href: '/restaurant/dashboard', label: 'Dashboard' },
-        { href: '/restaurant', label: 'Orders' },
-        { href: '/restaurant/schedule', label: 'Hours & holidays' },
-      ]}
+      title={restaurants?.data?.[0]?.name ?? t.defaultTitle}
+      nav={businessPanelNav('/restaurant')}
     >
       <div className="mb-6 grid grid-cols-2 gap-3">
         <div className="rounded-xl border p-4 dark:border-white/10">
-          <p className="text-xs opacity-60">Orders</p>
+          <p className="text-xs opacity-60">{t.stats.orders}</p>
           <p className="text-xl font-bold">{stats?.totalOrders ?? '—'}</p>
         </div>
         <div className="rounded-xl border p-4 dark:border-white/10">
-          <p className="text-xs opacity-60">Revenue</p>
+          <p className="text-xs opacity-60">{t.stats.revenue}</p>
           <p className="text-xl font-bold">{stats?.revenue?.toLocaleString() ?? '—'} UZS</p>
         </div>
       </div>

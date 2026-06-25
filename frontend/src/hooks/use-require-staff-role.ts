@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { dashboardPath, getToken, getUser, type StaffUser } from '@/lib/auth';
 import { isBusinessRole } from '@/lib/roles';
+import { staffLoginUrlForPathname } from '@/lib/pwa-profiles';
 
 type Options = {
   /** Allowed roles (e.g. 'MANAGER' or ['RESTAURANT_OWNER', 'RESTAURANT_STAFF']) */
@@ -30,7 +31,7 @@ export function useRequireStaffRole({ roles }: Options) {
 
     if (!token || !user) {
       setState({ ready: true, authorized: false, user: null, token: null });
-      router.replace('/login');
+      router.replace(staffLoginUrlForPathname(window.location.pathname));
       return;
     }
 

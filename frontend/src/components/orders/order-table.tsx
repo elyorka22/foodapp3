@@ -2,6 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { OrderLineItems, type OrderLineItem } from '@/components/orders/order-line-items';
+import { businessPanelI18n } from '@/lib/business-panel-i18n';
+import { adminI18n } from '@/lib/admin-i18n';
+import { uz } from '@/lib/uz';
 
 export type OrderRow = {
   id: string;
@@ -39,7 +42,14 @@ export function OrderTable({
   restaurantMode?: boolean;
 }) {
   const rows = Array.isArray(orders) ? orders : [];
-  if (!rows.length) return <p className="text-sm opacity-60">No orders</p>;
+  const tableLabels = businessPanelI18n.ordersTable;
+  if (!rows.length) {
+    return (
+      <p className="text-sm opacity-60">
+        {restaurantMode ? tableLabels.empty : 'No orders'}
+      </p>
+    );
+  }
 
   return (
     <div className="overflow-x-auto rounded-xl border dark:border-white/10">
@@ -47,12 +57,12 @@ export function OrderTable({
         <thead className="bg-zinc-100 dark:bg-zinc-900">
           <tr>
             <th className="p-3">#</th>
-            {showRestaurant && <th className="p-3">Restaurant</th>}
-            <th className="p-3">Phone</th>
-            <th className="p-3">Items</th>
-            <th className="p-3">Status</th>
-            <th className="p-3">Total</th>
-            <th className="p-3">Action</th>
+            {showRestaurant && <th className="p-3">{adminI18n.orders.restaurant}</th>}
+            <th className="p-3">{restaurantMode ? tableLabels.phone : 'Phone'}</th>
+            <th className="p-3">{restaurantMode ? tableLabels.items : 'Items'}</th>
+            <th className="p-3">{restaurantMode ? tableLabels.status : 'Status'}</th>
+            <th className="p-3">{restaurantMode ? tableLabels.total : 'Total'}</th>
+            <th className="p-3">{restaurantMode ? tableLabels.action : 'Action'}</th>
           </tr>
         </thead>
         <tbody>
@@ -82,7 +92,7 @@ export function OrderTable({
                 <td className="p-3">
                   <div className="flex flex-col gap-1">
                     <span className="rounded bg-brand-100 px-2 py-0.5 text-xs dark:bg-brand-900">
-                      {o.status}
+                      {restaurantMode ? (uz.orderStatus[o.status] ?? o.status) : o.status}
                     </span>
                     {courierRequested && (
                       <span className="text-xs font-medium text-amber-600">

@@ -28,6 +28,7 @@ type PageSeoOptions = {
   description?: string;
   path?: string;
   noIndex?: boolean;
+  manifest?: string;
 };
 
 export function canonicalUrl(path = ''): string {
@@ -57,7 +58,7 @@ export function buildPageMetadata(options: PageSeoOptions = {}): Metadata {
       ],
       apple: '/apple-touch-icon.png',
     },
-    manifest: '/manifest.json',
+    manifest: options.manifest ?? '/manifest.json',
     openGraph: {
       type: 'website',
       locale: 'uz_UZ',

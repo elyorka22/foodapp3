@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronDown, ExternalLink, LogOut, Menu } from 'lucide-react';
 import { NotificationsBell } from '@/components/admin/notifications-bell';
+import { PwaInstallButton } from '@/components/pwa/pwa-install-button';
 import { clsx } from 'clsx';
 import { clearAuth, getUser } from '@/lib/auth';
 import { registerStaffDevice } from '@/lib/device-registration';
@@ -49,7 +50,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     clearAuth();
-    router.push('/staff/login');
+    router.push('/staff/login?app=admin');
   };
 
   const toggleGroup = (id: string) => {
@@ -99,6 +100,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <p className="text-xs text-zinc-500">{user?.role}</p>
             </div>
             <NotificationsBell />
+            <PwaInstallButton profile="admin" variant="panel" />
             <ThemeToggle />
             <button
               type="button"

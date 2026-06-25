@@ -269,4 +269,15 @@ export const adminI18n = {
     statsWithToken: 'push token bilan',
     confirmSend: 'Push yuborishni tasdiqlaysizmi?',
   },
+
+  pwa: {
+    appName: 'Admin panel',
+    installAria: 'Admin panelini o‘rnatish',
+    installTitle: 'Admin panelini o‘rnatish',
+    installSubtitle: 'Boshqaruvni bosh ekrandan oching',
+    installDescription:
+      'Ilovani o‘rnating — kirgandan keyin admin paneli bir bosishda ochiladi.',
+    iosTitle: 'Admin panelini o‘rnatish',
+    iosSubtitle: 'Bosh ekranga qo‘shing — tezroq kirish uchun',
+  },
 } as const;

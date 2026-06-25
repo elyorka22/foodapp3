@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TimeAmPmInput } from '@/components/ui/time-am-pm-input';
 import { LoadingState } from '@/components/admin/ui';
-
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+import { businessPanelI18n } from '@/lib/business-panel-i18n';
+import { businessPanelNav } from '@/lib/business-panel-nav';
 
 type WorkingHour = {
   id?: string;
@@ -28,6 +28,9 @@ export default function RestaurantSchedulePage() {
     roles: 'BUSINESS',
   });
   const qc = useQueryClient();
+  const t = businessPanelI18n;
+  const s = t.schedule;
+  const nav = businessPanelNav('/restaurant');
 
   const { data: restaurants } = useQuery({
     queryKey: ['restaurants-admin'],
@@ -36,7 +39,7 @@ export default function RestaurantSchedulePage() {
   });
 
   const restaurantId = restaurants?.data?.[0]?.id;
-  const restaurantName = restaurants?.data?.[0]?.name ?? 'Restaurant';
+  const restaurantName = restaurants?.data?.[0]?.name ?? t.defaultTitle;
 
   const { data: hours, isLoading: hoursLoading } = useQuery({
     queryKey: ['working-hours', restaurantId],
@@ -59,7 +62,7 @@ export default function RestaurantSchedulePage() {
       setSchedule(hours);
     } else if (restaurantId && !hoursLoading) {
       setSchedule(
-        DAY_NAMES.map((_, dayOfWeek) => ({
+        t.dayNames.map((_, dayOfWeek) => ({
           dayOfWeek,
           openTime: '09:00',
           closeTime: '01:00',
@@ -67,7 +70,7 @@ export default function RestaurantSchedulePage() {
         })),
       );
     }
-  }, [hours, hoursLoading, restaurantId]);
+  }, [hours, hoursLoading, restaurantId, t.dayNames]);
 
   const saveHours = useMutation({
     mutationFn: () =>
@@ -77,7 +80,7 @@ export default function RestaurantSchedulePage() {
         body: JSON.stringify({ hours: schedule }),
       }),
     onSuccess: () => {
-      toast.success('Working hours saved');
+      toast.success(s.savedHours);
       qc.invalidateQueries({ queryKey: ['working-hours', restaurantId] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -91,7 +94,7 @@ export default function RestaurantSchedulePage() {
         body: JSON.stringify({ date: holidayDate, reason: holidayReason || undefined }),
       }),
     onSuccess: () => {
-      toast.success('Holiday added');
+      toast.success(s.holidayAdded);
       setHolidayDate('');
       setHolidayReason('');
       qc.invalidateQueries({ queryKey: ['holidays', restaurantId] });
@@ -108,16 +111,10 @@ export default function RestaurantSchedulePage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['holidays', restaurantId] }),
   });
 
-  const nav = [
-    { href: '/restaurant/dashboard', label: 'Dashboard' },
-    { href: '/restaurant', label: 'Orders' },
-    { href: '/restaurant/schedule', label: 'Hours & holidays' },
-  ];
-
   if (!ready) {
     return (
       <main className="flex min-h-screen items-center justify-center p-8 text-sm text-zinc-500">
-        Loading...
+        {t.loading}
       </main>
     );
   }
@@ -126,8 +123,8 @@ export default function RestaurantSchedulePage() {
 
   if (!restaurantId) {
     return (
-      <DashboardShell title="Restaurant" nav={nav}>
-        <p className="text-sm opacity-70">No restaurant linked to your account.</p>
+      <DashboardShell title={t.defaultTitle} nav={nav}>
+        <p className="text-sm opacity-70">{t.noRestaurantLinked}</p>
       </DashboardShell>
     );
   }
@@ -135,22 +132,19 @@ export default function RestaurantSchedulePage() {
   return (
     <DashboardShell title={restaurantName} nav={nav}>
       {hoursLoading ? (
-        <LoadingState label="Loading schedule..." />
+        <LoadingState label={t.loadingSchedule} />
       ) : (
         <div className="space-y-8">
           <section>
-            <h2 className="mb-3 font-semibold">Non-working hours</h2>
-            <p className="mb-4 text-sm opacity-70">
-              Specify when the restaurant is closed each day. It stays open the rest of the day
-              (e.g. closed 1:00 AM–9:00 AM). Check &quot;Closed&quot; for a full day off.
-            </p>
+            <h2 className="mb-3 font-semibold">{s.nonWorkingHours}</h2>
+            <p className="mb-4 text-sm opacity-70">{s.nonWorkingHoursHint}</p>
             <ul className="space-y-3">
               {schedule.map((row, idx) => (
                 <li
                   key={row.dayOfWeek}
                   className="flex flex-wrap items-center gap-2 rounded-lg border p-3 text-sm dark:border-white/10"
                 >
-                  <span className="w-24 font-medium">{DAY_NAMES[row.dayOfWeek]}</span>
+                  <span className="w-24 font-medium">{t.dayNames[row.dayOfWeek]}</span>
                   <label className="flex items-center gap-1">
                     <input
                       type="checkbox"
@@ -161,9 +155,9 @@ export default function RestaurantSchedulePage() {
                         setSchedule(next);
                       }}
                     />
-                    Closed
+                    {s.closed}
                   </label>
-                  <span className="text-xs opacity-60">Closed from</span>
+                  <span className="text-xs opacity-60">{s.closedFrom}</span>
                   <TimeAmPmInput
                     value={row.closeTime}
                     disabled={row.isClosed}
@@ -173,7 +167,7 @@ export default function RestaurantSchedulePage() {
                       setSchedule(next);
                     }}
                   />
-                  <span className="text-xs opacity-60">to</span>
+                  <span className="text-xs opacity-60">{s.to}</span>
                   <TimeAmPmInput
                     value={row.openTime}
                     disabled={row.isClosed}
@@ -187,16 +181,16 @@ export default function RestaurantSchedulePage() {
               ))}
             </ul>
             <Button className="mt-4" onClick={() => saveHours.mutate()} disabled={saveHours.isPending}>
-              Save hours
+              {s.saveHours}
             </Button>
           </section>
 
           <section>
-            <h2 className="mb-3 font-semibold">Holidays</h2>
+            <h2 className="mb-3 font-semibold">{s.holidays}</h2>
             <div className="flex flex-wrap gap-2">
               <Input type="date" value={holidayDate} onChange={(e) => setHolidayDate(e.target.value)} />
               <Input
-                placeholder="Reason (optional)"
+                placeholder={s.reasonPlaceholder}
                 value={holidayReason}
                 onChange={(e) => setHolidayReason(e.target.value)}
               />
@@ -204,7 +198,7 @@ export default function RestaurantSchedulePage() {
                 onClick={() => addHoliday.mutate()}
                 disabled={!holidayDate || addHoliday.isPending}
               >
-                Add closure
+                {s.addClosure}
               </Button>
             </div>
             <ul className="mt-4 space-y-2 text-sm">
@@ -219,7 +213,7 @@ export default function RestaurantSchedulePage() {
                     className="text-red-600"
                     onClick={() => removeHoliday.mutate(h.id)}
                   >
-                    Remove
+                    {s.remove}
                   </button>
                 </li>
               ))}
