@@ -36,15 +36,25 @@ class JobCompactCard extends StatelessWidget {
             border: Border.all(color: AppColors.borderLight),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ServiceTypeBadge(type: order.serviceType, compact: true),
-              const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  name,
-                  style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ServiceTypeBadge(type: order.serviceType, compact: true),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      name,
+                      style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),

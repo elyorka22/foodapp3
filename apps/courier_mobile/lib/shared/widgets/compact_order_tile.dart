@@ -5,6 +5,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../models/courier_order_model.dart';
 import 'order_money_summary.dart';
+import 'service_type_badge.dart';
 
 /// Compact row for available orders — fits many items on one screen.
 class CompactOrderTile extends StatelessWidget {
@@ -21,12 +22,6 @@ class CompactOrderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeLabel = order.businessTypeSlug == 'restaurant'
-        ? AppStrings.merchantRestaurant
-        : (order.businessTypeSlug != null && order.businessTypeSlug!.isNotEmpty
-            ? AppStrings.merchantStore
-            : '');
-
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(10),
@@ -40,24 +35,22 @@ class CompactOrderTile extends StatelessWidget {
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (typeLabel.isNotEmpty)
-                      Text(
-                        typeLabel,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ServiceTypeBadge(type: order.serviceType, compact: true),
+                    ),
+                    const SizedBox(height: 6),
                     Text(
                       order.restaurantName ?? '—',
                       style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],

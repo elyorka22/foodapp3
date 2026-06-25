@@ -50,7 +50,7 @@ export class HealthController {
       database,
       redis: redisStatus,
       storage,
-      version: process.env.APP_VERSION ?? '1.0.0',
+      version: process.env.APP_VERSION ?? '1.2.1',
       environment: process.env.NODE_ENV ?? 'development',
       build: process.env.BUILD_SHA ?? 'local',
       timestamp: new Date().toISOString(),

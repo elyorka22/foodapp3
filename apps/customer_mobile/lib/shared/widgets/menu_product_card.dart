@@ -1,10 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/format_sum.dart';
 import '../../core/utils/image_url.dart';
 import '../../shared/models/restaurant_model.dart';
+import 'menu_product_image.dart';
 
 final _weightPattern = RegExp(
   r'(\d+(?:[.,]\d+)?)\s*(?:g|г|kg|кг|ml|мл|l|л)\b',
@@ -54,7 +54,7 @@ class MenuProductCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: imageUrl != null
-                    ? CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.cover)
+                    ? MenuProductImage(imageUrl: imageUrl)
                     : ColoredBox(
                         color: AppColors.border,
                         child: Center(
