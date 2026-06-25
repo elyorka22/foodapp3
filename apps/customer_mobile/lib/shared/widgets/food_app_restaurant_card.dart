@@ -75,7 +75,7 @@ class FoodAppRestaurantCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.subtitle.copyWith(
-                fontSize: 15,
+                fontSize: 17,
                 fontWeight: FontWeight.w700,
                 height: 1.2,
               ),

@@ -100,7 +100,7 @@ class _HistoryCard extends StatelessWidget {
           Text('#${order.orderNumber}', style: AppTypography.subtitle),
           if (pickup != null) ...[
             const SizedBox(height: 4),
-            Text(pickup, style: AppTypography.body),
+            Text(pickup, style: AppTypography.merchantName),
           ],
           if (order.customerAddress != null) ...[
             const SizedBox(height: 2),

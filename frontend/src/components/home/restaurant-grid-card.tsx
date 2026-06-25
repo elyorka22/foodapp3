@@ -76,7 +76,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
       </div>
 
       <div className="mt-1.5">
-        <h3 className="truncate text-[15px] font-bold leading-tight text-zinc-900">
+        <h3 className="truncate text-[17px] font-bold leading-tight text-zinc-900">
           {restaurant.name}
         </h3>
         <BusinessAvailabilityBadge

@@ -87,7 +87,11 @@ class CourierOrderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _InfoLine(icon: Icons.store_outlined, label: order.restaurantName ?? '—'),
+          _InfoLine(
+            icon: Icons.store_outlined,
+            label: order.restaurantName ?? '—',
+            labelStyle: AppTypography.merchantName,
+          ),
           if (order.distanceKm != null)
             _InfoLine(
               icon: Icons.route_outlined,
@@ -166,7 +170,7 @@ class _AvailableOrderCard extends StatelessWidget {
         children: [
           Text(
             order.restaurantName ?? '—',
-            style: AppTypography.subtitle.copyWith(fontSize: 18),
+            style: AppTypography.merchantName.copyWith(fontSize: 18),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -188,11 +192,13 @@ class _InfoLine extends StatelessWidget {
     required this.icon,
     required this.label,
     this.valueColor,
+    this.labelStyle,
   });
 
   final IconData icon;
   final String label;
   final Color? valueColor;
+  final TextStyle? labelStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -206,10 +212,11 @@ class _InfoLine extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: AppTypography.body.copyWith(
-                color: valueColor ?? AppColors.textPrimary,
-                fontWeight: valueColor != null ? FontWeight.w600 : FontWeight.w400,
-              ),
+              style: labelStyle ??
+                  AppTypography.body.copyWith(
+                    color: valueColor ?? AppColors.textPrimary,
+                    fontWeight: valueColor != null ? FontWeight.w600 : FontWeight.w400,
+                  ),
             ),
           ),
         ],

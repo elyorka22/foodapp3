@@ -20,6 +20,14 @@ abstract final class AppTypography {
         color: AppColors.textPrimary,
       );
 
+  /// Restaurant / merchant name in order cards.
+  static TextStyle get merchantName => const TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+        height: 1.25,
+      );
+
   static TextStyle get bodySmall => const TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w400,

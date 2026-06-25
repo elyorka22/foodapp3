@@ -49,7 +49,7 @@ class CompactOrderTile extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       order.restaurantName ?? '—',
-                      style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+                      style: AppTypography.merchantName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
