@@ -43,7 +43,7 @@ import { CitiesModule } from './modules/cities/cities.module';
     ThrottlerModule.forRoot([
       {
         ttl: parseInt(process.env.THROTTLE_TTL ?? '60000', 10),
-        limit: parseInt(process.env.THROTTLE_LIMIT ?? '100', 10),
+        limit: parseInt(process.env.THROTTLE_LIMIT ?? '400', 10),
       },
     ]),
     PrismaModule,

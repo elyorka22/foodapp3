@@ -1,4 +1,5 @@
 import { api } from './api';
+import { isJwtExpired } from './jwt';
 import { normalizePhone } from './phone';
 
 export type StaffUser = {
@@ -36,7 +37,12 @@ const USER_KEY = 'foodapp_user';
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token || isJwtExpired(token)) {
+    if (token) clearAuth();
+    return null;
+  }
+  return token;
 }
 
 export function getUser(): StaffUser | null {

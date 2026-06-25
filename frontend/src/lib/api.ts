@@ -22,6 +22,10 @@ export async function api<T>(path: string, options?: RequestInit & { token?: str
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`${getApiBase()}${path}`, { ...rest, headers });
+  if (res.status === 401 && token) {
+    const { clearAuth } = await import('./auth');
+    clearAuth();
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const message = Array.isArray(err.message) ? err.message.join(', ') : err.message;
