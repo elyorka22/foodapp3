@@ -10,6 +10,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/order_track_model.dart';
 import '../../../shared/widgets/food_app_button.dart' show FoodAppButton, FoodAppButtonVariant;
 import '../../../shared/widgets/food_app_card.dart';
+import '../providers/active_order_provider.dart';
 import '../providers/order_tracking_provider.dart';
 
 class OrderTrackingScreen extends ConsumerWidget {
@@ -20,6 +21,17 @@ class OrderTrackingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final track = ref.watch(orderTrackingProvider(trackingToken));
+
+    ref.listen(orderTrackingProvider(trackingToken), (previous, next) {
+      next.whenData((snapshot) {
+        final order = snapshot.order;
+        ref.read(activeOrderProvider.notifier).setActive(
+              trackingToken,
+              orderNumber: order.orderNumber,
+            );
+        ref.read(activeOrderProvider.notifier).syncFromOrderStatus(order.status);
+      });
+    });
 
     return Scaffold(
       appBar: AppBar(

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { io, type Socket } from 'socket.io-client';
 import { api, getWsBase } from '@/lib/api';
@@ -12,6 +13,18 @@ import {
   type ActiveOrderRef,
 } from '@/lib/active-order';
 import { getTrackingHistory } from '@/lib/customer';
+
+function resolveActiveOrderRef(): ActiveOrderRef | null {
+  if (typeof window === 'undefined') return null;
+  let active = getActiveOrderToken();
+  if (!active) {
+    const latest = getTrackingHistory()[0];
+    if (!latest) return null;
+    setActiveOrderToken(latest.token, latest.orderNumber);
+    active = { token: latest.token, orderNumber: latest.orderNumber, savedAt: latest.savedAt };
+  }
+  return active;
+}
 
 export type ActiveOrder = {
   orderNumber: string;
@@ -36,20 +49,17 @@ function applyTerminalOrder(
 }
 
 export function useActiveOrder() {
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const [ref, setRef] = useState<ActiveOrderRef | null>(null);
 
   useEffect(() => {
-    let active = getActiveOrderToken();
-    if (!active) {
-      const latest = getTrackingHistory()[0];
-      if (latest) {
-        setActiveOrderToken(latest.token, latest.orderNumber);
-        active = { token: latest.token, orderNumber: latest.orderNumber, savedAt: latest.savedAt };
-      }
-    }
+    const active = resolveActiveOrderRef();
     setRef(active);
-  }, []);
+    if (active?.token) {
+      void queryClient.invalidateQueries({ queryKey: ['active-order', active.token] });
+    }
+  }, [pathname, queryClient]);
 
   const token = ref?.token;
 
@@ -57,10 +67,11 @@ export function useActiveOrder() {
     queryKey: ['active-order', token],
     queryFn: () => api<ActiveOrder>(`/orders/track/${token}`),
     enabled: !!token,
-    staleTime: Number.POSITIVE_INFINITY,
+    staleTime: 30_000,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    retry: 1,
+    retry: 2,
   });
 
   useEffect(() => {
@@ -102,12 +113,14 @@ export function useActiveOrder() {
     };
   }, [token, queryClient]);
 
-  const isActive = !!token && !!query.data && isActiveOrderStatus(query.data.status);
+  const isTerminal = !!query.data?.status && !isActiveOrderStatus(query.data.status);
+  const isActive = !!token && !isTerminal;
 
   return {
     token,
-    order: isActive ? query.data : null,
-    isLoading: !!token && query.isLoading,
+    order: query.data && !isTerminal ? query.data : null,
+    orderNumber: query.data?.orderNumber ?? ref?.orderNumber,
+    isLoading: !!token && query.isLoading && !query.data,
     isActive,
   };
 }

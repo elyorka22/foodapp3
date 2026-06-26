@@ -7,15 +7,15 @@ import { formatSum } from '@/lib/format-sum';
 import { uz } from '@/lib/uz';
 
 export function ActiveOrderBanner() {
-  const { token, order, isLoading, isActive } = useActiveOrder();
+  const { token, order, orderNumber, isLoading, isActive } = useActiveOrder();
 
-  if (!token) return null;
-  if (!isLoading && !isActive) return null;
+  if (!isActive) return null;
 
   const statusLabel = order
     ? uz.orderStatus[order.status] ?? order.status
-    : uz.loading;
-  const orderNumber = order?.orderNumber;
+    : isLoading
+      ? uz.loading
+      : uz.activeOrderTitle;
   const restaurantName = order?.restaurant?.name ?? order?.business?.name;
 
   return (

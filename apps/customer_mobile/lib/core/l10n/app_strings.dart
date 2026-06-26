@@ -188,6 +188,8 @@ abstract final class AppStrings {
   static const locationManual = 'Qo‘lda saqlangan';
 
   static const orderTracking = 'Buyurtma holati';
+  static const activeOrderTitle = 'Joriy buyurtma';
+  static const activeOrderTrack = 'Batafsil kuzatish';
   static const orderNumber = 'Buyurtma';
   static const orderCancelled = 'Buyurtma bekor qilindi';
   static const liveUpdatesHint = 'Holat avtomatik yangilanadi';

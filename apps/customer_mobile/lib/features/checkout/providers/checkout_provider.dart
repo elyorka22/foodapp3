@@ -10,6 +10,7 @@ import '../../../shared/models/order_model.dart';
 import '../../../shared/widgets/delivery_location_field.dart' show validateDeliveryLocation;
 import '../../auth/providers/auth_provider.dart';
 import '../../cart/providers/cart_provider.dart';
+import '../../orders/providers/active_order_provider.dart';
 import '../data/orders_repository.dart';
 import 'checkout_state.dart';
 
@@ -188,10 +189,18 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
             ),
           );
 
+      final trackingToken = res.trackingToken;
+      if (trackingToken != null && trackingToken.isNotEmpty) {
+        await ref.read(activeOrderProvider.notifier).setActive(
+              trackingToken,
+              orderNumber: res.orderNumber,
+            );
+      }
+
       ref.read(cartProvider.notifier).clear();
       reset();
       state = state.copyWith(placingOrder: false);
-      return res.trackingToken;
+      return trackingToken;
     } on DioException catch (e) {
       final err = e.error;
       final msg = err is ApiException ? err.message : e.message;

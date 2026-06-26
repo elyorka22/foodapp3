@@ -9,31 +9,51 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/widgets/customer_page.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../orders/presentation/active_order_banner.dart';
+import '../../orders/providers/active_order_provider.dart';
 import '../providers/cart_provider.dart';
 import '../../checkout/providers/checkout_provider.dart';
 
-class CartScreen extends ConsumerWidget {
+class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends ConsumerState<CartScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(activeOrderProvider.notifier).reload();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final items = ref.watch(cartProvider);
     final total = ref.watch(cartProvider.notifier).total;
+    final hasActiveOrder = ref.watch(activeOrderProvider) != null;
 
     if (items.isEmpty) {
       return CustomerPage(
         child: Column(
           children: [
-            const SizedBox(height: 32),
-            Text(AppStrings.cartEmpty, style: AppTypography.subtitle),
-            const SizedBox(height: AppSpacing.lg),
-            GestureDetector(
-              onTap: () => context.go(AppRoutes.restaurants),
-              child: Text(
-                AppStrings.browseRestaurants,
-                style: AppTypography.body.copyWith(color: AppColors.primary),
+            const ActiveOrderBanner(),
+            if (!hasActiveOrder) ...[
+              const SizedBox(height: 32),
+              Text(AppStrings.cartEmpty, style: AppTypography.subtitle),
+              const SizedBox(height: AppSpacing.lg),
+              GestureDetector(
+                onTap: () => context.go(AppRoutes.restaurants),
+                child: Text(
+                  AppStrings.browseRestaurants,
+                  style: AppTypography.body.copyWith(color: AppColors.primary),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       );
@@ -44,6 +64,7 @@ class CartScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const ActiveOrderBanner(),
           for (final item in items) ...[
             CustomerCard(
               child: Row(
