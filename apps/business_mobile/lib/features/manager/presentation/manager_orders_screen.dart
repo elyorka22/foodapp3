@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../shared/models/order_model.dart';
-import '../../../shared/widgets/empty_state.dart';
-import '../../../shared/widgets/filter_chips.dart';
-import '../../../shared/widgets/order_card.dart';
-import '../../../shared/widgets/screen_header.dart';
-import '../../manager/data/couriers_repository.dart';
 import '../../../core/utils/safe_area_padding.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/new_order_incoming_card.dart';
+import '../../../shared/widgets/open_order_in_progress_card.dart';
+import '../../../shared/widgets/screen_header.dart';
 import '../../orders/data/orders_repository.dart';
 import '../../orders/providers/orders_provider.dart';
 
@@ -27,14 +27,13 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orders = ref.watch(ordersPollingProvider);
-    final filter = ref.watch(orderFilterProvider);
+    final orders = ref.watch(managerOpenOrdersPollingProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(ordersPollingProvider);
+          ref.invalidate(managerOpenOrdersPollingProvider);
         },
         child: ListView(
           padding: scrollSafePadding(
@@ -42,9 +41,14 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
             base: const EdgeInsets.only(bottom: AppSpacing.xxl),
           ),
           children: [
-            const ScreenHeader(
+            ScreenHeader(
               title: AppStrings.managerPanel,
               subtitle: AppStrings.orders,
+              trailing: TextButton.icon(
+                onPressed: () => context.push(AppRoutes.managerHistory),
+                icon: const Icon(Icons.history, size: 20),
+                label: const Text(AppStrings.orderHistory),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -61,33 +65,20 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: FilterChipsRow(
-                options: const [
-                  FilterChipOption(label: AppStrings.filterAll, value: null),
-                  FilterChipOption(label: AppStrings.filterActive, value: 'active'),
-                  FilterChipOption(label: AppStrings.filterCancelled, value: 'cancelled'),
-                ],
-                selected: filter,
-                onSelected: (v) => ref.read(orderFilterProvider.notifier).state = v,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
             orders.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(48),
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e, _) => ErrorState(
-                message: ApiException.formatError(e),
-                onRetry: () => ref.invalidate(ordersPollingProvider),
+              error: (e, _) => Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Text(ApiException.formatError(e), textAlign: TextAlign.center),
               ),
               data: (list) {
                 if (list.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.inbox_outlined,
-                    title: AppStrings.noOrders,
+                    icon: Icons.notifications_active_outlined,
+                    title: AppStrings.noNewOrders,
                   );
                 }
                 return Padding(
@@ -95,26 +86,25 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
                   child: Column(
                     children: list
                         .map(
-                          (order) => OrderCard(
-                            order: order,
-                            compact: true,
-                            showRestaurant: true,
-                            managerActionsOnly: true,
-                            showAssignCourier: order.canReassignCourier,
-                            isLoading: _actingOrderId == order.id,
-                            onStatusChange: (next) => _updateStatus(order.id, next),
-                            onRequestCourier: order.canPassToCouriers
-                                ? () => _passToCouriers(order.id, order.status)
-                                : null,
-                            onAssignCourier: order.canReassignCourier
-                                ? () => _showReassignDialog(order)
-                                : null,
-                            onRemoveCourier: order.canReassignCourier
-                                ? () => _removeCourier(order.id)
-                                : null,
-                            onCancel: order.canCancel
-                                ? () => _cancelOrder(order.id)
-                                : null,
+                          (order) => Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                            child: order.isPending
+                                ? NewOrderIncomingCard(
+                                    order: order,
+                                    restaurantName: order.restaurantName,
+                                    isLoading: _actingOrderId == order.id,
+                                    onAccept: () => _acceptOrder(order.id),
+                                    onDetails: () => context.push(
+                                      AppRoutes.managerOrderDetail(order.id),
+                                    ),
+                                  )
+                                : OpenOrderInProgressCard(
+                                    order: order,
+                                    restaurantName: order.restaurantName,
+                                    onTap: () => context.push(
+                                      AppRoutes.managerOrderDetail(order.id),
+                                    ),
+                                  ),
                           ),
                         )
                         .toList(),
@@ -128,136 +118,11 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
     );
   }
 
-  Future<void> _updateStatus(String orderId, String status) async {
+  Future<void> _acceptOrder(String orderId) async {
     setState(() => _actingOrderId = orderId);
     try {
-      await ref.read(ordersRepositoryProvider).updateStatus(orderId, status);
-      ref.invalidate(ordersPollingProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiException.formatError(e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _actingOrderId = null);
-    }
-  }
-
-  Future<void> _passToCouriers(String orderId, String currentStatus) async {
-    setState(() => _actingOrderId = orderId);
-    try {
-      final repo = ref.read(ordersRepositoryProvider);
-      if (currentStatus == 'ACCEPTED') {
-        await repo.updateStatus(orderId, 'PREPARING');
-      }
-      await repo.requestCourier(orderId);
-      ref.invalidate(ordersPollingProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiException.formatError(e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _actingOrderId = null);
-    }
-  }
-
-  Future<void> _cancelOrder(String orderId) async {
-    setState(() => _actingOrderId = orderId);
-    try {
-      await ref.read(ordersRepositoryProvider).updateStatus(
-            orderId,
-            'CANCELLED',
-            cancelReason: 'Menejer tomonidan bekor qilindi',
-          );
-      ref.invalidate(ordersPollingProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiException.formatError(e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _actingOrderId = null);
-    }
-  }
-
-  Future<void> _removeCourier(String orderId) async {
-    setState(() => _actingOrderId = orderId);
-    try {
-      await ref.read(ordersRepositoryProvider).removeCourier(orderId);
-      ref.invalidate(ordersPollingProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiException.formatError(e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _actingOrderId = null);
-    }
-  }
-
-  Future<void> _showReassignDialog(StaffOrderModel order) async {
-    try {
-      final couriers = await ref.read(couriersRepositoryProvider).fetchCouriers();
-      if (!mounted) return;
-
-      final active = couriers.where((c) => c.isActive).toList();
-      if (active.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.noOnlineCouriers)),
-        );
-        return;
-      }
-
-      final selected = await showModalBottomSheet<String>(
-        context: context,
-        showDragHandle: true,
-        builder: (context) {
-          return SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Text(AppStrings.selectCourier, style: AppTypography.subtitle),
-                ),
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: active.length,
-                    itemBuilder: (context, index) {
-                      final courier = active[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primarySoft,
-                          child: Text(courier.fullName.characters.first),
-                        ),
-                        title: Text(courier.fullName),
-                        subtitle: Text(courier.phone ?? ''),
-                        trailing: Icon(
-                          Icons.circle,
-                          color: courier.isOnline ? AppColors.success : AppColors.textMuted,
-                          size: 10,
-                        ),
-                        onTap: () => Navigator.pop(context, courier.id),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-
-      if (selected == null) return;
-      setState(() => _actingOrderId = order.id);
-      await ref.read(ordersRepositoryProvider).reassignCourier(order.id, selected);
-      ref.invalidate(ordersPollingProvider);
+      await ref.read(ordersRepositoryProvider).updateStatus(orderId, 'ACCEPTED');
+      ref.invalidate(managerOpenOrdersPollingProvider);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

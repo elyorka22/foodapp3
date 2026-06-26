@@ -7,15 +7,31 @@ import '../../../shared/models/order_model.dart';
 
 const _pollInterval = Duration(seconds: 15);
 
+@Deprecated('Use managerOpenOrdersPollingProvider or managerClosedOrdersPollingProvider')
 final orderFilterProvider = StateProvider<String?>((ref) => null);
 
+@Deprecated('Use managerOpenOrdersPollingProvider')
 final ordersPollingProvider = StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
-  final filter = ref.watch(orderFilterProvider);
-
   while (true) {
-    yield await ref.read(ordersRepositoryProvider).fetchOrders(
-          statusGroup: filter,
-        );
+    yield await ref.read(ordersRepositoryProvider).fetchOrders(statusGroup: 'open');
+    await Future<void>.delayed(_pollInterval);
+  }
+});
+
+/// Manager: orders awaiting accept or courier dispatch.
+final managerOpenOrdersPollingProvider =
+    StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
+  while (true) {
+    yield await ref.read(ordersRepositoryProvider).fetchOrders(statusGroup: 'open');
+    await Future<void>.delayed(_pollInterval);
+  }
+});
+
+/// Manager: processed orders (courier called or finished).
+final managerClosedOrdersPollingProvider =
+    StreamProvider.autoDispose<List<StaffOrderModel>>((ref) async* {
+  while (true) {
+    yield await ref.read(ordersRepositoryProvider).fetchOrders(statusGroup: 'closed');
     await Future<void>.delayed(_pollInterval);
   }
 });

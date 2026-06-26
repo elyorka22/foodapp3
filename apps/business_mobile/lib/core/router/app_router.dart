@@ -5,6 +5,8 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/manager/presentation/manager_courier_form_screen.dart';
 import '../../features/manager/presentation/manager_couriers_screen.dart';
+import '../../features/manager/presentation/manager_order_detail_screen.dart';
+import '../../features/manager/presentation/manager_order_history_screen.dart';
 import '../../features/manager/presentation/manager_orders_screen.dart';
 import '../../features/manager/presentation/manager_restaurant_form_screen.dart';
 import '../../features/manager/presentation/manager_restaurants_screen.dart' show ManagerRestaurantsScreen, ManagerStoresScreen;
@@ -90,6 +92,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.restaurantHistory,
         builder: (_, __) => const RestaurantOrderHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/manager/orders/:id',
+        builder: (_, state) => ManagerOrderDetailScreen(
+          orderId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.managerHistory,
+        builder: (_, __) => const ManagerOrderHistoryScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (_, __, navigationShell) =>

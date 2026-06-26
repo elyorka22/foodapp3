@@ -11,6 +11,8 @@ abstract final class AppRoutes {
   static String restaurantOrderDetail(String id) => '/restaurant/orders/$id';
 
   static const managerHome = '/manager';
+  static const managerHistory = '/manager/history';
+  static String managerOrderDetail(String id) => '/manager/orders/$id';
   static const managerRestaurants = '/manager/restaurants';
   static const managerStores = '/manager/stores';
   static const managerCouriers = '/manager/couriers';

@@ -13,15 +13,21 @@ class NewOrderIncomingCard extends StatelessWidget {
     super.key,
     required this.order,
     required this.onAccept,
+    this.onDetails,
+    this.restaurantName,
     this.isLoading = false,
   });
 
   final StaffOrderModel order;
   final VoidCallback? onAccept;
+  final VoidCallback? onDetails;
+  final String? restaurantName;
   final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
+    final name = restaurantName ?? order.restaurantName;
+
     return AppCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
@@ -38,16 +44,49 @@ class NewOrderIncomingCard extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: FoodAppButton(
-              label: AppStrings.acceptOrder,
-              compact: true,
-              isLoading: isLoading,
-              onPressed: isLoading ? null : onAccept,
+          if (name != null && name.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              name,
+              style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
+          ],
+          const SizedBox(height: AppSpacing.lg),
+          if (onDetails != null)
+            Row(
+              children: [
+                Expanded(
+                  child: FoodAppButton(
+                    label: AppStrings.showDetails,
+                    variant: FoodAppButtonVariant.secondary,
+                    compact: true,
+                    onPressed: isLoading ? null : onDetails,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: FoodAppButton(
+                    label: AppStrings.acceptOrder,
+                    compact: true,
+                    isLoading: isLoading,
+                    onPressed: isLoading ? null : onAccept,
+                  ),
+                ),
+              ],
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: FoodAppButton(
+                label: AppStrings.acceptOrder,
+                compact: true,
+                isLoading: isLoading,
+                onPressed: isLoading ? null : onAccept,
+              ),
+            ),
         ],
       ),
     );

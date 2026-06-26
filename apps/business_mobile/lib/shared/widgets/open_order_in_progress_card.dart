@@ -12,13 +12,17 @@ class OpenOrderInProgressCard extends StatelessWidget {
     super.key,
     required this.order,
     required this.onTap,
+    this.restaurantName,
   });
 
   final StaffOrderModel order;
   final VoidCallback onTap;
+  final String? restaurantName;
 
   @override
   Widget build(BuildContext context) {
+    final name = restaurantName ?? order.restaurantName;
+
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: InkWell(
@@ -37,6 +41,15 @@ class OpenOrderInProgressCard extends StatelessWidget {
                       color: AppColors.primary,
                     ),
                   ),
+                  if (name != null && name.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      name,
+                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.sm),
                   StatusBadge(status: order.status),
                 ],

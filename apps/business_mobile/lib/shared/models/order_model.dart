@@ -34,6 +34,7 @@ class StaffOrderModel {
     required this.total,
     this.subtotal = 0,
     this.deliveryFee = 0,
+    this.discountAmount = 0,
     this.customerPhone,
     this.restaurantName,
     this.restaurantId,
@@ -50,6 +51,7 @@ class StaffOrderModel {
   final num total;
   final num subtotal;
   final num deliveryFee;
+  final num discountAmount;
   final String? customerPhone;
   final String? restaurantName;
   final String? restaurantId;
@@ -136,6 +138,7 @@ class StaffOrderModel {
       total: parseNum(json['total']),
       subtotal: parseNum(json['subtotal']),
       deliveryFee: parseNum(json['deliveryFee']),
+      discountAmount: parseNum(json['discountAmount']),
       customerPhone: guest?['phone'] as String?,
       restaurantName: restaurant?['name'] as String? ?? business?['name'] as String?,
       restaurantId: restaurant?['id'] as String? ?? business?['id'] as String?,

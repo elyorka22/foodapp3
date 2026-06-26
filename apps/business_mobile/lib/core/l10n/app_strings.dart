@@ -132,6 +132,7 @@ abstract final class AppStrings {
   static const manageMenu = 'Menyuni boshqarish';
   static const orderAmount = 'Buyurtma';
   static const deliveryAmount = 'Yetkazish';
+  static const promoDiscount = 'Promo chegirma';
   static const showDetails = 'Batafsil';
   static const hideDetails = 'Yopish';
 
