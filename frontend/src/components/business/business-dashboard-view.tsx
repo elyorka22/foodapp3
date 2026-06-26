@@ -142,7 +142,12 @@ export function BusinessDashboardView({ data, ordersHref }: Props) {
               tickLine={false}
               axisLine={false}
             />
-            <Tooltip formatter={(v: number) => [`${v.toLocaleString()} so'm`, t.stats.revenue]} />
+            <Tooltip
+              formatter={(value) => [
+                `${Number(value ?? 0).toLocaleString()} so'm`,
+                t.stats.revenue,
+              ]}
+            />
             <Area
               type="monotone"
               dataKey="value"
