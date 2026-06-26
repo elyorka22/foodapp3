@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/format_sum.dart';
+import '../../core/utils/phone_dial.dart';
 import '../models/order_model.dart';
 import 'app_card.dart';
 import 'food_app_button.dart';
@@ -17,6 +18,7 @@ class OrderCard extends StatefulWidget {
     this.showRestaurant = false,
     this.showAssignCourier = true,
     this.restaurantActionsOnly = false,
+    this.managerActionsOnly = false,
     this.compact = false,
     this.onStatusChange,
     this.onRequestCourier,
@@ -30,6 +32,7 @@ class OrderCard extends StatefulWidget {
   final bool showRestaurant;
   final bool showAssignCourier;
   final bool restaurantActionsOnly;
+  final bool managerActionsOnly;
   final bool compact;
   final void Function(String nextStatus)? onStatusChange;
   final VoidCallback? onRequestCourier;
@@ -80,16 +83,14 @@ class _OrderCardState extends State<OrderCard> {
           ],
           const SizedBox(height: AppSpacing.sm),
           _AmountBreakdown(order: order),
+          if (widget.managerActionsOnly && order.customerPhone != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _CustomerPhoneRow(phone: order.customerPhone!),
+          ],
           if (_showDetails) ...[
-            if (order.customerPhone != null) ...[
+            if (order.customerPhone != null && !widget.managerActionsOnly) ...[
               const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  const Icon(Icons.phone_outlined, size: 16, color: AppColors.textMuted),
-                  const SizedBox(width: 6),
-                  Text(order.customerPhone!, style: AppTypography.body),
-                ],
-              ),
+              _CustomerPhoneRow(phone: order.customerPhone!),
             ],
             if (order.items.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.sm),
@@ -141,7 +142,45 @@ class _OrderCardState extends State<OrderCard> {
             ],
             if (!order.isCancelled) ...[
               const SizedBox(height: AppSpacing.md),
-              if (widget.restaurantActionsOnly)
+              if (widget.managerActionsOnly) ...[
+                _ManagerOrderActions(
+                  order: order,
+                  isLoading: widget.isLoading,
+                  onAccept: order.canManagerAccept && widget.onStatusChange != null
+                      ? () => widget.onStatusChange!('ACCEPTED')
+                      : null,
+                  onPassToCouriers:
+                      order.canPassToCouriers && widget.onRequestCourier != null
+                          ? widget.onRequestCourier
+                          : null,
+                ),
+                if (widget.showAssignCourier && order.canReassignCourier && widget.onAssignCourier != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  FoodAppButton(
+                    label: AppStrings.reassignCourier,
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading ? null : widget.onAssignCourier,
+                  ),
+                ],
+                if (order.canReassignCourier && widget.onRemoveCourier != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  FoodAppButton(
+                    label: AppStrings.removeCourier,
+                    variant: FoodAppButtonVariant.secondary,
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading ? null : widget.onRemoveCourier,
+                  ),
+                ],
+                if (order.canCancel && widget.onCancel != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  FoodAppButton(
+                    label: AppStrings.cancelOrder,
+                    variant: FoodAppButtonVariant.danger,
+                    isLoading: widget.isLoading,
+                    onPressed: widget.isLoading ? null : widget.onCancel,
+                  ),
+                ],
+              ] else if (widget.restaurantActionsOnly)
                 _RestaurantOrderActions(
                   order: order,
                   isLoading: widget.isLoading,
@@ -223,6 +262,51 @@ class _OrderCardState extends State<OrderCard> {
   }
 }
 
+class _ManagerOrderActions extends StatelessWidget {
+  const _ManagerOrderActions({
+    required this.order,
+    required this.isLoading,
+    this.onAccept,
+    this.onPassToCouriers,
+  });
+
+  final StaffOrderModel order;
+  final bool isLoading;
+  final VoidCallback? onAccept;
+  final VoidCallback? onPassToCouriers;
+
+  @override
+  Widget build(BuildContext context) {
+    final showAccept = onAccept != null;
+    final showPass = onPassToCouriers != null;
+    if (!showAccept && !showPass) return const SizedBox.shrink();
+
+    return Row(
+      children: [
+        if (showAccept)
+          Expanded(
+            child: FoodAppButton(
+              label: AppStrings.acceptOrder,
+              compact: true,
+              isLoading: isLoading,
+              onPressed: isLoading ? null : onAccept,
+            ),
+          ),
+        if (showAccept && showPass) const SizedBox(width: AppSpacing.sm),
+        if (showPass)
+          Expanded(
+            child: FoodAppButton(
+              label: AppStrings.passToCouriers,
+              compact: true,
+              isLoading: isLoading,
+              onPressed: isLoading ? null : onPassToCouriers,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _RestaurantOrderActions extends StatelessWidget {
   const _RestaurantOrderActions({
     required this.order,
@@ -263,6 +347,59 @@ class _RestaurantOrderActions extends StatelessWidget {
               onPressed: isLoading ? null : onRequestCourier,
             ),
           ),
+      ],
+    );
+  }
+}
+
+class _CustomerPhoneRow extends StatelessWidget {
+  const _CustomerPhoneRow({required this.phone});
+
+  final String phone;
+
+  Future<void> _call(BuildContext context) async {
+    final ok = await launchPhoneCall(phone);
+    if (!context.mounted || ok) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(AppStrings.callFailed)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.phone_outlined, size: 16, color: AppColors.textMuted),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(phone, style: AppTypography.body),
+        ),
+        const SizedBox(width: 8),
+        Material(
+          color: AppColors.success,
+          borderRadius: BorderRadius.circular(10),
+          child: InkWell(
+            onTap: () => _call(context),
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.call, size: 16, color: Colors.white),
+                  const SizedBox(width: 6),
+                  Text(
+                    AppStrings.callCustomer,
+                    style: AppTypography.caption.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

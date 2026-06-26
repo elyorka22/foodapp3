@@ -97,6 +97,13 @@ class StaffOrderModel {
 
   bool get canAcceptOrder => status == 'PENDING' || status == 'ACCEPTED';
 
+  /// Manager accepts a new order (PENDING → ACCEPTED).
+  bool get canManagerAccept => status == 'PENDING';
+
+  /// Manager sends order to courier pool (after restaurant accepted).
+  bool get canPassToCouriers =>
+      (status == 'ACCEPTED' || status == 'PREPARING') && courierRequestedAt == null;
+
   String? get acceptTargetStatus {
     if (status == 'PENDING') return 'ACCEPTED';
     if (status == 'ACCEPTED') return 'PREPARING';

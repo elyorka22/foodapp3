@@ -49,7 +49,9 @@ export function ConfirmDialog({
       />
       <div className="absolute left-1/2 top-1/2 w-[92%] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border bg-white p-5 shadow-xl dark:border-white/10 dark:bg-zinc-950">
         <p className="text-sm font-semibold">{title}</p>
-        {description && <p className="mt-1 text-sm opacity-70">{description}</p>}
+        {description && (
+          <p className="mt-1 whitespace-pre-line text-sm opacity-70">{description}</p>
+        )}
         <div className="mt-5 flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onCancel} disabled={busy}>
             {cancelText}

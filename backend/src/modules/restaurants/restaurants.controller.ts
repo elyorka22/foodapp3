@@ -21,6 +21,7 @@ import { AdminRestaurantsQueryDto } from './dto/admin-restaurants-query.dto';
 import { SetWorkingHoursDto } from './dto/set-working-hours.dto';
 import { SetupOwnerAccountDto } from './dto/setup-owner-account.dto';
 import { AddHolidayDto } from './dto/add-holiday.dto';
+import { ClearRestaurantTestDataDto } from './dto/clear-restaurant-test-data.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -47,6 +48,17 @@ export class RestaurantsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   findAllAdmin(@Query() query: AdminRestaurantsQueryDto, @CurrentUser() user: JwtPayload) {
     return this.restaurants.findAllAdmin(query, user);
+  }
+
+  @Post('admin/clear-test-data')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  @ApiOperation({
+    summary: 'Delete all orders and related test data for selected restaurants (keeps menu & staff)',
+  })
+  clearTestData(@Body() dto: ClearRestaurantTestDataDto, @CurrentUser() user: JwtPayload) {
+    return this.restaurants.clearTestData(dto.businessIds, user);
   }
 
   @Get(':id/finance')

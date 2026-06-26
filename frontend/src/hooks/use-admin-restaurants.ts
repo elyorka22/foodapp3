@@ -112,6 +112,36 @@ export function useAdminRestaurants(query: AdminRestaurantsQuery) {
   return { list, create, update, remove, updateApproval };
 }
 
+export type ClearRestaurantTestDataResult = {
+  cleared: Array<{
+    businessId: string;
+    businessName: string;
+    ordersDeleted: number;
+    guestOrdersDeleted: number;
+    adminNotificationsDeleted: number;
+    staffNotificationsDeleted: number;
+  }>;
+};
+
+export function useClearRestaurantTestData() {
+  const token = getToken();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (businessIds: string[]) =>
+      api<ClearRestaurantTestDataResult>('/restaurants/admin/clear-test-data', {
+        method: 'POST',
+        token: token ?? undefined,
+        body: JSON.stringify({ businessIds }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-restaurants'] });
+      qc.invalidateQueries({ queryKey: ['admin-orders'] });
+      qc.invalidateQueries({ queryKey: ['admin-restaurant'] });
+    },
+  });
+}
+
 export function useAdminRestaurant(id: string) {
   const token = getToken();
 

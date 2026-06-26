@@ -38,11 +38,37 @@ export const businessPanelI18n = {
     netToday: 'Bugungi sof tushum',
     netWeek: 'Haftalik sof tushum',
     netMonth: 'Oylik sof tushum',
+    netShort: 'Sof tushum',
   },
 
   topProducts: 'Eng ko‘p sotilgan mahsulotlar',
   noSalesYet: "Hali sotuvlar yo'q",
   manageOrders: 'Buyurtmalarni boshqarish →',
+
+  period: {
+    today: 'Bugun',
+    week: '7 kun',
+    month: 'Oy',
+  },
+
+  ordersPage: {
+    title: 'Buyurtmalar',
+    filterAll: 'Barchasi',
+    filterActive: 'Faol',
+    filterNew: 'Yangi',
+    filterDone: 'Yakunlangan',
+    filterCancelled: 'Bekor',
+    accept: 'Qabul qilish',
+    requestCourier: 'Kuryerni chaqirish',
+    courierCalled: 'Kuryer chaqirildi',
+    callCustomer: "Qo'ng'iroq",
+    expand: 'Batafsil',
+    collapse: 'Yopish',
+    summaryOrders: 'Buyurtmalar',
+    summaryRevenue: 'Tushum',
+    summaryAvg: "O'rtacha",
+    viewStats: "To'liq statistika",
+  },
 
   ordersTable: {
     empty: "Buyurtmalar yo'q",

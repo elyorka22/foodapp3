@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { getToken } from '@/lib/auth';
 import { useAdminAccess } from '@/hooks/use-admin-access';
 import { uploadImage } from '@/lib/upload';
-import { useAdminRestaurants, type RestaurantForm } from '@/hooks/use-admin-restaurants';
+import { useAdminRestaurants, type RestaurantForm, useClearRestaurantTestData } from '@/hooks/use-admin-restaurants';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 import { Modal } from '@/components/admin/modal';
@@ -134,6 +134,8 @@ export default function AdminRestaurantsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editRow, setEditRow] = useState<any | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [clearOpen, setClearOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [form, setForm] = useState<RestaurantForm>(emptyForm);
 
   const isActiveFilter = status === '' ? undefined : status === 'active';
@@ -145,9 +147,33 @@ export default function AdminRestaurantsPage() {
     isActive: isActiveFilter,
     vertical: 'restaurant',
   });
+  const clearTestData = useClearRestaurantTestData();
 
   const rows = list.data?.data ?? [];
   const totalPages = list.data?.meta?.totalPages ?? 1;
+  const selectedRows = rows.filter((r) => selectedIds.has(r.id));
+  const allOnPageSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllOnPage = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allOnPageSelected) {
+        rows.forEach((r) => next.delete(r.id));
+      } else {
+        rows.forEach((r) => next.add(r.id));
+      }
+      return next;
+    });
+  };
 
   const uploadField = async (file: File, field: 'logoUrl' | 'coverUrl') => {
     try {
@@ -223,6 +249,20 @@ export default function AdminRestaurantsPage() {
     }
   };
 
+  const confirmClearTestData = async () => {
+    const ids = [...selectedIds];
+    if (!ids.length) return;
+    try {
+      const result = await clearTestData.mutateAsync(ids);
+      const totalOrders = result.cleared.reduce((sum, r) => sum + r.ordersDeleted, 0);
+      setClearOpen(false);
+      setSelectedIds(new Set());
+      toast.success(`${t.merchant.clearTestDataSuccess}: ${totalOrders} buyurtma`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t.merchant.clearTestDataFailed);
+    }
+  };
+
   const toggleActive = async (row: any) => {
     try {
       await update.mutateAsync({ id: row.id, body: { isActive: !row.isActive } });
@@ -272,10 +312,21 @@ export default function AdminRestaurantsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-lg font-semibold">{t.nav.restaurantList}</h1>
-        <Button type="button" onClick={() => { setForm(emptyForm); setCreateOpen(true); }}>
-          {t.merchant.addRestaurant}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {selectedIds.size > 0 ? (
+            <Button type="button" variant="danger" onClick={() => setClearOpen(true)}>
+              {t.merchant.clearTestData} ({selectedIds.size})
+            </Button>
+          ) : null}
+          <Button type="button" onClick={() => { setForm(emptyForm); setCreateOpen(true); }}>
+            {t.merchant.addRestaurant}
+          </Button>
+        </div>
       </div>
+
+      {selectedIds.size > 0 ? (
+        <p className="text-sm text-zinc-500">{t.merchant.clearTestDataHint}</p>
+      ) : null}
 
       <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <div className="grid gap-3 md:grid-cols-3">
@@ -304,6 +355,14 @@ export default function AdminRestaurantsPage() {
           <table className="w-full text-left text-sm">
             <thead className="text-xs opacity-60">
               <tr>
+                <th className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    aria-label={t.merchant.selectAllOnPage}
+                    checked={allOnPageSelected}
+                    onChange={toggleAllOnPage}
+                  />
+                </th>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Approval</th>
                 <th className="px-4 py-3">Status</th>
@@ -319,6 +378,14 @@ export default function AdminRestaurantsPage() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t dark:border-white/10">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(r.id)}
+                      onChange={() => toggleSelected(r.id)}
+                      aria-label={`Select ${r.name}`}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <Link href={`/admin/restaurants/${r.id}`} className="font-medium hover:underline">
                       {r.name}
@@ -437,6 +504,24 @@ export default function AdminRestaurantsPage() {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={clearOpen}
+        title={t.merchant.clearTestDataConfirmTitle}
+        description={
+          [
+            t.merchant.clearTestDataConfirmDescription,
+            selectedRows.length
+              ? selectedRows.map((r) => `• ${r.name} (${r.ordersCount ?? 0} buyurtma)`).join('\n')
+              : `${selectedIds.size} ta restoran`,
+          ].join('\n\n')
+        }
+        danger
+        confirmText={t.merchant.clearTestData}
+        cancelText={t.cancel}
+        onCancel={() => setClearOpen(false)}
+        onConfirm={confirmClearTestData}
+      />
 
       <ConfirmDialog
         open={!!deleteId}

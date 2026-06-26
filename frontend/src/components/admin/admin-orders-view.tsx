@@ -49,6 +49,7 @@ export function AdminOrdersView({
     assignCourier: assignCourierMutation,
     reassignCourier: reassignCourierMutation,
     removeCourier: removeCourierMutation,
+    requestCourier: requestCourierMutation,
   } = useAdminOrders({
     page,
     limit: 20,
@@ -81,6 +82,13 @@ export function AdminOrdersView({
 
   const changeStatus = async (id: string, next: string) => {
     await mutateStatus.mutateAsync({ id, status: next });
+  };
+
+  const passToCouriers = async (order: { id: string; status: string }) => {
+    if (order.status === 'ACCEPTED') {
+      await mutateStatus.mutateAsync({ id: order.id, status: 'PREPARING' });
+    }
+    await requestCourierMutation.mutateAsync(order.id);
   };
 
   const cancelOrder = async () => {
@@ -205,7 +213,7 @@ export function AdminOrdersView({
                       <StatusBadge status={o.status} />
                       {o.status === 'PREPARING' && o.courierRequestedAt && !o.courier?.id && (
                         <span className="text-xs font-medium text-amber-600">
-                          Kuryer kutilmoqda
+                          {t.orders.courierWaiting}
                         </span>
                       )}
                     </div>
@@ -216,6 +224,27 @@ export function AdminOrdersView({
                   </td>
                   <td className="p-3">
                     <div className="flex flex-wrap gap-2">
+                      {o.status === 'PENDING' && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => changeStatus(o.id, 'ACCEPTED')}
+                        >
+                          {t.orders.acceptOrder}
+                        </Button>
+                      )}
+                      {(o.status === 'ACCEPTED' ||
+                        (o.status === 'PREPARING' && !o.courierRequestedAt)) && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="bg-orange-500 hover:bg-orange-600"
+                          disabled={requestCourierMutation.isPending}
+                          onClick={() => passToCouriers(o)}
+                        >
+                          {t.orders.passToCouriers}
+                        </Button>
+                      )}
                       <Button type="button" size="sm" variant="secondary" onClick={() => setOpenId(o.id)}>
                         {t.orders.details}
                       </Button>
@@ -265,7 +294,8 @@ export function AdminOrdersView({
         courierActionPending={
           assignCourierMutation.isPending ||
           reassignCourierMutation.isPending ||
-          removeCourierMutation.isPending
+          removeCourierMutation.isPending ||
+          requestCourierMutation.isPending
         }
         onAssignCourier={async (id, courierId) => {
           await assignCourierMutation.mutateAsync({ id, courierId });
@@ -277,6 +307,9 @@ export function AdminOrdersView({
           await removeCourierMutation.mutateAsync(id);
         }}
         onChangeStatus={async (id, s) => changeStatus(id, s)}
+        onRequestCourier={async (id) => {
+          await requestCourierMutation.mutateAsync(id);
+        }}
       />
 
       <ConfirmDialog

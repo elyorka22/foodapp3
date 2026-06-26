@@ -83,6 +83,15 @@ export function useAdminOrders(query: AdminOrdersQuery) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
   });
 
-  return { list, getOne, getHistory, updateStatus, assignCourier, reassignCourier, removeCourier };
+  const requestCourier = useMutation({
+    mutationFn: (id: string) =>
+      api(`/orders/${id}/request-courier`, {
+        method: 'POST',
+        token: token ?? undefined,
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
+  });
+
+  return { list, getOne, getHistory, updateStatus, assignCourier, reassignCourier, removeCourier, requestCourier };
 }
 

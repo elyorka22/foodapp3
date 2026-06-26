@@ -5,9 +5,10 @@ import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { api } from '@/lib/api';
 import { useStaffOrders } from '@/hooks/use-staff-orders';
 import { useRequireStaffRole } from '@/hooks/use-require-staff-role';
-import { OrderTable } from '@/components/orders/order-table';
 import { businessPanelI18n } from '@/lib/business-panel-i18n';
 import { businessPanelNav } from '@/lib/business-panel-nav';
+import { BusinessOrdersView } from '@/components/business/business-orders-view';
+import type { BusinessDashboardData } from '@/components/business/business-dashboard-view';
 
 export default function RestaurantPanelPage() {
   const { ready, authorized, token } = useRequireStaffRole({
@@ -25,9 +26,9 @@ export default function RestaurantPanelPage() {
   const restaurantId = restaurants?.data?.[0]?.id;
 
   const { data: stats } = useQuery({
-    queryKey: ['restaurant-stats', restaurantId],
+    queryKey: ['restaurant-dashboard', restaurantId],
     queryFn: () =>
-      api<{ totalOrders: number; revenue: number }>(`/analytics/restaurant/${restaurantId}`, {
+      api<BusinessDashboardData>(`/analytics/restaurant/${restaurantId}`, {
         token: token ?? undefined,
       }),
     enabled: !!token && authorized && !!restaurantId,
@@ -48,19 +49,10 @@ export default function RestaurantPanelPage() {
       title={restaurants?.data?.[0]?.name ?? t.defaultTitle}
       nav={businessPanelNav('/restaurant')}
     >
-      <div className="mb-6 grid grid-cols-2 gap-3">
-        <div className="rounded-xl border p-4 dark:border-white/10">
-          <p className="text-xs opacity-60">{t.stats.orders}</p>
-          <p className="text-xl font-bold">{stats?.totalOrders ?? '—'}</p>
-        </div>
-        <div className="rounded-xl border p-4 dark:border-white/10">
-          <p className="text-xs opacity-60">{t.stats.revenue}</p>
-          <p className="text-xl font-bold">{stats?.revenue?.toLocaleString() ?? '—'} UZS</p>
-        </div>
-      </div>
-      <OrderTable
+      <BusinessOrdersView
         orders={orders}
-        restaurantMode
+        stats={stats}
+        dashboardHref="/restaurant/dashboard"
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
         onRequestCourier={(id) => requestCourier.mutate(id)}
         requestCourierPendingId={

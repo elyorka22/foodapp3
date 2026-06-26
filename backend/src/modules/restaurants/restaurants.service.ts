@@ -1035,6 +1035,123 @@ export class RestaurantsService {
     };
   }
 
+  async clearTestData(businessIds: string[], user: JwtPayload) {
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.MANAGER) {
+      throw new ForbiddenException('Only admin staff can clear restaurant test data');
+    }
+
+    const uniqueIds = [...new Set(businessIds)];
+    const businesses = await this.prisma.business.findMany({
+      where: {
+        id: { in: uniqueIds },
+        deletedAt: null,
+        ...businessWhereForVertical('restaurant'),
+      },
+      select: { id: true, name: true },
+    });
+
+    if (!businesses.length) {
+      throw new NotFoundException('No restaurants found for the given ids');
+    }
+
+    const results: Array<{
+      businessId: string;
+      businessName: string;
+      ordersDeleted: number;
+      guestOrdersDeleted: number;
+      adminNotificationsDeleted: number;
+      staffNotificationsDeleted: number;
+    }> = [];
+
+    for (const business of businesses) {
+      const orders = await this.prisma.order.findMany({
+        where: { businessId: business.id },
+        select: { id: true, guestOrderId: true },
+      });
+      const orderIds = orders.map((o) => o.id);
+      const guestOrderIds = [...new Set(orders.map((o) => o.guestOrderId))];
+
+      if (!orderIds.length) {
+        results.push({
+          businessId: business.id,
+          businessName: business.name,
+          ordersDeleted: 0,
+          guestOrdersDeleted: 0,
+          adminNotificationsDeleted: 0,
+          staffNotificationsDeleted: 0,
+        });
+        continue;
+      }
+
+      const cleared = await this.prisma.$transaction(async (tx) => {
+        const promoUsageGroups = await tx.promoCodeUsage.groupBy({
+          by: ['promoCodeId'],
+          where: { orderId: { in: orderIds } },
+          _count: { _all: true },
+        });
+
+        await tx.courierAssignment.deleteMany({ where: { orderId: { in: orderIds } } });
+        await tx.payment.deleteMany({ where: { orderId: { in: orderIds } } });
+        await tx.transaction.deleteMany({ where: { orderId: { in: orderIds } } });
+        await tx.promoCodeUsage.deleteMany({ where: { orderId: { in: orderIds } } });
+
+        const adminNotificationsDeleted = await tx.adminNotification.deleteMany({
+          where: {
+            OR: orderIds.map((orderId) => ({
+              metadata: { path: ['orderId'], equals: orderId },
+            })),
+          },
+        });
+
+        const staffNotificationsDeleted = await tx.notification.deleteMany({
+          where: {
+            OR: orderIds.map((orderId) => ({
+              metadata: { path: ['orderId'], equals: orderId },
+            })),
+          },
+        });
+
+        const ordersDeleted = await tx.order.deleteMany({
+          where: { id: { in: orderIds } },
+        });
+
+        const guestOrdersDeleted = await tx.guestOrder.deleteMany({
+          where: { id: { in: guestOrderIds } },
+        });
+
+        for (const group of promoUsageGroups) {
+          await tx.promoCode.update({
+            where: { id: group.promoCodeId },
+            data: { usageCount: { decrement: group._count._all } },
+          });
+        }
+
+        return {
+          ordersDeleted: ordersDeleted.count,
+          guestOrdersDeleted: guestOrdersDeleted.count,
+          adminNotificationsDeleted: adminNotificationsDeleted.count,
+          staffNotificationsDeleted: staffNotificationsDeleted.count,
+        };
+      });
+
+      await this.audit.log({
+        userId: user.sub,
+        action: 'clear_test_data',
+        entity: 'restaurant',
+        entityId: business.id,
+        metadata: cleared,
+      });
+
+      results.push({
+        businessId: business.id,
+        businessName: business.name,
+        ...cleared,
+      });
+    }
+
+    return { cleared: results };
+  }
+
   async softDelete(id: string, user: JwtPayload) {
     if (user.role !== UserRole.SUPER_ADMIN) {
       throw new ForbiddenException('Only super admin can delete restaurants');

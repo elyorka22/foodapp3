@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/admin/ui';
 import { DeliveryCoords } from '@/components/shared/delivery-coords';
 import { OrderLineItems } from '@/components/orders/order-line-items';
+import { adminI18n as t } from '@/lib/admin-i18n';
 
 type CourierOption = {
   id: string;
@@ -25,6 +26,7 @@ export function OrderDrawer({
   onAssignCourier,
   onReassignCourier,
   onRemoveCourier,
+  onRequestCourier,
   courierActionPending = false,
 }: {
   orderId: string | null;
@@ -37,6 +39,7 @@ export function OrderDrawer({
   onAssignCourier?: (orderId: string, courierId: string) => Promise<void>;
   onReassignCourier?: (orderId: string, courierId: string) => Promise<void>;
   onRemoveCourier?: (orderId: string) => Promise<void>;
+  onRequestCourier?: (orderId: string) => Promise<void>;
   courierActionPending?: boolean;
 }) {
   const [data, setData] = useState<any | null>(null);
@@ -94,6 +97,20 @@ export function OrderDrawer({
     hasCourier &&
     data &&
     ['PREPARING', 'COURIER_ASSIGNED'].includes(data.status);
+  const canAccept = data?.status === 'PENDING';
+  const canPassToCouriers =
+    data &&
+    (data.status === 'ACCEPTED' || data.status === 'PREPARING') &&
+    !data.courierRequestedAt;
+
+  const handlePassToCouriers = async () => {
+    if (!orderId || !data || !onRequestCourier) return;
+    if (data.status === 'ACCEPTED') {
+      await onChangeStatus(orderId, 'PREPARING');
+    }
+    await onRequestCourier(orderId);
+    refresh();
+  };
 
   const handleCourierAction = async () => {
     if (!orderId || !selectedCourierId || !data || !hasCourier) return;
@@ -267,28 +284,35 @@ export function OrderDrawer({
               )}
             </Section>
 
-            <Section title="Quick actions">
+            <Section title={t.orders.quickActions}>
               <div className="flex flex-wrap gap-2">
-                {[
-                  'ACCEPTED',
-                  'PREPARING',
-                  'COURIER_ASSIGNED',
-                  'ARRIVED_AT_RESTAURANT',
-                  'PICKED_UP',
-                  'DELIVERING',
-                  'DELIVERED',
-                ].map((s) => (
+                {canAccept && (
                   <Button
-                    key={s}
                     type="button"
                     size="sm"
-                    variant="secondary"
-                    onClick={() => onChangeStatus(data.id, s)}
+                    onClick={async () => {
+                      await onChangeStatus(data.id, 'ACCEPTED');
+                      refresh();
+                    }}
                   >
-                    {s}
+                    {t.orders.acceptOrder}
                   </Button>
-                ))}
+                )}
+                {canPassToCouriers && onRequestCourier && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="bg-orange-500 hover:bg-orange-600"
+                    disabled={courierActionPending}
+                    onClick={handlePassToCouriers}
+                  >
+                    {t.orders.passToCouriers}
+                  </Button>
+                )}
               </div>
+              {canPassToCouriers && (
+                <p className="mt-2 text-xs text-zinc-500">{t.orders.passToCouriersHint}</p>
+              )}
             </Section>
           </div>
         )}

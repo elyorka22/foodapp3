@@ -142,45 +142,51 @@ export default function BusinessSchedulePage() {
               {schedule.map((row, idx) => (
                 <li
                   key={row.dayOfWeek}
-                  className="flex flex-wrap items-center gap-2 rounded-lg border p-3 text-sm dark:border-white/10"
+                  className="rounded-2xl border bg-white p-4 text-sm dark:border-white/10 dark:bg-zinc-900"
                 >
-                  <span className="w-24 font-medium">{t.dayNames[row.dayOfWeek]}</span>
-                  <label className="flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      checked={row.isClosed}
-                      onChange={(e) => {
-                        const next = [...schedule];
-                        next[idx] = { ...row, isClosed: e.target.checked };
-                        setSchedule(next);
-                      }}
-                    />
-                    {s.closed}
-                  </label>
-                  <span className="text-xs opacity-60">{s.closedFrom}</span>
-                  <TimeAmPmInput
-                    value={row.closeTime}
-                    disabled={row.isClosed}
-                    onChange={(closeTime) => {
-                      const next = [...schedule];
-                      next[idx] = { ...row, closeTime };
-                      setSchedule(next);
-                    }}
-                  />
-                  <span className="text-xs opacity-60">{s.to}</span>
-                  <TimeAmPmInput
-                    value={row.openTime}
-                    disabled={row.isClosed}
-                    onChange={(openTime) => {
-                      const next = [...schedule];
-                      next[idx] = { ...row, openTime };
-                      setSchedule(next);
-                    }}
-                  />
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <span className="font-semibold">{t.dayNames[row.dayOfWeek]}</span>
+                    <label className="flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1.5 dark:bg-zinc-800">
+                      <input
+                        type="checkbox"
+                        checked={row.isClosed}
+                        onChange={(e) => {
+                          const next = [...schedule];
+                          next[idx] = { ...row, isClosed: e.target.checked };
+                          setSchedule(next);
+                        }}
+                      />
+                      {s.closed}
+                    </label>
+                  </div>
+                  {!row.isClosed ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-zinc-500">{s.closedFrom}</span>
+                      <TimeAmPmInput
+                        value={row.closeTime}
+                        disabled={row.isClosed}
+                        onChange={(closeTime) => {
+                          const next = [...schedule];
+                          next[idx] = { ...row, closeTime };
+                          setSchedule(next);
+                        }}
+                      />
+                      <span className="text-xs text-zinc-500">{s.to}</span>
+                      <TimeAmPmInput
+                        value={row.openTime}
+                        disabled={row.isClosed}
+                        onChange={(openTime) => {
+                          const next = [...schedule];
+                          next[idx] = { ...row, openTime };
+                          setSchedule(next);
+                        }}
+                      />
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>
-            <Button className="mt-4" onClick={() => saveHours.mutate()} disabled={saveHours.isPending}>
+            <Button className="mt-4 min-h-11 w-full sm:w-auto" onClick={() => saveHours.mutate()} disabled={saveHours.isPending}>
               {s.saveHours}
             </Button>
           </section>

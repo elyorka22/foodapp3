@@ -99,9 +99,13 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
                             order: order,
                             compact: true,
                             showRestaurant: true,
+                            managerActionsOnly: true,
                             showAssignCourier: order.canReassignCourier,
                             isLoading: _actingOrderId == order.id,
                             onStatusChange: (next) => _updateStatus(order.id, next),
+                            onRequestCourier: order.canPassToCouriers
+                                ? () => _passToCouriers(order.id, order.status)
+                                : null,
                             onAssignCourier: order.canReassignCourier
                                 ? () => _showReassignDialog(order)
                                 : null,
@@ -128,6 +132,26 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
     setState(() => _actingOrderId = orderId);
     try {
       await ref.read(ordersRepositoryProvider).updateStatus(orderId, status);
+      ref.invalidate(ordersPollingProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ApiException.formatError(e))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _actingOrderId = null);
+    }
+  }
+
+  Future<void> _passToCouriers(String orderId, String currentStatus) async {
+    setState(() => _actingOrderId = orderId);
+    try {
+      final repo = ref.read(ordersRepositoryProvider);
+      if (currentStatus == 'ACCEPTED') {
+        await repo.updateStatus(orderId, 'PREPARING');
+      }
+      await repo.requestCourier(orderId);
       ref.invalidate(ordersPollingProvider);
     } catch (e) {
       if (mounted) {

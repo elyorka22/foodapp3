@@ -91,6 +91,12 @@ export const adminI18n = {
     assignCourier: 'Kuryer biriktirish',
     cancelOrder: 'Bekor qilish',
     details: 'Tafsilotlar',
+    acceptOrder: 'Qabul qilish',
+    passToCouriers: 'Kuryerlarga topshirish',
+    passToCouriersHint:
+      'Buyurtma kuryerlar ro‘yxatiga chiqadi — biri qabul qiladi va yetkazadi.',
+    courierWaiting: 'Kuryer kutilmoqda',
+    quickActions: 'Tezkor amallar',
   },
 
   dashboard: {
@@ -142,6 +148,16 @@ export const adminI18n = {
     ownerFullName: 'Egasi ismi',
     noOwnerAccount: 'Hisob yaratilmagan',
     copied: 'nusxalandi',
+    clearTestData: 'Test buyurtmalarni tozalash',
+    clearTestDataHint:
+      'Tanlangan restoranlarning barcha buyurtmalari, statistikasi va bog‘liq bildirishnomalari o‘chiriladi. Menyu, xodimlar va sozlamalar saqlanadi.',
+    clearTestDataConfirmTitle: 'Test ma’lumotlarini o‘chirish?',
+    clearTestDataConfirmDescription:
+      'Quyidagi restoranlar uchun buyurtmalar butunlay o‘chiriladi. Bu amalni ortga qaytarib bo‘lmaydi.',
+    clearTestDataSuccess: 'Test ma’lumotlari tozalandi',
+    clearTestDataFailed: 'Tozalashda xatolik',
+    selectedCount: (n: number) => `${n} ta tanlandi`,
+    selectAllOnPage: 'Sahifadagi barchasi',
   },
 
   products: {
@@ -240,6 +256,68 @@ export const adminI18n = {
     placementHomeSideBottom: 'Do‘konlar (pastki o‘ng karusel)',
     placementHero: 'Karusel (yuqori)',
     placementPromo: 'Promo blok (karusel ostida)',
+  },
+
+  promoCodes: {
+    title: 'Promo kodlar',
+    subtitle:
+      'Mijozlar kodni to‘lov paytida kiritadi. Chegirma buyurtma summasidan avtomatik ayiriladi.',
+    emptyTitle: 'Promo kodlar yo‘q',
+    emptyDescription: 'Birinchi promo kodni yarating — aksiya yoki chegirma uchun.',
+    newPromo: 'Yangi promo kod',
+    editPromo: 'Promo kodni tahrirlash',
+    formIntro:
+      'Asosiy maydonlarni to‘ldiring. Qolganlari ixtiyoriy — kerak bo‘lsa cheklov qo‘ying.',
+    optionalSection: 'Qo‘shimcha cheklovlar (ixtiyoriy)',
+    codeLabel: 'Promo kod',
+    codeHint:
+      'Mijoz to‘lov sahifasida shu kodni kiritadi. Katta harflar, raqam va tire. Masalan: YOZGI20',
+    codePlaceholder: 'YOZGI20',
+    typeLabel: 'Chegirma turi',
+    typeHint:
+      'Foiz — buyurtma summasidan belgilangan % ayiriladi. Qat‘iy summa — har doim bir xil so‘m miqdorida chegirma.',
+    typePercentage: 'Foiz (%)',
+    typeFixed: 'Qat‘iy summa (so‘m)',
+    valueLabel: 'Chegirma miqdori',
+    valueHintPercentage: '0 dan 100 gacha. Masalan: 10 — buyurtmaning 10% chegirmasi.',
+    valueHintFixed: 'So‘mda. Masalan: 15000 — har buyurtmada 15 000 so‘m chegirma.',
+    valuePlaceholderPercentage: '10',
+    valuePlaceholderFixed: '15000',
+    minOrderLabel: 'Minimal buyurtma summasi',
+    minOrderHint:
+      'Chegirma faqat shu summadan yuqori buyurtmalarda ishlaydi. Bo‘sh qoldirsangiz — cheklov yo‘q.',
+    minOrderPlaceholder: 'Masalan: 50000',
+    maxDiscountLabel: 'Maksimal chegirma (so‘m)',
+    maxDiscountHint:
+      'Faqat foizli kodlar uchun. Chegirma shu summadan oshmaydi. Masalan: 10% kod, lekin ko‘pi bilan 30 000 so‘m.',
+    maxDiscountPlaceholder: 'Masalan: 30000',
+    usageLimitLabel: 'Foydalanish limiti',
+    usageLimitHint:
+      'Kod necha marta ishlatilishi mumkin. Bo‘sh qoldirsangiz — cheksiz foydalanish.',
+    usageLimitPlaceholder: 'Masalan: 100',
+    startsAtLabel: 'Boshlanish sanasi',
+    startsAtHint: 'Kod qachondan ishlay boshlaydi. Bo‘sh qoldirsangiz — darhol amal qiladi.',
+    expiresAtLabel: 'Tugash sanasi',
+    expiresAtHint: 'Kod qachongacha ishlaydi. Bo‘sh qoldirsangiz — muddat cheklanmagan.',
+    isActiveLabel: 'Faol',
+    isActiveHint: 'O‘chirilgan kodlar to‘lovda ishlamaydi, lekin tarixda saqlanadi.',
+    tableCode: 'Kod',
+    tableType: 'Tur',
+    tableValue: 'Chegirma',
+    tableUsage: 'Ishlatilgan',
+    tableStatus: 'Holat',
+    deactivate: 'O‘chirish',
+    deactivateConfirmTitle: 'Promo kodni o‘chirishni tasdiqlaysizmi?',
+    deactivateConfirmDescription:
+      'Kod to‘lov sahifasida endi ishlamaydi. Avvalgi foydalanishlar saqlanadi.',
+    created: 'Promo kod yaratildi',
+    updated: 'Promo kod yangilandi',
+    deactivated: 'Promo kod o‘chirildi',
+    saveFailed: 'Saqlashda xatolik',
+    deleteFailed: 'O‘chirishda xatolik',
+    typeShortPercentage: 'Foiz',
+    typeShortFixed: 'Qat‘iy summa',
+    usageUnlimited: 'cheksiz',
   },
 
   push: {

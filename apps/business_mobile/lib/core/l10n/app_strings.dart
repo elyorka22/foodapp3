@@ -46,6 +46,9 @@ abstract final class AppStrings {
 
   static const acceptOrder = 'Qabul qilish';
   static const requestCourier = 'Kuryerni chaqirish';
+  static const passToCouriers = 'Kuryerlarga topshirish';
+  static const callCustomer = "Qo'ng'iroq qilish";
+  static const callFailed = "Qo'ng'iroq qilish mumkin emas";
   static const courierRequested = 'Kuryer chaqirildi';
   static const assignCourier = 'Kuryer biriktirish';
   static const reassignCourier = 'Kuryerni almashtirish';
