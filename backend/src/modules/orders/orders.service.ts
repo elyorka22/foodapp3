@@ -280,31 +280,6 @@ export class OrdersService {
       businessName: order.business?.name,
     });
 
-    if (customerId) {
-      await this.notifications.notifyCustomerOrderStatus({
-        customerId,
-        templateCode: 'ORDER_CREATED',
-        metadata: {
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          trackingToken: order.trackingToken,
-          guestPhone: phone,
-          guestDeviceId: dto.deviceId,
-        },
-      });
-    } else {
-      await this.notifications.notifyGuestOrderPush({
-        phone,
-        deviceId: dto.deviceId,
-        templateCode: 'ORDER_CREATED',
-        metadata: {
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          trackingToken: order.trackingToken,
-        },
-      });
-    }
-
     if (dto.deviceId?.trim()) {
       await this.notifications.linkDevicePhone(dto.deviceId.trim(), phone);
     }
@@ -982,16 +957,6 @@ export class OrdersService {
         where: { orderId },
         data: { acceptedAt: new Date() },
       });
-
-      const customerId = order.guestOrder?.customerId;
-      if (customerId) {
-        await this.pushHooks.customerCourierAccepted({
-          customerId,
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          trackingToken: order.trackingToken,
-        });
-      }
 
       return this.emitOrderPayload(orderId);
     }
