@@ -13,6 +13,35 @@ export function ProfileSocialSection() {
   const telegram = settings.data?.social_telegram_url?.trim() ?? '';
   const youtube = settings.data?.social_youtube_url?.trim() ?? '';
 
+  const tiles = [
+    instagram
+      ? {
+          key: 'instagram',
+          title: 'Instagram',
+          icon: Instagram,
+          onClick: () => openSocialUrl(instagram),
+        }
+      : null,
+    telegram
+      ? {
+          key: 'telegram',
+          title: 'Telegram',
+          icon: Send,
+          onClick: () => openSocialUrl(telegram),
+        }
+      : null,
+    youtube
+      ? {
+          key: 'youtube',
+          title: 'YouTube',
+          icon: Youtube,
+          onClick: () => openSocialUrl(youtube),
+        }
+      : null,
+  ].filter((tile): tile is NonNullable<typeof tile> => tile != null);
+
+  if (tiles.length === 0) return null;
+
   return (
     <section className="mt-6" aria-labelledby="social-section-heading">
       <h2
@@ -22,27 +51,15 @@ export function ProfileSocialSection() {
         {uz.profileSocialTitle}
       </h2>
       <ProfileBannerGrid>
-        <ProfileBannerTile
-          title="Instagram"
-          subtitle={uz.profileSocialFollow}
-          icon={Instagram}
-          className={instagram ? undefined : 'opacity-55'}
-          onClick={() => openSocialUrl(instagram)}
-        />
-        <ProfileBannerTile
-          title="Telegram"
-          subtitle={uz.profileSocialFollow}
-          icon={Send}
-          className={telegram ? undefined : 'opacity-55'}
-          onClick={() => openSocialUrl(telegram)}
-        />
-        <ProfileBannerTile
-          title="YouTube"
-          subtitle={uz.profileSocialFollow}
-          icon={Youtube}
-          className={youtube ? undefined : 'opacity-55'}
-          onClick={() => openSocialUrl(youtube)}
-        />
+        {tiles.map(({ key, title, icon, onClick }) => (
+          <ProfileBannerTile
+            key={key}
+            title={title}
+            subtitle={uz.profileSocialFollow}
+            icon={icon}
+            onClick={onClick}
+          />
+        ))}
       </ProfileBannerGrid>
     </section>
   );

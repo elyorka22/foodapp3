@@ -22,7 +22,6 @@ class FoodAppRestaurantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final delivery = restaurantDeliveryLabel(restaurant);
-    final categories = restaurantCategoryLabel(restaurant);
 
     return Material(
       color: Colors.transparent,
@@ -99,18 +98,6 @@ class FoodAppRestaurantCard extends StatelessWidget {
                   delivery,
                   style: AppTypography.bodySmall.copyWith(fontSize: 13),
                 ),
-                if (categories.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      categories,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                      style: AppTypography.caption.copyWith(fontSize: 13),
-                    ),
-                  ),
-                ],
               ],
             ),
           ],

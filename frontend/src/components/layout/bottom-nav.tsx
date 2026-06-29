@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, ShoppingBasket, User } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useCartStore } from '@/store/cart';
@@ -35,7 +35,20 @@ const tabs = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+
+  const handleNavClick = (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname === href) {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (href === '/') {
+      event.preventDefault();
+      router.push('/');
+    }
+  };
 
   return (
     <nav
@@ -52,6 +65,7 @@ export function BottomNav() {
               <Link
                 href={href}
                 aria-label={label}
+                onClick={handleNavClick(href)}
                 className={clsx(
                   'relative mx-auto flex h-12 w-12 items-center justify-center rounded-2xl transition active:scale-95',
                   active ? 'text-primary' : 'text-foreground-subtle',

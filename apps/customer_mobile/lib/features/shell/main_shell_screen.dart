@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/router/routes.dart';
 import '../../../shared/widgets/food_app_bottom_nav.dart';
 import '../cart/providers/cart_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,15 @@ class MainShellScreen extends ConsumerWidget {
     return _authSubRoutes.contains(path);
   }
 
+  void _onNavTap(BuildContext context, int index) {
+    final target = switch (index) {
+      0 => AppRoutes.restaurants,
+      1 => AppRoutes.cart,
+      _ => AppRoutes.profile,
+    };
+    context.go(target);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartProvider.select((c) => c.fold(0, (s, i) => s + i.quantity)));
@@ -27,7 +37,7 @@ class MainShellScreen extends ConsumerWidget {
           ? null
           : FoodAppBottomNav(
               currentIndex: navigationShell.currentIndex,
-              onTap: navigationShell.goBranch,
+              onTap: (index) => _onNavTap(context, index),
               cartCount: cartCount,
             ),
     );

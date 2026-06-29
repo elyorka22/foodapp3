@@ -41,6 +41,29 @@ class ProfileSocialSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tiles = [
+      if (links.instagramUrl.trim().isNotEmpty)
+        _SocialTileConfig(
+          title: AppStrings.instagram,
+          url: links.instagramUrl,
+          icon: _instagramIcon,
+        ),
+      if (links.telegramUrl.trim().isNotEmpty)
+        _SocialTileConfig(
+          title: AppStrings.telegram,
+          url: links.telegramUrl,
+          icon: _telegramSocialIcon,
+        ),
+      if (links.youtubeUrl.trim().isNotEmpty)
+        _SocialTileConfig(
+          title: AppStrings.youtube,
+          url: links.youtubeUrl,
+          icon: _youtubeIcon,
+        ),
+    ];
+
+    if (tiles.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -62,69 +85,40 @@ class ProfileSocialSection extends StatelessWidget {
           mainAxisSpacing: AppSpacing.md,
           crossAxisSpacing: AppSpacing.md,
           childAspectRatio: 0.92,
-          children: [
-            _socialTile(
-              context,
-              title: AppStrings.instagram,
-              url: links.instagramUrl,
-              icon: _instagramIcon,
-            ),
-            _socialTile(
-              context,
-              title: AppStrings.telegram,
-              url: links.telegramUrl,
-              icon: _telegramSocialIcon,
-            ),
-            _socialTile(
-              context,
-              title: AppStrings.youtube,
-              url: links.youtubeUrl,
-              icon: _youtubeIcon,
-            ),
-          ]
+          children: tiles
               .map(
-                (child) => SizedBox(height: 148, child: child),
+                (tile) => SizedBox(
+                  height: 148,
+                  child: ProfileBannerTile(
+                    title: tile.title,
+                    subtitle: AppStrings.profileSocialFollow,
+                    onTap: () => _openUrl(context, tile.url),
+                    bottomRight: tile.icon,
+                  ),
+                ),
               )
               .toList(),
         ),
       ],
     );
   }
-
-  Widget _socialTile(
-    BuildContext context, {
-    required String title,
-    required String url,
-    required Widget icon,
-  }) {
-    final hasUrl = url.trim().isNotEmpty;
-
-    return Opacity(
-      opacity: hasUrl ? 1 : 0.55,
-      child: ProfileBannerTile(
-        title: title,
-        subtitle: AppStrings.profileSocialFollow,
-        onTap: () => hasUrl
-            ? _openUrl(context, url)
-            : _showLinkMissing(context),
-        bottomRight: icon,
-      ),
-    );
-  }
 }
 
-void _showLinkMissing(BuildContext context) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text(AppStrings.profileSocialLinkMissing)),
-  );
+class _SocialTileConfig {
+  const _SocialTileConfig({
+    required this.title,
+    required this.url,
+    required this.icon,
+  });
+
+  final String title;
+  final String url;
+  final Widget icon;
 }
 
 Future<void> _openUrl(BuildContext context, String rawUrl) async {
   final trimmed = rawUrl.trim();
-  if (trimmed.isEmpty) {
-    _showLinkMissing(context);
-    return;
-  }
+  if (trimmed.isEmpty) return;
 
   final uri = Uri.tryParse(trimmed);
   if (uri == null || !uri.hasScheme) {

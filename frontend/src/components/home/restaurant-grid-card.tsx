@@ -7,7 +7,6 @@ import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
 import {
-  restaurantCategoryLabel,
   restaurantDeliveryLabel,
 } from '@/lib/restaurant-card-meta';
 import { restaurantPublicPath } from '@/lib/restaurant-url';
@@ -36,7 +35,6 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   });
   const href = restaurantPublicPath(restaurant);
   const delivery = restaurantDeliveryLabel(restaurant);
-  const categories = restaurantCategoryLabel(restaurant);
 
   return (
     <Link href={href} className="block transition active:scale-[0.99]">
@@ -85,14 +83,11 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
           closingSoon={restaurant.closingSoon}
           className="mt-0.5"
         />
-        <div className="mt-0.5 flex items-center justify-between gap-2">
-          <span className="inline-flex shrink-0 items-center gap-1 text-[13px] text-zinc-500">
+        <div className="mt-0.5">
+          <span className="inline-flex items-center gap-1 text-[13px] text-zinc-500">
             <Footprints size={15} strokeWidth={2} className="text-zinc-600" />
             {delivery}
           </span>
-          {categories ? (
-            <p className="min-w-0 truncate text-right text-[13px] text-zinc-400">{categories}</p>
-          ) : null}
         </div>
       </div>
     </Link>
