@@ -11,7 +11,7 @@ App: `apps/customer_mobile` (Play Store customer APK)
 | `compileSdkVersion` / `targetSdkVersion` | **Patched at build time** to **35** by `scripts/patch_android_edge_to_edge.sh` |
 | `minSdkVersion` | **Not in repo** — comes from Flutter template (typically 21+) |
 | `AndroidManifest.xml` | **Not committed** — patched for permissions + display cutout |
-| `MainActivity.kt` | **Not committed** — patched with `enableEdgeToEdge()` |
+| `MainActivity.kt` | **Not committed** — patched with `WindowCompat.setDecorFitsSystemWindows()` |
 
 CI: `.github/workflows/customer-mobile-apk.yml` runs `flutter create` then all patch scripts.
 
@@ -21,7 +21,7 @@ CI: `.github/workflows/customer-mobile-apk.yml` runs `flutter create` then all p
 
 | Fix | Detail |
 |-----|--------|
-| `MainActivity.onCreate` | Calls `androidx.activity.enableEdgeToEdge()` before `super.onCreate()` |
+| `MainActivity.onCreate` | Calls `WindowCompat.setDecorFitsSystemWindows(window, false)` after `super.onCreate()` (`FlutterActivity` is not a `ComponentActivity`, so `enableEdgeToEdge()` does not compile) |
 | `styles.xml` | Transparent `statusBarColor` / `navigationBarColor`, contrast enforcement off |
 | `build.gradle` | Forces `compileSdk` / `targetSdk` **35** when numeric literals present |
 | `AndroidManifest` | `android:windowLayoutInDisplayCutoutMode="shortEdges"` on activity |

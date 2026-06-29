@@ -24,22 +24,23 @@ if not main_activities:
 else:
     for path in main_activities:
         text = path.read_text()
-        if "enableEdgeToEdge" in text:
+        if "setDecorFitsSystemWindows" in text:
             print(f"MainActivity already patched: {path}")
             continue
 
         pkg_match = re.search(r"^package\s+(.+)\s*$", text, re.MULTILINE)
         package = pkg_match.group(1).strip() if pkg_match else "com.foodapp.customer_mobile"
+        # FlutterActivity extends Activity, not ComponentActivity — enableEdgeToEdge() does not apply.
         patched = f"""package {package}
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity() {{
     override fun onCreate(savedInstanceState: Bundle?) {{
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
     }}
 }}
 """
