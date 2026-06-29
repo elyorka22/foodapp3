@@ -8,6 +8,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../core/utils/phone_util.dart';
 import '../../../shared/widgets/uz_phone_field.dart';
@@ -38,7 +39,11 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.completeProfile, style: AppTypography.title)),
       body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: scrollSafePadding(
+          context,
+          base: const EdgeInsets.all(AppSpacing.lg),
+          extra: 0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

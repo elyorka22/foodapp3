@@ -49,9 +49,10 @@ jobs:
           GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_CUSTOMER_B64 }}
         run: |
           flutter create . --org com.foodapp --project-name customer_mobile --platforms=android
-          chmod +x scripts/patch_android_permissions.sh scripts/patch_android_app_name.sh scripts/setup_firebase_android.sh || true
+          chmod +x scripts/patch_android_permissions.sh scripts/patch_android_app_name.sh scripts/patch_android_edge_to_edge.sh scripts/setup_firebase_android.sh || true
           ./scripts/patch_android_permissions.sh || true
           ./scripts/patch_android_app_name.sh || true
+          ./scripts/patch_android_edge_to_edge.sh || true
           ./scripts/setup_firebase_android.sh
 
       - name: Install dependencies

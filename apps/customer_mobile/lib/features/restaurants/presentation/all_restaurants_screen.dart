@@ -5,6 +5,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/widgets/food_app_restaurant_card.dart';
 import '../providers/restaurants_provider.dart';
 
@@ -35,7 +36,11 @@ class AllRestaurantsScreen extends ConsumerWidget {
               );
             }
             return ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: scrollSafePadding(
+                context,
+                base: const EdgeInsets.all(AppSpacing.lg),
+              ),
               itemCount: list.length,
               separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
               itemBuilder: (_, index) {

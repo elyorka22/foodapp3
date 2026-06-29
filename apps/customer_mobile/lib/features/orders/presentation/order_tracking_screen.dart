@@ -7,6 +7,7 @@ import '../../../core/orders/order_status_steps.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/order_track_model.dart';
 import '../../../shared/widgets/food_app_button.dart' show FoodAppButton, FoodAppButtonVariant;
 import '../../../shared/widgets/food_app_card.dart';
@@ -80,7 +81,10 @@ class _TrackingBody extends StatelessWidget {
     final statusHint = OrderStatusSteps.statusHint(order.status);
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: scrollSafePadding(
+        context,
+        base: const EdgeInsets.all(AppSpacing.lg),
+      ),
       children: [
         if (isStale)
           Padding(

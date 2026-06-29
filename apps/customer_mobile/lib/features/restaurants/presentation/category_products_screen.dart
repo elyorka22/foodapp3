@@ -5,6 +5,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/image_url.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/widgets/menu_product_image.dart';
 import '../providers/dish_categories_provider.dart';
 
@@ -27,7 +28,10 @@ class CategoryProductsScreen extends ConsumerWidget {
             return Center(child: Text(AppStrings.errorGeneric, style: AppTypography.body));
           }
           return GridView.builder(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: scrollSafePadding(
+              context,
+              base: const EdgeInsets.all(AppSpacing.lg),
+            ),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: AppSpacing.md,

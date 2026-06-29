@@ -8,6 +8,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/image_url.dart';
 import '../../../shared/models/business_model.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/widgets/food_app_store_card.dart';
 import '../providers/stores_provider.dart';
 
@@ -50,7 +51,10 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
           ref.invalidate(storesListProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: scrollSafePadding(
+            context,
+            base: const EdgeInsets.all(AppSpacing.lg),
+          ),
           children: [
             Text(
               AppStrings.storesSubtitle,

@@ -5,6 +5,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/notifications_provider.dart';
@@ -82,7 +83,10 @@ class NotificationsScreen extends ConsumerWidget {
             }
             return ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: scrollSafePadding(
+                context,
+                base: const EdgeInsets.all(AppSpacing.lg),
+              ),
               itemCount: items.length,
               separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {

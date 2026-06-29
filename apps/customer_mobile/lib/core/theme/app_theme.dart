@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
+import '../system/edge_to_edge.dart';
 
 abstract final class AppTheme {
   static ThemeData get light {
@@ -26,7 +26,7 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        systemOverlayStyle: edgeToEdgeOverlay,
         titleTextStyle: AppTypography.title,
       ),
       cardTheme: CardThemeData(

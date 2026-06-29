@@ -15,9 +15,10 @@ if [[ ! -f android/app/build.gradle.kts && ! -f android/app/build.gradle ]]; the
 fi
 
 flutter pub get
-chmod +x scripts/patch_android_permissions.sh scripts/patch_android_app_name.sh 2>/dev/null || true
+chmod +x scripts/patch_android_permissions.sh scripts/patch_android_app_name.sh scripts/patch_android_edge_to_edge.sh 2>/dev/null || true
 ./scripts/patch_android_permissions.sh 2>/dev/null || true
 ./scripts/patch_android_app_name.sh 2>/dev/null || true
+./scripts/patch_android_edge_to_edge.sh 2>/dev/null || true
 dart run build_runner build --delete-conflicting-outputs 2>/dev/null || true
 
 echo "Done. Emulator example:"

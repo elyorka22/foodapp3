@@ -6,9 +6,11 @@ import 'core/config/app_config.dart';
 import 'core/network/startup_diagnostics.dart';
 import 'core/push/firebase_bootstrap.dart';
 import 'core/storage/storage_providers.dart';
+import 'core/system/edge_to_edge.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  configureEdgeToEdge();
   AppConfig.ensureConfigured();
   await StartupDiagnostics.runAtStartup();
   await bootstrapFirebase();
