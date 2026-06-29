@@ -26,37 +26,25 @@ else:
         text = path.read_text()
         if "enableEdgeToEdge" in text:
             print(f"MainActivity already patched: {path}")
-        else:
-            if "import androidx.activity.enableEdgeToEdge" not in text:
-                text = text.replace(
-                    "import io.flutter.embedding.android.FlutterActivity",
-                    "import androidx.activity.enableEdgeToEdge\nimport io.flutter.embedding.android.FlutterActivity",
-                )
-            if "import android.os.Bundle" not in text:
-                text = "import android.os.Bundle\n" + text
+            continue
 
-            if re.search(r"class\s+MainActivity\b", text) and "onCreate" not in text:
-                text = re.sub(
-                    r"(class\s+MainActivity\s*:\s*FlutterActivity\(\)\s*\{)\s*\}",
-                    r"""\1
-    override fun onCreate(savedInstanceState: Bundle?) {
+        pkg_match = re.search(r"^package\s+(.+)\s*$", text, re.MULTILINE)
+        package = pkg_match.group(1).strip() if pkg_match else "com.foodapp.customer_mobile"
+        patched = f"""package {package}
+
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity() {{
+    override fun onCreate(savedInstanceState: Bundle?) {{
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-    }
-}
-""",
-                    text,
-                    count=1,
-                )
-            elif "onCreate" in text and "enableEdgeToEdge" not in text:
-                text = re.sub(
-                    r"(override fun onCreate\([^)]*\)\s*\{)",
-                    r"\1\n        enableEdgeToEdge()",
-                    text,
-                    count=1,
-                )
-            path.write_text(text)
-            print(f"Patched MainActivity: {path}")
+    }}
+}}
+"""
+        path.write_text(patched)
+        print(f"Patched MainActivity: {path}")
 
 # --- styles.xml (values + values-night) ---
 transparent_items = """
