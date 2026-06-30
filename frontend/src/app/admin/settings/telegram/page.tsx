@@ -35,6 +35,7 @@ export default function AdminTelegramBotSettingsPage() {
 
   const data = panel.data!;
   const webhookStatus = data.webhookStatus;
+  const diag = data.botDiagnostics;
 
   return (
     <AdminPageGuard permission="settings">
@@ -50,6 +51,21 @@ export default function AdminTelegramBotSettingsPage() {
           </div>
         ) : null}
 
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-950 dark:border-blue-900/40 dark:bg-blue-950/20 dark:text-blue-100">
+          <p>{t.telegramBot.botOneTokenNote}</p>
+          {diag.openBotLink ? (
+            <p className="mt-2">
+              <span className="font-medium">{t.telegramBot.botOpenThis}: </span>
+              <a href={diag.openBotLink} target="_blank" rel="noopener noreferrer" className="underline">
+                @{diag.messagingBot?.username}
+              </a>
+            </p>
+          ) : null}
+          {!diag.usernameMatchesMessaging ? (
+            <p className="mt-2 font-medium text-red-700">{t.telegramBot.botTokenMismatch}</p>
+          ) : null}
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label={t.telegramBot.totalSubscribers} value={data.stats.totalSubscribers} />
           <StatCard label={t.telegramBot.activeLast7Days} value={data.stats.activeLast7Days} />
@@ -64,6 +80,18 @@ export default function AdminTelegramBotSettingsPage() {
               <dt className="text-zinc-500">{t.telegramBot.botUsername}</dt>
               <dd className="font-mono">{data.botUsername ? `@${data.botUsername}` : '—'}</dd>
             </div>
+            <div>
+              <dt className="text-zinc-500">{t.telegramBot.botMessagingBot}</dt>
+              <dd className="font-mono">
+                {diag.messagingBot ? `@${diag.messagingBot.username}` : '—'}
+              </dd>
+            </div>
+            {diag.loginBot && diag.loginBot.username !== diag.messagingBot?.username ? (
+              <div className="sm:col-span-2">
+                <dt className="text-zinc-500">{t.telegramBot.botLoginBot}</dt>
+                <dd className="font-mono text-amber-800">@{diag.loginBot.username}</dd>
+              </div>
+            ) : null}
             <div>
               <dt className="text-zinc-500">Webhook</dt>
               <dd className={webhookStatus.registered ? 'text-green-700' : 'text-amber-700'}>

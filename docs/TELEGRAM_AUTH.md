@@ -27,7 +27,11 @@ One HTTP API for all clients: **FoodApp Web**, **Flutter**, courier/taxi apps.
 
 | Variable | Where | Purpose |
 |----------|--------|---------|
-| `TELEGRAM_BOT_TOKEN` | Backend | HMAC verification |
+| `TELEGRAM_BOT_TOKEN` | Backend | HMAC login verification + bot webhook (default) |
+| `TELEGRAM_BOT_USERNAME` | Backend / mobile | Expected bot @username (must match token) |
+| `TELEGRAM_MESSAGING_BOT_TOKEN` | Backend | Optional — only if messaging uses a different bot |
+| `TELEGRAM_WEBHOOK_SECRET` | Backend | Webhook path secret |
+| `API_PUBLIC_URL` | Backend | e.g. `https://foodapp.uz` for auto webhook |
 | `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Web only | Login Widget `data-telegram-login` |
 
 ## API contract (all mobile/web clients)

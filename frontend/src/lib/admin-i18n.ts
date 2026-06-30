@@ -267,6 +267,12 @@ export const adminI18n = {
     botUsername: 'Bot username',
     webhookUrl: 'Webhook URL',
     botNotConfigured: 'TELEGRAM_BOT_TOKEN sozlanmagan',
+    botOneTokenNote:
+      'Odatda bitta bot: TELEGRAM_BOT_TOKEN — kirish (login) va xabarlar uchun. Alohida bot kerak bo‘lsa — TELEGRAM_MESSAGING_BOT_TOKEN.',
+    botOpenThis: 'Foydalanuvchilar shu botga yozishi kerak',
+    botTokenMismatch: 'Username token bilan mos kelmaydi!',
+    botMessagingBot: 'Xabarlar boti (getMe)',
+    botLoginBot: 'Login boti (getMe)',
     statsTitle: 'Bot statistikasi',
     totalSubscribers: 'Jami foydalanuvchilar',
     activeLast7Days: 'Faol (7 kun)',

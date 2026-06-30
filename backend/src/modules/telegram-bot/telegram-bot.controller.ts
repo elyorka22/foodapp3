@@ -53,6 +53,7 @@ export class TelegramBotController {
     try {
       const callback = update.callback_query;
       if (callback?.id && callback.data && callback.message?.chat?.id) {
+        this.logger.log(`Telegram callback: ${callback.data}`);
         await this.bot.handleCallback(
           callback.id,
           callback.data,
@@ -75,6 +76,7 @@ export class TelegramBotController {
       }
 
       const command = text.split(/\s+/)[0]?.toLowerCase();
+      this.logger.log(`Telegram message: ${command || text.slice(0, 32)}`);
 
       if (command === '/start' && from?.id) {
         await this.bot.handleStart({
@@ -105,10 +107,11 @@ export class TelegramBotController {
   @ApiBearerAuth()
   @Roles(UserRole.SUPER_ADMIN)
   async getAdminPanel(@CurrentUser() _user: JwtPayload) {
-    const [settings, stats, webhookStatus] = await Promise.all([
+    const [settings, stats, webhookStatus, botDiagnostics] = await Promise.all([
       this.settings.getSettings(),
       this.settings.getStats(),
       this.webhookService.getStatus(),
+      this.webhookService.getDiagnostics(),
     ]);
     const webhookUrl = buildTelegramWebhookUrl();
 
@@ -117,6 +120,7 @@ export class TelegramBotController {
       botUsername: this.bot.botUsername ?? null,
       webhookUrl,
       webhookStatus,
+      botDiagnostics,
       settings,
       stats,
     };

@@ -26,11 +26,30 @@ export type TelegramWebhookStatus = {
   missingEnv: string[];
 };
 
+export type TelegramBotIdentity = {
+  id: number;
+  username: string;
+  firstName: string;
+  isBot: boolean;
+};
+
+export type TelegramBotDiagnostics = {
+  usesSeparateMessagingToken: boolean;
+  configuredUsername: string | null;
+  messagingBot: TelegramBotIdentity | null;
+  loginBot: TelegramBotIdentity | null;
+  usernameMatchesMessaging: boolean;
+  usernameMatchesLogin: boolean;
+  openBotLink: string | null;
+  note: string;
+};
+
 export type TelegramBotAdminPanel = {
   botConfigured: boolean;
   botUsername: string | null;
   webhookUrl: string | null;
   webhookStatus: TelegramWebhookStatus;
+  botDiagnostics: TelegramBotDiagnostics;
   settings: TelegramBotSettings;
   stats: TelegramBotStats;
 };

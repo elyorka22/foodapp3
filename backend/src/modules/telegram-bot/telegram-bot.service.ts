@@ -11,6 +11,7 @@ import {
   TG_CALLBACK_HELP,
   buildMainInlineKeyboard,
 } from './telegram-bot-keyboard';
+import { resolveConfiguredBotUsername, resolveMessagingBotToken } from './telegram-bot-env';
 
 type TelegramApiResponse = { ok: boolean; description?: string };
 
@@ -28,11 +29,11 @@ export class TelegramBotService {
   ) {}
 
   private get token(): string | undefined {
-    return process.env.TELEGRAM_BOT_TOKEN?.trim() || undefined;
+    return resolveMessagingBotToken();
   }
 
   get botUsername(): string | undefined {
-    return process.env.TELEGRAM_BOT_USERNAME?.trim() || undefined;
+    return resolveConfiguredBotUsername();
   }
 
   isConfigured(): boolean {
@@ -104,27 +105,33 @@ export class TelegramBotService {
     lastName?: string | null;
   }): Promise<void> {
     const now = new Date();
-    await this.prisma.telegramBotSubscriber.upsert({
-      where: { telegramId: params.telegramId },
-      create: {
-        telegramId: params.telegramId,
-        chatId: params.chatId,
-        telegramUsername: params.username ?? null,
-        firstName: params.firstName ?? null,
-        lastName: params.lastName ?? null,
-        firstStartedAt: now,
-        lastStartedAt: now,
-        startCount: 1,
-      },
-      update: {
-        chatId: params.chatId,
-        telegramUsername: params.username ?? null,
-        firstName: params.firstName ?? null,
-        lastName: params.lastName ?? null,
-        lastStartedAt: now,
-        startCount: { increment: 1 },
-      },
-    });
+    try {
+      await this.prisma.telegramBotSubscriber.upsert({
+        where: { telegramId: params.telegramId },
+        create: {
+          telegramId: params.telegramId,
+          chatId: params.chatId,
+          telegramUsername: params.username ?? null,
+          firstName: params.firstName ?? null,
+          lastName: params.lastName ?? null,
+          firstStartedAt: now,
+          lastStartedAt: now,
+          startCount: 1,
+        },
+        update: {
+          chatId: params.chatId,
+          telegramUsername: params.username ?? null,
+          firstName: params.firstName ?? null,
+          lastName: params.lastName ?? null,
+          lastStartedAt: now,
+          startCount: { increment: 1 },
+        },
+      });
+    } catch (err) {
+      this.logger.error(
+        `Telegram subscriber save failed (run prisma migrate?): ${err instanceof Error ? err.message : err}`,
+      );
+    }
 
     await this.sendMainMenu(params.chatId);
   }
