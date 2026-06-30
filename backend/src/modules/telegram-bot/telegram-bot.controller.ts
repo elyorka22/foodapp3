@@ -32,7 +32,7 @@ export class TelegramBotController {
   constructor(
     private bot: TelegramBotService,
     private settings: TelegramBotSettingsService,
-    private webhook: TelegramBotWebhookService,
+    private webhookService: TelegramBotWebhookService,
   ) {}
 
   @Post('webhook/:secret')
@@ -44,7 +44,7 @@ export class TelegramBotController {
       transform: true,
     }),
   )
-  async webhook(@Param('secret') secret: string, @Body() update: TelegramWebhookUpdateDto) {
+  async receiveWebhook(@Param('secret') secret: string, @Body() update: TelegramWebhookUpdateDto) {
     const expected = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
     if (!expected || secret !== expected) {
       throw new ForbiddenException();
@@ -108,7 +108,7 @@ export class TelegramBotController {
     const [settings, stats, webhookStatus] = await Promise.all([
       this.settings.getSettings(),
       this.settings.getStats(),
-      this.webhook.getStatus(),
+      this.webhookService.getStatus(),
     ]);
     const webhookUrl = buildTelegramWebhookUrl();
 
@@ -127,8 +127,8 @@ export class TelegramBotController {
   @ApiBearerAuth()
   @Roles(UserRole.SUPER_ADMIN)
   async registerWebhook(@CurrentUser() _user: JwtPayload) {
-    const result = await this.webhook.registerWebhook();
-    const webhookStatus = await this.webhook.getStatus();
+    const result = await this.webhookService.registerWebhook();
+    const webhookStatus = await this.webhookService.getStatus();
     return { ...result, webhookStatus };
   }
 

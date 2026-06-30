@@ -10,6 +10,10 @@ export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
     if (auth?.startsWith('Bearer ') && auth.length > 20) {
       return true;
     }
+    const url = request.originalUrl ?? request.url ?? '';
+    if (url.includes('/telegram-bot/webhook/')) {
+      return true;
+    }
     return super.shouldSkip(context);
   }
 
@@ -19,9 +23,6 @@ export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
     const base = ip ?? 'unknown';
 
     const url = (req.originalUrl as string | undefined) ?? (req.url as string | undefined) ?? '';
-    if (url.includes('/telegram-bot/webhook/')) {
-      return true;
-    }
     if (url.includes('/auth/login')) {
       const body = req.body as { email?: string; phone?: string } | undefined;
       const loginId = body?.email?.trim().toLowerCase() ?? body?.phone?.trim() ?? '';
