@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { buildTelegramWebhookUrl } from './telegram-bot-webhook.util';
+import { buildTelegramWebhookUrl, webhookSecretValidationError } from './telegram-bot-webhook.util';
 import {
   fetchTelegramBotIdentity,
   resolveConfiguredBotUsername,
@@ -113,7 +113,8 @@ export class TelegramBotWebhookService implements OnModuleInit {
   async getStatus(): Promise<TelegramWebhookStatus> {
     const missingEnv: string[] = [];
     if (!this.token) missingEnv.push('TELEGRAM_BOT_TOKEN or TELEGRAM_MESSAGING_BOT_TOKEN');
-    if (!process.env.TELEGRAM_WEBHOOK_SECRET?.trim()) missingEnv.push('TELEGRAM_WEBHOOK_SECRET');
+    const secretError = webhookSecretValidationError();
+    if (secretError) missingEnv.push(`TELEGRAM_WEBHOOK_SECRET (${secretError})`);
     if (!buildTelegramWebhookUrl()) missingEnv.push('API_PUBLIC_URL (or CORS_ORIGINS)');
 
     const expectedUrl = buildTelegramWebhookUrl();
@@ -150,14 +151,15 @@ export class TelegramBotWebhookService implements OnModuleInit {
   }> {
     const missingEnv: string[] = [];
     if (!this.token) missingEnv.push('TELEGRAM_BOT_TOKEN or TELEGRAM_MESSAGING_BOT_TOKEN');
-    if (!process.env.TELEGRAM_WEBHOOK_SECRET?.trim()) missingEnv.push('TELEGRAM_WEBHOOK_SECRET');
+    const secretError = webhookSecretValidationError();
+    if (secretError) missingEnv.push(`TELEGRAM_WEBHOOK_SECRET (${secretError})`);
 
     const url = buildTelegramWebhookUrl();
     if (!url) {
       if (!process.env.API_PUBLIC_URL?.trim() && !process.env.CORS_ORIGINS?.trim()) {
         missingEnv.push('API_PUBLIC_URL (or CORS_ORIGINS)');
       }
-      return { ok: false, missingEnv, error: 'Webhook URL could not be built' };
+      return { ok: false, missingEnv, error: secretError ?? 'Webhook URL could not be built' };
     }
 
     try {

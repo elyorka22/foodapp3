@@ -279,7 +279,7 @@ export const adminI18n = {
     newToday: 'Bugun yangi',
     totalStarts: 'Jami bot ochilishlari',
     webhookHint:
-      'Webhook API ishga tushganda avtomatik ro‘yxatdan o‘tadi. Serverda TELEGRAM_WEBHOOK_SECRET va API_PUBLIC_URL kerak.',
+      'TELEGRAM_WEBHOOK_SECRET — faqat tasodifiy matn (masalan: openssl rand -hex 32). Bot token yoki curl buyruq EMAS.',
     webhookRegistered: 'Webhook faol',
     webhookNotRegistered: 'Webhook ro‘yxatdan o‘tmagan',
     webhookRegister: 'Webhookni qayta ulash',
