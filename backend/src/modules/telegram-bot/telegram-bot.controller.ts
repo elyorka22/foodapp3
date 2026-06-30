@@ -3,21 +3,22 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  HttpCode,
   Logger,
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
+import { Request } from 'express';
 import { TelegramBotService } from './telegram-bot.service';
 import { TelegramBotSettingsService } from './telegram-bot-settings.service';
 import { TelegramBotWebhookService } from './telegram-bot-webhook.service';
-import { buildTelegramWebhookUrl } from './telegram-bot-webhook.util';
-import { TelegramWebhookUpdateDto } from './dto/telegram-webhook.dto';
+import { buildTelegramWebhookUrl, resolveWebhookSecret } from './telegram-bot-webhook.util';
+import { TelegramWebhookUpdate } from './telegram-webhook.types';
 import { TelegramBotSettingsDto } from './dto/telegram-bot-settings.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -36,19 +37,15 @@ export class TelegramBotController {
   ) {}
 
   @Post('webhook/:secret')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Telegram Bot API webhook (no auth)' })
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: false,
-      transform: true,
-    }),
-  )
-  async receiveWebhook(@Param('secret') secret: string, @Body() update: TelegramWebhookUpdateDto) {
-    const expected = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
+  async receiveWebhook(@Param('secret') secret: string, @Req() req: Request) {
+    const expected = resolveWebhookSecret();
     if (!expected || secret !== expected) {
       throw new ForbiddenException();
     }
+
+    const update = req.body as TelegramWebhookUpdate;
 
     try {
       const callback = update.callback_query;
