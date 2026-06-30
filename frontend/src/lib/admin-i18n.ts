@@ -258,6 +258,25 @@ export const adminI18n = {
     placementPromo: 'Promo blok (karusel ostida)',
   },
 
+  telegramBot: {
+    title: 'Telegram bot',
+    subtitle:
+      'Umumiy mijoz boti: salomlashish va sayt havolasi tugmalar orqali. Restoranlar buyurtma xabarlari uchun chat ID ni o‘z panelida kiritadi.',
+    welcomeMessage: 'Salomlashish matni (birinchi xabar)',
+    siteUrl: 'Sayt havolasi',
+    botUsername: 'Bot username',
+    webhookUrl: 'Webhook URL',
+    botNotConfigured: 'TELEGRAM_BOT_TOKEN sozlanmagan',
+    statsTitle: 'Bot statistikasi',
+    totalSubscribers: 'Jami foydalanuvchilar',
+    activeLast7Days: 'Faol (7 kun)',
+    newToday: 'Bugun yangi',
+    totalStarts: 'Jami bot ochilishlari',
+    webhookHint:
+      'BotFather orqali webhook o‘rnating. Serverda TELEGRAM_WEBHOOK_SECRET va API_PUBLIC_URL kerak.',
+    saved: 'Telegram bot sozlamalari saqlandi',
+  },
+
   promoCodes: {
     title: 'Promo kodlar',
     subtitle:

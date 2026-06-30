@@ -207,6 +207,8 @@ model Business {
   avgPrepMinutes  Int                   @default(30) @map("avg_prep_minutes")
   averageRating   Decimal?              @default(4.5) @map("average_rating") @db.Decimal(3, 2)
   reviewCount     Int                   @default(0) @map("review_count")
+  /// Telegram chat ID for new-order notifications (private chat or group).
+  telegramOrderChatId String?           @map("telegram_order_chat_id")
   createdAt       DateTime              @default(now()) @map("created_at")
   updatedAt       DateTime              @updatedAt @map("updated_at")
   deletedAt       DateTime?             @map("deleted_at")
@@ -680,6 +682,24 @@ model Setting {
 
   @@index([group])
   @@map("settings")
+}
+
+/// Users who pressed /start in the public FoodApp Telegram bot.
+model TelegramBotSubscriber {
+  id               String   @id @default(uuid()) @db.Uuid
+  telegramId       BigInt   @unique @map("telegram_id")
+  chatId           String   @map("chat_id")
+  telegramUsername String?  @map("telegram_username")
+  firstName        String?  @map("first_name")
+  lastName         String?  @map("last_name")
+  firstStartedAt   DateTime @default(now()) @map("first_started_at")
+  lastStartedAt    DateTime @default(now()) @map("last_started_at")
+  startCount       Int      @default(1) @map("start_count")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([lastStartedAt])
+  @@map("telegram_bot_subscribers")
 }
 
 model NotificationTemplate {

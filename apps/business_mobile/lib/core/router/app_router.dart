@@ -14,6 +14,7 @@ import '../../features/menu/presentation/menu_screen.dart';
 import '../../features/menu/presentation/product_form_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/telegram_notifications_screen.dart';
 import '../../features/restaurant/presentation/restaurant_order_detail_screen.dart';
 import '../../features/restaurant/presentation/restaurant_order_history_screen.dart';
 import '../../features/restaurant/presentation/restaurant_orders_screen.dart';
@@ -52,6 +53,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.notifications,
         builder: (_, __) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.restaurantTelegram,
+        builder: (_, __) => const TelegramNotificationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.productForm,

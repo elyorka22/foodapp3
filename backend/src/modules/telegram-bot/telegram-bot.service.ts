@@ -1,0 +1,253 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
+import { TelegramBotSettingsService } from './telegram-bot-settings.service';
+import {
+  TG_BTN_CHAT_ID,
+  TG_BTN_HELP,
+  TG_BTN_OPEN_SITE,
+  TG_BTN_PARTNERSHIP,
+  TG_CALLBACK_CHAT_ID,
+  TG_CALLBACK_HELP,
+  buildMainInlineKeyboard,
+} from './telegram-bot-keyboard';
+
+type TelegramApiResponse = { ok: boolean; description?: string };
+
+type SendMessageOptions = {
+  replyMarkup?: object;
+};
+
+@Injectable()
+export class TelegramBotService {
+  private readonly logger = new Logger(TelegramBotService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private botSettings: TelegramBotSettingsService,
+  ) {}
+
+  private get token(): string | undefined {
+    return process.env.TELEGRAM_BOT_TOKEN?.trim() || undefined;
+  }
+
+  get botUsername(): string | undefined {
+    return process.env.TELEGRAM_BOT_USERNAME?.trim() || undefined;
+  }
+
+  isConfigured(): boolean {
+    return Boolean(this.token);
+  }
+
+  async sendMessage(
+    chatId: string,
+    text: string,
+    options?: SendMessageOptions,
+  ): Promise<boolean> {
+    if (!this.token || !chatId.trim()) return false;
+    try {
+      const body: Record<string, unknown> = {
+        chat_id: chatId.trim(),
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: false,
+      };
+      if (options?.replyMarkup) {
+        body.reply_markup = options.replyMarkup;
+      }
+      const res = await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = (await res.json()) as TelegramApiResponse;
+      if (!data.ok) {
+        this.logger.warn(`Telegram sendMessage failed for chat ${chatId}: ${data.description}`);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      this.logger.warn(`Telegram sendMessage error: ${err instanceof Error ? err.message : err}`);
+      return false;
+    }
+  }
+
+  async answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
+    if (!this.token) return;
+    try {
+      await fetch(`https://api.telegram.org/bot${this.token}/answerCallbackQuery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          callback_query_id: callbackQueryId,
+          ...(text ? { text, show_alert: text.length > 60 } : {}),
+        }),
+      });
+    } catch {
+      // non-critical
+    }
+  }
+
+  async sendMainMenu(chatId: string, introText?: string): Promise<void> {
+    const settings = await this.botSettings.getSettings();
+    const text = introText ?? settings.welcomeMessage;
+    await this.sendMessage(chatId, text, {
+      replyMarkup: buildMainInlineKeyboard(settings.siteUrl),
+    });
+  }
+
+  async handleStart(params: {
+    chatId: string;
+    telegramId: bigint;
+    username?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+  }): Promise<void> {
+    const now = new Date();
+    await this.prisma.telegramBotSubscriber.upsert({
+      where: { telegramId: params.telegramId },
+      create: {
+        telegramId: params.telegramId,
+        chatId: params.chatId,
+        telegramUsername: params.username ?? null,
+        firstName: params.firstName ?? null,
+        lastName: params.lastName ?? null,
+        firstStartedAt: now,
+        lastStartedAt: now,
+        startCount: 1,
+      },
+      update: {
+        chatId: params.chatId,
+        telegramUsername: params.username ?? null,
+        firstName: params.firstName ?? null,
+        lastName: params.lastName ?? null,
+        lastStartedAt: now,
+        startCount: { increment: 1 },
+      },
+    });
+
+    await this.sendMainMenu(params.chatId);
+  }
+
+  async handleMyId(chatId: string): Promise<void> {
+    const settings = await this.botSettings.getSettings();
+    await this.sendMessage(
+      chatId,
+      `Sizning chat ID:\n<code>${chatId}</code>\n\nRestoran panelida «Telegram buyurtmalar» bo'limiga shu raqamni kiriting.`,
+      { replyMarkup: buildMainInlineKeyboard(settings.siteUrl) },
+    );
+  }
+
+  async handleHelp(chatId: string): Promise<void> {
+    const settings = await this.botSettings.getSettings();
+    await this.sendMessage(
+      chatId,
+      `<b>FoodApp bot</b>\n\n` +
+        `• <b>${TG_BTN_OPEN_SITE}</b> — saytga o'tish va buyurtma berish\n` +
+        `• <b>${TG_BTN_PARTNERSHIP}</b> — restoranlar uchun hamkorlik sahifasi\n` +
+        `• <b>${TG_BTN_CHAT_ID}</b> — restoran uchun buyurtma bildirishnomalari (chat ID)\n\n` +
+        `Restoran egasi bo'lsangiz: «${TG_BTN_PARTNERSHIP}» yoki «${TG_BTN_CHAT_ID}» tugmalaridan foydalaning.`,
+      { replyMarkup: buildMainInlineKeyboard(settings.siteUrl) },
+    );
+  }
+
+  async handleButtonText(chatId: string, text: string): Promise<boolean> {
+    const normalized = text.trim();
+    if (normalized === TG_BTN_CHAT_ID || normalized === '/myid' || normalized === '/chatid') {
+      await this.handleMyId(chatId);
+      return true;
+    }
+    if (normalized === TG_BTN_HELP || normalized === '/help') {
+      await this.handleHelp(chatId);
+      return true;
+    }
+    if (normalized === TG_BTN_OPEN_SITE) {
+      await this.sendMainMenu(
+        chatId,
+        "Saytga o'tish uchun quyidagi tugmani bosing:",
+      );
+      return true;
+    }
+    return false;
+  }
+
+  async handleCallback(
+    callbackQueryId: string,
+    data: string,
+    chatId: string,
+  ): Promise<void> {
+    if (data === TG_CALLBACK_CHAT_ID) {
+      await this.answerCallbackQuery(callbackQueryId);
+      await this.handleMyId(chatId);
+      return;
+    }
+    if (data === TG_CALLBACK_HELP) {
+      await this.answerCallbackQuery(callbackQueryId);
+      await this.handleHelp(chatId);
+      return;
+    }
+    await this.answerCallbackQuery(callbackQueryId);
+  }
+
+  async notifyRestaurantNewOrder(order: {
+    id: string;
+    orderNumber: string;
+    businessId: string;
+    total: Prisma.Decimal | number;
+    subtotal: Prisma.Decimal | number;
+    deliveryFee: Prisma.Decimal | number;
+    items: { name: string; quantity: number; subtotal: Prisma.Decimal | number }[];
+    guestOrder?: { phone: string; deliveryAddress?: string | null; comment?: string | null } | null;
+    business?: { name: string; telegramOrderChatId?: string | null } | null;
+  }): Promise<void> {
+    if (!this.isConfigured()) return;
+
+    let chatId = order.business?.telegramOrderChatId?.trim();
+    if (!chatId) {
+      const business = await this.prisma.business.findUnique({
+        where: { id: order.businessId },
+        select: { telegramOrderChatId: true, name: true },
+      });
+      chatId = business?.telegramOrderChatId?.trim() ?? '';
+      if (!chatId) return;
+      order = { ...order, business: { name: business?.name ?? '', telegramOrderChatId: chatId } };
+    }
+
+    const phone = order.guestOrder?.phone ?? '—';
+    const address = order.guestOrder?.deliveryAddress?.trim() || '—';
+    const comment = order.guestOrder?.comment?.trim();
+    const total = this.formatMoney(order.total);
+    const delivery = this.formatMoney(order.deliveryFee);
+
+    const lines = order.items.map(
+      (item) => `• ${this.escapeHtml(item.name)} ×${item.quantity} — ${this.formatMoney(item.subtotal)}`,
+    );
+
+    let text =
+      `🆕 <b>Yangi buyurtma #${this.escapeHtml(order.orderNumber)}</b>\n\n` +
+      `🏪 ${this.escapeHtml(order.business?.name ?? 'Restoran')}\n` +
+      `👤 ${this.escapeHtml(phone)}\n` +
+      `📍 ${this.escapeHtml(address)}\n` +
+      `🚚 Yetkazish: ${delivery}\n` +
+      `💰 <b>Jami: ${total}</b>\n\n` +
+      `<b>Taomlar:</b>\n${lines.join('\n')}`;
+
+    if (comment) {
+      text += `\n\n💬 ${this.escapeHtml(comment)}`;
+    }
+
+    await this.sendMessage(chatId, text);
+  }
+
+  private formatMoney(value: Prisma.Decimal | number): string {
+    const n = typeof value === 'number' ? value : Number(value);
+    return `${Math.round(n).toLocaleString('uz-UZ')} so'm`;
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+}

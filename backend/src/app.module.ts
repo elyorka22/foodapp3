@@ -35,6 +35,7 @@ import { FirebaseModule } from './common/firebase/firebase.module';
 import { AccountDeletionModule } from './modules/account-deletion/account-deletion.module';
 import { BookingVenuesModule } from './modules/booking-venues/booking-venues.module';
 import { CitiesModule } from './modules/cities/cities.module';
+import { TelegramBotModule } from './modules/telegram-bot/telegram-bot.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { CitiesModule } from './modules/cities/cities.module';
     AccountDeletionModule,
     BookingVenuesModule,
     CitiesModule,
+    TelegramBotModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })

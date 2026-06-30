@@ -9,8 +9,10 @@ import {
   IsString,
   IsUUID,
   Max,
+  MaxLength,
   Min,
   MinLength,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { WorkingHourDto } from './set-working-hours.dto';
@@ -117,6 +119,13 @@ export class UpdateRestaurantDto {
   @IsOptional()
   @IsString()
   ownerFullName?: string;
+
+  @ApiPropertyOptional({ description: 'Telegram chat ID for new order notifications' })
+  @IsOptional()
+  @ValidateIf((_, value) => value != null)
+  @IsString()
+  @MaxLength(32)
+  telegramOrderChatId?: string | null;
 
   @ApiPropertyOptional({ type: [WorkingHourDto] })
   @IsOptional()

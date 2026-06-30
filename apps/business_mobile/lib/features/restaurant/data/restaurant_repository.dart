@@ -56,6 +56,13 @@ class RestaurantRepository {
     return RestaurantModel.fromJson(res.data!);
   }
 
+  Future<void> updateTelegramChatId(String restaurantId, String? chatId) async {
+    await _dio.patch(
+      ApiPaths.restaurant(restaurantId),
+      data: {'telegramOrderChatId': chatId},
+    );
+  }
+
   /// Create or update business panel owner without PATCH ownerLogin/ownerFullName
   /// (compatible with older API that only accepts ownerPassword on PATCH).
   Future<void> syncOwnerAccount({

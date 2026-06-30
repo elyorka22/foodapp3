@@ -26,6 +26,14 @@ abstract final class AppStrings {
   static const couriers = 'Kuryerlar';
   static const profile = 'Profil';
   static const notifications = 'Bildirishnomalar';
+  static const telegramOrders = 'Telegram buyurtmalar';
+  static const telegramOrdersHint =
+      'Yangi buyurtmalar Telegram bot orqali shu chatga yuboriladi.';
+  static const telegramChatId = 'Telegram chat ID';
+  static const telegramOrdersHowTo =
+      'Botda «🆔 Chat ID» tugmasini bosing va chat ID ni shu yerga yozing.';
+  static const telegramSaved = 'Telegram sozlamalari saqlandi';
+  static const noRestaurantLinked = 'Restoran bog\'lanmagan';
   static const noNotifications = 'Bildirishnomalar yo\'q';
   static const markAllRead = 'O\'qildi';
   static const pushPermissionTitle = 'Bildirishnomalar';

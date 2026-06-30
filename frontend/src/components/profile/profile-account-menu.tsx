@@ -64,7 +64,7 @@ export function ProfileAccountMenu() {
         <ProfileBannerTile
           title={uz.profilePartnership}
           subtitle={uz.profilePartnershipHint}
-          href="/profile/partnership"
+          href="/hamkorlik"
           icon={Briefcase}
         />
       ) : null}

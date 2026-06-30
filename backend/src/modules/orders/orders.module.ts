@@ -9,6 +9,7 @@ import { GrowthModule } from '../growth/growth.module';
 import { RestaurantsModule } from '../restaurants/restaurants.module';
 import { CustomersModule } from '../customers/customers.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { TelegramBotModule } from '../telegram-bot/telegram-bot.module';
 import { DeliveryPricingService } from '../../domain/delivery/delivery-pricing.service';
 
 @Module({
@@ -20,6 +21,7 @@ import { DeliveryPricingService } from '../../domain/delivery/delivery-pricing.s
     RestaurantsModule,
     CustomersModule,
     NotificationsModule,
+    TelegramBotModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersGateway, DeliveryPricingService],

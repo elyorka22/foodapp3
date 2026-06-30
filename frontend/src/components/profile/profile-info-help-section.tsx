@@ -39,7 +39,7 @@ export function ProfileInfoHelpSection() {
           icon={Briefcase}
           label={uz.profilePartnership}
           hint={uz.profilePartnershipHint}
-          href="/profile/partnership"
+          href="/hamkorlik"
         />
         <ProfileMenuRow icon={FileText} label={uz.termsOfUse} href="#" />
         <ProfileMenuRow

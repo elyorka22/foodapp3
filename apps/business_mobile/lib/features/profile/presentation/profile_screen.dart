@@ -90,6 +90,13 @@ class ProfileScreen extends ConsumerWidget {
                   error: (_, __) => const SizedBox.shrink(),
                 ),
               const Spacer(),
+              if (user?.isRestaurant == true)
+                FoodAppButton(
+                  label: AppStrings.telegramOrders,
+                  variant: FoodAppButtonVariant.secondary,
+                  onPressed: () => context.push(AppRoutes.restaurantTelegram),
+                ),
+              if (user?.isRestaurant == true) const SizedBox(height: AppSpacing.md),
               FoodAppButton(
                 label: AppStrings.notifications,
                 variant: FoodAppButtonVariant.secondary,

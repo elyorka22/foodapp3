@@ -1,7 +1,5 @@
-'use client';
-
-import { ProfileContactPage } from '@/components/profile/profile-contact-page';
+import { HamkorlikContent } from '@/components/marketing/hamkorlik-content';
 
 export default function ProfilePartnershipPage() {
-  return <ProfileContactPage variant="partnership" />;
+  return <HamkorlikContent backHref="/profile" />;
 }

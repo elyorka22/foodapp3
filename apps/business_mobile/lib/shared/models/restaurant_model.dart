@@ -15,6 +15,7 @@ class RestaurantModel {
     this.ownerPassword,
     this.ownerFullName,
     this.workingHours,
+    this.telegramOrderChatId,
   });
 
   final String id;
@@ -30,8 +31,43 @@ class RestaurantModel {
   final String? ownerPassword;
   final String? ownerFullName;
   final List<WorkingHourModel>? workingHours;
+  final String? telegramOrderChatId;
 
   bool get isStore => kind == 'STORE';
+
+  RestaurantModel copyWith({
+    String? id,
+    String? name,
+    String? kind,
+    String? phone,
+    String? branchAddress,
+    bool? isActive,
+    String? description,
+    double? latitude,
+    double? longitude,
+    String? ownerLogin,
+    String? ownerPassword,
+    String? ownerFullName,
+    List<WorkingHourModel>? workingHours,
+    String? telegramOrderChatId,
+  }) {
+    return RestaurantModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      kind: kind ?? this.kind,
+      phone: phone ?? this.phone,
+      branchAddress: branchAddress ?? this.branchAddress,
+      isActive: isActive ?? this.isActive,
+      description: description ?? this.description,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      ownerLogin: ownerLogin ?? this.ownerLogin,
+      ownerPassword: ownerPassword ?? this.ownerPassword,
+      ownerFullName: ownerFullName ?? this.ownerFullName,
+      workingHours: workingHours ?? this.workingHours,
+      telegramOrderChatId: telegramOrderChatId ?? this.telegramOrderChatId,
+    );
+  }
 
   factory RestaurantModel.fromJson(Map<String, dynamic> json) {
     final branch = json['branch'] as Map<String, dynamic>?;
@@ -48,6 +84,7 @@ class RestaurantModel {
       ownerLogin: json['ownerLogin'] as String?,
       ownerFullName: json['ownerFullName'] as String?,
       ownerPassword: json['ownerPassword'] as String?,
+      telegramOrderChatId: json['telegramOrderChatId'] as String?,
     );
   }
 
@@ -77,6 +114,11 @@ class RestaurantModel {
         if (description != null) 'description': description,
         if (workingHours != null && workingHours!.isNotEmpty)
           'workingHours': workingHours!.map((h) => h.toJson()).toList(),
+        if (telegramOrderChatId != null) 'telegramOrderChatId': telegramOrderChatId,
+      };
+
+  Map<String, dynamic> toTelegramUpdateJson(String? chatId) => {
+        'telegramOrderChatId': chatId,
       };
 }
 

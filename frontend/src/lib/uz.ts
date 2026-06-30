@@ -158,6 +158,23 @@ export const uz = {
   profileHelpHint: 'FAQ va qo\'llab-quvvatlash',
   profilePartnership: 'Hamkorlik',
   profilePartnershipHint: 'Biznes takliflari va hamkorlik',
+  hamkorlikEyebrow: 'Restoranlar uchun',
+  hamkorlikHeroTitle: 'FoodApp bilan mijozlar oqimini oshiring',
+  hamkorlikHeroBody:
+    'Biz sizga tayyor mijozlar bazasini, onlayn buyurtmalar, yetkazib berish va stol bron qilish imkoniyatini beramiz — barchasi bitta platformada.',
+  hamkorlikBenefitsTitle: 'Nima olasiz',
+  hamkorlikBenefits: [
+    'Tayyor mijozlar — ilovamiz va saytimiz orqali sizga buyurtma beradigan faol foydalanuvchilar.',
+    'Batafsil statistika — buyurtmalar, tushum, mashhur taomlar va kunlik dinamika.',
+    'Onlayn buyurtmalar — mijozlar menyudan tanlaydi, siz restoran panelida qabul qilasiz.',
+    'Yetkazib berish integratsiyasi — kuryer tarmog‘i va buyurtma holatini kuzatish.',
+    'Stol bron qilish — mijozlar restoranda joy band qilishi mumkin, alohida bron bo‘limi.',
+    'Telegram bildirishnomalar — yangi buyurtmalar to‘g‘ridan-to‘g‘ri botga keladi.',
+    'Restoran paneli — web va mobil ilovada buyurtmalar, jadval va menyu boshqaruvi.',
+  ],
+  hamkorlikCtaTitle: 'Hamkorlik uchun bog‘laning',
+  hamkorlikCtaBody:
+    'Telegram yoki telefon orqali yozing — jamoamiz ulanish va sozlashda yordam beradi.',
   contactViaTelegram: "Telegram orqali bog'laning",
   contactViaPhone: "Telefon orqali bog'laning",
   openTelegram: 'Telegramga yozish',

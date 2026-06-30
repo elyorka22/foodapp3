@@ -153,6 +153,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: '/admin/cities', label: t.nav.cities, icon: MapPin, permission: 'settings' },
       { href: '/admin/settings', label: t.nav.siteSettings, icon: Settings, permission: 'settings' },
+      { href: '/admin/settings/telegram', label: t.nav.telegramSettings, icon: Settings, permission: 'settings' },
     ],
   },
   {

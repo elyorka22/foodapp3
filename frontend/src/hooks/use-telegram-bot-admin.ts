@@ -1,0 +1,51 @@
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { getToken } from '@/lib/auth';
+
+export type TelegramBotSettings = {
+  welcomeMessage: string;
+  siteUrl: string;
+};
+
+export type TelegramBotStats = {
+  totalSubscribers: number;
+  activeLast7Days: number;
+  newToday: number;
+  totalStarts: number;
+};
+
+export type TelegramBotAdminPanel = {
+  botConfigured: boolean;
+  botUsername: string | null;
+  webhookUrl: string | null;
+  settings: TelegramBotSettings;
+  stats: TelegramBotStats;
+};
+
+export function useTelegramBotAdmin() {
+  const token = getToken();
+  const qc = useQueryClient();
+
+  const panel = useQuery({
+    queryKey: ['telegram-bot-admin'],
+    queryFn: () =>
+      api<TelegramBotAdminPanel>('/telegram-bot/admin', { token: token ?? undefined }),
+    enabled: !!token,
+  });
+
+  const save = useMutation({
+    mutationFn: (body: Partial<TelegramBotSettings>) =>
+      api<{ settings: TelegramBotSettings; stats: TelegramBotStats }>('/telegram-bot/admin', {
+        method: 'PUT',
+        token: token ?? undefined,
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['telegram-bot-admin'] });
+    },
+  });
+
+  return { panel, save };
+}
