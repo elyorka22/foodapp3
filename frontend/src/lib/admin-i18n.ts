@@ -273,7 +273,14 @@ export const adminI18n = {
     newToday: 'Bugun yangi',
     totalStarts: 'Jami bot ochilishlari',
     webhookHint:
-      'BotFather orqali webhook o‘rnating. Serverda TELEGRAM_WEBHOOK_SECRET va API_PUBLIC_URL kerak.',
+      'Webhook API ishga tushganda avtomatik ro‘yxatdan o‘tadi. Serverda TELEGRAM_WEBHOOK_SECRET va API_PUBLIC_URL kerak.',
+    webhookRegistered: 'Webhook faol',
+    webhookNotRegistered: 'Webhook ro‘yxatdan o‘tmagan',
+    webhookRegister: 'Webhookni qayta ulash',
+    webhookRegisteredOk: 'Telegram webhook ulandi',
+    webhookRegisterFailed: 'Webhook ulanmadi',
+    missingEnv: 'Yetishmayotgan o‘zgaruvchilar',
+    webhookLastError: 'Telegram xatosi',
     saved: 'Telegram bot sozlamalari saqlandi',
   },
 

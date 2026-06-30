@@ -16,10 +16,21 @@ export type TelegramBotStats = {
   totalStarts: number;
 };
 
+export type TelegramWebhookStatus = {
+  configured: boolean;
+  registered: boolean;
+  url: string | null;
+  expectedUrl: string | null;
+  lastErrorMessage?: string | null;
+  pendingUpdateCount?: number;
+  missingEnv: string[];
+};
+
 export type TelegramBotAdminPanel = {
   botConfigured: boolean;
   botUsername: string | null;
   webhookUrl: string | null;
+  webhookStatus: TelegramWebhookStatus;
   settings: TelegramBotSettings;
   stats: TelegramBotStats;
 };
@@ -47,5 +58,16 @@ export function useTelegramBotAdmin() {
     },
   });
 
-  return { panel, save };
+  const registerWebhook = useMutation({
+    mutationFn: () =>
+      api<{ ok: boolean; error?: string; webhookStatus: TelegramWebhookStatus }>(
+        '/telegram-bot/admin/register-webhook',
+        { method: 'POST', token: token ?? undefined },
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['telegram-bot-admin'] });
+    },
+  });
+
+  return { panel, save, registerWebhook };
 }

@@ -10,7 +10,7 @@ import { adminI18n as t } from '@/lib/admin-i18n';
 import { useTelegramBotAdmin } from '@/hooks/use-telegram-bot-admin';
 
 export default function AdminTelegramBotSettingsPage() {
-  const { panel, save } = useTelegramBotAdmin();
+  const { panel, save, registerWebhook } = useTelegramBotAdmin();
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [siteUrl, setSiteUrl] = useState('');
 
@@ -34,6 +34,7 @@ export default function AdminTelegramBotSettingsPage() {
   }
 
   const data = panel.data!;
+  const webhookStatus = data.webhookStatus;
 
   return (
     <AdminPageGuard permission="settings">
@@ -63,12 +64,48 @@ export default function AdminTelegramBotSettingsPage() {
               <dt className="text-zinc-500">{t.telegramBot.botUsername}</dt>
               <dd className="font-mono">{data.botUsername ? `@${data.botUsername}` : '—'}</dd>
             </div>
+            <div>
+              <dt className="text-zinc-500">Webhook</dt>
+              <dd className={webhookStatus.registered ? 'text-green-700' : 'text-amber-700'}>
+                {webhookStatus.registered ? t.telegramBot.webhookRegistered : t.telegramBot.webhookNotRegistered}
+              </dd>
+            </div>
             <div className="sm:col-span-2">
               <dt className="text-zinc-500">{t.telegramBot.webhookUrl}</dt>
               <dd className="break-all font-mono text-xs">{data.webhookUrl ?? '—'}</dd>
               <p className="mt-1 text-xs text-zinc-500">{t.telegramBot.webhookHint}</p>
             </div>
+            {webhookStatus.missingEnv.length > 0 ? (
+              <div className="sm:col-span-2">
+                <dt className="text-zinc-500">{t.telegramBot.missingEnv}</dt>
+                <dd className="font-mono text-xs text-amber-800">{webhookStatus.missingEnv.join(', ')}</dd>
+              </div>
+            ) : null}
+            {webhookStatus.lastErrorMessage ? (
+              <div className="sm:col-span-2">
+                <dt className="text-zinc-500">{t.telegramBot.webhookLastError}</dt>
+                <dd className="text-xs text-red-700">{webhookStatus.lastErrorMessage}</dd>
+              </div>
+            ) : null}
           </dl>
+          <div className="mt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={registerWebhook.isPending || !data.botConfigured}
+              onClick={async () => {
+                try {
+                  const result = await registerWebhook.mutateAsync();
+                  if (result.ok) toast.success(t.telegramBot.webhookRegisteredOk);
+                  else toast.error(result.error ?? t.telegramBot.webhookRegisterFailed);
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : t.telegramBot.webhookRegisterFailed);
+                }
+              }}
+            >
+              {t.telegramBot.webhookRegister}
+            </Button>
+          </div>
         </div>
 
         <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
