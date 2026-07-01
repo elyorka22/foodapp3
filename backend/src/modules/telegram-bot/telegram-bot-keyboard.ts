@@ -1,11 +1,13 @@
-/** Visible button labels (also matched if user taps old reply-keyboard text). */
+/** Visible button labels (also matched if user taps reply-keyboard text). */
 export const TG_BTN_OPEN_SITE = "🌐 Saytga o'tish";
 export const TG_BTN_PARTNERSHIP = '🤝 Hamkorlik';
 export const TG_BTN_CHAT_ID = '🆔 Chat ID';
 export const TG_BTN_HELP = 'ℹ️ Yordam';
+export const TG_BTN_PUSH_SETUP = '🔔 Push sozlash';
 
 export const TG_CALLBACK_CHAT_ID = 'chat_id';
 export const TG_CALLBACK_HELP = 'help';
+export const TG_CALLBACK_PUSH_SETUP = 'push_setup';
 
 export const HAMKORLIK_PATH = '/hamkorlik';
 
@@ -23,6 +25,24 @@ export function buildMainInlineKeyboard(siteUrl: string) {
         { text: TG_BTN_CHAT_ID, callback_data: TG_CALLBACK_CHAT_ID },
         { text: TG_BTN_HELP, callback_data: TG_CALLBACK_HELP },
       ],
+      [{ text: TG_BTN_PUSH_SETUP, callback_data: TG_CALLBACK_PUSH_SETUP }],
     ],
+  };
+}
+
+/** Persistent menu at the bottom of the chat (reply keyboard). */
+export function buildMainReplyKeyboard() {
+  return {
+    keyboard: [
+      [{ text: TG_BTN_OPEN_SITE }],
+      [{ text: TG_BTN_PARTNERSHIP }],
+      [{ text: TG_BTN_PUSH_SETUP }],
+      [
+        { text: TG_BTN_CHAT_ID },
+        { text: TG_BTN_HELP },
+      ],
+    ],
+    resize_keyboard: true,
+    is_persistent: true,
   };
 }

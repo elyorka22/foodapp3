@@ -222,6 +222,7 @@ model Business {
   banners            Banner[]
   workingHours       BusinessWorkingHours[]
   holidays           BusinessHoliday[]
+  telegramLinkCodes  BusinessTelegramLinkCode[]
 
   @@index([isActive, deletedAt])
   @@index([approvalStatus])
@@ -700,6 +701,33 @@ model TelegramBotSubscriber {
 
   @@index([lastStartedAt])
   @@map("telegram_bot_subscribers")
+}
+
+/// Short-lived code to link a Telegram chat to a business for order push.
+model BusinessTelegramLinkCode {
+  id           String    @id @default(uuid()) @db.Uuid
+  businessId   String    @map("business_id") @db.Uuid
+  code         String    @db.VarChar(6)
+  expiresAt    DateTime  @map("expires_at")
+  usedAt       DateTime? @map("used_at")
+  linkedChatId String?   @map("linked_chat_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, expiresAt])
+  @@index([code])
+  @@map("business_telegram_link_codes")
+}
+
+/// Multi-step Telegram bot flow (push setup).
+model TelegramBotConversation {
+  telegramId BigInt   @id @map("telegram_id")
+  step       String
+  businessId String?  @map("business_id") @db.Uuid
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("telegram_bot_conversations")
 }
 
 model NotificationTemplate {

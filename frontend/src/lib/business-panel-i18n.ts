@@ -98,7 +98,7 @@ export const businessPanelI18n = {
 
   telegram: {
     title: 'Telegram buyurtmalar',
-    hint: 'Yangi buyurtmalar shu Telegram chatga yuboriladi. Botda «Chat ID» tugmasini bosing va ID ni kiriting.',
+    hint: 'Yangi buyurtmalar shu Telegram chatga yuboriladi.',
     chatId: 'Telegram chat ID',
     chatIdPlaceholder: 'Masalan: 123456789',
     botLink: 'Botni ochish',
@@ -107,7 +107,12 @@ export const businessPanelI18n = {
     save: 'Saqlash',
     disable: 'O‘chirish',
     howTo:
-      "1) Botni oching va Start bosing\n2) «🆔 Chat ID» tugmasini bosing\n3) Chat ID ni shu yerga yozing va saqlang",
+      "1) Botni oching va Start bosing\n2) «🔔 Push sozlash» tugmasini bosing\n3) Restoraningizni ro'yxatdan tanlang\n4) Shu sahifadagi 6 xonali kodni botga yuboring",
+    pairingCode: 'Bot uchun kod',
+    codeExpires: 'Amal qilish vaqti',
+    linked: '✅ Push ulangan',
+    waitingForBot: 'Botda restoranni tanlang — kod shu yerda paydo bo‘ladi.',
+    manualTitle: 'Qo‘lda chat ID (ixtiyoriy)',
   },
 
   dayNames: [

@@ -7,16 +7,30 @@ import {
   TG_BTN_HELP,
   TG_BTN_OPEN_SITE,
   TG_BTN_PARTNERSHIP,
+  TG_BTN_PUSH_SETUP,
   TG_CALLBACK_CHAT_ID,
   TG_CALLBACK_HELP,
+  TG_CALLBACK_PUSH_SETUP,
   buildMainInlineKeyboard,
+  buildMainReplyKeyboard,
+  buildPartnershipUrl,
 } from './telegram-bot-keyboard';
+import {
+  TG_LINK_PAGE_PREFIX,
+  TG_LINK_PICK_PREFIX,
+  TelegramBotLinkService,
+} from './telegram-bot-link.service';
 import { resolveConfiguredBotUsername, resolveMessagingBotToken } from './telegram-bot-env';
 
 type TelegramApiResponse = { ok: boolean; description?: string };
 
 type SendMessageOptions = {
   replyMarkup?: object;
+};
+
+type SendMenuOptions = {
+  /** Show bottom reply-keyboard menu (only needed once per chat session). */
+  attachReplyKeyboard?: boolean;
 };
 
 @Injectable()
@@ -26,6 +40,7 @@ export class TelegramBotService {
   constructor(
     private prisma: PrismaService,
     private botSettings: TelegramBotSettingsService,
+    private linkService: TelegramBotLinkService,
   ) {}
 
   private get token(): string | undefined {
@@ -89,11 +104,24 @@ export class TelegramBotService {
     }
   }
 
-  async sendMainMenu(chatId: string, introText?: string): Promise<void> {
+  async sendMainMenu(
+    chatId: string,
+    introText?: string,
+    options?: SendMenuOptions,
+  ): Promise<void> {
     const settings = await this.botSettings.getSettings();
     const text = introText ?? settings.welcomeMessage;
     await this.sendMessage(chatId, text, {
       replyMarkup: buildMainInlineKeyboard(settings.siteUrl),
+    });
+    if (options?.attachReplyKeyboard) {
+      await this.sendReplyKeyboardMenu(chatId);
+    }
+  }
+
+  async sendReplyKeyboardMenu(chatId: string): Promise<void> {
+    await this.sendMessage(chatId, '👇 Quyidagi menyu tugmalaridan foydalaning:', {
+      replyMarkup: buildMainReplyKeyboard(),
     });
   }
 
@@ -133,7 +161,7 @@ export class TelegramBotService {
       );
     }
 
-    await this.sendMainMenu(params.chatId);
+    await this.sendMainMenu(params.chatId, undefined, { attachReplyKeyboard: true });
   }
 
   async handleMyId(chatId: string): Promise<void> {
@@ -152,14 +180,27 @@ export class TelegramBotService {
       `<b>FoodApp bot</b>\n\n` +
         `• <b>${TG_BTN_OPEN_SITE}</b> — saytga o'tish va buyurtma berish\n` +
         `• <b>${TG_BTN_PARTNERSHIP}</b> — restoranlar uchun hamkorlik sahifasi\n` +
-        `• <b>${TG_BTN_CHAT_ID}</b> — restoran uchun buyurtma bildirishnomalari (chat ID)\n\n` +
+        `• <b>${TG_BTN_CHAT_ID}</b> — restoran uchun buyurtma bildirishnomalari (chat ID)\n` +
+        `• <b>${TG_BTN_PUSH_SETUP}</b> — pushni kod orqali ulash\n\n` +
+        `Pastdagi menyu yoki xabar ostidagi tugmalardan foydalaning.\n` +
         `Restoran egasi bo'lsangiz: «${TG_BTN_PARTNERSHIP}» yoki «${TG_BTN_CHAT_ID}» tugmalaridan foydalaning.`,
       { replyMarkup: buildMainInlineKeyboard(settings.siteUrl) },
     );
   }
 
-  async handleButtonText(chatId: string, text: string): Promise<boolean> {
+  async handleButtonText(chatId: string, text: string, telegramId?: bigint): Promise<boolean> {
     const normalized = text.trim();
+    if (normalized === TG_BTN_PUSH_SETUP) {
+      await this.startPushSetup(chatId);
+      return true;
+    }
+    if (telegramId && (await this.linkService.isAwaitingCode(telegramId))) {
+      const digits = normalized.replace(/\D/g, '');
+      if (digits.length === 6) {
+        await this.handleLinkCodeEntry(telegramId, chatId, digits);
+        return true;
+      }
+    }
     if (normalized === TG_BTN_CHAT_ID || normalized === '/myid' || normalized === '/chatid') {
       await this.handleMyId(chatId);
       return true;
@@ -175,6 +216,21 @@ export class TelegramBotService {
       );
       return true;
     }
+    if (normalized === TG_BTN_PARTNERSHIP) {
+      const settings = await this.botSettings.getSettings();
+      await this.sendMessage(
+        chatId,
+        'Restoranlar uchun hamkorlik sahifasi:',
+        {
+          replyMarkup: {
+            inline_keyboard: [
+              [{ text: TG_BTN_PARTNERSHIP, url: buildPartnershipUrl(settings.siteUrl) }],
+            ],
+          },
+        },
+      );
+      return true;
+    }
     return false;
   }
 
@@ -182,7 +238,29 @@ export class TelegramBotService {
     callbackQueryId: string,
     data: string,
     chatId: string,
+    telegramId?: bigint,
   ): Promise<void> {
+    if (data === TG_CALLBACK_PUSH_SETUP) {
+      await this.answerCallbackQuery(callbackQueryId);
+      await this.startPushSetup(chatId);
+      return;
+    }
+    if (data.startsWith(TG_LINK_PICK_PREFIX)) {
+      await this.answerCallbackQuery(callbackQueryId);
+      const businessId = data.slice(TG_LINK_PICK_PREFIX.length);
+      if (telegramId) {
+        await this.handleRestaurantPick(telegramId, chatId, businessId);
+      }
+      return;
+    }
+    if (data.startsWith(TG_LINK_PAGE_PREFIX)) {
+      await this.answerCallbackQuery(callbackQueryId);
+      const page = parseInt(data.slice(TG_LINK_PAGE_PREFIX.length), 10);
+      if (!Number.isNaN(page) && page >= 0) {
+        await this.sendRestaurantPicker(chatId, page);
+      }
+      return;
+    }
     if (data === TG_CALLBACK_CHAT_ID) {
       await this.answerCallbackQuery(callbackQueryId);
       await this.handleMyId(chatId);
@@ -194,6 +272,67 @@ export class TelegramBotService {
       return;
     }
     await this.answerCallbackQuery(callbackQueryId);
+  }
+
+  async startPushSetup(chatId: string): Promise<void> {
+    await this.sendRestaurantPicker(chatId, 0);
+  }
+
+  async sendRestaurantPicker(chatId: string, page: number): Promise<void> {
+    const markup = await this.linkService.buildRestaurantPickerMarkup(page);
+    await this.sendMessage(chatId, this.linkService.getRestaurantPickerIntroText(), {
+      replyMarkup: markup,
+    });
+  }
+
+  async handleRestaurantPick(
+    telegramId: bigint,
+    chatId: string,
+    businessId: string,
+  ): Promise<void> {
+    const picked = await this.linkService.onRestaurantPicked(telegramId, businessId);
+    if (!picked) {
+      await this.sendMessage(chatId, 'Restoran topilmadi. Qayta tanlang.');
+      await this.sendRestaurantPicker(chatId, 0);
+      return;
+    }
+    await this.sendMessage(chatId, picked.text);
+  }
+
+  async handleLinkCodeEntry(
+    telegramId: bigint,
+    chatId: string,
+    rawCode: string,
+  ): Promise<boolean> {
+    const { result, businessName } = await this.linkService.verifyCode(
+      telegramId,
+      chatId,
+      rawCode,
+    );
+    const settings = await this.botSettings.getSettings();
+
+    if (result === 'ok') {
+      await this.sendMessage(
+        chatId,
+        `✅ <b>Push sozlandi!</b>\n\n` +
+          `«${this.escapeHtml(businessName ?? 'Restoran')}» uchun yangi buyurtmalar shu chatga keladi.`,
+        { replyMarkup: buildMainInlineKeyboard(settings.siteUrl) },
+      );
+      return true;
+    }
+    if (result === 'expired') {
+      await this.sendMessage(
+        chatId,
+        '⏱ Kod muddati tugagan. «Push sozlash» tugmasini bosing va qayta urinib ko\'ring.',
+      );
+      await this.linkService.clearConversation(telegramId);
+      return true;
+    }
+    if (result === 'invalid') {
+      await this.sendMessage(chatId, '❌ Noto\'g\'ri kod. Paneldagi 6 xonali kodni kiriting.');
+      return true;
+    }
+    return false;
   }
 
   async notifyRestaurantNewOrder(order: {

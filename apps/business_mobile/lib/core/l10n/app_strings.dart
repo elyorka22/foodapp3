@@ -31,7 +31,13 @@ abstract final class AppStrings {
       'Yangi buyurtmalar Telegram bot orqali shu chatga yuboriladi.';
   static const telegramChatId = 'Telegram chat ID';
   static const telegramOrdersHowTo =
-      'Botda «🆔 Chat ID» tugmasini bosing va chat ID ni shu yerga yozing.';
+      'Botda «🔔 Push sozlash» → restoranni tanlang → shu yerda chiqadigan kodni botga yuboring.';
+  static const telegramPairingCode = 'Bot uchun kod';
+  static const telegramCodeExpires = 'Amal qilish vaqti';
+  static const telegramLinked = 'Push ulangan';
+  static const telegramWaitingCode =
+      'Botda restoranni tanlang — kod shu yerda paydo bo\'ladi.';
+  static const telegramPushSetup = 'Push sozlash';
   static const telegramSaved = 'Telegram sozlamalari saqlandi';
   static const noRestaurantLinked = 'Restoran bog\'lanmagan';
   static const noNotifications = 'Bildirishnomalar yo\'q';

@@ -51,10 +51,12 @@ export class TelegramBotController {
       const callback = update.callback_query;
       if (callback?.id && callback.data && callback.message?.chat?.id) {
         this.logger.log(`Telegram callback: ${callback.data}`);
+        const fromId = callback.from?.id;
         await this.bot.handleCallback(
           callback.id,
           callback.data,
           String(callback.message.chat.id),
+          fromId ? BigInt(fromId) : undefined,
         );
         return { ok: true };
       }
@@ -75,6 +77,8 @@ export class TelegramBotController {
       const command = text.split(/\s+/)[0]?.toLowerCase();
       this.logger.log(`Telegram message: ${command || text.slice(0, 32)}`);
 
+      const telegramId = from?.id ? BigInt(from.id) : undefined;
+
       if (command === '/start' && from?.id) {
         await this.bot.handleStart({
           chatId,
@@ -86,7 +90,12 @@ export class TelegramBotController {
         return { ok: true };
       }
 
-      const handled = await this.bot.handleButtonText(chatId, text);
+      if (command === '/menu') {
+        await this.bot.sendReplyKeyboardMenu(chatId);
+        return { ok: true };
+      }
+
+      const handled = await this.bot.handleButtonText(chatId, text, telegramId);
       if (!handled && command === '/help') {
         await this.bot.handleHelp(chatId);
       }

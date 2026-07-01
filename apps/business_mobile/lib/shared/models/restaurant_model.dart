@@ -16,6 +16,8 @@ class RestaurantModel {
     this.ownerFullName,
     this.workingHours,
     this.telegramOrderChatId,
+    this.telegramLinkCode,
+    this.telegramLinkExpiresAt,
   });
 
   final String id;
@@ -32,6 +34,8 @@ class RestaurantModel {
   final String? ownerFullName;
   final List<WorkingHourModel>? workingHours;
   final String? telegramOrderChatId;
+  final String? telegramLinkCode;
+  final String? telegramLinkExpiresAt;
 
   bool get isStore => kind == 'STORE';
 
@@ -50,6 +54,8 @@ class RestaurantModel {
     String? ownerFullName,
     List<WorkingHourModel>? workingHours,
     String? telegramOrderChatId,
+    String? telegramLinkCode,
+    String? telegramLinkExpiresAt,
   }) {
     return RestaurantModel(
       id: id ?? this.id,
@@ -66,6 +72,8 @@ class RestaurantModel {
       ownerFullName: ownerFullName ?? this.ownerFullName,
       workingHours: workingHours ?? this.workingHours,
       telegramOrderChatId: telegramOrderChatId ?? this.telegramOrderChatId,
+      telegramLinkCode: telegramLinkCode ?? this.telegramLinkCode,
+      telegramLinkExpiresAt: telegramLinkExpiresAt ?? this.telegramLinkExpiresAt,
     );
   }
 
@@ -85,6 +93,8 @@ class RestaurantModel {
       ownerFullName: json['ownerFullName'] as String?,
       ownerPassword: json['ownerPassword'] as String?,
       telegramOrderChatId: json['telegramOrderChatId'] as String?,
+      telegramLinkCode: json['telegramLinkCode'] as String?,
+      telegramLinkExpiresAt: json['telegramLinkExpiresAt'] as String?,
     );
   }
 

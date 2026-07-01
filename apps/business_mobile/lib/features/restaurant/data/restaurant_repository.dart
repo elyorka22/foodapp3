@@ -63,6 +63,13 @@ class RestaurantRepository {
     );
   }
 
+  Future<Map<String, dynamic>> fetchTelegramLinkStatus(String restaurantId) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      ApiPaths.restaurantTelegramLink(restaurantId),
+    );
+    return res.data ?? {};
+  }
+
   /// Create or update business panel owner without PATCH ownerLogin/ownerFullName
   /// (compatible with older API that only accepts ownerPassword on PATCH).
   Future<void> syncOwnerAccount({

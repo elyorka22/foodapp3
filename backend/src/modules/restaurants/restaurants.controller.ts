@@ -61,6 +61,15 @@ export class RestaurantsController {
     return this.restaurants.clearTestData(dto.businessIds, user);
   }
 
+  @Get(':id/telegram-link')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  @ApiOperation({ summary: 'Telegram push link status and pending pairing code' })
+  getTelegramLink(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.restaurants.getTelegramLinkStatus(id, user);
+  }
+
   @Get(':id/finance')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
