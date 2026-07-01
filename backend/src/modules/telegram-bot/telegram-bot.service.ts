@@ -441,9 +441,8 @@ export class TelegramBotService {
       }
       this.statsService.markStatsSent(chatId);
     } catch (err) {
-      this.logger.error(
-        `Telegram stats PDF failed: ${err instanceof Error ? err.message : err}`,
-      );
+      const detail = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Telegram stats PDF failed: ${detail}`, err instanceof Error ? err.stack : undefined);
       await this.sendMessage(chatId, 'Statistika yaratishda xatolik. Keyinroq qayta urinib ko\'ring.');
     }
   }

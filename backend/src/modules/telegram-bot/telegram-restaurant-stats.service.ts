@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { OrderStatus, Prisma } from '@prisma/client';
-import PDFDocument from 'pdfkit';
 import { PrismaService } from '../../prisma/prisma.service';
+
+// pdfkit is CommonJS-only; default import breaks after Nest compile (pdfkit_1.default).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PDFDocument = require('pdfkit') as typeof import('pdfkit');
+
+type PdfDocument = InstanceType<typeof PDFDocument>;
 
 const MONTH_NAMES = [
   'Yanvar',
@@ -180,12 +185,12 @@ export class TelegramRestaurantStatsService {
     return { buffer, filename: `statistika-${slug || 'restoran'}-${monthKey}.pdf` };
   }
 
-  private drawSectionTitle(doc: InstanceType<typeof PDFDocument>, title: string): void {
+  private drawSectionTitle(doc: PdfDocument, title: string): void {
     doc.fontSize(13).fillColor('#000000').text(title);
     doc.moveDown(0.4);
   }
 
-  private drawRow(doc: InstanceType<typeof PDFDocument>, label: string, value: string): void {
+  private drawRow(doc: PdfDocument, label: string, value: string): void {
     doc.fontSize(11).text(`${label}: ${value}`);
   }
 
