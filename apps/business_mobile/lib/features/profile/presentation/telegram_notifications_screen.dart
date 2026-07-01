@@ -102,7 +102,7 @@ class _TelegramNotificationsScreenState
                 const SizedBox(height: AppSpacing.lg),
                 FoodAppButton(
                   label: AppStrings.save,
-                  loading: _saving,
+                  isLoading: _saving,
                   onPressed: _saving ? null : () => _save(restaurant.id),
                 ),
               ],

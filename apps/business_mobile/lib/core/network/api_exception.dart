@@ -51,6 +51,7 @@ class ApiException implements Exception {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
+      case DioExceptionType.transformTimeout:
         return 'Server javob bermadi (timeout)';
       case DioExceptionType.connectionError:
         return 'Serverga ulanib bo\'lmadi (${err.requestOptions.uri})';
