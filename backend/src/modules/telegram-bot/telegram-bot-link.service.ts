@@ -191,6 +191,20 @@ export class TelegramBotLinkService {
     await this.prisma.telegramBotConversation.deleteMany({ where: { telegramId } });
   }
 
+  async findBusinessByTelegramChatId(chatId: string) {
+    const normalized = chatId.trim();
+    if (!normalized) return null;
+    return this.prisma.business.findFirst({
+      where: { telegramOrderChatId: normalized, deletedAt: null },
+      select: { id: true, name: true, slug: true },
+    });
+  }
+
+  async isLinkedRestaurantChat(chatId: string): Promise<boolean> {
+    const business = await this.findBusinessByTelegramChatId(chatId);
+    return Boolean(business);
+  }
+
   async isAwaitingCode(telegramId: bigint): Promise<boolean> {
     const conv = await this.prisma.telegramBotConversation.findUnique({
       where: { telegramId },
