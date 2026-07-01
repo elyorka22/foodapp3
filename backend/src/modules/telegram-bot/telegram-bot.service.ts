@@ -358,7 +358,13 @@ export class TelegramBotService {
     total: Prisma.Decimal | number;
     subtotal: Prisma.Decimal | number;
     deliveryFee: Prisma.Decimal | number;
-    items: { name: string; quantity: number; subtotal: Prisma.Decimal | number }[];
+    items: {
+      name: string;
+      quantity: number;
+      subtotal: Prisma.Decimal | number;
+      description?: string | null;
+      price?: Prisma.Decimal | number;
+    }[];
     guestOrder?: { phone: string; deliveryAddress?: string | null; comment?: string | null } | null;
     business?: { name: string; telegramOrderChatId?: string | null } | null;
   }): Promise<void> {
@@ -375,15 +381,32 @@ export class TelegramBotService {
       order = { ...order, business: { name: business?.name ?? '', telegramOrderChatId: chatId } };
     }
 
+    const dbItems = await this.prisma.orderItem.findMany({
+      where: { orderId: order.id },
+      select: {
+        name: true,
+        quantity: true,
+        subtotal: true,
+        description: true,
+        price: true,
+        product: { select: { description: true } },
+      },
+    });
+    const items = dbItems.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      subtotal: item.subtotal,
+      price: item.price,
+      description: item.description?.trim() || item.product.description?.trim() || null,
+    }));
+
     const phone = order.guestOrder?.phone ?? '—';
     const address = order.guestOrder?.deliveryAddress?.trim() || '—';
     const comment = order.guestOrder?.comment?.trim();
     const total = this.formatMoney(order.total);
     const delivery = this.formatMoney(order.deliveryFee);
 
-    const lines = order.items.map(
-      (item) => `• ${this.escapeHtml(item.name)} ×${item.quantity} — ${this.formatMoney(item.subtotal)}`,
-    );
+    const lines = items.map((item) => this.formatOrderItemLine(item));
 
     let text =
       `🆕 <b>Yangi buyurtma #${this.escapeHtml(order.orderNumber)}</b>\n\n` +
@@ -399,6 +422,33 @@ export class TelegramBotService {
     }
 
     await this.sendMessage(chatId, text);
+  }
+
+  private formatOrderItemLine(item: {
+    name: string;
+    quantity: number;
+    subtotal: Prisma.Decimal | number;
+    description?: string | null;
+    price?: Prisma.Decimal | number;
+  }): string {
+    const unitPrice =
+      item.price != null
+        ? this.formatMoney(item.price)
+        : item.quantity > 0
+          ? this.formatMoney(Number(item.subtotal) / item.quantity)
+          : this.formatMoney(item.subtotal);
+    let line =
+      `• <b>${this.escapeHtml(item.name)}</b> ×${item.quantity} (${unitPrice}) — ${this.formatMoney(item.subtotal)}`;
+    const description = item.description?.trim();
+    if (description) {
+      line += `\n   ${this.escapeHtml(this.truncateText(description, 280))}`;
+    }
+    return line;
+  }
+
+  private truncateText(value: string, maxLen: number): string {
+    if (value.length <= maxLen) return value;
+    return `${value.slice(0, maxLen - 1)}…`;
   }
 
   private formatMoney(value: Prisma.Decimal | number): string {
