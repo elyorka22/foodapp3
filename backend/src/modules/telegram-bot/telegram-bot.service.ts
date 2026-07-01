@@ -231,7 +231,7 @@ export class TelegramBotService {
     await this.sendMessage(
       chatId,
       `<b>FoodApp bot</b>\n\n` +
-        `• <b>${TG_BTN_OPEN_SITE}</b> — saytga o'tish va buyurtma berish\n` +
+        `• <b>${TG_BTN_OPEN_SITE}</b> — sayt menyusini ochish va buyurtma berish\n` +
         `• <b>${TG_BTN_PARTNERSHIP}</b> — restoranlar uchun hamkorlik sahifasi\n` +
         `• <b>${TG_BTN_CHAT_ID}</b> — restoran uchun buyurtma bildirishnomalari (chat ID)\n` +
         `• <b>${TG_BTN_PUSH_SETUP}</b> — pushni kod orqali ulash\n` +
@@ -271,7 +271,7 @@ export class TelegramBotService {
     }
     if (normalized === TG_BTN_OPEN_SITE) {
       const settings = await this.botSettings.getSettings();
-      await this.sendMessage(chatId, "Saytga o'tish uchun quyidagi tugmani bosing:", {
+      await this.sendMessage(chatId, 'Menyuni ochish uchun quyidagi tugmani bosing:', {
         replyMarkup: buildSiteUrlKeyboard(settings.siteUrl),
       });
       return true;

@@ -1,5 +1,5 @@
 /** Visible button labels (also matched if user taps reply-keyboard text). */
-export const TG_BTN_OPEN_SITE = "🌐 Saytga o'tish";
+export const TG_BTN_OPEN_SITE = '📋 Menyuni ochish';
 export const TG_BTN_PARTNERSHIP = '🤝 Hamkorlik';
 export const TG_BTN_CHAT_ID = '🆔 Chat ID';
 export const TG_BTN_HELP = 'ℹ️ Yordam';
