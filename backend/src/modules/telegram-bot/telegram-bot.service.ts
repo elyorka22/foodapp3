@@ -400,9 +400,34 @@ export class TelegramBotService {
       description: item.description?.trim() || item.product.description?.trim() || null,
     }));
 
-    const phone = order.guestOrder?.phone ?? '—';
-    const address = order.guestOrder?.deliveryAddress?.trim() || '—';
-    const comment = order.guestOrder?.comment?.trim();
+    const orderDetails = await this.prisma.order.findUnique({
+      where: { id: order.id },
+      select: {
+        customerLatitude: true,
+        customerLongitude: true,
+        guestOrder: {
+          select: {
+            phone: true,
+            deliveryAddress: true,
+            comment: true,
+            latitude: true,
+            longitude: true,
+          },
+        },
+      },
+    });
+
+    const guest = orderDetails?.guestOrder;
+    const latitude = this.toCoordinate(
+      orderDetails?.customerLatitude ?? guest?.latitude,
+    );
+    const longitude = this.toCoordinate(
+      orderDetails?.customerLongitude ?? guest?.longitude,
+    );
+
+    const phone = guest?.phone ?? order.guestOrder?.phone ?? '—';
+    const address = this.formatDeliveryAddress(guest?.deliveryAddress, latitude, longitude);
+    const comment = guest?.comment?.trim() ?? order.guestOrder?.comment?.trim();
     const total = this.formatMoney(order.total);
     const delivery = this.formatMoney(order.deliveryFee);
 
@@ -421,7 +446,21 @@ export class TelegramBotService {
       text += `\n\n💬 ${this.escapeHtml(comment)}`;
     }
 
-    await this.sendMessage(chatId, text);
+    const replyMarkup =
+      latitude != null && longitude != null
+        ? {
+            inline_keyboard: [
+              [
+                {
+                  text: '🗺 Xaritada ochish',
+                  url: this.buildMapUrl(latitude, longitude),
+                },
+              ],
+            ],
+          }
+        : undefined;
+
+    await this.sendMessage(chatId, text, { replyMarkup });
   }
 
   private formatOrderItemLine(item: {
@@ -449,6 +488,30 @@ export class TelegramBotService {
   private truncateText(value: string, maxLen: number): string {
     if (value.length <= maxLen) return value;
     return `${value.slice(0, maxLen - 1)}…`;
+  }
+
+  private toCoordinate(value: Prisma.Decimal | number | null | undefined): number | null {
+    if (value == null) return null;
+    const n = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  private formatDeliveryAddress(
+    deliveryAddress: string | null | undefined,
+    latitude: number | null,
+    longitude: number | null,
+  ): string {
+    const raw = deliveryAddress?.trim() ?? '';
+    const isGpsOnly = /^GPS:\s*-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/i.test(raw);
+    if (raw && !isGpsOnly) return raw;
+    if (latitude != null && longitude != null) {
+      return 'Manzil — xaritadan oching';
+    }
+    return raw || '—';
+  }
+
+  private buildMapUrl(latitude: number, longitude: number): string {
+    return `https://www.google.com/maps?q=${latitude},${longitude}`;
   }
 
   private formatMoney(value: Prisma.Decimal | number): string {
