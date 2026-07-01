@@ -4,6 +4,7 @@ export const TG_BTN_PARTNERSHIP = '🤝 Hamkorlik';
 export const TG_BTN_CHAT_ID = '🆔 Chat ID';
 export const TG_BTN_HELP = 'ℹ️ Yordam';
 export const TG_BTN_PUSH_SETUP = '🔔 Push sozlash';
+export const TG_BTN_HIDE_MENU = '⬇️ Menyuni yashirish';
 
 export const TG_CALLBACK_CHAT_ID = 'chat_id';
 export const TG_CALLBACK_HELP = 'help';
@@ -30,7 +31,7 @@ export function buildMainInlineKeyboard(siteUrl: string) {
   };
 }
 
-/** Persistent menu at the bottom of the chat (reply keyboard). */
+/** Bottom reply keyboard — not persistent so Telegram lets users collapse it. */
 export function buildMainReplyKeyboard() {
   return {
     keyboard: [
@@ -41,8 +42,12 @@ export function buildMainReplyKeyboard() {
         { text: TG_BTN_CHAT_ID },
         { text: TG_BTN_HELP },
       ],
+      [{ text: TG_BTN_HIDE_MENU }],
     ],
     resize_keyboard: true,
-    is_persistent: true,
   };
+}
+
+export function buildRemoveReplyKeyboard() {
+  return { remove_keyboard: true };
 }

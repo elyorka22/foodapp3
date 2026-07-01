@@ -95,6 +95,11 @@ export class TelegramBotController {
         return { ok: true };
       }
 
+      if (command === '/hide') {
+        await this.bot.hideReplyKeyboard(chatId);
+        return { ok: true };
+      }
+
       const handled = await this.bot.handleButtonText(chatId, text, telegramId);
       if (!handled && command === '/help') {
         await this.bot.handleHelp(chatId);

@@ -8,11 +8,13 @@ import {
   TG_BTN_OPEN_SITE,
   TG_BTN_PARTNERSHIP,
   TG_BTN_PUSH_SETUP,
+  TG_BTN_HIDE_MENU,
   TG_CALLBACK_CHAT_ID,
   TG_CALLBACK_HELP,
   TG_CALLBACK_PUSH_SETUP,
   buildMainInlineKeyboard,
   buildMainReplyKeyboard,
+  buildRemoveReplyKeyboard,
   buildPartnershipUrl,
 } from './telegram-bot-keyboard';
 import {
@@ -120,8 +122,18 @@ export class TelegramBotService {
   }
 
   async sendReplyKeyboardMenu(chatId: string): Promise<void> {
-    await this.sendMessage(chatId, '👇 Quyidagi menyu tugmalaridan foydalaning:', {
-      replyMarkup: buildMainReplyKeyboard(),
+    await this.sendMessage(
+      chatId,
+      '👇 Menyu tugmalari pastda.\nYashirish: «⬇️ Menyuni yashirish» yoki /hide',
+      {
+        replyMarkup: buildMainReplyKeyboard(),
+      },
+    );
+  }
+
+  async hideReplyKeyboard(chatId: string): Promise<void> {
+    await this.sendMessage(chatId, 'Menyu yashirildi. Qayta ochish: /menu', {
+      replyMarkup: buildRemoveReplyKeyboard(),
     });
   }
 
@@ -190,6 +202,10 @@ export class TelegramBotService {
 
   async handleButtonText(chatId: string, text: string, telegramId?: bigint): Promise<boolean> {
     const normalized = text.trim();
+    if (normalized === TG_BTN_HIDE_MENU || normalized === '/hide') {
+      await this.hideReplyKeyboard(chatId);
+      return true;
+    }
     if (normalized === TG_BTN_PUSH_SETUP) {
       await this.startPushSetup(chatId);
       return true;
