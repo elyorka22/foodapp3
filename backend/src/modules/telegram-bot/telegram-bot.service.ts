@@ -17,7 +17,8 @@ import {
   buildMainInlineKeyboard,
   buildMainReplyKeyboard,
   buildRemoveReplyKeyboard,
-  buildPartnershipUrl,
+  buildPartnershipUrlKeyboard,
+  buildSiteUrlKeyboard,
 } from './telegram-bot-keyboard';
 import {
   TG_LINK_PAGE_PREFIX,
@@ -216,17 +217,13 @@ export class TelegramBotService {
   }
 
   async handleMyId(chatId: string): Promise<void> {
-    const settings = await this.botSettings.getSettings();
-    const keyboardOptions = await this.getKeyboardOptions(chatId);
     await this.sendMessage(
       chatId,
       `Sizning chat ID:\n<code>${chatId}</code>\n\nRestoran panelida «Telegram buyurtmalar» bo'limiga shu raqamni kiriting.`,
-      { replyMarkup: buildMainInlineKeyboard(settings.siteUrl, keyboardOptions) },
     );
   }
 
   async handleHelp(chatId: string): Promise<void> {
-    const settings = await this.botSettings.getSettings();
     const keyboardOptions = await this.getKeyboardOptions(chatId);
     const statsLine = keyboardOptions.includeRestaurantStats
       ? `• <b>${TG_BTN_STATISTICS}</b> — o'tgan oy statistikasi (PDF)\n`
@@ -239,9 +236,7 @@ export class TelegramBotService {
         `• <b>${TG_BTN_CHAT_ID}</b> — restoran uchun buyurtma bildirishnomalari (chat ID)\n` +
         `• <b>${TG_BTN_PUSH_SETUP}</b> — pushni kod orqali ulash\n` +
         statsLine +
-        `\nPastdagi menyu yoki xabar ostidagi tugmalardan foydalaning.\n` +
-        `Restoran egasi bo'lsangiz: «${TG_BTN_PARTNERSHIP}» yoki «${TG_BTN_CHAT_ID}» tugmalaridan foydalaning.`,
-      { replyMarkup: buildMainInlineKeyboard(settings.siteUrl, keyboardOptions) },
+        `\nPastdagi menyu tugmalaridan foydalaning.`,
     );
   }
 
@@ -275,25 +270,17 @@ export class TelegramBotService {
       return true;
     }
     if (normalized === TG_BTN_OPEN_SITE) {
-      await this.sendMainMenu(
-        chatId,
-        "Saytga o'tish uchun quyidagi tugmani bosing:",
-      );
+      const settings = await this.botSettings.getSettings();
+      await this.sendMessage(chatId, "Saytga o'tish uchun quyidagi tugmani bosing:", {
+        replyMarkup: buildSiteUrlKeyboard(settings.siteUrl),
+      });
       return true;
     }
     if (normalized === TG_BTN_PARTNERSHIP) {
       const settings = await this.botSettings.getSettings();
-      await this.sendMessage(
-        chatId,
-        'Restoranlar uchun hamkorlik sahifasi:',
-        {
-          replyMarkup: {
-            inline_keyboard: [
-              [{ text: TG_BTN_PARTNERSHIP, url: buildPartnershipUrl(settings.siteUrl) }],
-            ],
-          },
-        },
-      );
+      await this.sendMessage(chatId, 'Restoranlar uchun hamkorlik sahifasi:', {
+        replyMarkup: buildPartnershipUrlKeyboard(settings.siteUrl),
+      });
       return true;
     }
     return false;

@@ -23,6 +23,18 @@ export function buildPartnershipUrl(siteUrl: string): string {
   return `${base}${HAMKORLIK_PATH}`;
 }
 
+export function buildSiteUrlKeyboard(siteUrl: string) {
+  return {
+    inline_keyboard: [[{ text: TG_BTN_OPEN_SITE, url: siteUrl }]],
+  };
+}
+
+export function buildPartnershipUrlKeyboard(siteUrl: string) {
+  return {
+    inline_keyboard: [[{ text: TG_BTN_PARTNERSHIP, url: buildPartnershipUrl(siteUrl) }]],
+  };
+}
+
 export function buildMainInlineKeyboard(siteUrl: string, options?: KeyboardOptions) {
   const rows: { text: string; url?: string; callback_data?: string }[][] = [
     [{ text: TG_BTN_OPEN_SITE, url: siteUrl }],
