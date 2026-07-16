@@ -73,7 +73,7 @@ abstract final class AppTypography {
 
   static TextStyle get metricAccent => metric.copyWith(color: AppColors.primary);
 
-  static TextThemeData get textTheme => TextThemeData(
+  static TextTheme get textTheme => TextTheme(
         displayLarge: display,
         headlineMedium: title,
         titleMedium: subtitle,
