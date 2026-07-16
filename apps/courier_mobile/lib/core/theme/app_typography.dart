@@ -4,8 +4,6 @@ import 'app_colors.dart';
 
 /// iKuryer type system — Space Grotesk for a clean logistics feel.
 abstract final class AppTypography {
-  static String? get _family => GoogleFonts.spaceGrotesk().fontFamily;
-
   static TextStyle get display => GoogleFonts.spaceGrotesk(
         fontSize: 34,
         fontWeight: FontWeight.w700,
@@ -81,6 +79,5 @@ abstract final class AppTypography {
         bodyMedium: bodySmall,
         labelLarge: button,
         labelSmall: caption,
-        fontFamily: _family,
       );
 }
