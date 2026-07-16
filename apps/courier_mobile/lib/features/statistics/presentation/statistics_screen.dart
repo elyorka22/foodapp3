@@ -7,7 +7,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_weekly_stats_model.dart';
-import '../../../shared/widgets/food_app_card.dart';
+import '../../../shared/widgets/app_atmosphere.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/metric_block.dart';
 import '../../orders/data/courier_repository.dart';
 
 final weeklyStatsProvider = FutureProvider.autoDispose<CourierWeeklyStatsModel>((ref) async {
@@ -22,98 +24,99 @@ class StatisticsScreen extends ConsumerWidget {
     final stats = ref.watch(weeklyStatsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.tabStatistics)),
-      body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(weeklyStatsProvider),
-        color: AppColors.primary,
-        child: stats.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => ListView(
+      body: AppAtmosphere(
+        child: RefreshIndicator(
+          onRefresh: () async => ref.invalidate(weeklyStatsProvider),
+          color: AppColors.primary,
+          child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            children: [Center(child: Text('$e'))],
-          ),
-          data: (data) {
-            if (data.days.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 120),
-                  Center(child: Text(AppStrings.noStatistics)),
+            slivers: [
+              SliverAppBar(
+                pinned: true,
+                title: const Text(AppStrings.tabStatistics),
+                backgroundColor: AppColors.background.withValues(alpha: 0.92),
+              ),
+              ...stats.when(
+                loading: () => [
+                  const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
                 ],
-              );
-            }
+                error: (e, _) => [
+                  SliverFillRemaining(
+                    child: EmptyState(
+                      icon: Icons.error_outline,
+                      title: '$e',
+                      actionLabel: AppStrings.retry,
+                      onAction: () => ref.invalidate(weeklyStatsProvider),
+                    ),
+                  ),
+                ],
+                data: (data) {
+                  if (data.days.isEmpty) {
+                    return [
+                      const ContainedSliver(
+                        child: EmptyState(
+                          icon: Icons.insights_outlined,
+                          title: AppStrings.noStatistics,
+                          subtitle: 'Haftalik ma\'lumotlar shu yerda ko\'rinadi',
+                        ),
+                      ),
+                    ];
+                  }
 
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _SummaryCard(
-                        icon: Icons.check_circle_outline,
-                        label: AppStrings.weekDeliveries,
-                        value: '${data.weekDeliveries}',
+                  return [
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.sm,
+                        AppSpacing.lg,
+                        AppSpacing.xxl,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          MetricRow(
+                            children: [
+                              MetricBlock(
+                                label: AppStrings.weekDeliveries,
+                                value: '${data.weekDeliveries}',
+                                icon: Icons.check_circle_outline,
+                              ),
+                              MetricBlock(
+                                label: AppStrings.weekEarnings,
+                                value: formatSum(data.weekEarnings),
+                                accent: true,
+                                icon: Icons.payments_outlined,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.xxl),
+                          Text(AppStrings.weekDailyBreakdown, style: AppTypography.subtitle),
+                          const SizedBox(height: AppSpacing.md),
+                          ...data.days.map((day) => _DayRow(day: day)),
+                        ]),
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: _SummaryCard(
-                        icon: Icons.payments_outlined,
-                        label: AppStrings.weekEarnings,
-                        value: formatSum(data.weekEarnings),
-                        accent: true,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(AppStrings.weekDailyBreakdown, style: AppTypography.subtitle),
-                const SizedBox(height: AppSpacing.md),
-                ...data.days.map((day) => _DayRow(day: day)),
-              ],
-            );
-          },
+                  ];
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.accent = false,
-  });
+/// Helper so empty state sits nicely inside CustomScrollView.
+class ContainedSliver extends StatelessWidget {
+  const ContainedSliver({super.key, required this.child});
 
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool accent;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return FoodAppCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: accent ? AppColors.primary : AppColors.textMuted, size: 20),
-          const SizedBox(height: 8),
-          Text(label, style: AppTypography.caption),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: AppTypography.title.copyWith(
-              color: accent ? AppColors.primary : AppColors.textPrimary,
-              fontSize: 22,
-            ),
-          ),
-        ],
-      ),
-    );
+    return SliverFillRemaining(hasScrollBody: false, child: child);
   }
 }
 
@@ -131,17 +134,20 @@ class _DayRow extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border(
+          bottom: BorderSide(color: AppColors.border.withValues(alpha: 0.7)),
+        ),
       ),
       child: Row(
         children: [
           Expanded(child: Text(label, style: AppTypography.body)),
-          Text('${day.deliveries}', style: AppTypography.bodySmall),
-          const SizedBox(width: AppSpacing.md),
+          Text(
+            '${day.deliveries}',
+            style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(width: AppSpacing.lg),
           Text(
             formatSum(day.earnings),
             style: AppTypography.body.copyWith(

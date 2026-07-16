@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 
 class FoodAppCard extends StatelessWidget {
-  const FoodAppCard({super.key, required this.child, this.padding});
+  const FoodAppCard({
+    super.key,
+    required this.child,
+    this.padding,
+    this.elevated = false,
+    this.bordered = true,
+  });
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
+  final bool elevated;
+  final bool bordered;
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +22,9 @@ class FoodAppCard extends StatelessWidget {
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: elevated ? AppColors.surfaceElevated : AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        border: Border.all(color: AppColors.border),
-        boxShadow: AppShadows.card,
+        border: bordered ? Border.all(color: AppColors.border) : null,
       ),
       child: child,
     );

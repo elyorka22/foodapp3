@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/jobs/courier_job_adapter.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../models/courier_order_model.dart';
 import 'order_money_summary.dart';
@@ -13,27 +13,33 @@ class JobCompactCard extends StatelessWidget {
     required this.order,
     required this.onTap,
     this.trailing,
+    this.highlight = false,
   });
 
   final CourierOrderModel order;
   final VoidCallback? onTap;
   final Widget? trailing;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
     final name = order.restaurantName ?? order.stops.first.title;
 
     return Material(
-      color: AppColors.surfaceElevated,
-      borderRadius: BorderRadius.circular(12),
+      color: highlight ? AppColors.surfaceHighlight : AppColors.surfaceElevated,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.borderLight),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: highlight
+                  ? AppColors.primary.withValues(alpha: 0.45)
+                  : AppColors.borderLight,
+            ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -47,7 +53,7 @@ class JobCompactCard extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: ServiceTypeBadge(type: order.serviceType, compact: true),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       name,
                       style: AppTypography.merchantName,
@@ -57,10 +63,10 @@ class JobCompactCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               OrderMoneySummary(order: order, compact: true),
               if (trailing != null) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 trailing!,
               ],
             ],

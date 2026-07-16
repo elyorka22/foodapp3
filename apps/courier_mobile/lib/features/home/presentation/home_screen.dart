@@ -10,6 +10,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/courier_order_model.dart';
 import '../../../shared/widgets/active_job_hero.dart';
+import '../../../shared/widgets/app_atmosphere.dart';
+import '../../../shared/widgets/brand_mark.dart';
+import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/job_offer_card.dart';
 import '../../../shared/widgets/shift_stats_bar.dart';
 import '../../../shared/widgets/new_job_alert_banner.dart';
@@ -29,6 +32,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? _actingOrderId;
   bool _shiftLoading = false;
   bool _profileLoaded = false;
+
   @override
   void initState() {
     super.initState();
@@ -136,58 +140,60 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
 
     return Scaffold(
-      body: Column(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: _HomeTopBar(
-              unread: unread,
-              onNotifications: () => context.push(AppRoutes.notifications),
-              onHistory: () => context.push(AppRoutes.orderHistory),
-            ),
-          ),
-          if (visibleJobAlert != null)
-            NewJobAlertBanner(
-              alert: visibleJobAlert,
-              onTap: () {
-                ref.read(newJobAlertProvider.notifier).state = null;
-                context.push(AppRoutes.incomingOrder, extra: visibleJobAlert.orderId);
-              },
-              onDismiss: () => ref.read(newJobAlertProvider.notifier).state = null,
-            ),
-          if (_profileLoaded)
-            ShiftStatusHeader(
-              isOnline: shiftOpen,
-              isLoading: shiftBusy,
-              onToggle: shiftBusy || (shiftOpen && hasActiveOrder) ? null : _toggleShift,
-            ),
-          Expanded(
-            child: !_profileLoaded
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _refresh,
-                    color: AppColors.primary,
-                    child: _JobsInbox(
-                      isOnline: isOnline,
-                      inbox: inbox,
-                      actingOrderId: _actingOrderId,
-                      onAccept: _acceptOrder,
-                      onOpenActive: (id) =>
-                          context.push(AppRoutes.activeOrder, extra: id),
-                      onRetry: _refresh,
-                    ),
-                  ),
-          ),
-          if (_profileLoaded)
-            shiftStats.when(
-              loading: () => const SizedBox(
-                height: 72,
-                child: Center(child: CircularProgressIndicator()),
+      body: AppAtmosphere(
+        child: Column(
+          children: [
+            SafeArea(
+              bottom: false,
+              child: _HomeTopBar(
+                unread: unread,
+                onNotifications: () => context.push(AppRoutes.notifications),
+                onHistory: () => context.push(AppRoutes.orderHistory),
               ),
-              error: (_, __) => const SizedBox.shrink(),
-              data: (stats) => ShiftStatsBar(stats: stats),
             ),
-        ],
+            if (visibleJobAlert != null)
+              NewJobAlertBanner(
+                alert: visibleJobAlert,
+                onTap: () {
+                  ref.read(newJobAlertProvider.notifier).state = null;
+                  context.push(AppRoutes.incomingOrder, extra: visibleJobAlert.orderId);
+                },
+                onDismiss: () => ref.read(newJobAlertProvider.notifier).state = null,
+              ),
+            if (_profileLoaded)
+              ShiftStatusHeader(
+                isOnline: shiftOpen,
+                isLoading: shiftBusy,
+                onToggle: shiftBusy || (shiftOpen && hasActiveOrder) ? null : _toggleShift,
+              ),
+            Expanded(
+              child: !_profileLoaded
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      onRefresh: _refresh,
+                      color: AppColors.primary,
+                      child: _JobsInbox(
+                        isOnline: isOnline,
+                        inbox: inbox,
+                        actingOrderId: _actingOrderId,
+                        onAccept: _acceptOrder,
+                        onOpenActive: (id) =>
+                            context.push(AppRoutes.activeOrder, extra: id),
+                        onRetry: _refresh,
+                      ),
+                    ),
+            ),
+            if (_profileLoaded)
+              shiftStats.when(
+                loading: () => const SizedBox(
+                  height: 72,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (stats) => ShiftStatsBar(stats: stats),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -207,19 +213,25 @@ class _HomeTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+      padding: const EdgeInsets.fromLTRB(16, 10, 8, 4),
       child: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(AppStrings.appName, style: AppTypography.title),
-              Text(AppStrings.appTagline, style: AppTypography.caption),
-            ],
+          const BrandMark(size: 36, showGlow: false),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppStrings.appName, style: AppTypography.title.copyWith(fontSize: 20)),
+                Text(
+                  AppStrings.appTagline,
+                  style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                ),
+              ],
+            ),
           ),
-          const Spacer(),
           IconButton(
-            icon: const Icon(Icons.history),
+            icon: const Icon(Icons.history_rounded),
             tooltip: AppStrings.orderHistory,
             onPressed: onHistory,
           ),
@@ -228,7 +240,7 @@ class _HomeTopBar extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
+                  icon: const Icon(Icons.notifications_none_rounded),
                   onPressed: onNotifications,
                 ),
                 if (count > 0)
@@ -245,7 +257,7 @@ class _HomeTopBar extends StatelessWidget {
                       child: Text(
                         count > 99 ? '99+' : '$count',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: AppTypography.caption.copyWith(
                           color: AppColors.onPrimary,
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -256,11 +268,11 @@ class _HomeTopBar extends StatelessWidget {
               ],
             ),
             loading: () => IconButton(
-              icon: const Icon(Icons.notifications_outlined),
+              icon: const Icon(Icons.notifications_none_rounded),
               onPressed: onNotifications,
             ),
             error: (_, __) => IconButton(
-              icon: const Icon(Icons.notifications_outlined),
+              icon: const Icon(Icons.notifications_none_rounded),
               onPressed: onNotifications,
             ),
           ),
@@ -297,18 +309,12 @@ class _JobsInbox extends StatelessWidget {
             : ApiException.formatError(error);
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSpacing.xxl),
           children: [
-            const SizedBox(height: 48),
-            const Icon(Icons.cloud_off_outlined, size: 48, color: AppColors.textMuted),
-            const SizedBox(height: AppSpacing.md),
-            Text(message, style: AppTypography.body, textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.lg),
-            Center(
-              child: FilledButton(
-                onPressed: () => onRetry(),
-                child: const Text(AppStrings.retry),
-              ),
+            EmptyState(
+              icon: Icons.cloud_off_outlined,
+              title: message,
+              actionLabel: AppStrings.retry,
+              onAction: () => onRetry(),
             ),
           ],
         );
@@ -317,20 +323,25 @@ class _JobsInbox extends StatelessWidget {
         if (orders.isEmpty) {
           return ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
-            children: const [
-              _EmptyInbox(message: AppStrings.noAvailableOrders),
+            children: [
+              EmptyState(
+                icon: isOnline ? Icons.inbox_outlined : Icons.pause_circle_outline,
+                title: AppStrings.noAvailableOrders,
+                subtitle: isOnline
+                    ? 'Yangi buyurtmalar shu yerda paydo bo\'ladi'
+                    : 'Smena ochilmagan — buyurtmalar kelmaydi',
+              ),
             ],
           );
         }
 
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 4, AppSpacing.lg, AppSpacing.lg),
           children: [
             for (final order in orders)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 10),
                 child: order.isPendingOffer
                     ? JobOfferCard(
                         order: order,
@@ -346,26 +357,6 @@ class _JobsInbox extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _EmptyInbox extends StatelessWidget {
-  const _EmptyInbox({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 48),
-      child: Column(
-        children: [
-          const Icon(Icons.inbox_outlined, size: 48, color: AppColors.textMuted),
-          const SizedBox(height: AppSpacing.md),
-          Text(message, style: AppTypography.body, textAlign: TextAlign.center),
-        ],
-      ),
     );
   }
 }

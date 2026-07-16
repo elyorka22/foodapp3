@@ -29,18 +29,18 @@ class CourierShellScreen extends ConsumerWidget {
           indicatorColor: AppColors.primarySoft,
           destinations: const [
             NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard),
+              icon: Icon(Icons.route_outlined),
+              selectedIcon: Icon(Icons.route_rounded),
               label: AppStrings.tabHome,
             ),
             NavigationDestination(
               icon: Icon(Icons.insights_outlined),
-              selectedIcon: Icon(Icons.insights),
+              selectedIcon: Icon(Icons.insights_rounded),
               label: AppStrings.tabStatistics,
             ),
             NavigationDestination(
-              icon: Icon(Icons.account_circle_outlined),
-              selectedIcon: Icon(Icons.account_circle),
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded),
               label: AppStrings.tabProfile,
             ),
           ],

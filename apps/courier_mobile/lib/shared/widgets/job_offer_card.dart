@@ -21,15 +21,17 @@ class JobOfferCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return JobCompactCard(
       order: order,
+      highlight: true,
       onTap: isLoading ? null : onAccept,
       trailing: SizedBox(
-        height: 32,
+        height: 34,
         child: FilledButton(
           onPressed: isLoading ? null : onAccept,
           style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
           child: isLoading
               ? const SizedBox(

@@ -1,7 +1,7 @@
 name: courier_mobile
 description: iKuryer — courier delivery mobile application.
 publish_to: 'none'
-version: 1.2.1+5
+version: 1.2.2+6
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
@@ -27,6 +27,7 @@ dependencies:
   firebase_messaging: ^15.2.5
   flutter_local_notifications: ^19.0.0
   audioplayers: ^6.4.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

@@ -82,9 +82,10 @@ class _StatTile extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: AppTypography.body.copyWith(
+            style: AppTypography.subtitle.copyWith(
               color: accent ? AppColors.primary : AppColors.textPrimary,
               fontWeight: FontWeight.w800,
+              fontSize: 16,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

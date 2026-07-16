@@ -25,7 +25,8 @@ class FoodAppButton extends StatelessWidget {
     final enabled = onPressed != null && !isLoading;
     return SizedBox(
       width: double.infinity,
-      child: Opacity(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 180),
         opacity: enabled ? 1 : 0.5,
         child: Material(
           color: _background,
@@ -34,21 +35,26 @@ class FoodAppButton extends StatelessWidget {
             onTap: enabled ? onPressed : null,
             borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
             child: Container(
-              constraints: const BoxConstraints(minHeight: 52),
+              constraints: const BoxConstraints(minHeight: 54),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
                 border: variant == FoodAppButtonVariant.secondary
                     ? Border.all(color: AppColors.border)
                     : null,
-                boxShadow: variant == FoodAppButtonVariant.primary ? AppShadows.button : null,
+                boxShadow: variant == FoodAppButtonVariant.primary && enabled
+                    ? AppShadows.button
+                    : null,
               ),
               alignment: Alignment.center,
               child: isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 22,
                       width: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _foreground,
+                      ),
                     )
                   : Text(label, style: AppTypography.button.copyWith(color: _foreground)),
             ),
@@ -72,6 +78,7 @@ class FoodAppButton extends StatelessWidget {
   Color get _foreground {
     switch (variant) {
       case FoodAppButtonVariant.primary:
+        return AppColors.onPrimary;
       case FoodAppButtonVariant.danger:
         return Colors.white;
       case FoodAppButtonVariant.secondary:

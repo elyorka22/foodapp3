@@ -10,7 +10,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
-import '../../../shared/widgets/food_app_card.dart';
+import '../../../shared/widgets/app_atmosphere.dart';
+import '../../../shared/widgets/metric_block.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../home/providers/courier_home_provider.dart';
 
@@ -26,177 +27,171 @@ class ProfileScreen extends ConsumerWidget {
     final alertPrefs = ref.watch(alertPreferencesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.profile)),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          FoodAppCard(
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: AppColors.primarySoft,
-                  child: Text(
-                    (user?.fullName ?? '?').substring(0, 1).toUpperCase(),
-                    style: AppTypography.title.copyWith(color: AppColors.primary),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      body: AppAtmosphere(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              title: const Text(AppStrings.profile),
+              backgroundColor: AppColors.background.withValues(alpha: 0.92),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  Row(
                     children: [
-                      Text(user?.fullName ?? '—', style: AppTypography.subtitle),
-                      Text(user?.phone ?? '—', style: AppTypography.bodySmall),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: shiftOpen ? AppColors.online : AppColors.offline,
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: AppColors.primarySoft,
+                        child: Text(
+                          (user?.fullName ?? '?').substring(0, 1).toUpperCase(),
+                          style: AppTypography.title.copyWith(color: AppColors.primary),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(user?.fullName ?? '—', style: AppTypography.title.copyWith(fontSize: 20)),
+                            const SizedBox(height: 2),
+                            Text(user?.phone ?? '—', style: AppTypography.bodySmall),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: shiftOpen ? AppColors.online : AppColors.offline,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  shiftOpen ? AppStrings.online : AppStrings.offline,
+                                  style: AppTypography.caption.copyWith(
+                                    color: shiftOpen ? AppColors.online : AppColors.textMuted,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 6),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  earnings.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (data) => MetricRow(
+                      children: [
+                        MetricBlock(
+                          label: AppStrings.earned,
+                          value: formatSum(data.totalEarnings),
+                          accent: true,
+                          icon: Icons.payments_outlined,
+                        ),
+                        MetricBlock(
+                          label: AppStrings.deliveries,
+                          value: '${data.completedAssignments}',
+                          icon: Icons.check_circle_outline,
+                        ),
+                      ],
+                    ),
+                  ),
+                  profile.when(
+                    data: (p) => Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.lg),
+                      child: Text(
+                        '${AppStrings.totalDeliveries}: ${p.totalDeliveries}',
+                        style: AppTypography.bodySmall,
+                      ),
+                    ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  Text(AppStrings.serviceTypesTitle, style: AppTypography.caption),
+                  const SizedBox(height: AppSpacing.md),
+                  ...JobServiceType.values.map(
+                    (t) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          Icon(t.icon, color: t.color, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(t.label, style: AppTypography.body)),
                           Text(
-                            shiftOpen ? AppStrings.online : AppStrings.offline,
+                            t.isAvailable ? AppStrings.serviceActive : AppStrings.serviceComingSoon,
                             style: AppTypography.caption.copyWith(
-                              color: shiftOpen ? AppColors.online : AppColors.textMuted,
+                              color: t.isAvailable ? AppColors.success : AppColors.textMuted,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          earnings.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (data) => Row(
-              children: [
-                Expanded(
-                  child: FoodAppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(AppStrings.earned, style: AppTypography.caption),
-                        const SizedBox(height: 4),
-                        Text(
-                          formatSum(data.totalEarnings),
-                          style: AppTypography.subtitle.copyWith(color: AppColors.primary),
-                        ),
-                      ],
                     ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: FoodAppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(AppStrings.deliveries, style: AppTypography.caption),
-                        const SizedBox(height: 4),
-                        Text('${data.completedAssignments}', style: AppTypography.subtitle),
-                      ],
-                    ),
+                  const SizedBox(height: AppSpacing.lg),
+                  const Divider(),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(AppStrings.alertSettings, style: AppTypography.subtitle),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(AppStrings.alertSound, style: AppTypography.body),
+                    activeThumbColor: AppColors.primary,
+                    activeTrackColor: AppColors.primary.withValues(alpha: 0.35),
+                    value: alertPrefs.soundEnabled,
+                    onChanged: (v) =>
+                        ref.read(alertPreferencesProvider.notifier).setSoundEnabled(v),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          FoodAppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(AppStrings.serviceTypesTitle, style: AppTypography.caption),
-                const SizedBox(height: 10),
-                ...JobServiceType.values.map(
-                  (t) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Icon(t.icon, color: t.color, size: 20),
-                        const SizedBox(width: 10),
-                        Text(t.label, style: AppTypography.body),
-                        const Spacer(),
-                        Text(
-                          t.isAvailable ? AppStrings.serviceActive : AppStrings.serviceComingSoon,
-                          style: AppTypography.caption.copyWith(
-                            color: t.isAvailable ? AppColors.success : AppColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(AppStrings.alertVibration, style: AppTypography.body),
+                    activeThumbColor: AppColors.primary,
+                    activeTrackColor: AppColors.primary.withValues(alpha: 0.35),
+                    value: alertPrefs.vibrationEnabled,
+                    onChanged: (v) =>
+                        ref.read(alertPreferencesProvider.notifier).setVibrationEnabled(v),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          profile.when(
-            data: (p) => FoodAppCard(
-              child: Text(
-                '${AppStrings.totalDeliveries}: ${p.totalDeliveries}',
-                style: AppTypography.body,
+                  const Divider(),
+                  _ProfileTile(
+                    icon: Icons.history_rounded,
+                    label: AppStrings.orderHistory,
+                    onTap: () => context.push(AppRoutes.orderHistory),
+                  ),
+                  _ProfileTile(
+                    icon: Icons.notifications_none_rounded,
+                    label: AppStrings.notifications,
+                    onTap: () => context.push(AppRoutes.notifications),
+                  ),
+                  const _NotificationSettingsTile(),
+                  const SizedBox(height: AppSpacing.md),
+                  _ProfileTile(
+                    icon: Icons.logout_rounded,
+                    label: AppStrings.logout,
+                    color: AppColors.danger,
+                    onTap: () async {
+                      await ref.read(authStateProvider.notifier).logout();
+                      if (context.mounted) context.go(AppRoutes.login);
+                    },
+                  ),
+                ]),
               ),
             ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          FoodAppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(AppStrings.alertSettings, style: AppTypography.subtitle),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(AppStrings.alertSound, style: AppTypography.body),
-                  value: alertPrefs.soundEnabled,
-                  onChanged: (v) =>
-                      ref.read(alertPreferencesProvider.notifier).setSoundEnabled(v),
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(AppStrings.alertVibration, style: AppTypography.body),
-                  value: alertPrefs.vibrationEnabled,
-                  onChanged: (v) =>
-                      ref.read(alertPreferencesProvider.notifier).setVibrationEnabled(v),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _ProfileTile(
-            icon: Icons.history,
-            label: AppStrings.orderHistory,
-            onTap: () => context.push(AppRoutes.orderHistory),
-          ),
-          _ProfileTile(
-            icon: Icons.notifications_outlined,
-            label: AppStrings.notifications,
-            onTap: () => context.push(AppRoutes.notifications),
-          ),
-          const _NotificationSettingsTile(),
-          const Divider(height: 24),
-          _ProfileTile(
-            icon: Icons.logout,
-            label: AppStrings.logout,
-            color: AppColors.danger,
-            onTap: () async {
-              await ref.read(authStateProvider.notifier).logout();
-              if (context.mounted) context.go(AppRoutes.login);
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -233,8 +228,15 @@ class _ProfileTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: color ?? AppColors.textSecondary),
-      title: Text(label, style: TextStyle(color: color ?? AppColors.textPrimary)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
+      title: Text(
+        label,
+        style: AppTypography.body.copyWith(color: color ?? AppColors.textPrimary),
+      ),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: color ?? AppColors.textMuted,
+        size: 20,
+      ),
       onTap: onTap,
     );
   }
