@@ -32,7 +32,6 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   });
   const href = restaurantPublicPath(restaurant);
   const delivery = restaurantDeliveryLabel(restaurant);
-  const isClosed = restaurant.isOpen === false;
 
   return (
     <Link href={href} className="group block transition active:scale-[0.98]">
@@ -57,9 +56,6 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
             <span className="text-5xl font-black text-white/40">{restaurant.name.charAt(0)}</span>
           </div>
         )}
-
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-black/10 to-black/45" />
-        {isClosed ? <div className="pointer-events-none absolute inset-0 bg-black/40" /> : null}
 
         <h3 className="absolute left-3 right-3 top-3 line-clamp-2 text-[15px] font-extrabold leading-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
           {restaurant.name}

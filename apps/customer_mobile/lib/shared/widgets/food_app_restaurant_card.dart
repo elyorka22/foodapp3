@@ -21,7 +21,6 @@ class FoodAppRestaurantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final delivery = restaurantDeliveryLabel(restaurant);
-    final isClosed = restaurant.isOpen == false;
 
     return Material(
       color: Colors.transparent,
@@ -36,22 +35,6 @@ class FoodAppRestaurantCard extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 _cover(),
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0x99000000),
-                        Color(0x14000000),
-                        Color(0x66000000),
-                      ],
-                      stops: [0.0, 0.45, 1.0],
-                    ),
-                  ),
-                ),
-                if (isClosed)
-                  const ColoredBox(color: Color(0x66000000)),
                 Positioned(
                   top: 12,
                   left: 12,
