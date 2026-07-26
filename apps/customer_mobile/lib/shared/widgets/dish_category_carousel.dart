@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/routes.dart';
@@ -7,72 +6,78 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/dish_category_model.dart';
 
+/// Horizontal pill chips for dish categories (reference: drink-app category bar).
 class DishCategoryCarousel extends StatelessWidget {
-  const DishCategoryCarousel({super.key, required this.categories});
+  const DishCategoryCarousel({
+    super.key,
+    required this.categories,
+    this.activeSlug,
+  });
 
   final List<DishCategoryModel> categories;
+  final String? activeSlug;
 
   @override
   Widget build(BuildContext context) {
     if (categories.isEmpty) return const SizedBox.shrink();
 
-    return SizedBox(
-      height: 112,
+    return Align(
+      alignment: Alignment.centerLeft,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
+        padding: EdgeInsets.zero,
         separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
         itemBuilder: (_, i) {
           final cat = categories[i];
-          final imageUrl = cat.resolvedImageUrl;
-          return GestureDetector(
-            onTap: () => context.push(AppRoutes.categoryProducts(cat.slug)),
-            child: SizedBox(
-              width: 88,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                      child: imageUrl != null
-                          ? CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => _fallback(cat.name),
-                            )
-                          : _fallback(cat.name),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    cat.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodySmall,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+          final active = activeSlug != null && activeSlug == cat.slug;
+          return Center(
+            child: _CategoryPill(
+              label: cat.name,
+              active: active,
+              onTap: () => context.push(AppRoutes.categoryProducts(cat.slug)),
             ),
           );
         },
       ),
     );
   }
+}
 
-  Widget _fallback(String name) {
-    return Container(
-      width: double.infinity,
-      color: AppColors.primarySoft,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.all(4),
-      child: Text(
-        name,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.center,
-        style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+class _CategoryPill extends StatelessWidget {
+  const _CategoryPill({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: active ? AppColors.primary : Colors.white,
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: active ? AppColors.primary : AppColors.border,
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          child: Text(
+            label,
+            style: AppTypography.subtitle.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: active ? Colors.white : AppColors.textPrimary,
+            ),
+          ),
+        ),
       ),
     );
   }
