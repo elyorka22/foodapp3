@@ -25,7 +25,7 @@ export function RestaurantCategoryTabs({
   const tabs = [{ id: 'all', name: allLabel }, ...categories];
 
   return (
-    <div className="scrollbar-hide -mx-1 mb-4 flex gap-5 overflow-x-auto border-b border-zinc-200/80 px-1 pb-0">
+    <div className="scrollbar-hide -mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1">
       {tabs.map((tab) => {
         const active = activeId === tab.id;
         return (
@@ -34,8 +34,10 @@ export function RestaurantCategoryTabs({
             type="button"
             onClick={() => onChange(tab.id)}
             className={clsx(
-              'shrink-0 pb-2.5 text-[15px] font-semibold transition-colors',
-              active ? 'border-b-2 border-zinc-900 text-zinc-900' : 'text-zinc-400',
+              'shrink-0 rounded-full border px-4 py-2.5 text-[14px] font-bold transition-colors',
+              active
+                ? 'border-brand-600 bg-brand-600 text-white'
+                : 'border-zinc-200 bg-white text-zinc-500',
             )}
           >
             {tab.name}

@@ -3,6 +3,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../shared/models/restaurant_model.dart';
 
+/// Chip-style category selector (rounded pills, horizontal scroll).
 class RestaurantCategoryTabs extends StatelessWidget {
   const RestaurantCategoryTabs({
     super.key,
@@ -26,13 +27,13 @@ class RestaurantCategoryTabs extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _Tab(
+          _Chip(
             label: allLabel,
             active: activeId == 'all',
             onTap: () => onChanged('all'),
           ),
           for (final c in categories)
-            _Tab(
+            _Chip(
               label: c.name,
               active: activeId == c.id,
               onTap: () => onChanged(c.id),
@@ -43,8 +44,8 @@ class RestaurantCategoryTabs extends StatelessWidget {
   }
 }
 
-class _Tab extends StatelessWidget {
-  const _Tab({
+class _Chip extends StatelessWidget {
+  const _Chip({
     required this.label,
     required this.active,
     required this.onTap,
@@ -56,25 +57,28 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: 20),
-        padding: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: active ? AppColors.textPrimary : Colors.transparent,
-              width: 2,
-            ),
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Material(
+        color: active ? AppColors.primary : Colors.white,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: active ? AppColors.primary : AppColors.border,
           ),
         ),
-        child: Text(
-          label,
-          style: AppTypography.subtitle.copyWith(
-            fontSize: 15,
-            color: active ? AppColors.textPrimary : AppColors.textMuted,
-            fontWeight: FontWeight.w600,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const StadiumBorder(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Text(
+              label,
+              style: AppTypography.subtitle.copyWith(
+                fontSize: 14,
+                color: active ? Colors.white : AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ),
       ),

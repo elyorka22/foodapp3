@@ -6,7 +6,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ShoppingCart, Package } from 'lucide-react';
 import { api } from '@/lib/api';
 import { isRestaurantKind } from '@/lib/business-kind';
+import { resolveImageUrl } from '@/lib/image-url';
 import { useCartStore } from '@/store/cart';
+import { useHomeBanners } from '@/hooks/use-home-data';
+import { BannerSlotCarousel } from '@/components/home/banner-slot-carousel';
 import { RestaurantMenuHeader } from '@/components/restaurant/restaurant-menu-header';
 import { RestaurantCategoryTabs } from '@/components/restaurant/restaurant-category-tabs';
 import { ProductCard, type MenuProduct } from '@/components/restaurant/product-card';
@@ -60,7 +63,17 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
     staleTime: 60_000,
   });
 
+  const bannersQuery = useHomeBanners();
   const restaurant = isRestaurantKind(business?.kind);
+
+  const restaurantBanners = useMemo(() => {
+    if (!business?.id) return [];
+    return (bannersQuery.data ?? [])
+      .filter((b) => b.restaurantId === business.id)
+      .filter((b) => Boolean(resolveImageUrl(b.imageUrl)))
+      .slice()
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }, [bannersQuery.data, business?.id]);
 
   const { data: fallbackProducts } = useQuery({
     queryKey: ['business-products', business?.id],
@@ -135,11 +148,18 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
     <div className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-3 pb-24">
       <RestaurantMenuHeader
         title={business.name}
+        logoUrl={business.logoUrl}
         backHref={backHref}
         isOpen={business.isOpen}
         closesAt={business.closesAt}
         closingSoon={business.closingSoon}
       />
+
+      {restaurantBanners.length > 0 ? (
+        <div className="mb-4 h-40">
+          <BannerSlotCarousel banners={restaurantBanners} tall />
+        </div>
+      ) : null}
 
       <RestaurantCategoryTabs
         categories={categories}

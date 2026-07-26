@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,7 +6,10 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/image_url.dart';
+import '../../../shared/models/banner_model.dart';
 import '../../../shared/models/restaurant_model.dart';
+import '../../../shared/widgets/banner_slot_carousel.dart';
 import '../../../shared/widgets/business_availability_badge.dart';
 import '../../../shared/widgets/menu_product_card.dart';
 import '../../../shared/widgets/restaurant_category_tabs.dart';
@@ -35,7 +39,7 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
         onCategoryChanged: (id) => setState(() => _activeCategoryId = id),
       ),
       loading: () => const Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.pageBackground,
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
@@ -75,18 +79,29 @@ class _RestaurantDetailBody extends ConsumerWidget {
     ].where((section) => section.products.isNotEmpty).toList();
   }
 
+  List<BannerModel> _restaurantBanners(List<BannerModel> all) {
+    return all
+        .where((b) => b.restaurantId == restaurant.id)
+        .where((b) => resolveImageUrl(b.imageUrl) != null)
+        .toList()
+      ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productsAsync = ref.watch(restaurantProductsProvider(restaurant.id));
+    final bannersAsync = ref.watch(bannersProvider);
     final allProducts = restaurant.products ?? productsAsync.value ?? [];
     final categories = restaurant.categories ?? [];
     final products = _filterProducts(allProducts);
     final menuSections =
         activeCategoryId == 'all' ? _menuSections(allProducts, categories) : null;
     final closed = restaurant.isOpen == false;
+    final restaurantBanners = _restaurantBanners(bannersAsync.valueOrNull ?? const []);
+    final logoUrl = resolveImageUrl(restaurant.logoUrl);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.pageBackground,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -102,45 +117,49 @@ class _RestaurantDetailBody extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _IconCircleButton(
-                          icon: Icons.arrow_back,
+                          icon: Icons.arrow_back_rounded,
                           onTap: () => context.pop(),
                         ),
-                        const Spacer(),
-                        _IconCircleButton(icon: Icons.search, onTap: () {}),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: _RestaurantBrandHeader(
+                            name: restaurant.name,
+                            logoUrl: logoUrl,
+                            isOpen: restaurant.isOpen,
+                            closesAt: restaurant.closesAt,
+                            closingSoon: restaurant.closingSoon ?? false,
+                          ),
+                        ),
+                        _IconCircleButton(icon: Icons.search_rounded, onTap: () {}),
                         const SizedBox(width: AppSpacing.sm),
                         _IconCircleButton(
-                          icon: Icons.favorite_border,
+                          icon: Icons.favorite_border_rounded,
                           onTap: () {},
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        Text(
-                          restaurant.name,
-                          style: AppTypography.title.copyWith(fontSize: 26),
+                    if (restaurantBanners.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      SizedBox(
+                        height: 160,
+                        child: BannerSlotCarousel(
+                          banners: restaurantBanners,
+                          tall: true,
                         ),
-                        if (restaurant.isOpen != null)
-                          BusinessAvailabilityBadge(
-                            isOpen: restaurant.isOpen,
-                            closesAt: restaurant.closesAt,
-                            closingSoon: restaurant.closingSoon ?? false,
-                            compact: true,
-                          ),
-                      ],
-                    ),
+                      ),
+                    ],
+                    if (categories.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      RestaurantCategoryTabs(
+                        categories: categories,
+                        activeId: activeCategoryId,
+                        onChanged: onCategoryChanged,
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.lg),
-                    RestaurantCategoryTabs(
-                      categories: categories,
-                      activeId: activeCategoryId,
-                      onChanged: onCategoryChanged,
-                    ),
                   ],
                 ),
               ),
@@ -268,6 +287,63 @@ class _RestaurantDetailBody extends ConsumerWidget {
           businessId: restaurant.id,
           businessName: restaurant.name,
         );
+  }
+}
+
+class _RestaurantBrandHeader extends StatelessWidget {
+  const _RestaurantBrandHeader({
+    required this.name,
+    required this.logoUrl,
+    required this.isOpen,
+    required this.closesAt,
+    required this.closingSoon,
+  });
+
+  final String name;
+  final String? logoUrl;
+  final bool? isOpen;
+  final String? closesAt;
+  final bool closingSoon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (logoUrl != null && logoUrl!.isNotEmpty)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: CachedNetworkImage(
+              imageUrl: logoUrl!,
+              height: 48,
+              fit: BoxFit.contain,
+              alignment: Alignment.centerLeft,
+              errorWidget: (_, __, ___) => Text(
+                name,
+                style: AppTypography.title.copyWith(fontSize: 22),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          )
+        else
+          Text(
+            name,
+            style: AppTypography.title.copyWith(fontSize: 22),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        if (isOpen != null) ...[
+          const SizedBox(height: 6),
+          BusinessAvailabilityBadge(
+            isOpen: isOpen,
+            closesAt: closesAt,
+            closingSoon: closingSoon,
+            compact: true,
+          ),
+        ],
+      ],
+    );
   }
 }
 

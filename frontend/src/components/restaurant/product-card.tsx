@@ -100,12 +100,12 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
             disabled={disabled}
             onClick={addToCart}
             className={clsx(
-              'absolute bottom-2 right-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-900 shadow-md transition active:scale-95',
+              'absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-white shadow-md transition active:scale-95',
               disabled && 'opacity-40',
             )}
             aria-label={uz.addToCart}
           >
-            <Plus size={22} strokeWidth={2.5} />
+            <Plus size={20} strokeWidth={2.5} />
           </button>
         ) : (
           <div
