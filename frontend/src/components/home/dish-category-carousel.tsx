@@ -26,15 +26,15 @@ export function DishCategoryCarousel({ categories }: { categories: DishCategory[
             className="flex w-[88px] shrink-0 flex-col active:scale-[0.98]"
             aria-label={cat.name}
           >
-            <div className="relative min-h-0 flex-1 overflow-hidden rounded-[20px] bg-zinc-100">
+            <div className="relative min-h-0 flex-1 overflow-hidden rounded-[20px] bg-white">
               {imageUrl ? (
                 <Image
                   src={imageUrl}
                   alt={cat.name}
                   fill
                   sizes="88px"
-                  className="object-cover"
-                  style={categoryImageStyle(cat)}
+                  className="h-full w-full"
+                  style={categoryImageStyle(cat, { fit: 'contain' })}
                   unoptimized
                 />
               ) : (

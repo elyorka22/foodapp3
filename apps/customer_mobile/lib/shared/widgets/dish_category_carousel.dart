@@ -65,11 +65,13 @@ class _CategoryCard extends StatelessWidget {
                         imageScale: category.imageScale,
                         imagePositionX: category.imagePositionX,
                         imagePositionY: category.imagePositionY,
+                        fit: BoxFit.contain,
+                        letterboxColor: Colors.white,
                         child: CachedNetworkImage(
                           imageUrl: imageUrl,
                           width: double.infinity,
                           height: double.infinity,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                           alignment: Alignment(
                             ((category.imagePositionX ?? 50) / 50) - 1,
                             ((category.imagePositionY ?? 50) / 50) - 1,

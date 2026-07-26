@@ -23,13 +23,19 @@ export function CategoryImagePositionControls<T extends FormWithImage>({ form, s
   return (
     <div className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-zinc-900/50">
       <p className="text-xs font-semibold">Category card — image framing</p>
-      <div className="relative mx-auto aspect-[4/3] max-w-[200px] overflow-hidden rounded-xl bg-zinc-200">
+      <p className="text-[11px] opacity-60">
+        Rasm avtomatik joylashadi; bo&apos;sh joylar oq fon bilan to&apos;ldiriladi.
+      </p>
+      <div className="relative mx-auto aspect-square max-w-[160px] overflow-hidden rounded-[20px] bg-white ring-1 ring-zinc-200">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={previewSrc}
           alt="Preview"
           className="h-full w-full"
-          style={categoryImageStyle({ imageScale: scale, imagePositionX: x, imagePositionY: y })}
+          style={categoryImageStyle(
+            { imageScale: scale, imagePositionX: x, imagePositionY: y },
+            { fit: 'contain' },
+          )}
         />
       </div>
       <label className="block text-xs">
