@@ -26,24 +26,24 @@ function AllRestaurantsCard({
   return (
     <Link
       href="/restaurants"
-      className="relative block h-[88px] w-[88px] shrink-0 overflow-hidden rounded-[20px] active:scale-[0.98]"
+      className="flex w-[88px] shrink-0 flex-col active:scale-[0.98]"
       aria-label={title}
     >
-      {src ? (
-        <Image
-          src={src}
-          alt={title}
-          fill
-          className="object-cover"
-          sizes="88px"
-          unoptimized
-        />
-      ) : (
-        <div className="absolute inset-0 bg-brand-600" />
-      )}
-      <span className="absolute left-2 right-2 top-2 line-clamp-2 text-[12px] font-extrabold leading-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-[20px] bg-brand-600">
+        {src ? (
+          <Image
+            src={src}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="88px"
+            unoptimized
+          />
+        ) : null}
+      </div>
+      <p className="mt-1.5 truncate text-center text-xs font-semibold text-zinc-800">
         {title}
-      </span>
+      </p>
     </Link>
   );
 }
@@ -56,13 +56,19 @@ export function HomeSecondaryBanners({ categories, isLoading }: Props) {
   if (isLoading) {
     return (
       <section
-        className="mt-4 flex h-[88px] items-center gap-2"
+        className="mt-4 flex h-[112px] gap-2"
         aria-label={uz.homeSecondaryBanners}
       >
-        <Skeleton className="h-[88px] w-[88px] shrink-0 rounded-[20px] shadow-none" />
+        <div className="flex w-[88px] shrink-0 flex-col">
+          <Skeleton className="min-h-0 flex-1 rounded-[20px] shadow-none" />
+          <Skeleton className="mx-auto mt-1.5 h-3 w-16 rounded shadow-none" />
+        </div>
         <div className="flex flex-1 gap-2 overflow-hidden">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-10 w-24 shrink-0 rounded-full shadow-none" />
+            <div key={i} className="flex w-[88px] shrink-0 flex-col">
+              <Skeleton className="min-h-0 flex-1 rounded-[20px] shadow-none" />
+              <Skeleton className="mx-auto mt-1.5 h-3 w-14 rounded shadow-none" />
+            </div>
           ))}
         </div>
       </section>
@@ -71,7 +77,7 @@ export function HomeSecondaryBanners({ categories, isLoading }: Props) {
 
   return (
     <section
-      className="mt-4 flex h-[88px] items-center gap-2"
+      className="mt-4 flex h-[112px] gap-2"
       aria-label={uz.homeSecondaryBanners}
     >
       <AllRestaurantsCard

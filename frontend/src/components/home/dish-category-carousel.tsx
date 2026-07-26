@@ -1,38 +1,51 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import { clsx } from 'clsx';
+import { categoryImageStyle } from '@/lib/category-image-style';
+import { resolveImageUrl } from '@/lib/image-url';
 import type { DishCategory } from '@/hooks/use-dish-categories';
 
-type Props = {
-  categories: DishCategory[];
-  activeSlug?: string;
-};
-
-/** Horizontal pill chips for dish categories. */
-export function DishCategoryCarousel({ categories, activeSlug }: Props) {
+/** Horizontal image cards for dish categories. */
+export function DishCategoryCarousel({ categories }: { categories: DishCategory[] }) {
   const slides = categories.filter((c) => c.isActive !== false);
   if (!slides.length) return null;
 
   return (
     <div
-      className="-mr-4 flex gap-2 overflow-x-auto pb-1 pr-4 scrollbar-hide"
+      className="flex h-full gap-2 overflow-x-auto scrollbar-hide"
       aria-label="Taom kategoriyalari"
     >
       {slides.map((cat) => {
-        const active = activeSlug != null && activeSlug === cat.slug;
+        const imageUrl = resolveImageUrl(cat.imageUrl);
+        const href = `/categories/${encodeURIComponent(cat.slug)}`;
         return (
           <Link
             key={cat.id}
-            href={`/categories/${encodeURIComponent(cat.slug)}`}
-            className={clsx(
-              'shrink-0 rounded-full border px-4 py-2.5 text-[14px] font-bold transition active:scale-[0.98]',
-              active
-                ? 'border-brand-600 bg-brand-600 text-white'
-                : 'border-zinc-200 bg-white text-zinc-900',
-            )}
+            href={href}
+            className="flex w-[88px] shrink-0 flex-col active:scale-[0.98]"
+            aria-label={cat.name}
           >
-            {cat.name}
+            <div className="relative min-h-0 flex-1 overflow-hidden rounded-[20px] bg-zinc-100">
+              {imageUrl ? (
+                <Image
+                  src={imageUrl}
+                  alt={cat.name}
+                  fill
+                  sizes="88px"
+                  className="object-cover"
+                  style={categoryImageStyle(cat)}
+                  unoptimized
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-500 to-orange-400 px-2 text-center text-xs font-semibold text-white">
+                  {cat.name}
+                </div>
+              )}
+            </div>
+            <p className="mt-1.5 truncate text-center text-xs font-semibold text-zinc-800">
+              {cat.name}
+            </p>
           </Link>
         );
       })}

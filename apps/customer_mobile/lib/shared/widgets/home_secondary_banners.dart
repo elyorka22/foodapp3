@@ -13,7 +13,7 @@ import '../../features/restaurants/providers/dish_categories_provider.dart';
 import '../models/dish_category_model.dart';
 import 'dish_category_carousel.dart';
 
-/// Home row: "All restaurants" card + pill category carousel.
+/// Home row: "All restaurants" card + image category carousel.
 class HomeSecondaryBanners extends ConsumerWidget {
   const HomeSecondaryBanners({super.key});
 
@@ -64,7 +64,7 @@ class _HomeCategoryRow extends StatelessWidget {
     final imageUrl = resolveImageUrl(settings?.homeRestaurantsBannerImageUrl);
 
     return SizedBox(
-      height: 88,
+      height: 112,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -92,46 +92,37 @@ class _AllRestaurantsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.push(AppRoutes.allRestaurants),
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (imageUrl != null)
-                CachedNetworkImage(
-                  imageUrl: imageUrl!,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => _fallback(),
-                )
-              else
-                _fallback(),
-              Positioned(
-                left: 8,
-                right: 8,
-                top: 8,
-                child: Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 12,
-                    height: 1.15,
-                    shadows: const [
-                      Shadow(
-                        color: Color(0x99000000),
-                        blurRadius: 6,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                ),
+      child: SizedBox(
+        width: 88,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: imageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorWidget: (_, __, ___) => _fallback(),
+                      )
+                    : _fallback(),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -163,16 +154,31 @@ class _HomeCategoryRowSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 88,
+      height: 112,
       child: Row(
         children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(20),
-              ),
+          SizedBox(
+            width: 88,
+            child: Column(
+              children: [
+                Expanded(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  height: 12,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -182,12 +188,28 @@ class _HomeCategoryRowSkeleton extends StatelessWidget {
                 3,
                 (i) => Padding(
                   padding: EdgeInsets.only(right: i == 2 ? 0 : 8),
-                  child: Container(
+                  child: SizedBox(
                     width: 88,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.border,
-                      borderRadius: BorderRadius.circular(999),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: AppColors.border,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          height: 12,
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.border,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
