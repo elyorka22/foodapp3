@@ -35,14 +35,19 @@ class AllRestaurantsScreen extends ConsumerWidget {
                 ],
               );
             }
-            return ListView.separated(
+            return GridView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: scrollSafePadding(
                 context,
                 base: const EdgeInsets.all(AppSpacing.lg),
               ),
               itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 3 / 4,
+              ),
               itemBuilder: (_, index) {
                 final restaurant = list[index];
                 return FoodAppRestaurantCard(

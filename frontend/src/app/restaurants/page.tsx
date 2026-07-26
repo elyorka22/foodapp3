@@ -23,9 +23,9 @@ export default function RestaurantsPage() {
       </div>
 
       {restaurantsQuery.isLoading && (
-        <div className="flex flex-col gap-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="aspect-[2/1] w-full rounded-xl shadow-none" />
+        <div className="grid grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="aspect-[3/4] w-full rounded-[22px] shadow-none" />
           ))}
         </div>
       )}
@@ -48,7 +48,7 @@ export default function RestaurantsPage() {
       )}
 
       {!restaurantsQuery.isLoading && !restaurantsQuery.isError && restaurants.length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {restaurants.map((r, i) => (
             <RestaurantGridCard key={r.id} restaurant={r} index={i} />
           ))}

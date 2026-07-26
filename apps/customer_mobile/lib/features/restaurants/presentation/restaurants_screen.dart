@@ -54,16 +54,23 @@ class RestaurantsScreen extends ConsumerWidget {
                   if (list.isEmpty) {
                     return Text(AppStrings.errorGeneric, style: AppTypography.bodySmall);
                   }
-                  return Column(
-                    children: [
-                      for (final r in list) ...[
-                        FoodAppRestaurantCard(
-                          restaurant: r,
-                          onTap: () => context.go('/restaurants/${r.slug}'),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                      ],
-                    ],
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: list.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 3 / 4,
+                    ),
+                    itemBuilder: (context, index) {
+                      final r = list[index];
+                      return FoodAppRestaurantCard(
+                        restaurant: r,
+                        onTap: () => context.go('/restaurants/${r.slug}'),
+                      );
+                    },
                   );
                 },
                 loading: () => const Center(

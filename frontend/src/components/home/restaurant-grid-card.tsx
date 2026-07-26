@@ -2,23 +2,20 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Bookmark, Footprints } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
-import {
-  restaurantDeliveryLabel,
-} from '@/lib/restaurant-card-meta';
+import { restaurantDeliveryLabel } from '@/lib/restaurant-card-meta';
 import { restaurantPublicPath } from '@/lib/restaurant-url';
 import { uz } from '@/lib/uz';
-import { BusinessAvailabilityBadge } from '@/components/business/business-availability-badge';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
 const FALLBACK_BACKGROUNDS = [
   'bg-[#FF5A45]',
-  'bg-[#E91E96]',
-  'bg-[#7C5CFF]',
   'bg-[#EA6A1A]',
+  'bg-[#FF8A3D]',
+  'bg-[#C2410C]',
 ] as const;
 
 type Props = {
@@ -35,18 +32,19 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   });
   const href = restaurantPublicPath(restaurant);
   const delivery = restaurantDeliveryLabel(restaurant);
+  const isClosed = restaurant.isOpen === false;
 
   return (
-    <Link href={href} className="block transition active:scale-[0.99]">
-      <div className="relative aspect-[2/1] w-full overflow-hidden rounded-xl bg-zinc-200">
+    <Link href={href} className="group block transition active:scale-[0.98]">
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[22px] bg-zinc-200 shadow-sm">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={restaurant.name}
             fill
-            className="h-full w-full"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
             style={coverStyle}
-            sizes="(max-width: 430px) 100vw, 430px"
+            sizes="(max-width: 430px) 50vw, 210px"
             unoptimized
           />
         ) : (
@@ -60,35 +58,28 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
           </div>
         )}
 
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-black/10 to-black/45" />
+        {isClosed ? <div className="pointer-events-none absolute inset-0 bg-black/40" /> : null}
+
+        <h3 className="absolute left-3 right-3 top-3 line-clamp-2 text-[15px] font-extrabold leading-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
+          {restaurant.name}
+        </h3>
+
         <button
           type="button"
-          className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]"
+          className="absolute bottom-2.5 left-2.5 flex h-[34px] w-[34px] items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm"
           aria-label={uz.favoritesAria}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
           }}
         >
-          <Bookmark size={17} strokeWidth={2} />
+          <Heart size={17} strokeWidth={2} />
         </button>
-      </div>
 
-      <div className="mt-1.5">
-        <h3 className="truncate text-[17px] font-bold leading-tight text-zinc-900">
-          {restaurant.name}
-        </h3>
-        <BusinessAvailabilityBadge
-          isOpen={restaurant.isOpen}
-          closesAt={restaurant.closesAt}
-          closingSoon={restaurant.closingSoon}
-          className="mt-0.5"
-        />
-        <div className="mt-0.5">
-          <span className="inline-flex items-center gap-1 text-[13px] text-zinc-500">
-            <Footprints size={15} strokeWidth={2} className="text-zinc-600" />
-            {delivery}
-          </span>
-        </div>
+        <span className="absolute bottom-2.5 right-2.5 rounded-full bg-[#FF6B00] px-2.5 py-1.5 text-[12px] font-extrabold text-white shadow-[0_3px_10px_rgba(255,107,0,0.35)]">
+          {delivery}
+        </span>
       </div>
     </Link>
   );

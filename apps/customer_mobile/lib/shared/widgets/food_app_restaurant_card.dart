@@ -1,14 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import 'lucide_restaurant_icons.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_framing.dart';
 import '../../core/utils/image_url.dart';
 import '../../core/utils/restaurant_card_meta.dart';
 import '../../shared/models/restaurant_model.dart';
-import 'business_availability_badge.dart';
 
+/// Full-bleed restaurant tile for 2-column home grids (image + overlay title + time pill).
 class FoodAppRestaurantCard extends StatelessWidget {
   const FoodAppRestaurantCard({
     super.key,
@@ -22,85 +21,110 @@ class FoodAppRestaurantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final delivery = restaurantDeliveryLabel(restaurant);
+    final isClosed = restaurant.isOpen == false;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 2 / 1,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: _cover(),
+        borderRadius: BorderRadius.circular(22),
+        child: AspectRatio(
+          aspectRatio: 3 / 4,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _cover(),
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0x99000000),
+                        Color(0x14000000),
+                        Color(0x66000000),
+                      ],
+                      stops: [0.0, 0.45, 1.0],
+                    ),
                   ),
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Material(
-                      color: Colors.transparent,
-                      elevation: 0,
-                      shadowColor: Colors.transparent,
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: () {},
-                        splashColor: Colors.white24,
-                        highlightColor: Colors.white12,
-                        child: const SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: Center(
-                            child: LucideBookmarkIcon(
-                              size: 17,
-                              color: Colors.white,
-                            ),
-                          ),
+                ),
+                if (isClosed)
+                  const ColoredBox(color: Color(0x66000000)),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  right: 12,
+                  child: Text(
+                    restaurant.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.subtitle.copyWith(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      height: 1.15,
+                      shadows: const [
+                        Shadow(
+                          color: Color(0x88000000),
+                          blurRadius: 8,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 10,
+                  bottom: 10,
+                  child: Material(
+                    color: Colors.white.withValues(alpha: 0.22),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () {},
+                      child: const SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: Icon(
+                          Icons.favorite_border_rounded,
+                          size: 18,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              restaurant.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.subtitle.copyWith(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 2),
-            BusinessAvailabilityBadge(
-              isOpen: restaurant.isOpen,
-              closesAt: restaurant.closesAt,
-              closingSoon: restaurant.closingSoon ?? false,
-              compact: true,
-            ),
-            const SizedBox(height: 2),
-            Row(
-              children: [
-                const LucideFootprintsIcon(
-                  size: 15,
-                  color: AppColors.textSecondary,
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  delivery,
-                  style: AppTypography.bodySmall.copyWith(fontSize: 13),
+                Positioned(
+                  right: 10,
+                  bottom: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      delivery,
+                      style: AppTypography.caption.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -116,6 +140,8 @@ class FoodAppRestaurantCard extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: resolved,
           fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
           alignment: Alignment(
             ((restaurant.coverPositionX ?? 50) / 50) - 1,
             ((restaurant.coverPositionY ?? 50) / 50) - 1,
@@ -129,11 +155,14 @@ class FoodAppRestaurantCard extends StatelessWidget {
 
   Widget _placeholder() {
     return Container(
-      color: AppColors.primarySoft,
+      color: AppColors.primary,
       alignment: Alignment.center,
       child: Text(
         restaurant.name.isNotEmpty ? restaurant.name[0].toUpperCase() : 'F',
-        style: AppTypography.display.copyWith(color: AppColors.primary),
+        style: AppTypography.display.copyWith(
+          color: Colors.white.withValues(alpha: 0.45),
+          fontSize: 48,
+        ),
       ),
     );
   }
