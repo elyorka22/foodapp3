@@ -253,7 +253,7 @@ export const adminI18n = {
     placementHomeSideTop: 'Stol bron (yuqori o‘ng → /booking)',
     bannerBookingLinkHint:
       'Bu banner bosh sahifada yuqori o‘ngda ko‘rinadi va mijozni stol bron sahifasiga (/booking) olib boradi.',
-    placementHomeSideBottom: 'Do‘konlar (pastki o‘ng karusel)',
+    placementHomeSideBottom: "Do‘kon bannerlari (kategoriyalar ustida)",
     placementHero: 'Karusel (yuqori)',
     placementPromo: 'Promo blok (karusel ostida)',
   },

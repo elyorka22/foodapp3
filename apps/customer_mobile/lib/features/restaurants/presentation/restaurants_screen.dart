@@ -12,6 +12,7 @@ import '../../../shared/widgets/food_app_restaurant_card.dart';
 import '../../../shared/widgets/home_banner_grid.dart';
 import '../../../shared/widgets/home_headline.dart';
 import '../../../shared/widgets/home_secondary_banners.dart';
+import '../../../shared/widgets/home_store_banners_carousel.dart';
 import '../../stores/providers/stores_provider.dart';
 import '../providers/dish_categories_provider.dart';
 import '../providers/restaurants_provider.dart';
@@ -43,6 +44,10 @@ class RestaurantsScreen extends ConsumerWidget {
               _HomeBannerSection(
                 banners: banners,
                 featuredStores: featuredStores,
+              ),
+              HomeStoreBannersCarousel(
+                banners: banners.valueOrNull ?? const [],
+                stores: featuredStores.valueOrNull ?? const [],
               ),
               const SizedBox(height: AppSpacing.md),
               const HomeSecondaryBanners(),

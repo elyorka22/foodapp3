@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { HomeBannerGrid } from '@/components/home/home-banner-grid';
 import { HomeHeadline } from '@/components/home/home-headline';
 import { HomeSecondaryBanners } from '@/components/home/home-secondary-banners';
+import { HomeStoreBannersCarousel } from '@/components/home/home-store-banners-carousel';
 import { RestaurantGridCard } from '@/components/home/restaurant-grid-card';
 import { useDishCategories } from '@/hooks/use-dish-categories';
 import { useHomeBanners, useHomeFeaturedStores, useHomeRestaurants } from '@/hooks/use-home-data';
@@ -29,6 +30,11 @@ export default function HomePage() {
         banners={bannersQuery.data ?? []}
         featuredStores={storesQuery.data}
         isLoading={bannersQuery.isLoading || storesQuery.isLoading}
+      />
+
+      <HomeStoreBannersCarousel
+        banners={bannersQuery.data ?? []}
+        stores={storesQuery.data}
       />
 
       <HomeSecondaryBanners
