@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { BruteForceService } from '../../common/security/brute-force.service';
 import { normalizePhone, phoneLookupValues } from '../../common/utils/phone.util';
 import { LoginDto } from './dto/login.dto';
+import { assertStaffLoginClientAllowed } from './staff-login-client.policy';
 
 @Injectable()
 export class AuthService {
@@ -47,13 +48,21 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Credentials valid — clear lockout before client/role gate so a wrong
+    // client does not count as a password failure.
     await this.bruteForce.clearFailures('staff-login', scopeKey);
+
+    // Optional client allowlist (migration: omit client → legacy behavior).
+    assertStaffLoginClientAllowed(dto.client, user.role);
 
     await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
 
+    // Keep JWT payload shape stable (sub, email, role). Do not embed `client`
+    // as an audience claim: it is self-asserted at login and is not a reliable
+    // request-origin proof for later authorization.
     const payload = { sub: user.id, email: user.email ?? '', role: user.role };
     return {
       accessToken: this.jwtService.sign(payload),

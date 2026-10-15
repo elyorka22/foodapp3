@@ -363,7 +363,6 @@ export class RestaurantsService {
     const branch = restaurant.branches?.[0];
     let ownerLogin: string | null = null;
     let ownerFullName: string | null = null;
-    let ownerPassword: string | null = null;
     if (user && (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER)) {
       const staff = await this.prisma.businessStaff.findFirst({
         where: { businessId: id, deletedAt: null },
@@ -373,16 +372,12 @@ export class RestaurantsService {
               email: true,
               phone: true,
               fullName: true,
-              ...(user.role === UserRole.SUPER_ADMIN ? { adminPasswordNote: true } : {}),
             },
           },
         },
       });
       ownerLogin = staff?.user?.email ?? staff?.user?.phone ?? null;
       ownerFullName = staff?.user?.fullName ?? null;
-      if (user.role === UserRole.SUPER_ADMIN) {
-        ownerPassword = staff?.user?.adminPasswordNote ?? null;
-      }
     }
 
     return {
@@ -393,7 +388,8 @@ export class RestaurantsService {
       longitude: branch ? Number(branch.longitude) : null,
       ownerLogin,
       ownerFullName,
-      ownerPassword,
+      /** Passwords are never returned; set a new password via update/owner-account. */
+      ownerPassword: null,
     };
   }
 
@@ -710,7 +706,10 @@ export class RestaurantsService {
       action: 'update',
       entity: 'restaurant',
       entityId: id,
-      metadata: dto,
+      metadata: {
+        ...dto,
+        ownerPassword: dto.ownerPassword ? '[redacted]' : undefined,
+      },
     });
     return restaurant;
   }
@@ -830,7 +829,6 @@ export class RestaurantsService {
       viewer.role === UserRole.SUPER_ADMIN || viewer.role === UserRole.MANAGER;
     if (!canSeeLogin) return map;
 
-    const canSeePassword = viewer.role === UserRole.SUPER_ADMIN;
     const staffRows = await this.prisma.businessStaff.findMany({
       where: { businessId: { in: businessIds }, deletedAt: null },
       include: {
@@ -839,7 +837,6 @@ export class RestaurantsService {
             email: true,
             phone: true,
             fullName: true,
-            ...(canSeePassword ? { adminPasswordNote: true } : {}),
           },
         },
       },
@@ -851,7 +848,7 @@ export class RestaurantsService {
       map.set(row.businessId, {
         ownerLogin: row.user?.email ?? row.user?.phone ?? null,
         ownerFullName: row.user?.fullName ?? null,
-        ownerPassword: canSeePassword ? row.user?.adminPasswordNote ?? null : null,
+        ownerPassword: null,
       });
     }
 
@@ -890,7 +887,6 @@ export class RestaurantsService {
         fullName: params.fullName?.trim() || null,
         role: UserRole.BUSINESS,
         passwordHash,
-        adminPasswordNote: params.password,
         isActive: true,
       },
     });
@@ -914,7 +910,7 @@ export class RestaurantsService {
     const passwordHash = await this.auth.hashPassword(password);
     await this.prisma.user.update({
       where: { id: staff.userId },
-      data: { passwordHash, adminPasswordNote: password },
+      data: { passwordHash },
     });
   }
 

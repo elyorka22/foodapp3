@@ -67,7 +67,6 @@ export class UsersService {
         fullName: dto.fullName?.trim() || null,
         role: dto.role,
         passwordHash,
-        adminPasswordNote: dto.password,
         isActive: true,
       },
     });
@@ -147,7 +146,6 @@ export class UsersService {
       fullName?: string | null;
       phone?: string | null;
       passwordHash?: string;
-      adminPasswordNote?: string;
     } = {};
 
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
@@ -157,7 +155,6 @@ export class UsersService {
     }
     if (dto.password) {
       data.passwordHash = await this.auth.hashPassword(dto.password);
-      data.adminPasswordNote = dto.password;
     }
 
     const updated = await this.prisma.user.update({
@@ -183,15 +180,13 @@ export class UsersService {
       fullName: string | null;
       role: UserRole;
       isActive: boolean;
-      adminPasswordNote?: string | null;
       createdAt: Date;
       businessStaff?: { business: { id: string; name: string } }[];
     },
-    actor?: JwtPayload,
+    _actor?: JwtPayload,
   ) {
     const staff = user.businessStaff?.[0];
     const merchant = staff?.business ?? null;
-    const canSeePassword = actor?.role === UserRole.SUPER_ADMIN;
     return {
       id: user.id,
       email: user.email,
@@ -199,7 +194,6 @@ export class UsersService {
       fullName: user.fullName,
       role: user.role,
       isActive: user.isActive,
-      adminPasswordNote: canSeePassword ? user.adminPasswordNote ?? null : null,
       createdAt: user.createdAt,
       business: merchant,
       restaurant: merchant,

@@ -13,7 +13,12 @@ export class AuthController {
 
   @Post('login')
   @Throttle({ default: THROTTLE.AUTH_LOGIN })
-  @ApiOperation({ summary: 'Staff login (JWT) — queries users table' })
+  @ApiOperation({
+    summary: 'Staff login (JWT) — users table',
+    description:
+      'Optional body.client (control|business|web_admin) applies role allowlists. ' +
+      'Omit client for legacy behavior. Customer auth uses /customers/login — not this route.',
+  })
   login(@Body() dto: LoginDto, @Req() req: Request) {
     const ip = req.ips?.[0] ?? req.ip ?? 'unknown';
     return this.authService.login(dto, ip);

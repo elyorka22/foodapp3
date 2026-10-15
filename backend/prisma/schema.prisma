@@ -139,8 +139,6 @@ model User {
   email        String?   @unique
   phone        String?   @unique
   passwordHash       String?   @map("password_hash")
-  /// Last password set from admin panel (super admin visibility only).
-  adminPasswordNote  String?   @map("admin_password_note")
   fullName     String?   @map("full_name")
   role         UserRole
   isActive     Boolean   @default(true) @map("is_active")
