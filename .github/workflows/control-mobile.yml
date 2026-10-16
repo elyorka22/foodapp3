@@ -174,8 +174,11 @@ jobs:
           # android/ is gitignored; no production keystore. Flutter uses the
           # debug signing config for release when key.properties is absent.
           # Suitable for internal install only — not for Play Store publishing.
+          # cronetHttpNoPlay=true → embed Cronet (no Google Play Services dependency).
+          # Native Cronet follows Android VPN/proxy like Chrome; dart:io often does not.
           flutter build apk --release \
-            --dart-define=API_BASE_URL="${API_URL}"
+            --dart-define=API_BASE_URL="${API_URL}" \
+            --dart-define=cronetHttpNoPlay=true
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

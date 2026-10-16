@@ -13,6 +13,9 @@ dependencies:
   flutter_riverpod: ^2.6.1
   go_router: ^14.8.1
   dio: ^5.8.0+1
+  # Android: Cronet (Chrome stack) so HTTPS works with VPN/proxy like the browser.
+  # dart:io HttpClient often aborts behind VPN while Chrome succeeds.
+  native_dio_adapter: ^1.7.0
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
   intl: ^0.20.2

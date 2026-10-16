@@ -5,30 +5,30 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
+import 'package:native_dio_adapter/native_dio_adapter.dart';
 
 import '../diagnostics/diagnostic_classifier.dart';
 import '../diagnostics/diagnostic_log.dart';
 import '../diagnostics/native_error_formatter.dart';
 
-/// ALPN protocol list advertised by Control's TLS client.
+/// ALPN protocol list for the dart:io fallback client (not used by Cronet).
 ///
-/// Must stay HTTP/1.1-only: production nginx uses `listen 443 ssl http2`, and
-/// hop-by-hop `Connection: close` is ignored under HTTP/2. Dart's HttpClient
-/// then can stall inside [HttpClientRequest.close] until Dio's receiveTimeout
-/// fires — even after nginx already logged HTTP 201 with a full body.
+/// Kept for isolation probes and Cronet-disabled fallback devices.
 const List<String> kControlClientAlpnProtocols = ['http/1.1'];
 
 bool controlNativeHttpAdapterInstalled = false;
 
-/// Builds the [SecurityContext] used on Android/iOS for Control API calls.
+/// `native_cronet` | `custom_io_alpn` | `stub`
+String controlHttpAdapterKind = 'unset';
+
+/// Builds the [SecurityContext] used by dart:io fallback / isolation probes.
 SecurityContext createControlSecurityContext() {
   final context = SecurityContext(withTrustedRoots: true);
-  // isServer: false → client ALPN list.
   context.setAlpnProtocols(kControlClientAlpnProtocols, false);
   return context;
 }
 
-/// HttpClient used by Dio on native platforms.
+/// HttpClient for dart:io fallback and diagnostic HttpClient probes.
 HttpClient createControlHttpClient() {
   final client = HttpClient(context: createControlSecurityContext());
   client.idleTimeout = const Duration(seconds: 15);
@@ -36,25 +36,64 @@ HttpClient createControlHttpClient() {
   return client;
 }
 
-/// Installs a diagnostic [IOHttpClientAdapter] that forces HTTP/1.1.
-void configureNativeHttpClient(Dio dio) {
-  final inner = IOHttpClientAdapter(createHttpClient: createControlHttpClient);
-  dio.httpClientAdapter = _TimedHttpClientAdapter(inner);
-  controlNativeHttpAdapterInstalled = true;
-  DiagnosticLog.instance.log(
-    requestId: 'boot',
-    stage: 'http_adapter',
-    message:
-        'custom IO adapter installed alpn=${kControlClientAlpnProtocols.join(",")} '
-        'negotiatedAlpn=not_exposed_by_HttpClient',
-  );
+IOHttpClientAdapter _createIoAlpnAdapter() {
+  return IOHttpClientAdapter(createHttpClient: createControlHttpClient);
 }
 
-/// Wraps the native adapter with stage timing and full native error detail.
+/// Installs the platform HTTP stack for Dio.
+///
+/// On Android uses Cronet via [NativeAdapter] (same family as Chrome) so VPN /
+/// system proxy routing matches the browser. dart:io is only a fallback when
+/// Cronet providers are disabled on the device.
+void configureNativeHttpClient(Dio dio) {
+  final HttpClientAdapter inner;
+  if (Platform.isAndroid) {
+    inner = NativeAdapter(
+      createFallbackAdapter: (Object error, StackTrace stackTrace) {
+        controlHttpAdapterKind = 'custom_io_alpn';
+        DiagnosticLog.instance.log(
+          requestId: 'boot',
+          stage: 'http_adapter_fallback',
+          message:
+              'Cronet unavailable → dart:io ALPN fallback '
+              'errorType=${error.runtimeType}',
+        );
+        // Outer _TimedHttpClientAdapter already wraps NativeAdapter.
+        return _createIoAlpnAdapter();
+      },
+    );
+    controlHttpAdapterKind = 'native_cronet';
+    DiagnosticLog.instance.log(
+      requestId: 'boot',
+      stage: 'http_adapter',
+      message:
+          'NativeAdapter(Cronet) installed — VPN/proxy via Android system stack; '
+          'TLS verify=system/Cronet defaults (not disabled)',
+    );
+  } else {
+    inner = _TimedHttpClientAdapter(_createIoAlpnAdapter());
+    controlHttpAdapterKind = 'custom_io_alpn';
+    DiagnosticLog.instance.log(
+      requestId: 'boot',
+      stage: 'http_adapter',
+      message:
+          'custom IO adapter installed alpn=${kControlClientAlpnProtocols.join(",")} '
+          'negotiatedAlpn=not_exposed_by_HttpClient',
+    );
+  }
+
+  // Always wrap with timing logs (NativeAdapter or IO).
+  dio.httpClientAdapter = inner is _TimedHttpClientAdapter
+      ? inner
+      : _TimedHttpClientAdapter(inner);
+  controlNativeHttpAdapterInstalled = true;
+}
+
+/// Wraps any [HttpClientAdapter] with stage timing and safe error detail.
 class _TimedHttpClientAdapter implements HttpClientAdapter {
   _TimedHttpClientAdapter(this._inner);
 
-  final IOHttpClientAdapter _inner;
+  final HttpClientAdapter _inner;
 
   @override
   Future<ResponseBody> fetch(
@@ -74,19 +113,16 @@ class _TimedHttpClientAdapter implements HttpClientAdapter {
       stage: stage,
       message:
           '${options.method} $path '
-          'adapter=custom_io alpnAdvertised=${kControlClientAlpnProtocols.join(",")} '
-          'negotiatedAlpn=not_exposed_by_HttpClient host=$host',
+          'adapter=$controlHttpAdapterKind '
+          'alpnAdvertised=${kControlClientAlpnProtocols.join(",")} host=$host',
     );
     debugPrint(
       '[HTTP] start ${options.method} $path '
-      'alpn=${kControlClientAlpnProtocols.join(",")} host=$host',
+      'adapter=$controlHttpAdapterKind host=$host',
     );
 
     try {
       stage = 'connecting_or_waiting_headers';
-      // Dio IO adapter: connectTimeout covers openUrl; receiveTimeout covers
-      // request.close() (headers). We cannot split those without reimplementing
-      // the adapter; stage is refined from the thrown error type below.
       final body = await _inner.fetch(options, requestStream, cancelFuture);
 
       final headerMs = DateTime.now().difference(started).inMilliseconds;
@@ -104,14 +140,13 @@ class _TimedHttpClientAdapter implements HttpClientAdapter {
         message:
             'status=${body.statusCode} contentLength=$contentLength '
             'httpVersion=${httpVersion ?? "unknown"} '
-            'alpnAdvertised=${kControlClientAlpnProtocols.join(",")} '
-            'negotiatedAlpn=not_exposed_by_HttpClient host=$host path=$path',
+            'adapter=$controlHttpAdapterKind host=$host path=$path',
         elapsedMs: headerMs,
       );
       debugPrint(
         '[HTTP] headers ${options.method} $path '
         'status=${body.statusCode} contentLength=$contentLength '
-        'httpVersion=${httpVersion ?? "unknown"} headerMs=$headerMs',
+        'headerMs=$headerMs',
       );
 
       var bytes = 0;
@@ -189,11 +224,11 @@ class _TimedHttpClientAdapter implements HttpClientAdapter {
       DiagnosticLog.instance.log(
         requestId: requestId,
         stage: 'adapter_fail',
-        message: detail,
+        message: 'adapter=$controlHttpAdapterKind | $detail',
         elapsedMs: totalMs,
         failureClass: cls,
       );
-      debugPrint('[HTTP] fail $path $detail');
+      debugPrint('[HTTP] fail $path adapter=$controlHttpAdapterKind $detail');
       rethrow;
     }
   }

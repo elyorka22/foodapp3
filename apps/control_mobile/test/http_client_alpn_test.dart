@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:control_mobile/core/network/http_adapter_io.dart';
 
@@ -27,6 +28,18 @@ void main() {
       final client = createControlHttpClient();
       expect(client, isA<HttpClient>());
       client.close(force: true);
+    });
+
+    test('configureNativeHttpClient sets adapter kind for this platform', () {
+      final dio = Dio();
+      configureNativeHttpClient(dio);
+      expect(controlNativeHttpAdapterInstalled, isTrue);
+      if (Platform.isAndroid) {
+        expect(controlHttpAdapterKind, 'native_cronet');
+      } else {
+        expect(controlHttpAdapterKind, 'custom_io_alpn');
+      }
+      dio.close(force: true);
     });
   });
 }

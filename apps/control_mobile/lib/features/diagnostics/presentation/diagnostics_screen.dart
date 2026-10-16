@@ -178,7 +178,8 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'adapter=${http_adapter.controlNativeHttpAdapterInstalled ? "custom_io" : "default"} '
+                  'adapter=${http_adapter.controlHttpAdapterKind} '
+                  'installed=${http_adapter.controlNativeHttpAdapterInstalled} '
                   'alpnAdvertised=${http_adapter.kControlClientAlpnProtocols.join(",")} '
                   '$diagnosticPlatformSummary()',
                   style: AppTypography.caption.copyWith(color: AppColors.textMuted),

@@ -43,7 +43,8 @@ Dio createDioClient(TokenStorage storage) {
         'receiveTimeout=${AppConfig.receiveTimeout.inSeconds}s '
         'sendTimeout=null '
         'customIoAdapter=${http_adapter.controlNativeHttpAdapterInstalled} '
-        'alpn=${http_adapter.kControlClientAlpnProtocols.join(",")} '
+        'httpAdapterKind=${http_adapter.controlHttpAdapterKind} '
+        'alpnAdvertised=${http_adapter.kControlClientAlpnProtocols.join(",")} '
         'platform=${diagnosticPlatformSummary()}',
   );
   dio.interceptors.addAll([
