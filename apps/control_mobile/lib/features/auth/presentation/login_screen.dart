@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/diagnostics/diagnostic_log.dart';
+import '../../../core/diagnostics/login_draft.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/layout/breakpoints.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -25,6 +29,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    void syncDraft() {
+      LoginDraft.update(
+        loginId: _loginController.text,
+        password: _passwordController.text,
+      );
+    }
+
+    _loginController.addListener(syncDraft);
+    _passwordController.addListener(syncDraft);
+  }
+
+  @override
   void dispose() {
     _loginController.dispose();
     _passwordController.dispose();
@@ -32,7 +50,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final reqId = DiagnosticLog.instance.nextRequestId();
+    DiagnosticLog.instance.log(
+      requestId: reqId,
+      stage: 'ui_login_pressed',
+      message: 'login button pressed',
+    );
+    if (!_formKey.currentState!.validate()) {
+      DiagnosticLog.instance.log(
+        requestId: reqId,
+        stage: 'ui_login_validation',
+        message: 'form validation failed',
+      );
+      return;
+    }
+    DiagnosticLog.instance.log(
+      requestId: reqId,
+      stage: 'ui_login_validation',
+      message: 'form validation ok',
+    );
+    LoginDraft.update(
+      loginId: _loginController.text,
+      password: _passwordController.text,
+    );
     setState(() {
       _submitting = true;
       _error = null;
@@ -42,9 +82,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _loginController.text,
             _passwordController.text,
           );
+      LoginDraft.clearSecrets();
+      DiagnosticLog.instance.log(
+        requestId: reqId,
+        stage: 'ui_login_navigation',
+        message: 'login succeeded — awaiting router redirect',
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = ApiException.formatError(e));
+      DiagnosticLog.instance.log(
+        requestId: reqId,
+        stage: 'ui_login_error_shown',
+        message: 'error shown on login form (sanitized in diag log via repo)',
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -122,6 +173,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
                 : const Text(AppStrings.login),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _submitting
+                ? null
+                : () => context.push(AppRoutes.diagnostics),
+            icon: const Icon(Icons.bug_report_outlined),
+            label: const Text(AppStrings.diagOpen),
           ),
           const SizedBox(height: 16),
           Text(

@@ -1,6 +1,7 @@
 abstract final class AppRoutes {
   static const splash = '/';
   static const login = '/login';
+  static const diagnostics = '/diagnostics';
   static const dashboard = '/dashboard';
   static const employees = '/employees';
   static const businesses = '/businesses';

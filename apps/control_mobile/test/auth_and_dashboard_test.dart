@@ -59,6 +59,17 @@ void main() {
       );
     });
 
+    test('allows diagnostics before login', () {
+      expect(
+        resolveControlAuthRedirect(
+          location: AppRoutes.diagnostics,
+          isLoading: false,
+          loggedIn: false,
+        ),
+        isNull,
+      );
+    });
+
     test('sends logged-in user from splash to dashboard', () {
       expect(
         resolveControlAuthRedirect(

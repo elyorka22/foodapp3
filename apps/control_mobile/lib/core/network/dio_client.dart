@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/app_config.dart';
+import '../diagnostics/diagnostic_log.dart';
+import '../diagnostics/diagnostic_platform.dart';
 import '../storage/storage_providers.dart';
 import '../storage/token_storage.dart';
 import 'http_adapter_stub.dart'
@@ -32,6 +34,18 @@ Dio createDioClient(TokenStorage storage) {
     ),
   );
   http_adapter.configureNativeHttpClient(dio);
+  DiagnosticLog.instance.log(
+    requestId: 'boot',
+    stage: 'dio_config',
+    message:
+        'baseUrlHost=${AppConfig.apiHostLabel} '
+        'connectTimeout=${AppConfig.connectTimeout.inSeconds}s '
+        'receiveTimeout=${AppConfig.receiveTimeout.inSeconds}s '
+        'sendTimeout=null '
+        'customIoAdapter=${http_adapter.controlNativeHttpAdapterInstalled} '
+        'alpn=${http_adapter.kControlClientAlpnProtocols.join(",")} '
+        'platform=${diagnosticPlatformSummary()}',
+  );
   dio.interceptors.addAll([
     AuthInterceptor(storage),
     ErrorInterceptor(),

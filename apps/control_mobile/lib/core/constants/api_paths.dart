@@ -4,6 +4,9 @@ abstract final class ApiPaths {
   /// Staff login — LoginDto: optional email OR phone + required password.
   static const authLogin = '/auth/login';
 
+  /// Public Nest health check (no auth). Connectivity probe only.
+  static const health = '/health';
+
   // Prepared for later integration (existing admin APIs). Not called in step 1.
   static const users = '/users';
   static const restaurantsAdmin = '/restaurants/admin';

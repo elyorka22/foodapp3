@@ -7,6 +7,7 @@ import '../../features/audit/presentation/audit_screen.dart';
 import '../../features/businesses/presentation/businesses_screen.dart';
 import '../../features/catalog/presentation/catalog_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
+import '../../features/diagnostics/presentation/diagnostics_screen.dart';
 import '../../features/employees/presentation/employees_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/promotions/presentation/promotions_screen.dart';
@@ -21,6 +22,7 @@ final _rootKey = GlobalKey<NavigatorState>();
 ///
 /// While [isLoading] is true, stay on the current page (do not bounce login →
 /// splash). That keeps the login form mounted so API errors remain visible.
+/// Diagnostics is reachable before login.
 String? resolveControlAuthRedirect({
   required String location,
   required bool isLoading,
@@ -28,13 +30,14 @@ String? resolveControlAuthRedirect({
 }) {
   final onSplash = location == AppRoutes.splash;
   final onLogin = location == AppRoutes.login;
+  final onDiagnostics = location == AppRoutes.diagnostics;
 
   if (isLoading) {
     return null;
   }
 
   if (!loggedIn) {
-    if (onLogin) return null;
+    if (onLogin || onDiagnostics) return null;
     return AppRoutes.login;
   }
 
@@ -67,6 +70,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.login,
         builder: (_, __) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.diagnostics,
+        builder: (_, __) => const DiagnosticsScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

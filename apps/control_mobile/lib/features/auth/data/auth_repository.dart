@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/api_paths.dart';
+import '../../../core/diagnostics/diagnostic_classifier.dart';
+import '../../../core/diagnostics/diagnostic_log.dart';
+import '../../../core/diagnostics/diagnostic_sanitizer.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/storage/storage_providers.dart';
@@ -30,10 +33,26 @@ class AuthRepository {
     required String password,
   }) async {
     final started = DateTime.now();
+    final requestId = DiagnosticLog.instance.nextRequestId();
+    final payload = buildLoginPayload(loginId, password);
+    final fieldNames = DiagnosticSanitizer.payloadFieldNames(payload);
+
+    DiagnosticLog.instance.log(
+      requestId: requestId,
+      stage: 'login_start',
+      message:
+          'method=POST path=${ApiPaths.authLogin} '
+          'base=${AppConfig.normalizedApiBaseUrl} '
+          'payloadFields=$fieldNames '
+          'connectTimeout=${AppConfig.connectTimeout.inSeconds}s '
+          'receiveTimeout=${AppConfig.receiveTimeout.inSeconds}s '
+          'sendTimeout=null',
+    );
+
     try {
       final res = await _dio.post<Map<String, dynamic>>(
         ApiPaths.authLogin,
-        data: buildLoginPayload(loginId, password),
+        data: payload,
         options: Options(
           // Login body is tiny; avoid Dio Android false sendTimeouts.
           sendTimeout: null,
@@ -44,25 +63,85 @@ class AuthRepository {
           headers: const {'Connection': 'close'},
           validateStatus: (status) =>
               status != null && status >= 200 && status < 300,
+          extra: {'diag_request_id': requestId},
         ),
       );
       final elapsedMs = DateTime.now().difference(started).inMilliseconds;
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'login_http_ok',
+        message: 'status=${res.statusCode}',
+        elapsedMs: elapsedMs,
+      );
       debugPrint(
         '[AUTH LOGIN] ok status=${res.statusCode} elapsedMs=$elapsedMs',
       );
 
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'login_parse_start',
+        message: 'parsing AuthResponseModel (no body logged)',
+        elapsedMs: elapsedMs,
+      );
       final data = res.data;
       if (data == null) {
+        DiagnosticLog.instance.log(
+          requestId: requestId,
+          stage: 'login_parse_fail',
+          message: 'empty JSON body',
+          elapsedMs: elapsedMs,
+          failureClass: DiagnosticFailureClass.parse,
+        );
         throw Exception('Bo\'sh javob (HTTP ${res.statusCode})');
       }
       final auth = AuthResponseModel.fromJson(data);
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'login_parse_ok',
+        message: 'role=${auth.user.isSuperAdmin ? "SUPER_ADMIN" : "OTHER"}',
+        elapsedMs: DateTime.now().difference(started).inMilliseconds,
+      );
       if (!auth.user.isSuperAdmin) {
+        DiagnosticLog.instance.log(
+          requestId: requestId,
+          stage: 'login_role_reject',
+          message: 'non SUPER_ADMIN',
+          failureClass: DiagnosticFailureClass.httpClientError,
+        );
         throw Exception(AppStrings.wrongRole);
       }
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'login_storage_start',
+        message: 'secure storage write starting',
+        elapsedMs: DateTime.now().difference(started).inMilliseconds,
+      );
       await _persist(auth);
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'login_storage_ok',
+        message: 'session persisted',
+        elapsedMs: DateTime.now().difference(started).inMilliseconds,
+      );
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'login_success',
+        message: 'auth complete — router should leave login',
+        elapsedMs: DateTime.now().difference(started).inMilliseconds,
+      );
       return auth;
     } on DioException catch (e) {
       final elapsedMs = DateTime.now().difference(started).inMilliseconds;
+      final cls = DiagnosticClassifier.fromDio(e);
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'login_dio_error',
+        message:
+            'type=${e.type} status=${e.response?.statusCode} '
+            'errorClass=${e.error?.runtimeType}',
+        elapsedMs: elapsedMs,
+        failureClass: cls,
+      );
       debugPrint(
         '[AUTH LOGIN] dio type=${e.type} status=${e.response?.statusCode} '
         'elapsedMs=$elapsedMs',
@@ -70,6 +149,14 @@ class AuthRepository {
       rethrow;
     } catch (e) {
       final elapsedMs = DateTime.now().difference(started).inMilliseconds;
+      final cls = DiagnosticClassifier.fromObject(e);
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'login_error',
+        message: 'type=${e.runtimeType}',
+        elapsedMs: elapsedMs,
+        failureClass: cls,
+      );
       debugPrint(
         '[AUTH LOGIN] error type=${e.runtimeType} elapsedMs=$elapsedMs',
       );
@@ -120,5 +207,50 @@ class AuthRepository {
       accessToken: auth.accessToken,
       userJson: jsonEncode(auth.user.toJson()),
     );
+  }
+
+  /// Unauthenticated GET /health connectivity probe (no secrets).
+  Future<void> probeHealth({required String requestId}) async {
+    final started = DateTime.now();
+    final url = '${AppConfig.normalizedApiBaseUrl}${ApiPaths.health}';
+    DiagnosticLog.instance.log(
+      requestId: requestId,
+      stage: 'health_start',
+      message: 'GET $url',
+    );
+    try {
+      final res = await _dio.get<Map<String, dynamic>>(
+        ApiPaths.health,
+        options: Options(
+          sendTimeout: null,
+          receiveTimeout: AppConfig.receiveTimeout,
+          persistentConnection: false,
+          headers: const {'Connection': 'close'},
+          validateStatus: (status) =>
+              status != null && status >= 200 && status < 500,
+          extra: {'diag_request_id': requestId},
+        ),
+      );
+      final ms = DateTime.now().difference(started).inMilliseconds;
+      final statusLabel = res.data?['status'];
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'health_ok',
+        message:
+            'http=${res.statusCode} appStatus=$statusLabel '
+            '(connectivity only — not login proof)',
+        elapsedMs: ms,
+      );
+    } on DioException catch (e) {
+      final ms = DateTime.now().difference(started).inMilliseconds;
+      DiagnosticLog.instance.log(
+        requestId: requestId,
+        stage: 'health_fail',
+        message: 'type=${e.type} status=${e.response?.statusCode}',
+        elapsedMs: ms,
+        failureClass: DiagnosticClassifier.fromDio(e),
+      );
+      rethrow;
+    }
   }
 }

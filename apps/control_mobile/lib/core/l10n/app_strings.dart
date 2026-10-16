@@ -50,4 +50,23 @@ abstract final class AppStrings {
 
   static const requiredBackendClient =
       'Kirish so‘rovida client=control yuboriladi. Faqat SUPER_ADMIN qabul qilinadi.';
+
+  static const diagOpen = 'Diagnostika / Loglar';
+  static const diagTitle = 'Diagnostika';
+  static const diagDisclaimer =
+      'Loglarda parol, token yoki so‘rov/javob body yo‘q. Health tekshiruvi login emas.';
+  static const diagSearch = 'Qidiruv';
+  static const diagRefresh = 'Loglarni yangilash';
+  static const diagCopy = 'Loglarni nusxalash';
+  static const diagShare = 'Loglarni ulashish';
+  static const diagClear = 'Loglarni tozalash';
+  static const diagHealth = 'Serverni tekshirish';
+  static const diagRetryLogin = 'Loginni qayta sinash';
+  static const diagEmpty = 'Hali log yo‘q. Login yoki Serverni tekshirishni bosing.';
+  static const diagCopied = 'Loglar buferga nusxalandi.';
+  static const diagCleared = 'Loglar tozalandi.';
+  static const diagHealthDone = 'Health so‘rovi yakunlandi — logni ko‘ring.';
+  static const diagLoginOk = 'Login muvaffaqiyatli.';
+  static const diagNeedCredentials =
+      'Avval login ekranida email/parol kiriting, keyin qayta sinang.';
 }
