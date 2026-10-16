@@ -216,14 +216,14 @@ class AuthRepository {
     );
   }
 
-  /// Unauthenticated GET /health connectivity probe (no secrets).
-  Future<void> probeHealth({required String requestId}) async {
+  /// Unauthenticated GET /health via Dio. Returns HTTP status (no body logged).
+  Future<int> probeHealthStatus({required String requestId}) async {
     final started = DateTime.now();
     final url = '${AppConfig.normalizedApiBaseUrl}${ApiPaths.health}';
     DiagnosticLog.instance.log(
       requestId: requestId,
       stage: 'health_start',
-      message: 'GET $url',
+      message: 'GET $url via=Dio',
     );
     try {
       final res = await _dio.get<Map<String, dynamic>>(
@@ -239,15 +239,15 @@ class AuthRepository {
         ),
       );
       final ms = DateTime.now().difference(started).inMilliseconds;
-      final statusLabel = res.data?['status'];
+      final code = res.statusCode ?? 0;
+      // Log status only — never response body (may contain operational detail).
       DiagnosticLog.instance.log(
         requestId: requestId,
         stage: 'health_ok',
-        message:
-            'http=${res.statusCode} appStatus=$statusLabel '
-            '(connectivity only — not login proof)',
+        message: 'http=$code (connectivity only — not login proof)',
         elapsedMs: ms,
       );
+      return code;
     } on DioException catch (e) {
       final ms = DateTime.now().difference(started).inMilliseconds;
       final transport = _transportDetailFromDio(e);
@@ -261,6 +261,11 @@ class AuthRepository {
       );
       rethrow;
     }
+  }
+
+  /// Legacy wrapper used by older diagnostics entry points.
+  Future<void> probeHealth({required String requestId}) async {
+    await probeHealthStatus(requestId: requestId);
   }
 
   /// Prefers interceptor-captured detail; falls back to live formatting.

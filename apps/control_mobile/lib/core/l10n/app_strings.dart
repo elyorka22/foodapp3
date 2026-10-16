@@ -61,11 +61,16 @@ abstract final class AppStrings {
   static const diagShare = 'Loglarni ulashish';
   static const diagClear = 'Loglarni tozalash';
   static const diagHealth = 'Serverni tekshirish';
+  static const diagProbeDio = 'Dio orqali tekshirish';
+  static const diagProbeHttpClient = 'HttpClient orqali tekshirish';
+  static const diagProbeDnsTls = 'DNS va TLS tekshiruvi';
   static const diagRetryLogin = 'Loginni qayta sinash';
   static const diagEmpty = 'Hali log yo‘q. Login yoki Serverni tekshirishni bosing.';
   static const diagCopied = 'Loglar buferga nusxalandi.';
   static const diagCleared = 'Loglar tozalandi.';
   static const diagHealthDone = 'Health so‘rovi yakunlandi — logni ko‘ring.';
+  static const diagProbeDone = 'Tekshiruv yakunlandi — taqqoslash qatorini ko‘ring.';
+  static const diagCompareTitle = 'Taqqoslash (oxirgi natijalar)';
   static const diagLoginOk = 'Login muvaffaqiyatli.';
   static const diagNeedCredentials =
       'Avval login ekranida email/parol kiriting, keyin qayta sinang.';

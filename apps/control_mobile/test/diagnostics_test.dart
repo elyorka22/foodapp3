@@ -175,7 +175,9 @@ void main() {
         ),
       );
       expect(find.text(AppStrings.diagTitle), findsOneWidget);
-      expect(find.text(AppStrings.diagHealth), findsOneWidget);
+      expect(find.text(AppStrings.diagProbeDio), findsOneWidget);
+      expect(find.text(AppStrings.diagProbeHttpClient), findsOneWidget);
+      expect(find.text(AppStrings.diagProbeDnsTls), findsOneWidget);
       expect(find.text(AppStrings.diagRetryLogin), findsOneWidget);
       expect(find.textContaining('API:'), findsOneWidget);
     });

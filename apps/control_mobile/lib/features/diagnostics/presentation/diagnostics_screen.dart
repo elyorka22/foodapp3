@@ -6,6 +6,8 @@ import '../../../core/config/app_config.dart';
 import '../../../core/diagnostics/diagnostic_log.dart';
 import '../../../core/diagnostics/diagnostic_platform.dart';
 import '../../../core/diagnostics/login_draft.dart';
+import '../../../core/diagnostics/network_isolation_probe.dart';
+import '../../../core/diagnostics/probe_result.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/http_adapter_stub.dart'
@@ -29,6 +31,7 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
   String _filter = '';
   bool _busy = false;
   String? _banner;
+  final Map<String, ProbeResult> _lastByKind = {};
 
   @override
   void initState() {
@@ -69,17 +72,22 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
     await Share.share(text, subject: 'FoodApp Control diagnostics');
   }
 
-  Future<void> _health() async {
+  Future<void> _runProbe(
+    String label,
+    Future<ProbeResult> Function() action,
+  ) async {
     setState(() {
       _busy = true;
       _banner = null;
     });
-    final id = DiagnosticLog.instance.nextRequestId();
     try {
-      await ref.read(authRepositoryProvider).probeHealth(requestId: id);
-      if (mounted) {
-        setState(() => _banner = AppStrings.diagHealthDone);
-      }
+      final result = await action();
+      if (!mounted) return;
+      setState(() {
+        _lastByKind[result.probeKind] = result;
+        _banner = '$label: ${result.ok ? "OK" : "FAIL"} — '
+            '${AppStrings.diagProbeDone}';
+      });
     } catch (e) {
       if (mounted) {
         setState(() => _banner = ApiException.formatError(e));
@@ -87,6 +95,32 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _probeDio() {
+    return _runProbe(AppStrings.diagProbeDio, () async {
+      final id = DiagnosticLog.instance.nextRequestId();
+      return runDioHealthProbe(
+        requestId: id,
+        dioGetHealthStatus: () => ref
+            .read(authRepositoryProvider)
+            .probeHealthStatus(requestId: id),
+      );
+    });
+  }
+
+  Future<void> _probeHttpClient() {
+    return _runProbe(
+      AppStrings.diagProbeHttpClient,
+      () => runHttpClientHealthProbe(),
+    );
+  }
+
+  Future<void> _probeDnsTls() {
+    return _runProbe(
+      AppStrings.diagProbeDnsTls,
+      () => runDnsTlsProbe(),
+    );
   }
 
   Future<void> _retryLogin() async {
@@ -124,6 +158,7 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
   @override
   Widget build(BuildContext context) {
     final lines = _lines;
+    final compareOrder = ['dio_health', 'http_client_health', 'dns_tls'];
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -144,7 +179,7 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'adapter=${http_adapter.controlNativeHttpAdapterInstalled ? "custom_io" : "default"} '
-                  'alpn=${http_adapter.kControlClientAlpnProtocols.join(",")} '
+                  'alpnAdvertised=${http_adapter.kControlClientAlpnProtocols.join(",")} '
                   '$diagnosticPlatformSummary()',
                   style: AppTypography.caption.copyWith(color: AppColors.textMuted),
                 ),
@@ -159,6 +194,23 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
                     _banner!,
                     style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
                   ),
+                ],
+                if (_lastByKind.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Text(AppStrings.diagCompareTitle, style: AppTypography.bodySmall),
+                  const SizedBox(height: 4),
+                  for (final kind in compareOrder)
+                    if (_lastByKind.containsKey(kind))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: SelectableText(
+                          _lastByKind[kind]!.comparisonLine,
+                          style: AppTypography.caption.copyWith(
+                            fontFamily: 'monospace',
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
                 ],
                 const SizedBox(height: 12),
                 TextField(
@@ -192,13 +244,24 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
                           ? null
                           : () {
                               DiagnosticLog.instance.clear();
-                              setState(() => _banner = AppStrings.diagCleared);
+                              setState(() {
+                                _lastByKind.clear();
+                                _banner = AppStrings.diagCleared;
+                              });
                             },
                       child: const Text(AppStrings.diagClear),
                     ),
                     FilledButton(
-                      onPressed: _busy ? null : _health,
-                      child: const Text(AppStrings.diagHealth),
+                      onPressed: _busy ? null : _probeDio,
+                      child: const Text(AppStrings.diagProbeDio),
+                    ),
+                    FilledButton(
+                      onPressed: _busy ? null : _probeHttpClient,
+                      child: const Text(AppStrings.diagProbeHttpClient),
+                    ),
+                    FilledButton(
+                      onPressed: _busy ? null : _probeDnsTls,
+                      child: const Text(AppStrings.diagProbeDnsTls),
                     ),
                     FilledButton.tonal(
                       onPressed: _busy ? null : _retryLogin,
@@ -230,8 +293,7 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
                     },
                   ),
           ),
-          if (_busy)
-            const LinearProgressIndicator(minHeight: 2),
+          if (_busy) const LinearProgressIndicator(minHeight: 2),
         ],
       ),
     );
