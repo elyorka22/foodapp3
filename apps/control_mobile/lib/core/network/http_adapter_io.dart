@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 
 import '../diagnostics/diagnostic_classifier.dart';
 import '../diagnostics/diagnostic_log.dart';
+import '../diagnostics/native_error_formatter.dart';
 
 /// ALPN protocol list advertised by Control's TLS client.
 ///
@@ -35,7 +36,7 @@ HttpClient createControlHttpClient() {
   return client;
 }
 
-/// Installs an [IOHttpClientAdapter] that forces HTTP/1.1 and logs safe timing.
+/// Installs a diagnostic [IOHttpClientAdapter] that forces HTTP/1.1.
 void configureNativeHttpClient(Dio dio) {
   final inner = IOHttpClientAdapter(createHttpClient: createControlHttpClient);
   dio.httpClientAdapter = _TimedHttpClientAdapter(inner);
@@ -44,11 +45,12 @@ void configureNativeHttpClient(Dio dio) {
     requestId: 'boot',
     stage: 'http_adapter',
     message:
-        'custom IO adapter installed alpn=${kControlClientAlpnProtocols.join(",")}',
+        'custom IO adapter installed alpn=${kControlClientAlpnProtocols.join(",")} '
+        'negotiatedAlpn=not_exposed_by_HttpClient',
   );
 }
 
-/// Wraps the native adapter to emit stage logs without reading secret bodies.
+/// Wraps the native adapter with stage timing and full native error detail.
 class _TimedHttpClientAdapter implements HttpClientAdapter {
   _TimedHttpClientAdapter(this._inner);
 
@@ -63,31 +65,53 @@ class _TimedHttpClientAdapter implements HttpClientAdapter {
     final started = DateTime.now();
     final requestId =
         options.extra['diag_request_id'] as String? ?? 'http';
+    final host = options.uri.host;
+    final path = options.uri.path;
+    var stage = 'adapter_fetch_start';
+
     DiagnosticLog.instance.log(
       requestId: requestId,
-      stage: 'adapter_fetch_start',
+      stage: stage,
       message:
-          '${options.method} ${options.uri.path} '
-          'adapter=custom_io alpn=${kControlClientAlpnProtocols.join(",")}',
+          '${options.method} $path '
+          'adapter=custom_io alpnAdvertised=${kControlClientAlpnProtocols.join(",")} '
+          'negotiatedAlpn=not_exposed_by_HttpClient host=$host',
     );
     debugPrint(
-      '[HTTP] start ${options.method} ${options.uri.path} '
-      'alpn=${kControlClientAlpnProtocols.join(",")}',
+      '[HTTP] start ${options.method} $path '
+      'alpn=${kControlClientAlpnProtocols.join(",")} host=$host',
     );
+
     try {
+      stage = 'connecting_or_waiting_headers';
+      // Dio IO adapter: connectTimeout covers openUrl; receiveTimeout covers
+      // request.close() (headers). We cannot split those without reimplementing
+      // the adapter; stage is refined from the thrown error type below.
       final body = await _inner.fetch(options, requestStream, cancelFuture);
+
       final headerMs = DateTime.now().difference(started).inMilliseconds;
       final contentLength = body.contentLength;
+      String? httpVersion;
+      try {
+        httpVersion =
+            body.extra[HttpClientAdapter.extraKeyHttpVersion] as String?;
+      } catch (_) {}
+
+      stage = 'headers_received';
       DiagnosticLog.instance.log(
         requestId: requestId,
         stage: 'adapter_headers',
-        message: 'status=${body.statusCode} contentLength=$contentLength',
+        message:
+            'status=${body.statusCode} contentLength=$contentLength '
+            'httpVersion=${httpVersion ?? "unknown"} '
+            'alpnAdvertised=${kControlClientAlpnProtocols.join(",")} '
+            'negotiatedAlpn=not_exposed_by_HttpClient host=$host path=$path',
         elapsedMs: headerMs,
       );
       debugPrint(
-        '[HTTP] headers ${options.method} ${options.uri.path} '
+        '[HTTP] headers ${options.method} $path '
         'status=${body.statusCode} contentLength=$contentLength '
-        'headerMs=$headerMs',
+        'httpVersion=${httpVersion ?? "unknown"} headerMs=$headerMs',
       );
 
       var bytes = 0;
@@ -102,28 +126,35 @@ class _TimedHttpClientAdapter implements HttpClientAdapter {
             DiagnosticLog.instance.log(
               requestId: requestId,
               stage: 'adapter_body_done',
-              message: 'status=${body.statusCode} bytes=$bytes',
+              message:
+                  'status=${body.statusCode} bytes=$bytes host=$host path=$path',
               elapsedMs: totalMs,
             );
             debugPrint(
-              '[HTTP] bodyDone ${options.method} ${options.uri.path} '
+              '[HTTP] bodyDone ${options.method} $path '
               'status=${body.statusCode} bytes=$bytes totalMs=$totalMs',
             );
             sink.close();
           },
           handleError: (error, stack, sink) {
             final totalMs = DateTime.now().difference(started).inMilliseconds;
+            final detail = NativeErrorFormatter.describe(
+              error,
+              stackTrace: stack,
+              host: host,
+              path: path,
+              stage: 'reading_body',
+              elapsedMs: totalMs,
+              alpnAdvertised: kControlClientAlpnProtocols.join(','),
+            );
             DiagnosticLog.instance.log(
               requestId: requestId,
               stage: 'adapter_body_error',
-              message: 'type=${error.runtimeType}',
+              message: detail,
               elapsedMs: totalMs,
               failureClass: DiagnosticFailureClass.bodyNotCompleted,
             );
-            debugPrint(
-              '[HTTP] bodyError ${options.method} ${options.uri.path} '
-              'type=${error.runtimeType} totalMs=$totalMs',
-            );
+            debugPrint('[HTTP] bodyError $path $detail');
             sink.addError(error, stack);
           },
         ),
@@ -139,24 +170,30 @@ class _TimedHttpClientAdapter implements HttpClientAdapter {
       );
       wrapped.extra.addAll(body.extra);
       return wrapped;
-    } catch (e) {
+    } catch (e, stack) {
       final totalMs = DateTime.now().difference(started).inMilliseconds;
-      final type = e is DioException ? e.type : e.runtimeType;
-      final status = e is DioException ? e.response?.statusCode : null;
-      final cls = e is DioException
-          ? DiagnosticClassifier.fromDio(e)
-          : DiagnosticFailureClass.unknown;
+      final failStage = NativeErrorFormatter.inferFailStage(
+        e,
+        currentStage: stage,
+      );
+      final cls = NativeErrorFormatter.classifyObject(e);
+      final detail = NativeErrorFormatter.describe(
+        e,
+        stackTrace: stack,
+        host: host,
+        path: path,
+        stage: failStage,
+        elapsedMs: totalMs,
+        alpnAdvertised: kControlClientAlpnProtocols.join(','),
+      );
       DiagnosticLog.instance.log(
         requestId: requestId,
         stage: 'adapter_fail',
-        message: 'type=$type status=$status',
+        message: detail,
         elapsedMs: totalMs,
         failureClass: cls,
       );
-      debugPrint(
-        '[HTTP] fail ${options.method} ${options.uri.path} '
-        'type=$type status=$status totalMs=$totalMs',
-      );
+      debugPrint('[HTTP] fail $path $detail');
       rethrow;
     }
   }

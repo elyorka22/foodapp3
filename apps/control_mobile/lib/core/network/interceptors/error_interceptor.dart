@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../diagnostics/diagnostic_classifier.dart';
 import '../../diagnostics/diagnostic_log.dart';
-import '../../diagnostics/diagnostic_sanitizer.dart';
+import '../../diagnostics/native_error_formatter.dart';
 import '../api_exception.dart';
 
 class ErrorInterceptor extends Interceptor {
@@ -17,15 +17,24 @@ class ErrorInterceptor extends Interceptor {
     final requestId =
         err.requestOptions.extra['diag_request_id'] as String?;
     final cls = DiagnosticClassifier.fromDio(err);
-    final safeErr = DiagnosticSanitizer.sanitize(
-      '${err.type} ${err.error?.runtimeType ?? ''} ${err.message ?? ''}',
+    final host = err.requestOptions.uri.host;
+    final path = err.requestOptions.uri.path;
+    final failStage = NativeErrorFormatter.inferFailStage(err);
+    // Capture native HttpException/SocketException BEFORE replacing err.error.
+    final transportDetail = NativeErrorFormatter.describe(
+      err,
+      stackTrace: err.stackTrace,
+      host: host,
+      path: path,
+      stage: failStage,
+      elapsedMs: elapsedMs,
     );
 
     if (requestId != null) {
       DiagnosticLog.instance.log(
         requestId: requestId,
         stage: 'dio_on_error',
-        message: 'status=$statusCode detail=$safeErr ui="$message"',
+        message: 'ui="$message" | $transportDetail',
         elapsedMs: elapsedMs,
         failureClass: cls,
       );
@@ -33,9 +42,9 @@ class ErrorInterceptor extends Interceptor {
 
     // Safe diagnostics only — never log bodies (may contain passwords/tokens).
     debugPrint(
-      '[API ERROR] ${err.requestOptions.method} ${err.requestOptions.path} '
+      '[API ERROR] ${err.requestOptions.method} $path '
       'type=${err.type} status=$statusCode elapsedMs=$elapsedMs '
-      'message=$message',
+      'failStage=$failStage detail=$transportDetail',
     );
 
     handler.next(
@@ -44,6 +53,8 @@ class ErrorInterceptor extends Interceptor {
           message: message,
           statusCode: statusCode,
           raw: err.response?.data,
+          transportDetail: transportDetail,
+          causeType: err.error?.runtimeType.toString() ?? err.type.toString(),
         ),
       ),
     );

@@ -76,6 +76,22 @@ abstract final class DiagnosticClassifier {
     if (text.contains('sessiyani saqlab') || text.contains('secure')) {
       return DiagnosticFailureClass.secureStorage;
     }
+    if (text.contains('handshake') ||
+        text.contains('certificate') ||
+        text.contains('tls') ||
+        text.contains('ssl')) {
+      return DiagnosticFailureClass.tls;
+    }
+    if (text.contains('failed host lookup') || text.contains('dns')) {
+      return DiagnosticFailureClass.dns;
+    }
+    if (text.contains('socket')) {
+      return DiagnosticFailureClass.tcp;
+    }
+    if (text.contains('before full header') ||
+        text.contains('connection closed before')) {
+      return DiagnosticFailureClass.headersNotReceived;
+    }
     if (text.contains('json') || text.contains('format') || text.contains('type')) {
       return DiagnosticFailureClass.parse;
     }

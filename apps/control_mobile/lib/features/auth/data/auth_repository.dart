@@ -7,7 +7,9 @@ import '../../../core/constants/api_paths.dart';
 import '../../../core/diagnostics/diagnostic_classifier.dart';
 import '../../../core/diagnostics/diagnostic_log.dart';
 import '../../../core/diagnostics/diagnostic_sanitizer.dart';
+import '../../../core/diagnostics/native_error_formatter.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/storage/storage_providers.dart';
 import '../../../core/storage/token_storage.dart';
@@ -133,33 +135,38 @@ class AuthRepository {
     } on DioException catch (e) {
       final elapsedMs = DateTime.now().difference(started).inMilliseconds;
       final cls = DiagnosticClassifier.fromDio(e);
+      final transport = _transportDetailFromDio(e);
       DiagnosticLog.instance.log(
         requestId: requestId,
         stage: 'login_dio_error',
         message:
             'type=${e.type} status=${e.response?.statusCode} '
-            'errorClass=${e.error?.runtimeType}',
+            'errorClass=${e.error?.runtimeType} | $transport',
         elapsedMs: elapsedMs,
         failureClass: cls,
       );
       debugPrint(
         '[AUTH LOGIN] dio type=${e.type} status=${e.response?.statusCode} '
-        'elapsedMs=$elapsedMs',
+        'elapsedMs=$elapsedMs transport=$transport',
       );
       rethrow;
-    } catch (e) {
+    } catch (e, stack) {
       final elapsedMs = DateTime.now().difference(started).inMilliseconds;
       final cls = DiagnosticClassifier.fromObject(e);
+      final detail = NativeErrorFormatter.describe(
+        e,
+        stackTrace: stack,
+        stage: 'login_error',
+        elapsedMs: elapsedMs,
+      );
       DiagnosticLog.instance.log(
         requestId: requestId,
         stage: 'login_error',
-        message: 'type=${e.runtimeType}',
+        message: detail,
         elapsedMs: elapsedMs,
         failureClass: cls,
       );
-      debugPrint(
-        '[AUTH LOGIN] error type=${e.runtimeType} elapsedMs=$elapsedMs',
-      );
+      debugPrint('[AUTH LOGIN] error $detail');
       rethrow;
     }
   }
@@ -243,14 +250,33 @@ class AuthRepository {
       );
     } on DioException catch (e) {
       final ms = DateTime.now().difference(started).inMilliseconds;
+      final transport = _transportDetailFromDio(e);
       DiagnosticLog.instance.log(
         requestId: requestId,
         stage: 'health_fail',
-        message: 'type=${e.type} status=${e.response?.statusCode}',
+        message:
+            'type=${e.type} status=${e.response?.statusCode} | $transport',
         elapsedMs: ms,
         failureClass: DiagnosticClassifier.fromDio(e),
       );
       rethrow;
     }
+  }
+
+  /// Prefers interceptor-captured detail; falls back to live formatting.
+  static String _transportDetailFromDio(DioException e) {
+    final wrapped = e.error;
+    if (wrapped is ApiException &&
+        wrapped.transportDetail != null &&
+        wrapped.transportDetail!.isNotEmpty) {
+      return wrapped.transportDetail!;
+    }
+    return NativeErrorFormatter.describe(
+      e,
+      stackTrace: e.stackTrace,
+      host: e.requestOptions.uri.host,
+      path: e.requestOptions.uri.path,
+      stage: NativeErrorFormatter.inferFailStage(e),
+    );
   }
 }

@@ -15,7 +15,11 @@ abstract final class DiagnosticSanitizer {
     r'[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}',
     caseSensitive: false,
   );
-  static final _phone = RegExp(r'\+?\d[\d\s\-()]{8,}\d');
+  /// Only match numbers that look like phone numbers (leading + or separators).
+  /// Bare digit runs (errno codes, ports, elapsedMs) must stay intact.
+  static final _phone = RegExp(
+    r'\+\d{9,15}\b|\b\d{2,4}[\s\-()]\d{2,4}[\s\-()]\d{2,4}\b',
+  );
 
   static String sanitize(String input) {
     var out = input;
@@ -26,6 +30,9 @@ abstract final class DiagnosticSanitizer {
     out = out.replaceAllMapped(_phone, (_) => '***PHONE***');
     return out;
   }
+
+  /// Technical transport messages: redact credentials/PII but keep errno codes.
+  static String sanitizeTechnical(String input) => sanitize(input);
 
   /// Returns only JSON object keys (never values) for payload shape logging.
   static String payloadFieldNames(Map<String, dynamic> payload) {

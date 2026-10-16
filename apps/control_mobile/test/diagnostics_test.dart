@@ -35,6 +35,17 @@ void main() {
       expect(clean, contains('***'));
     });
 
+    test('preserves errno codes and elapsedMs (no aggressive digit wipe)', () {
+      final raw =
+          'HttpException Connection closed errno=111 elapsedMs=28450 '
+          'osErrorCode=110 osErrorMessage=Connection timed out';
+      final clean = DiagnosticSanitizer.sanitizeTechnical(raw);
+      expect(clean, contains('errno=111'));
+      expect(clean, contains('elapsedMs=28450'));
+      expect(clean, contains('osErrorCode=110'));
+      expect(clean, contains('Connection timed out'));
+    });
+
     test('payloadFieldNames lists keys only', () {
       final names = DiagnosticSanitizer.payloadFieldNames({
         'email': 'a@b.c',

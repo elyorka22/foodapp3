@@ -6,11 +6,19 @@ class ApiException implements Exception {
     required this.message,
     this.statusCode,
     this.raw,
+    this.transportDetail,
+    this.causeType,
   });
 
   final String message;
   final int? statusCode;
   final Object? raw;
+
+  /// Sanitized native transport summary (HttpException/SocketException/…).
+  final String? transportDetail;
+
+  /// Original nested error type name before interceptor replacement.
+  final String? causeType;
 
   @override
   String toString() => displayMessage;
