@@ -38,20 +38,27 @@ class ApiException implements Exception {
     return 'So\'rov bajarilmadi';
   }
 
+  /// Maps HTTP auth failures regardless of [DioException.type].
+  ///
+  /// Important: a partial response can arrive with type receiveTimeout; never
+  /// hide 400/401/403 behind a generic timeout string.
+  static String? messageForHttpStatus(int? code) {
+    if (code == 401) return 'Login yoki parol noto\'g\'ri';
+    if (code == 403) {
+      return 'Kirish taqiqlangan. FoodApp Control faqat SUPER_ADMIN uchun.';
+    }
+    if (code == 400) {
+      return 'Noto\'g\'ri so\'rov (client yoki maydonlar).';
+    }
+    return null;
+  }
+
   static String fromDio(DioException err) {
     final response = err.response;
     final code = response?.statusCode;
 
-    // Prefer stable Control UX for login client policy responses.
-    if (err.type == DioExceptionType.badResponse) {
-      if (code == 401) return 'Login yoki parol noto\'g\'ri';
-      if (code == 403) {
-        return 'Kirish taqiqlangan. FoodApp Control faqat SUPER_ADMIN uchun.';
-      }
-      if (code == 400) {
-        return 'Noto\'g\'ri so\'rov (client yoki maydonlar).';
-      }
-    }
+    final byStatus = messageForHttpStatus(code);
+    if (byStatus != null) return byStatus;
 
     if (response?.data != null) {
       final parsed = parseMessage(response!.data);

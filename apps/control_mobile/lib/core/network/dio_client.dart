@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/app_config.dart';
 import '../storage/storage_providers.dart';
 import '../storage/token_storage.dart';
+import 'http_adapter_stub.dart'
+    if (dart.library.io) 'http_adapter_io.dart' as http_adapter;
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 
@@ -17,11 +19,19 @@ Dio createDioClient(TokenStorage storage) {
       baseUrl: AppConfig.normalizedApiBaseUrl,
       connectTimeout: AppConfig.connectTimeout,
       receiveTimeout: AppConfig.receiveTimeout,
-      // Intentionally no sendTimeout — see AppConfig comment.
-      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      // Intentionally no sendTimeout — Dio on Android can false-fire sendTimeout
+      // after the request already left the device.
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       responseType: ResponseType.json,
+      // NestJS @Post() defaults to 201 Created; treat all 2xx as success.
+      validateStatus: (status) => status != null && status >= 200 && status < 300,
+      persistentConnection: false,
     ),
   );
+  http_adapter.configureNativeHttpClient(dio);
   dio.interceptors.addAll([
     AuthInterceptor(storage),
     ErrorInterceptor(),

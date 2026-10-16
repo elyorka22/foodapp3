@@ -7,11 +7,16 @@ class ErrorInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final message = ApiException.fromDio(err);
     final statusCode = err.response?.statusCode;
+    final started = err.requestOptions.extra['control_req_started_ms'];
+    final elapsedMs = started is int
+        ? DateTime.now().millisecondsSinceEpoch - started
+        : null;
 
-    // Never log request/response bodies (may contain passwords).
+    // Safe diagnostics only — never log bodies (may contain passwords/tokens).
     debugPrint(
       '[API ERROR] ${err.requestOptions.method} ${err.requestOptions.path} '
-      'status=$statusCode message=$message',
+      'type=${err.type} status=$statusCode elapsedMs=$elapsedMs '
+      'message=$message',
     );
 
     handler.next(

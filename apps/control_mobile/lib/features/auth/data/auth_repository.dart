@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/api_paths.dart';
@@ -28,22 +29,51 @@ class AuthRepository {
     required String loginId,
     required String password,
   }) async {
-    final res = await _dio.post<Map<String, dynamic>>(
-      ApiPaths.authLogin,
-      data: buildLoginPayload(loginId, password),
-      options: Options(
-        // Login body is tiny; avoid Dio Android false sendTimeouts.
-        sendTimeout: null,
-        receiveTimeout: AppConfig.receiveTimeout,
-        persistentConnection: false,
-      ),
-    );
-    final auth = AuthResponseModel.fromJson(res.data!);
-    if (!auth.user.isSuperAdmin) {
-      throw Exception(AppStrings.wrongRole);
+    final started = DateTime.now();
+    try {
+      final res = await _dio.post<Map<String, dynamic>>(
+        ApiPaths.authLogin,
+        data: buildLoginPayload(loginId, password),
+        options: Options(
+          // Login body is tiny; avoid Dio Android false sendTimeouts.
+          sendTimeout: null,
+          receiveTimeout: AppConfig.receiveTimeout,
+          persistentConnection: false,
+          // Close after one response so nginx/h2 cannot leave the stream open.
+          headers: const {'Connection': 'close'},
+          validateStatus: (status) =>
+              status != null && status >= 200 && status < 300,
+        ),
+      );
+      final elapsedMs = DateTime.now().difference(started).inMilliseconds;
+      debugPrint(
+        '[AUTH LOGIN] ok status=${res.statusCode} elapsedMs=$elapsedMs',
+      );
+
+      final data = res.data;
+      if (data == null) {
+        throw Exception('Bo\'sh javob (HTTP ${res.statusCode})');
+      }
+      final auth = AuthResponseModel.fromJson(data);
+      if (!auth.user.isSuperAdmin) {
+        throw Exception(AppStrings.wrongRole);
+      }
+      await _persist(auth);
+      return auth;
+    } on DioException catch (e) {
+      final elapsedMs = DateTime.now().difference(started).inMilliseconds;
+      debugPrint(
+        '[AUTH LOGIN] dio type=${e.type} status=${e.response?.statusCode} '
+        'elapsedMs=$elapsedMs',
+      );
+      rethrow;
+    } catch (e) {
+      final elapsedMs = DateTime.now().difference(started).inMilliseconds;
+      debugPrint(
+        '[AUTH LOGIN] error type=${e.runtimeType} elapsedMs=$elapsedMs',
+      );
+      rethrow;
     }
-    await _persist(auth);
-    return auth;
   }
 
   /// Builds payload matching backend LoginDto: email OR phone + password + client.

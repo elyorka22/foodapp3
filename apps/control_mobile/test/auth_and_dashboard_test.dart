@@ -107,6 +107,7 @@ void main() {
     DioException dioError({
       required int status,
       Object? data,
+      DioExceptionType type = DioExceptionType.badResponse,
     }) {
       return DioException(
         requestOptions: RequestOptions(path: '/auth/login'),
@@ -115,7 +116,7 @@ void main() {
           statusCode: status,
           data: data,
         ),
-        type: DioExceptionType.badResponse,
+        type: type,
       );
     }
 
@@ -145,6 +146,47 @@ void main() {
       expect(message.toLowerCase(), isNot(contains('password')));
     });
 
+    test('maps HTTP 401', () {
+      final message = ApiException.fromDio(
+        dioError(status: 401, data: {'message': 'Invalid credentials'}),
+      );
+      expect(message.toLowerCase(), contains('parol'));
+      expect(message.toLowerCase(), isNot(contains('invalid credentials')));
+    });
+
+    test('prefers HTTP 401 over receiveTimeout when response is present', () {
+      final message = ApiException.fromDio(
+        dioError(
+          status: 401,
+          data: {'message': 'Invalid credentials'},
+          type: DioExceptionType.receiveTimeout,
+        ),
+      );
+      expect(message.toLowerCase(), contains('parol'));
+      expect(message.toLowerCase(), isNot(contains('timeout')));
+    });
+
+    test('prefers HTTP 403 over receiveTimeout when response is present', () {
+      final message = ApiException.fromDio(
+        dioError(
+          status: 403,
+          data: {'message': 'Forbidden'},
+          type: DioExceptionType.receiveTimeout,
+        ),
+      );
+      expect(message, contains('SUPER_ADMIN'));
+      expect(message.toLowerCase(), isNot(contains('timeout')));
+    });
+
+    test('receiveTimeout without response shows timeout message', () {
+      final err = DioException(
+        requestOptions: RequestOptions(path: '/auth/login'),
+        type: DioExceptionType.receiveTimeout,
+      );
+      final message = ApiException.fromDio(err);
+      expect(message.toLowerCase(), contains('timeout'));
+    });
+
     test('formatError unwraps DioException ApiException', () {
       final dio = dioError(status: 403, data: {'message': 'Forbidden'});
       final wrapped = dio.copyWith(
@@ -156,6 +198,22 @@ void main() {
       final text = ApiException.formatError(wrapped);
       expect(text, contains('SUPER_ADMIN'));
       expect(text.toLowerCase(), isNot(contains('forbidden')));
+    });
+  });
+
+  group('AuthResponseModel', () {
+    test('parses Nest login success body (accessToken + user)', () {
+      final auth = AuthResponseModel.fromJson({
+        'accessToken': 'header.payload.sig',
+        'user': {
+          'id': 'u1',
+          'fullName': 'Admin',
+          'email': 'a@b.c',
+          'role': 'SUPER_ADMIN',
+        },
+      });
+      expect(auth.accessToken, 'header.payload.sig');
+      expect(auth.user.isSuperAdmin, isTrue);
     });
   });
 

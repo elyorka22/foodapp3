@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
@@ -12,6 +12,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   @Throttle({ default: THROTTLE.AUTH_LOGIN })
   @ApiOperation({
     summary: 'Staff login (JWT) — users table',
@@ -25,6 +26,7 @@ export class AuthController {
   }
 
   @Post('staff/login')
+  @HttpCode(HttpStatus.OK)
   @Throttle({ default: THROTTLE.AUTH_LOGIN })
   @ApiOperation({ summary: 'Alias for staff login (same as POST /auth/login)' })
   staffLogin(@Body() dto: LoginDto, @Req() req: Request) {
