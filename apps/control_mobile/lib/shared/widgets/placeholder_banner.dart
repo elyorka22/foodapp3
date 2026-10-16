@@ -17,7 +17,7 @@ class PlaceholderBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.warningSoft,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        border: Border.all(color: AppColors.warning.withOpacity(0.35)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
