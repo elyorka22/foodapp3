@@ -52,6 +52,48 @@ const controlNavItems = <ControlNavItem>[
     mobile: false,
   ),
   ControlNavItem(
+    label: AppStrings.navPush,
+    icon: Icons.notifications_active_outlined,
+    route: AppRoutes.push,
+    mobile: false,
+  ),
+  ControlNavItem(
+    label: AppStrings.navCouriers,
+    icon: Icons.delivery_dining_outlined,
+    route: AppRoutes.couriers,
+    mobile: false,
+  ),
+  ControlNavItem(
+    label: AppStrings.navCustomers,
+    icon: Icons.people_outline,
+    route: AppRoutes.customers,
+    mobile: false,
+  ),
+  ControlNavItem(
+    label: AppStrings.navCities,
+    icon: Icons.location_city_outlined,
+    route: AppRoutes.cities,
+    mobile: false,
+  ),
+  ControlNavItem(
+    label: AppStrings.navBusinessTypes,
+    icon: Icons.category_outlined,
+    route: AppRoutes.businessTypes,
+    mobile: false,
+  ),
+  ControlNavItem(
+    label: AppStrings.navBooking,
+    icon: Icons.event_seat_outlined,
+    route: AppRoutes.booking,
+    mobile: false,
+  ),
+  ControlNavItem(
+    label: AppStrings.navTelegram,
+    icon: Icons.chat_outlined,
+    route: AppRoutes.telegram,
+    mobile: false,
+  ),
+  ControlNavItem(
     label: AppStrings.navSettings,
     icon: Icons.settings_outlined,
     route: AppRoutes.settings,

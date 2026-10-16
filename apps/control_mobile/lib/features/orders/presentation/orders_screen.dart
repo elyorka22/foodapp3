@@ -7,9 +7,11 @@ import '../../../core/utils/format_uz.dart';
 import '../../../core/network/paginated_response.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/control_list_card.dart';
+import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/order_model.dart';
 import '../data/orders_repository.dart';
+import 'order_detail_sheet.dart';
 
 final ordersListProvider =
     FutureProvider.autoDispose<PaginatedResponse<ControlOrder>>((ref) {
@@ -59,6 +61,11 @@ class OrdersScreen extends ConsumerWidget {
                       if (o.createdAt != null) formatDateTime(o.createdAt),
                     ].join(' · '),
                     trailing: StatusChip(status: o.status),
+                    onTap: () => showDetailSheet(
+                      context: context,
+                      title: AppStrings.details,
+                      builder: (_) => OrderDetailSheet(order: o),
+                    ),
                   );
                 },
               );

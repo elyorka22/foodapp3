@@ -7,6 +7,7 @@ class ControlRestaurant {
     required this.name,
     required this.slug,
     required this.isActive,
+    this.approvalStatus = 'PENDING',
     this.description,
     this.logoUrl,
     this.coverUrl,
@@ -25,6 +26,7 @@ class ControlRestaurant {
   final String name;
   final String slug;
   final bool isActive;
+  final String approvalStatus;
   final String? description;
   final String? logoUrl;
   final String? coverUrl;
@@ -44,6 +46,7 @@ class ControlRestaurant {
       name: json['name'] as String? ?? '',
       slug: json['slug'] as String? ?? '',
       isActive: json['isActive'] as bool? ?? false,
+      approvalStatus: json['approvalStatus'] as String? ?? 'PENDING',
       description: json['description'] as String?,
       logoUrl: json['logoUrl'] as String?,
       coverUrl: json['coverUrl'] as String?,

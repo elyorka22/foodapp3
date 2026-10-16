@@ -29,6 +29,27 @@ class CatalogRepository {
       ControlProduct.fromJson,
     );
   }
+
+  Future<ControlProduct> updateProduct(
+    String id, {
+    bool? isAvailable,
+    String? name,
+    num? price,
+  }) async {
+    final res = await _dio.patch<Map<String, dynamic>>(
+      ApiPaths.product(id),
+      data: {
+        if (isAvailable != null) 'isAvailable': isAvailable,
+        if (name != null) 'name': name,
+        if (price != null) 'price': price,
+      },
+    );
+    return ControlProduct.fromJson(res.data ?? <String, dynamic>{});
+  }
+
+  Future<void> deleteProduct(String id) async {
+    await _dio.delete<dynamic>(ApiPaths.product(id));
+  }
 }
 
 final catalogRepositoryProvider = Provider<CatalogRepository>((ref) {

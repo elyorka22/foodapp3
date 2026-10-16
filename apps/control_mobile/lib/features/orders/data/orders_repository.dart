@@ -29,6 +29,70 @@ class OrdersRepository {
       ControlOrder.fromJson,
     );
   }
+
+  /// `GET /orders/:id`
+  Future<ControlOrder> fetchOrder(String id) async {
+    final res = await _dio.get<Map<String, dynamic>>(ApiPaths.order(id));
+    return ControlOrder.fromJson(res.data ?? <String, dynamic>{});
+  }
+
+  /// `PATCH /orders/:id/status`
+  Future<void> updateStatus(
+    String id, {
+    required String status,
+    String? cancelReason,
+    String? courierId,
+  }) async {
+    await _dio.patch<dynamic>(
+      ApiPaths.orderStatus(id),
+      data: {
+        'status': status,
+        if (cancelReason != null && cancelReason.isNotEmpty)
+          'cancelReason': cancelReason,
+        if (courierId != null && courierId.isNotEmpty) 'courierId': courierId,
+      },
+    );
+  }
+
+  /// `POST /orders/:id/assign-courier`
+  Future<void> assignCourier(
+    String id, {
+    required String courierId,
+    String? note,
+  }) async {
+    await _dio.post<dynamic>(
+      ApiPaths.orderAssignCourier(id),
+      data: {
+        'courierId': courierId,
+        if (note != null && note.isNotEmpty) 'note': note,
+      },
+    );
+  }
+
+  /// `PATCH /orders/:id/reassign-courier`
+  Future<void> reassignCourier(
+    String id, {
+    required String courierId,
+    String? note,
+  }) async {
+    await _dio.patch<dynamic>(
+      ApiPaths.orderReassignCourier(id),
+      data: {
+        'courierId': courierId,
+        if (note != null && note.isNotEmpty) 'note': note,
+      },
+    );
+  }
+
+  /// `PATCH /orders/:id/remove-courier`
+  Future<void> removeCourier(String id) async {
+    await _dio.patch<dynamic>(ApiPaths.orderRemoveCourier(id));
+  }
+
+  /// `POST /orders/:id/request-courier`
+  Future<void> requestCourier(String id) async {
+    await _dio.post<dynamic>(ApiPaths.orderRequestCourier(id));
+  }
 }
 
 final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {

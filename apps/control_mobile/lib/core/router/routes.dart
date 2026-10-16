@@ -10,4 +10,11 @@ abstract final class AppRoutes {
   static const promotions = '/promotions';
   static const settings = '/settings';
   static const audit = '/audit';
+  static const push = '/push';
+  static const cities = '/cities';
+  static const businessTypes = '/business-types';
+  static const couriers = '/couriers';
+  static const customers = '/customers';
+  static const booking = '/booking';
+  static const telegram = '/telegram';
 }

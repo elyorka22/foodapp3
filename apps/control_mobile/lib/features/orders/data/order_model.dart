@@ -12,6 +12,8 @@ class ControlOrder {
     this.customerPhone,
     this.businessName,
     this.courierName,
+    this.courierId,
+    this.cancelReason,
     this.createdAt,
   });
 
@@ -24,7 +26,21 @@ class ControlOrder {
   final String? customerPhone;
   final String? businessName;
   final String? courierName;
+  final String? courierId;
+  final String? cancelReason;
   final DateTime? createdAt;
+
+  static const statusOptions = <String>[
+    'PENDING',
+    'ACCEPTED',
+    'PREPARING',
+    'COURIER_ASSIGNED',
+    'ARRIVED_AT_RESTAURANT',
+    'PICKED_UP',
+    'DELIVERING',
+    'DELIVERED',
+    'CANCELLED',
+  ];
 
   factory ControlOrder.fromJson(Map<String, dynamic> json) {
     final guest = json['guestOrder'] as Map<String, dynamic>?;
@@ -45,6 +61,8 @@ class ControlOrder {
           restaurant?['name'] as String? ?? business?['name'] as String?,
       courierName: courierUser?['fullName'] as String? ??
           courier?['fullName'] as String?,
+      courierId: courier?['id'] as String? ?? json['courierId'] as String?,
+      cancelReason: json['cancelReason'] as String?,
       createdAt: parseDateTime(json['createdAt']),
     );
   }

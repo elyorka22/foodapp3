@@ -6,8 +6,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
+import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/async_page_body.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
+import '../../../shared/widgets/detail_sheet.dart';
+import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/catalog_repository.dart';
 import '../data/product_model.dart';
@@ -84,11 +88,102 @@ class CatalogScreen extends ConsumerWidget {
                       status: p.isAvailable ? 'DELIVERED' : 'CANCELLED',
                       label: p.isAvailable ? 'Mavjud' : 'Yopiq',
                     ),
+                    onTap: () => showDetailSheet(
+                      context: context,
+                      title: AppStrings.details,
+                      builder: (_) => _ProductActions(product: p),
+                    ),
                   );
                 },
               );
             },
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProductActions extends ConsumerStatefulWidget {
+  const _ProductActions({required this.product});
+
+  final ControlProduct product;
+
+  @override
+  ConsumerState<_ProductActions> createState() => _ProductActionsState();
+}
+
+class _ProductActionsState extends ConsumerState<_ProductActions> {
+  late ControlProduct _product;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _product = widget.product;
+  }
+
+  Future<void> _toggle() async {
+    setState(() => _busy = true);
+    try {
+      final updated = await ref.read(catalogRepositoryProvider).updateProduct(
+            _product.id,
+            isAvailable: !_product.isAvailable,
+          );
+      if (!mounted) return;
+      setState(() => _product = updated);
+      ref.invalidate(catalogListProvider);
+      showActionSnackBar(context, AppStrings.actionDone);
+    } catch (e) {
+      if (mounted) showActionError(context, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _delete() async {
+    final ok = await showConfirmDialog(
+      context,
+      title: AppStrings.softDeleteProduct,
+      message: AppStrings.confirmDeleteProduct,
+      destructive: true,
+    );
+    if (!ok) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(catalogRepositoryProvider).deleteProduct(_product.id);
+      ref.invalidate(catalogListProvider);
+      if (!mounted) return;
+      showActionSnackBar(context, AppStrings.actionDone);
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) showActionError(context, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(_product.name, style: AppTypography.subtitle),
+        const SizedBox(height: 8),
+        Text(formatMoney(_product.price), style: AppTypography.body),
+        const SizedBox(height: 16),
+        MutationButton(
+          label: AppStrings.toggleAvailability,
+          loading: _busy,
+          onPressed: _toggle,
+        ),
+        const SizedBox(height: 8),
+        MutationButton(
+          label: AppStrings.softDeleteProduct,
+          filled: false,
+          destructive: true,
+          loading: _busy,
+          onPressed: _delete,
         ),
       ],
     );

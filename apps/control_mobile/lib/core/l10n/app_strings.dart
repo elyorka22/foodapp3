@@ -41,6 +41,110 @@ abstract final class AppStrings {
   static const save = 'Saqlash';
   static const saved = 'Saqlandi';
   static const loading = 'Yuklanmoqda…';
+  static const cancel = 'Bekor qilish';
+  static const confirm = 'Tasdiqlash';
+  static const create = 'Yaratish';
+  static const edit = 'Tahrirlash';
+  static const delete = 'O‘chirish';
+  static const actionDone = 'Bajarildi';
+  static const active = 'Faol';
+  static const inactive = 'Nofaol';
+  static const details = 'Tafsilotlar';
+
+  // Orders manage
+  static const orderStatus = 'Status';
+  static const changeStatus = 'Statusni o‘zgartirish';
+  static const assignCourier = 'Kuryer biriktirish';
+  static const reassignCourier = 'Kuryerni almashtirish';
+  static const removeCourier = 'Kuryerni olib tashlash';
+  static const requestCourier = 'Kuryer so‘rash';
+  static const selectCourier = 'Kuryerni tanlang';
+  static const cancelOrder = 'Buyurtmani bekor qilish';
+  static const cancelReason = 'Bekor qilish sababi';
+  static const confirmRemoveCourier =
+      'Buyurtmadan kuryerni olib tashlamoqchimisiz?';
+
+  // Businesses manage
+  static const approve = 'Tasdiqlash';
+  static const reject = 'Rad etish';
+  static const suspend = 'To‘xtatish';
+  static const setActive = 'Faollashtirish';
+  static const setInactive = 'O‘chirish (nofaol)';
+  static const ownerAccount = 'Egasi hisobi';
+  static const ownerLogin = 'Login';
+  static const ownerPassword = 'Parol';
+  static const ownerFullName = 'To‘liq ism';
+  static const createOwnerAccount = 'Egasi hisobini yaratish';
+  static const approvalStatus = 'Tasdiq holati';
+  static const confirmRejectBusiness =
+      'Biznesni rad etmoqchimisiz?';
+  static const phoneLabel = 'Telefon';
+  static const nameLabel = 'Nomi';
+  static const addressLabel = 'Manzil';
+
+  // Employees manage
+  static const addEmployee = 'Xodim qo‘shish';
+  static const deactivate = 'Faolsizlantirish';
+  static const activate = 'Faollashtirish';
+  static const resetPassword = 'Parolni yangilash';
+  static const newPassword = 'Yangi parol';
+  static const roleLabel = 'Rol';
+  static const emailLabel = 'Email';
+  static const fullNameLabel = 'To‘liq ism';
+  static const confirmDeactivate = 'Xodimni faolsizlantirmoqchimisiz?';
+
+  // Catalog / promotions
+  static const toggleAvailability = 'Mavjudlikni almashtirish';
+  static const softDeleteProduct = 'Mahsulotni o‘chirish';
+  static const confirmDeleteProduct = 'Mahsulotni o‘chirishni tasdiqlaysizmi?';
+  static const addPromo = 'Promo qo‘shish';
+  static const addBanner = 'Banner qo‘shish';
+  static const promoCode = 'Promo kod';
+  static const promoType = 'Turi';
+  static const promoValue = 'Qiymat';
+  static const bannerTitle = 'Banner sarlavhasi';
+  static const bannerImageUrl = 'Rasm URL';
+  static const bannerLink = 'Havola';
+  static const bannerPlacement = 'Joylashuv';
+  static const confirmDeletePromo = 'Promo kodni o‘chirishni tasdiqlaysizmi?';
+  static const confirmDeleteBanner = 'Bannerni o‘chirishni tasdiqlaysizmi?';
+
+  // Push
+  static const navPush = 'Push';
+  static const pushTitle = 'Push xabar';
+  static const pushSend = 'Yuborish';
+  static const pushAudience = 'Auditoriya';
+  static const pushMessageTitle = 'Sarlavha';
+  static const pushMessageBody = 'Matn';
+  static const pushSent = 'Push yuborildi';
+
+  // Platform
+  static const navMore = 'Platforma';
+  static const navCities = 'Shaharlar';
+  static const navBusinessTypes = 'Biznes turlari';
+  static const navCouriers = 'Kuryerlar';
+  static const navCustomers = 'Mijozlar';
+  static const navBooking = 'Bron';
+  static const navTelegram = 'Telegram';
+  static const platformSection = 'Platforma boshqaruvi';
+  static const deliveryPricing = 'Yetkazib berish narxlari';
+  static const baseDeliveryFee = 'Asosiy narx';
+  static const perKmFee = 'Km uchun';
+  static const maxDeliveryDistance = 'Maks. masofa (km)';
+  static const courierPricePerKm = 'Kuryer / km';
+  static const courierMinFee = 'Kuryer min.';
+  static const addCity = 'Shahar qo‘shish';
+  static const addBusinessType = 'Tur qo‘shish';
+  static const addCourier = 'Kuryer qo‘shish';
+  static const vehicleType = 'Transport';
+  static const online = 'Onlayn';
+  static const offline = 'Oflayn';
+  static const venuesSection = 'Joylar';
+  static const slidesSection = 'Slaydlar';
+  static const telegramWelcome = 'Salomlashuv matni';
+  static const telegramSiteUrl = 'Sayt URL';
+  static const registerWebhook = 'Webhookni ro‘yxatdan o‘tkazish';
+  static const systemHealth = 'Tizim holati';
 
   static const cardTodayOrders = 'Bugungi buyurtmalar';
   static const cardPending = 'Kutilayotgan';

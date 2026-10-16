@@ -29,6 +29,55 @@ class BusinessesRepository {
       ControlRestaurant.fromJson,
     );
   }
+
+  Future<ControlRestaurant> updateRestaurant(
+    String id, {
+    String? name,
+    String? phone,
+    String? branchAddress,
+    bool? isActive,
+  }) async {
+    final res = await _dio.patch<Map<String, dynamic>>(
+      ApiPaths.restaurant(id),
+      data: {
+        if (name != null) 'name': name,
+        if (phone != null) 'phone': phone,
+        if (branchAddress != null) 'branchAddress': branchAddress,
+        if (isActive != null) 'isActive': isActive,
+      },
+    );
+    return ControlRestaurant.fromJson(res.data ?? <String, dynamic>{});
+  }
+
+  Future<void> updateApproval(
+    String id, {
+    required String status,
+    String? note,
+  }) async {
+    await _dio.patch<dynamic>(
+      ApiPaths.restaurantApproval(id),
+      data: {
+        'status': status,
+        if (note != null && note.isNotEmpty) 'note': note,
+      },
+    );
+  }
+
+  Future<void> createOwnerAccount(
+    String id, {
+    required String login,
+    required String password,
+    String? fullName,
+  }) async {
+    await _dio.post<dynamic>(
+      ApiPaths.restaurantOwnerAccount(id),
+      data: {
+        'login': login,
+        'password': password,
+        if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
+      },
+    );
+  }
 }
 
 final businessesRepositoryProvider = Provider<BusinessesRepository>((ref) {

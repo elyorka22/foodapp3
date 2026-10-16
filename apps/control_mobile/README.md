@@ -15,8 +15,14 @@ Does not replace FoodApp Business or the customer website.
 - Android Dio uses Cronet (VPN/proxy like Chrome); dart:io fallback if needed
 - Responsive shell: mobile bottom nav + desktop sidebar
 - Live dashboard (`GET /analytics/dashboard`)
-- Live lists: employees, businesses, orders, catalog, promotions, audit
-- Settings read/save (`GET/PUT /settings/admin`)
+- **Orders:** status change, assign/reassign/remove/request courier
+- **Businesses:** approve/reject/suspend, active toggle, quick edit, owner account
+- **Employees:** create staff, edit profile, reset password, deactivate
+- **Catalog:** availability toggle, soft-delete
+- **Promotions:** promo codes + banners CRUD
+- **Push** broadcast, couriers/customers, cities, business types, booking, Telegram bot
+- Settings + delivery pricing (`PUT /settings/admin`, `PUT /settings/delivery-pricing`)
+- Audit log (read-only)
 - Separate secure session keys: `control_access_token` / `control_user_json`
 
 ## API configuration

@@ -8,9 +8,11 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/control_list_card.dart';
+import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/businesses_repository.dart';
 import '../data/restaurant_model.dart';
+import 'business_detail_sheet.dart';
 
 final businessesListProvider =
     FutureProvider.autoDispose<PaginatedResponse<ControlRestaurant>>((ref) {
@@ -79,13 +81,19 @@ class BusinessesScreen extends ConsumerWidget {
                     ),
                     title: r.name,
                     subtitle: [
+                      r.approvalStatus,
                       if (r.branchAddress != null) r.branchAddress!,
                       '${r.ordersCount} buyurtma',
                       formatMoney(r.revenue),
                     ].join(' · '),
                     trailing: StatusChip(
                       status: r.isActive ? 'DELIVERED' : 'CANCELLED',
-                      label: r.isActive ? 'Faol' : 'Nofaol',
+                      label: r.isActive ? AppStrings.active : AppStrings.inactive,
+                    ),
+                    onTap: () => showDetailSheet(
+                      context: context,
+                      title: AppStrings.details,
+                      builder: (_) => BusinessDetailSheet(restaurant: r),
                     ),
                   );
                 },

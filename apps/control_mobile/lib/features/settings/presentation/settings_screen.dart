@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/async_page_body.dart';
+import '../../../shared/widgets/mutation_button.dart';
+import '../data/delivery_pricing_model.dart';
 import '../data/settings_model.dart';
 import '../data/settings_repository.dart';
 
 final settingsProvider = FutureProvider.autoDispose<AdminSettings>((ref) {
   return ref.watch(settingsRepositoryProvider).fetchAdminSettings();
+});
+
+final deliveryPricingProvider =
+    FutureProvider.autoDispose<DeliveryPricing>((ref) {
+  return ref.watch(settingsRepositoryProvider).fetchDeliveryPricing();
 });
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -27,8 +37,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _minOrder = TextEditingController();
   final _deliveryFee = TextEditingController();
   final _commission = TextEditingController();
+  final _baseFee = TextEditingController();
+  final _perKm = TextEditingController();
+  final _maxDist = TextEditingController();
+  final _courierPerKm = TextEditingController();
+  final _courierMin = TextEditingController();
   bool _hydrated = false;
+  bool _pricingHydrated = false;
   bool _saving = false;
+  bool _savingPricing = false;
   String? _message;
 
   @override
@@ -40,6 +57,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _minOrder.dispose();
     _deliveryFee.dispose();
     _commission.dispose();
+    _baseFee.dispose();
+    _perKm.dispose();
+    _maxDist.dispose();
+    _courierPerKm.dispose();
+    _courierMin.dispose();
     super.dispose();
   }
 
@@ -52,6 +74,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _deliveryFee.text = s.defaultDeliveryFee.toString();
     _commission.text = s.commissionDefault.toString();
     _hydrated = true;
+  }
+
+  void _fillPricing(DeliveryPricing p) {
+    _baseFee.text = p.baseDeliveryFee.toString();
+    _perKm.text = p.perKmFee.toString();
+    _maxDist.text = p.maxDeliveryDistance.toString();
+    _courierPerKm.text = p.courierPricePerKm.toString();
+    _courierMin.text = p.courierMinFee.toString();
+    _pricingHydrated = true;
   }
 
   Future<void> _save(AdminSettings current) async {
@@ -105,105 +136,212 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _savePricing(DeliveryPricing current) async {
+    setState(() => _savingPricing = true);
+    try {
+      final updated = DeliveryPricing(
+        baseDeliveryFee:
+            num.tryParse(_baseFee.text.trim()) ?? current.baseDeliveryFee,
+        perKmFee: num.tryParse(_perKm.text.trim()) ?? current.perKmFee,
+        maxDeliveryDistance:
+            num.tryParse(_maxDist.text.trim()) ?? current.maxDeliveryDistance,
+        courierPricePerKm: num.tryParse(_courierPerKm.text.trim()) ??
+            current.courierPricePerKm,
+        courierMinFee:
+            num.tryParse(_courierMin.text.trim()) ?? current.courierMinFee,
+      );
+      await ref
+          .read(settingsRepositoryProvider)
+          .updateDeliveryPricing(updated);
+      ref.invalidate(deliveryPricingProvider);
+      if (mounted) showActionSnackBar(context, AppStrings.saved);
+    } catch (e) {
+      if (mounted) showActionError(context, e);
+    } finally {
+      if (mounted) setState(() => _savingPricing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(settingsProvider);
+    final pricingAsync = ref.watch(deliveryPricingProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            0,
-          ),
-          child: Text(AppStrings.settingsTitle, style: AppTypography.display),
+        Text(AppStrings.settingsTitle, style: AppTypography.display),
+        const SizedBox(height: 16),
+        Text(AppStrings.platformSection, style: AppTypography.subtitle),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final item in const [
+              (AppStrings.navPush, AppRoutes.push),
+              (AppStrings.navCouriers, AppRoutes.couriers),
+              (AppStrings.navCustomers, AppRoutes.customers),
+              (AppStrings.navCities, AppRoutes.cities),
+              (AppStrings.navBusinessTypes, AppRoutes.businessTypes),
+              (AppStrings.navBooking, AppRoutes.booking),
+              (AppStrings.navTelegram, AppRoutes.telegram),
+              (AppStrings.navCatalog, AppRoutes.catalog),
+              (AppStrings.navPromotions, AppRoutes.promotions),
+              (AppStrings.navAudit, AppRoutes.audit),
+            ])
+              OutlinedButton(
+                onPressed: () => context.go(item.$2),
+                child: Text(item.$1),
+              ),
+          ],
         ),
-        Expanded(
-          child: AsyncPageBody<AdminSettings>(
-            asyncValue: async,
-            onRefresh: () {
-              _hydrated = false;
-              return ref.refresh(settingsProvider.future);
-            },
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            dataBuilder: (settings) {
-              if (!_hydrated) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) setState(() => _fill(settings));
-                });
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextField(
-                    controller: _appName,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.settingsAppName,
-                    ),
+        const SizedBox(height: 24),
+        AsyncPageBody<AdminSettings>(
+          asyncValue: async,
+          onRefresh: () {
+            _hydrated = false;
+            return ref.refresh(settingsProvider.future);
+          },
+          padding: EdgeInsets.zero,
+          dataBuilder: (settings) {
+            if (!_hydrated) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() => _fill(settings));
+              });
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _appName,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.settingsAppName,
                   ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _supportPhone,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.settingsSupportPhone,
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _supportEmail,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.settingsSupportEmail,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _supportTelegram,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.settingsSupportTelegram,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _minOrder,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.settingsMinOrder,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _deliveryFee,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.settingsDeliveryFee,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _commission,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.settingsCommission,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: _saving ? null : () => _save(settings),
+                  child: Text(_saving ? AppStrings.loading : AppStrings.save),
+                ),
+                if (_message != null) ...[
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: _supportPhone,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.settingsSupportPhone,
-                    ),
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _supportEmail,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.settingsSupportEmail,
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _supportTelegram,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.settingsSupportTelegram,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _minOrder,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.settingsMinOrder,
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _deliveryFee,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.settingsDeliveryFee,
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _commission,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.settingsCommission,
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 20),
-                  FilledButton(
-                    onPressed: _saving ? null : () => _save(settings),
-                    child: Text(_saving ? AppStrings.loading : AppStrings.save),
-                  ),
-                  if (_message != null) ...[
-                    const SizedBox(height: 12),
-                    Text(_message!, style: AppTypography.bodySmall),
-                  ],
+                  Text(_message!, style: AppTypography.bodySmall),
                 ],
-              );
-            },
-          ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 28),
+        Text(AppStrings.deliveryPricing, style: AppTypography.subtitle),
+        const SizedBox(height: 12),
+        pricingAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Text(ApiException.formatError(e)),
+          data: (pricing) {
+            if (!_pricingHydrated) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() => _fillPricing(pricing));
+              });
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _baseFee,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.baseDeliveryFee,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _perKm,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.perKmFee,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _maxDist,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.maxDeliveryDistance,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _courierPerKm,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.courierPricePerKm,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _courierMin,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.courierMinFee,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                MutationButton(
+                  label: AppStrings.save,
+                  loading: _savingPricing,
+                  onPressed: () => _savePricing(pricing),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );

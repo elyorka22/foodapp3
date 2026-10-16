@@ -4,16 +4,23 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/audit/presentation/audit_screen.dart';
+import '../../features/booking/presentation/booking_screen.dart';
+import '../../features/business_types/presentation/business_types_screen.dart';
 import '../../features/businesses/presentation/businesses_screen.dart';
 import '../../features/catalog/presentation/catalog_screen.dart';
+import '../../features/cities/presentation/cities_screen.dart';
+import '../../features/couriers/presentation/couriers_screen.dart';
+import '../../features/customers/presentation/customers_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/diagnostics/presentation/diagnostics_screen.dart';
 import '../../features/employees/presentation/employees_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/promotions/presentation/promotions_screen.dart';
+import '../../features/push/presentation/push_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/shell/control_shell_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import '../../features/telegram/presentation/telegram_screen.dart';
 import 'routes.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
@@ -45,6 +52,10 @@ String? resolveControlAuthRedirect({
     return AppRoutes.dashboard;
   }
   return null;
+}
+
+GoRoute _branch(String path, Widget child) {
+  return GoRoute(path: path, builder: (_, __) => child);
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -81,68 +92,51 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
         branches: [
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.dashboard,
-                builder: (_, __) => const DashboardScreen(),
-              ),
-            ],
+            routes: [_branch(AppRoutes.dashboard, const DashboardScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.employees, const EmployeesScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.businesses, const BusinessesScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.orders, const OrdersScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.catalog, const CatalogScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.promotions, const PromotionsScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.push, const PushScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.couriers, const CouriersScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.customers, const CustomersScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [_branch(AppRoutes.cities, const CitiesScreen())],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: AppRoutes.employees,
-                builder: (_, __) => const EmployeesScreen(),
-              ),
+              _branch(AppRoutes.businessTypes, const BusinessTypesScreen()),
             ],
           ),
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.businesses,
-                builder: (_, __) => const BusinessesScreen(),
-              ),
-            ],
+            routes: [_branch(AppRoutes.booking, const BookingScreen())],
           ),
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.orders,
-                builder: (_, __) => const OrdersScreen(),
-              ),
-            ],
+            routes: [_branch(AppRoutes.telegram, const TelegramScreen())],
           ),
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.catalog,
-                builder: (_, __) => const CatalogScreen(),
-              ),
-            ],
+            routes: [_branch(AppRoutes.settings, const SettingsScreen())],
           ),
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.promotions,
-                builder: (_, __) => const PromotionsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.settings,
-                builder: (_, __) => const SettingsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.audit,
-                builder: (_, __) => const AuditScreen(),
-              ),
-            ],
+            routes: [_branch(AppRoutes.audit, const AuditScreen())],
           ),
         ],
       ),
