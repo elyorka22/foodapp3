@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/layout/breakpoints.dart';
 import '../../../core/network/api_exception.dart';
@@ -125,6 +126,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SizedBox(height: 16),
           Text(
             AppStrings.requiredBackendClient,
+            style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'API: ${AppConfig.apiHostLabel}',
             style: AppTypography.caption.copyWith(color: AppColors.textMuted),
           ),
         ],

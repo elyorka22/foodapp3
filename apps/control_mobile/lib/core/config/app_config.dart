@@ -24,6 +24,17 @@ class AppConfig {
     return url;
   }
 
+  /// Host only (no path/secrets) for on-screen diagnostics.
+  static String get apiHostLabel {
+    try {
+      final uri = Uri.parse(normalizedApiBaseUrl);
+      if (uri.host.isEmpty) return normalizedApiBaseUrl;
+      return uri.host;
+    } catch (_) {
+      return normalizedApiBaseUrl;
+    }
+  }
+
   static bool get hasDuplicateApiV1InBase {
     return RegExp(r'/api/v1/api/v1', caseSensitive: false)
         .hasMatch(normalizedApiBaseUrl);

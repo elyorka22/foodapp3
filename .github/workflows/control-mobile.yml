@@ -102,7 +102,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Require CONTROL_API_BASE_URL repository variable
+      - name: Require and probe CONTROL_API_BASE_URL
         env:
           CONTROL_API_BASE_URL: ${{ vars.CONTROL_API_BASE_URL }}
         run: |
@@ -119,7 +119,23 @@ jobs:
               exit 1
               ;;
           esac
-          echo "CONTROL_API_BASE_URL is configured (value not printed)."
+          API_URL="$(printf '%s' "${CONTROL_API_BASE_URL}" | tr -d '[:space:]')"
+          case "${API_URL}" in
+            https://*) ;;
+            *)
+              echo "::error::CONTROL_API_BASE_URL must start with https://"
+              exit 1
+              ;;
+          esac
+          # Normalize for health probe (same rule as AppConfig).
+          HEALTH_BASE="${API_URL%/}"
+          case "${HEALTH_BASE}" in
+            */api/v1) ;;
+            *) HEALTH_BASE="${HEALTH_BASE}/api/v1" ;;
+          esac
+          echo "Probing ${HEALTH_BASE}/health (URL ok to print; not a secret)."
+          curl -fsS --connect-timeout 15 "${HEALTH_BASE}/health" >/dev/null
+          echo "CONTROL_API_BASE_URL is reachable."
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -144,6 +160,8 @@ jobs:
             --project-name control_mobile \
             --platforms=android \
             --no-overwrite
+          chmod +x scripts/patch_android_permissions.sh
+          ./scripts/patch_android_permissions.sh
 
       - name: Install dependencies
         run: flutter pub get

@@ -113,9 +113,11 @@ Configure a **repository variable** (not a secret), because the API URL is publi
 
 1. GitHub → repository → **Settings** → **Secrets and variables** → **Actions** → **Variables**
 2. Create: `CONTROL_API_BASE_URL`
-3. Example value: `https://foodapp.uz/api/v1`
+3. Example value: `https://foodapp.uz/api/v1` (must be `https://`, reachable `/health`)
 
-If the variable is missing or points at localhost, the workflow **fails clearly** and does not upload an artifact.
+If the variable is missing, not HTTPS, points at localhost, or the health probe fails, the APK job **fails clearly** and does not upload an artifact.
+
+The login screen shows `API: <host>` so you can confirm which host was baked into the build.
 
 ### Where to find runs and the artifacts
 
