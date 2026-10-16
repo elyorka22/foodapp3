@@ -76,6 +76,22 @@ void main() {
       expect(message.toLowerCase(), contains('timeout'));
       expect(message, contains('Server javob bermadi'));
     });
+
+    test('Dio receiveTimeout maps to the exact UI timeout copy', () {
+      // Dio IO adapter applies receiveTimeout to HttpClientRequest.close()
+      // (waiting for response headers). That is the path behind the Android
+      // "Server javob bermadi (timeout)" message when nginx already finished.
+      final message = ApiException.fromDio(
+        DioException(
+          requestOptions: RequestOptions(
+            path: '/auth/login',
+            receiveTimeout: const Duration(seconds: 60),
+          ),
+          type: DioExceptionType.receiveTimeout,
+        ),
+      );
+      expect(message.startsWith('Server javob bermadi (timeout)'), isTrue);
+    });
   });
 
   group('AuthResponseModel', () {

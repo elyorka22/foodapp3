@@ -39,7 +39,8 @@ class AuthRepository {
           sendTimeout: null,
           receiveTimeout: AppConfig.receiveTimeout,
           persistentConnection: false,
-          // Close after one response so nginx/h2 cannot leave the stream open.
+          // Connection: close is ignored on HTTP/2; real fix is ALPN http/1.1
+          // in http_adapter_io.dart. Keep the header for HTTP/1.1 sessions.
           headers: const {'Connection': 'close'},
           validateStatus: (status) =>
               status != null && status >= 200 && status < 300,
