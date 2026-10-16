@@ -38,7 +38,15 @@ class TokenStorage {
     required String accessToken,
     required String userJson,
   }) async {
-    await _secure.write(key: _tokenKey, value: accessToken);
+    try {
+      await _secure
+          .write(key: _tokenKey, value: accessToken)
+          .timeout(const Duration(seconds: 5));
+    } catch (e) {
+      throw Exception(
+        'Sessiyani saqlab bo\'lmadi. Qurilma xavfsiz xotirasini tekshiring.',
+      );
+    }
     await _prefs.setString(_userJsonKey, userJson);
     _cachedToken = accessToken;
     _tokenLoaded = true;

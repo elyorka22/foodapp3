@@ -17,7 +17,10 @@ import 'routes.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
 
-/// Auth gate for Control routes. Splash must not trap users after restore finishes.
+/// Auth gate for Control routes.
+///
+/// While [isLoading] is true, stay on the current page (do not bounce login →
+/// splash). That keeps the login form mounted so API errors remain visible.
 String? resolveControlAuthRedirect({
   required String location,
   required bool isLoading,
@@ -27,11 +30,12 @@ String? resolveControlAuthRedirect({
   final onLogin = location == AppRoutes.login;
 
   if (isLoading) {
-    return onSplash ? null : AppRoutes.splash;
+    return null;
   }
 
   if (!loggedIn) {
-    return onLogin ? null : AppRoutes.login;
+    if (onLogin) return null;
+    return AppRoutes.login;
   }
 
   if (onLogin || onSplash) {
@@ -41,13 +45,13 @@ String? resolveControlAuthRedirect({
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authStateProvider);
-
+  // Do not watch authStateProvider here — that would recreate GoRouter on every
+  // auth change and reset navigation (login form / errors would be lost).
   final router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: AppRoutes.splash,
-    refreshListenable: _AuthRefresh(ref),
     redirect: (context, state) {
+      final auth = ref.read(authStateProvider);
       final user = auth.valueOrNull;
       return resolveControlAuthRedirect(
         location: state.matchedLocation,
@@ -138,14 +142,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 
+  ref.listen(authStateProvider, (_, __) => router.refresh());
   ref.onDispose(router.dispose);
   return router;
 });
-
-class _AuthRefresh extends ChangeNotifier {
-  _AuthRefresh(this._ref) {
-    _ref.listen(authStateProvider, (_, __) => notifyListeners());
-  }
-
-  final Ref _ref;
-}

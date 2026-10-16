@@ -12,7 +12,9 @@ class AuthNotifier extends AsyncNotifier<AuthUserModel?> {
   }
 
   Future<void> login(String loginId, String password) async {
-    state = const AsyncLoading();
+    // Do not set AsyncLoading here: that would flip isLoading and historically
+    // bounced the UI off the login screen before the error could be shown.
+    // LoginScreen already shows its own submitting indicator.
     state = await AsyncValue.guard(() async {
       final res = await ref.read(authRepositoryProvider).login(
             loginId: loginId,

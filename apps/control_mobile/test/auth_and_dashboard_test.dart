@@ -29,11 +29,30 @@ void main() {
       );
     });
 
-    test('stays on splash while loading', () {
+    test('stays on current page while loading (keeps login form mounted)', () {
       expect(
         resolveControlAuthRedirect(
           location: AppRoutes.splash,
           isLoading: true,
+          loggedIn: false,
+        ),
+        isNull,
+      );
+      expect(
+        resolveControlAuthRedirect(
+          location: AppRoutes.login,
+          isLoading: true,
+          loggedIn: false,
+        ),
+        isNull,
+      );
+    });
+
+    test('does not bounce away from login when not logged in', () {
+      expect(
+        resolveControlAuthRedirect(
+          location: AppRoutes.login,
+          isLoading: false,
           loggedIn: false,
         ),
         isNull,
@@ -44,6 +63,17 @@ void main() {
       expect(
         resolveControlAuthRedirect(
           location: AppRoutes.splash,
+          isLoading: false,
+          loggedIn: true,
+        ),
+        AppRoutes.dashboard,
+      );
+    });
+
+    test('sends logged-in user from login to dashboard', () {
+      expect(
+        resolveControlAuthRedirect(
+          location: AppRoutes.login,
           isLoading: false,
           loggedIn: true,
         ),
