@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { paginate } from '../../common/dto/pagination.dto';
 import { toBusinessPublicDto } from './business.mapper';
 import { businessWhereForVertical } from './merchant-vertical';
+import { businessWhereForCity, pickBranchForCity } from '../../common/utils/city-scope.util';
 
 /**
  * Data access for merchants. Maps Prisma `Business` model (DB table: restaurants).
@@ -64,6 +65,8 @@ export class BusinessRepository {
     excludeType?: string;
     vertical?: 'restaurant' | 'store';
     sort?: 'popular' | 'nearest' | 'rating' | 'fastest';
+    city?: string;
+    cityId?: string;
   }) {
     const { skip, take } = paginate(query.page, query.limit);
     const where: Prisma.BusinessWhereInput = {
@@ -72,8 +75,16 @@ export class BusinessRepository {
       deletedAt: null,
     };
 
+    const cityFilter = businessWhereForCity({
+      cityId: query.cityId,
+      citySlug: query.city,
+    });
+    if (cityFilter) {
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), cityFilter];
+    }
+
     if (query.type) {
-      where.businessType = { slug: query.type, isActive: true };
+      where.businessType = { slug: query.type, isActive: true, deletedAt: null };
     } else if (query.vertical) {
       const verticalFilter = businessWhereForVertical(query.vertical);
       if (verticalFilter) Object.assign(where, verticalFilter);
@@ -114,7 +125,11 @@ export class BusinessRepository {
         orderBy,
         include: {
           businessType: true,
-          branches: { where: { isActive: true }, take: 1 },
+          branches: {
+            where: { isActive: true, deletedAt: null },
+            orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+          },
+          city: true,
           productCategories: {
             where: { isActive: true, deletedAt: null },
             select: { id: true, name: true, slug: true },
@@ -126,7 +141,22 @@ export class BusinessRepository {
       this.prisma.business.count({ where }),
     ]);
 
-    return { rows, total, page: query.page ?? 1, limit: query.limit ?? 20 };
+    // Resolve city id for branch pick (slug → id when needed)
+    let preferCityId = query.cityId?.trim() || undefined;
+    if (!preferCityId && query.city?.trim()) {
+      const city = await this.prisma.city.findFirst({
+        where: { slug: query.city.trim(), deletedAt: null },
+        select: { id: true },
+      });
+      preferCityId = city?.id;
+    }
+
+    const scoped = rows.map((r) => {
+      const branch = pickBranchForCity(r.branches, preferCityId);
+      return { ...r, branches: branch ? [branch] : [] };
+    });
+
+    return { rows: scoped, total, page: query.page ?? 1, limit: query.limit ?? 20 };
   }
 
   serializePublicList(

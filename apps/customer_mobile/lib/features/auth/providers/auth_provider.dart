@@ -50,16 +50,6 @@ class AuthNotifier extends AsyncNotifier<CustomerUserModel?> {
     }
   }
 
-  Future<CustomerUserModel?> loginTelegram(TelegramAuthPayload payload) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final res =
-          await ref.read(authRepositoryProvider).loginTelegram(payload);
-      return res.user;
-    });
-    return state.valueOrNull;
-  }
-
   Future<void> completeProfile(String phone) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {

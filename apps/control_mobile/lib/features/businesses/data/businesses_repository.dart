@@ -35,6 +35,7 @@ class BusinessesRepository {
     String? name,
     String? phone,
     String? branchAddress,
+    String? cityId,
     bool? isActive,
   }) async {
     final res = await _dio.patch<Map<String, dynamic>>(
@@ -43,6 +44,7 @@ class BusinessesRepository {
         if (name != null) 'name': name,
         if (phone != null) 'phone': phone,
         if (branchAddress != null) 'branchAddress': branchAddress,
+        if (cityId != null) 'cityId': cityId,
         if (isActive != null) 'isActive': isActive,
       },
     );

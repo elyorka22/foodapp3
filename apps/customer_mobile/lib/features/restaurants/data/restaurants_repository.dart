@@ -23,12 +23,17 @@ class RestaurantsRepository {
         .toList();
   }
 
-  Future<List<RestaurantModel>> fetchRestaurants({String? search}) async {
+  Future<List<RestaurantModel>> fetchRestaurants({
+    String? search,
+    String? citySlug,
+  }) async {
     final res = await _dio.get<Map<String, dynamic>>(
-      ApiPaths.restaurants,
+      ApiPaths.businesses,
       queryParameters: {
         'limit': 50,
+        'vertical': 'restaurant',
         if (search != null && search.isNotEmpty) 'search': search,
+        if (citySlug != null && citySlug.isNotEmpty) 'city': citySlug,
       },
     );
     return PaginatedResponse.fromJson(

@@ -12,34 +12,12 @@ class AppConfig {
   static const Duration receiveTimeout = Duration(seconds: 30);
   static const Duration sendTimeout = Duration(seconds: 30);
 
-  /// Same as web `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` (without @).
-  static const String telegramBotUsername = String.fromEnvironment(
-    'TELEGRAM_BOT_USERNAME',
-    defaultValue: '',
-  );
-
   /// Firebase Web client ID (OAuth 2.0) — required for Google Sign-In ID tokens on Android.
   static const String googleWebClientId = String.fromEnvironment(
     'GOOGLE_WEB_CLIENT_ID',
     defaultValue:
         '278845357182-7ell2g4o06h42phpkl07jr7pjq2q2gug.apps.googleusercontent.com',
   );
-
-  /// Public web origin for Telegram Login Widget (derived from API base).
-  static String get webAppBaseUrl {
-    var url = normalizedApiBaseUrl;
-    const suffix = '/api/v1';
-    if (url.toLowerCase().endsWith(suffix)) {
-      url = url.substring(0, url.length - suffix.length);
-    }
-    while (url.endsWith('/')) {
-      url = url.substring(0, url.length - 1);
-    }
-    return url;
-  }
-
-  static Uri get telegramLoginWidgetUrl =>
-      Uri.parse('$webAppBaseUrl/auth/telegram-mobile');
 
   static const String wsBaseUrl = String.fromEnvironment('WS_BASE_URL');
 

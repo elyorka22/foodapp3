@@ -36,6 +36,8 @@ export class ProductsController {
   @Get()
   find(
     @Query('restaurantId') restaurantId?: string,
+    @Query('businessId') businessId?: string,
+    @Query('branchId') branchId?: string,
     @Query('categoryId') categoryId?: string,
     @Query('dishCategoryId') dishCategoryId?: string,
     @Query('categorySlug') categorySlug?: string,
@@ -50,10 +52,13 @@ export class ProductsController {
         limit: limit ? parseInt(limit, 10) : undefined,
       });
     }
-    if (!restaurantId) {
-      throw new BadRequestException('restaurantId is required unless dishCategoryId or categorySlug is set');
+    const merchantId = businessId || restaurantId;
+    if (!merchantId) {
+      throw new BadRequestException(
+        'businessId (or restaurantId) is required unless dishCategoryId or categorySlug is set',
+      );
     }
-    return this.products.findByRestaurant(restaurantId, categoryId, true);
+    return this.products.findByBusiness(merchantId, categoryId, true, branchId);
   }
 
   @Post()

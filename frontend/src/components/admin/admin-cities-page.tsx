@@ -99,8 +99,8 @@ export function AdminCitiesPage() {
       <div>
         <h1 className="text-xl font-bold">Shaharlar</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Mijoz ilovasida yuqorida ko‘rinadigan shaharlar ro‘yxati. Hozircha xizmat Chustdan
-          boshlanadi — keyinchalik boshqa shaharlar qo‘shiladi.
+          Har bir biznes bir shaharga bog‘lanadi. Mijoz shahar tanlaganda faqat shu shahardagi
+          restoran va do‘konlar ko‘rinadi.
         </p>
       </div>
 

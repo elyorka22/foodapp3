@@ -10,9 +10,11 @@ type Props = {
 
 export function SectionHeader({ title, subtitle, href, linkLabel = 'See all' }: Props) {
   return (
-    <div className="mb-3 flex items-end justify-between gap-3">
+    <div className="mb-3.5 flex items-end justify-between gap-3">
       <div>
-        <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{title}</h2>
+        <h2 className="text-[18px] font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+          {title}
+        </h2>
         {subtitle && (
           <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>
         )}
@@ -20,10 +22,10 @@ export function SectionHeader({ title, subtitle, href, linkLabel = 'See all' }: 
       {href && (
         <Link
           href={href}
-          className="flex shrink-0 items-center gap-0.5 text-sm font-medium text-brand-600 active:opacity-70"
+          className="flex shrink-0 items-center gap-0.5 rounded-full bg-primary-soft px-2.5 py-1 text-sm font-semibold text-primary transition active:opacity-70"
         >
           {linkLabel}
-          <ChevronRight size={16} />
+          <ChevronRight size={16} strokeWidth={2.25} />
         </Link>
       )}
     </div>

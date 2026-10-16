@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/banner_model.dart';
 import '../../../shared/models/restaurant_model.dart';
+import '../../cities/providers/selected_city_provider.dart';
 import '../data/restaurants_repository.dart';
 
 final bannersProvider = FutureProvider.autoDispose<List<BannerModel>>((ref) {
@@ -10,8 +11,10 @@ final bannersProvider = FutureProvider.autoDispose<List<BannerModel>>((ref) {
 final restaurantsListProvider =
     FutureProvider.autoDispose.family<List<RestaurantModel>, String?>(
   (ref, search) {
+    final citySlug = ref.watch(selectedCitySlugProvider);
     return ref.watch(restaurantsRepositoryProvider).fetchRestaurants(
           search: search,
+          citySlug: citySlug,
         );
   },
 );

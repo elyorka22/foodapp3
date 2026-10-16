@@ -92,7 +92,7 @@ export function PromoTile({
   href?: string;
 }) {
   const inner = (
-    <div className="relative flex h-24 min-w-[10.5rem] shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 to-orange-400 p-3 shadow-card">
+    <div className="relative flex h-24 min-w-[10.5rem] shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 to-zinc-600 p-3 shadow-card">
       {imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img

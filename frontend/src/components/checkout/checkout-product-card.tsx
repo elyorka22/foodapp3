@@ -50,7 +50,7 @@ export function CheckoutProductCard({ item, onIncrement, onDecrement, onRemove }
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-3 pt-3">
-          <div className="inline-flex items-center rounded-full bg-[#FAF7F2] p-1">
+          <div className="inline-flex items-center rounded-full bg-[#FAFAFA] p-1">
             <button
               type="button"
               onClick={onDecrement}
@@ -71,7 +71,7 @@ export function CheckoutProductCard({ item, onIncrement, onDecrement, onRemove }
               <Plus size={18} strokeWidth={2.5} />
             </button>
           </div>
-          <p className="text-[17px] font-bold text-[#FF7A00]">
+          <p className="text-[17px] font-bold text-[#18181B]">
             {formatSum(item.price * item.quantity)}
           </p>
         </div>

@@ -90,7 +90,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden items-center gap-1.5 rounded-lg border border-[#FFD0AD] bg-primary-soft px-3 py-2 text-sm font-medium text-primary sm:inline-flex"
+              className="hidden items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-primary-soft px-3 py-2 text-sm font-medium text-primary sm:inline-flex"
             >
               <ExternalLink size={16} />
               {t.backToSite}

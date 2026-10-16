@@ -10,7 +10,7 @@ class MainShellScreen extends ConsumerWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  static const _authSubRoutes = ['/profile/telegram', '/profile/login', '/profile/register'];
+  static const _authSubRoutes = ['/profile/login', '/profile/register'];
 
   bool _hideBottomNav(BuildContext context) {
     final path = GoRouterState.of(context).uri.path;

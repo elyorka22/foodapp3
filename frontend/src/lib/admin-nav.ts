@@ -84,6 +84,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: '/admin/stores', label: t.nav.storeList, icon: Store, permission: 'stores' },
       {
+        href: '/admin/stores/types',
+        label: t.nav.storeTypes,
+        icon: Tags,
+        permission: 'stores',
+      },
+      {
         href: '/admin/products/store',
         label: t.nav.storeProducts,
         icon: Package,
@@ -152,6 +158,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     title: t.nav.settings,
     items: [
       { href: '/admin/cities', label: t.nav.cities, icon: MapPin, permission: 'settings' },
+      {
+        href: '/admin/delivery-zones',
+        label: t.nav.deliveryZones,
+        icon: MapPin,
+        permission: 'settings',
+      },
       { href: '/admin/settings', label: t.nav.siteSettings, icon: Settings, permission: 'settings' },
       { href: '/admin/settings/telegram', label: t.nav.telegramSettings, icon: Settings, permission: 'settings' },
     ],

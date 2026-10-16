@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { BusinessCatalogMode } from '@prisma/client';
+import { BusinessCatalogMode, BusinessMenuMode } from '@prisma/client';
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateBusinessTypeDto {
@@ -55,10 +55,23 @@ export class CreateBusinessTypeDto {
   @Max(100)
   imagePositionY?: number;
 
-  @ApiPropertyOptional({ enum: BusinessCatalogMode, default: BusinessCatalogMode.CATALOG })
+  @ApiPropertyOptional({
+    enum: BusinessCatalogMode,
+    default: BusinessCatalogMode.CATALOG,
+    description: 'Deprecated: CONTACT is ignored and stored as CATALOG',
+  })
   @IsOptional()
   @IsEnum(BusinessCatalogMode)
   catalogMode?: BusinessCatalogMode;
+
+  @ApiPropertyOptional({
+    enum: BusinessMenuMode,
+    default: BusinessMenuMode.OWN_CATEGORIES,
+    description: 'GLOBAL_DISH = food restaurants; OWN_CATEGORIES = stores',
+  })
+  @IsOptional()
+  @IsEnum(BusinessMenuMode)
+  menuMode?: BusinessMenuMode;
 
   @ApiPropertyOptional()
   @IsOptional()

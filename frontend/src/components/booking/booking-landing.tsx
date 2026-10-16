@@ -46,7 +46,7 @@ function VenueCard({ venue }: { venue: BookingVenue }) {
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-100 to-orange-200">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-100 to-zinc-200">
             <Sparkles className="text-brand-500" size={40} />
           </div>
         )}
@@ -223,7 +223,7 @@ export function BookingVenueDetail({ venue }: { venue: BookingVenue }) {
               unoptimized
             />
           ) : (
-            <div className="h-full bg-gradient-to-br from-brand-100 to-orange-200" />
+            <div className="h-full bg-gradient-to-br from-brand-100 to-zinc-200" />
           )}
           <Link
             href="/booking"

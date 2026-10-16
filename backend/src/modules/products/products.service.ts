@@ -20,7 +20,12 @@ export class ProductsService {
     private audit: AuditService,
   ) {}
 
-  async findByBusiness(businessId: string, categoryId?: string, publicMenu = false) {
+  async findByBusiness(
+    businessId: string,
+    categoryId?: string,
+    publicMenu = false,
+    branchId?: string,
+  ) {
     const business = await this.prisma.business.findFirst({
       where: { id: businessId, deletedAt: null },
       include: { businessType: true },
@@ -32,15 +37,28 @@ export class ProductsService {
         businessId,
         deletedAt: null,
         ...(publicMenu && { isAvailable: true }),
-        ...(categoryId && {
-          OR: [{ dishCategoryId: categoryId }, { productCategoryId: categoryId }],
-        }),
+        AND: [
+          ...(branchId
+            ? [{ OR: [{ branchId: null }, { branchId }] }]
+            : []),
+          ...(categoryId
+            ? [
+                {
+                  OR: [
+                    { dishCategoryId: categoryId },
+                    { productCategoryId: categoryId },
+                  ],
+                },
+              ]
+            : []),
+        ],
       },
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
         productCategory: true,
         dishCategory: true,
         business: { select: { id: true, name: true, slug: true } },
+        branch: { select: { id: true, name: true } },
       },
     });
     const sorted = sortMenuProducts(rows, isRestaurantKind(business));
@@ -215,9 +233,21 @@ export class ProductsService {
       isTaken: (candidate) => this.isProductSlugTaken(businessId, candidate),
     });
 
+    if (dto.branchId) {
+      const branch = await this.prisma.businessBranch.findFirst({
+        where: {
+          id: dto.branchId,
+          businessId,
+          deletedAt: null,
+        },
+      });
+      if (!branch) throw new NotFoundException('Branch not found for this business');
+    }
+
     const product = await this.prisma.product.create({
       data: {
         businessId,
+        branchId: dto.branchId ?? undefined,
         dishCategoryId: dishCategoryId ?? undefined,
         productCategoryId: productCategoryId ?? undefined,
         name: dto.name,
@@ -233,6 +263,7 @@ export class ProductsService {
         productCategory: true,
         dishCategory: true,
         business: { select: { id: true, name: true } },
+        branch: { select: { id: true, name: true } },
       },
     });
     await this.audit.log({
@@ -297,6 +328,17 @@ export class ProductsService {
       }
     }
 
+    if (dto.branchId) {
+      const branch = await this.prisma.businessBranch.findFirst({
+        where: {
+          id: dto.branchId,
+          businessId: existing.businessId,
+          deletedAt: null,
+        },
+      });
+      if (!branch) throw new NotFoundException('Branch not found for this business');
+    }
+
     const product = await this.prisma.product.update({
       where: { id },
       data: {
@@ -306,6 +348,7 @@ export class ProductsService {
         ...(dto.price !== undefined && { price: dto.price }),
         ...(dto.comparePrice !== undefined && { comparePrice: dto.comparePrice }),
         ...(dto.isAvailable !== undefined && { isAvailable: dto.isAvailable }),
+        ...(dto.branchId !== undefined && { branchId: dto.branchId || null }),
         ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
         ...(nextDishCategoryId !== undefined && { dishCategoryId: nextDishCategoryId }),
         ...(dto.productCategoryId !== undefined && { productCategoryId: dto.productCategoryId }),
@@ -448,25 +491,39 @@ export class ProductsService {
   }
 
   private assertCategoryFields(
-    business: { kind: BusinessKind; businessType?: { slug?: string | null } | null },
+    business: {
+      kind: BusinessKind;
+      businessType?: {
+        slug?: string | null;
+        menuMode?: string | null;
+      } | null;
+    },
     dishCategoryId?: string | null,
     productCategoryId?: string | null,
   ) {
     if (isRestaurantKind(business)) {
       if (productCategoryId) {
-        throw new BadRequestException('Restaurants use global dish categories only');
+        throw new BadRequestException(
+          'GLOBAL_DISH verticals use global dish categories only',
+        );
       }
       if (!dishCategoryId) {
-        throw new BadRequestException('Dish category is required for restaurant menu items');
+        throw new BadRequestException(
+          'Dish category is required for GLOBAL_DISH menu items',
+        );
       }
       return;
     }
     if (isStoreKind(business)) {
       if (dishCategoryId) {
-        throw new BadRequestException('Stores use their own product categories only');
+        throw new BadRequestException(
+          'OWN_CATEGORIES verticals use their own product categories only',
+        );
       }
       if (!productCategoryId) {
-        throw new BadRequestException('Store category is required for store products');
+        throw new BadRequestException(
+          'Store category is required for OWN_CATEGORIES products',
+        );
       }
     }
   }

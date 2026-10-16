@@ -17,7 +17,6 @@ export type StaffUser = {
   fullName: string | null;
   role: StaffRole;
   isActive: boolean;
-  adminPasswordNote: string | null;
   createdAt: string;
   restaurant?: { id: string; name: string } | null;
   business?: { id: string; name: string } | null;

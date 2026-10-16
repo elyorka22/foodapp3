@@ -27,7 +27,7 @@ export function StaffPanelCard() {
     const label = uz.staffPanels[staff.role] ?? uz.staff;
 
     return (
-      <Card className="mt-6 overflow-hidden border-[#FFD0AD] p-0">
+      <Card className="mt-6 overflow-hidden border-[#E4E4E7] p-0">
         <div className="bg-hero-staff px-5 py-4 text-white">
           <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.whiteAlpha80 }}>
             {uz.staffAccount}
@@ -58,7 +58,7 @@ export function StaffPanelCard() {
   }
 
   return (
-    <Card className="mt-6 border border-dashed border-[#FFD0AD] p-5">
+    <Card className="mt-6 border border-dashed border-[#E4E4E7] p-5">
       <div className="flex items-start gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
           <Shield size={22} />

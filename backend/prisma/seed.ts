@@ -6,13 +6,10 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash('Admin123!', 12);
 
-  const defaultAdminPassword = 'Admin123!';
-
   const admin = await prisma.user.upsert({
     where: { email: 'admin@foodapp.local' },
     update: {
       passwordHash,
-      adminPasswordNote: defaultAdminPassword,
       role: UserRole.SUPER_ADMIN,
       isActive: true,
       deletedAt: null,
@@ -23,7 +20,6 @@ async function main() {
       fullName: 'Super Admin',
       role: UserRole.SUPER_ADMIN,
       passwordHash,
-      adminPasswordNote: defaultAdminPassword,
     },
   });
 
@@ -31,7 +27,6 @@ async function main() {
     where: { email: 'manager@foodapp.local' },
     update: {
       passwordHash,
-      adminPasswordNote: defaultAdminPassword,
       phone: '+998900000002',
       isActive: true,
       deletedAt: null,
@@ -42,7 +37,6 @@ async function main() {
       fullName: 'Operations Manager',
       role: UserRole.MANAGER,
       passwordHash,
-      adminPasswordNote: defaultAdminPassword,
     },
   });
   await prisma.manager.upsert({
@@ -51,22 +45,62 @@ async function main() {
     create: { userId: manager.id },
   });
 
-  const businessTypes = [
-    { name: "Oziq-ovqat", slug: 'grocery', icon: '🥬', sortOrder: 1 },
-    { name: "Gul do'konlari", slug: 'flowers', icon: '💐', sortOrder: 2 },
-    { name: 'Parfyumeriya', slug: 'perfume', icon: '🧴', sortOrder: 3 },
-    { name: "Sovg'alar", slug: 'gift', icon: '🎁', sortOrder: 4 },
-    { name: 'Dorixona', slug: 'pharmacy', icon: '💊', sortOrder: 5 },
-    { name: 'Elektronika', slug: 'electronics', icon: '💻', sortOrder: 6 },
-    { name: 'Restoran', slug: 'restaurant', icon: '🍽', sortOrder: 0 },
+  const city = await prisma.city.upsert({
+    where: { slug: 'toshkent' },
+    update: {
+      name: 'Toshkent',
+      isActive: true,
+      isDefault: true,
+      deletedAt: null,
+      sortOrder: 0,
+    },
+    create: {
+      name: 'Toshkent',
+      slug: 'toshkent',
+      isActive: true,
+      isDefault: true,
+      sortOrder: 0,
+    },
+  });
+
+  const businessTypes: Array<{
+    name: string;
+    slug: string;
+    icon: string;
+    sortOrder: number;
+    menuMode: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
+  }> = [
+    { name: "Oziq-ovqat", slug: 'grocery', icon: '🥬', sortOrder: 1, menuMode: 'OWN_CATEGORIES' },
+    { name: "Gul do'konlari", slug: 'flowers', icon: '💐', sortOrder: 2, menuMode: 'OWN_CATEGORIES' },
+    { name: 'Parfyumeriya', slug: 'perfume', icon: '🧴', sortOrder: 3, menuMode: 'OWN_CATEGORIES' },
+    { name: "Sovg'alar", slug: 'gift', icon: '🎁', sortOrder: 4, menuMode: 'OWN_CATEGORIES' },
+    { name: 'Dorixona', slug: 'pharmacy', icon: '💊', sortOrder: 5, menuMode: 'OWN_CATEGORIES' },
+    { name: 'Elektronika', slug: 'electronics', icon: '💻', sortOrder: 6, menuMode: 'OWN_CATEGORIES' },
+    { name: 'Restoran', slug: 'restaurant', icon: '🍽', sortOrder: 0, menuMode: 'GLOBAL_DISH' },
   ];
 
   const typeMap: Record<string, string> = {};
   for (const t of businessTypes) {
     const row = await prisma.businessType.upsert({
       where: { slug: t.slug },
-      update: { name: t.name, icon: t.icon, sortOrder: t.sortOrder, isActive: true },
-      create: { ...t, isActive: true },
+      update: {
+        name: t.name,
+        icon: t.icon,
+        sortOrder: t.sortOrder,
+        isActive: true,
+        deletedAt: null,
+        menuMode: t.menuMode,
+        catalogMode: 'CATALOG',
+      },
+      create: {
+        name: t.name,
+        slug: t.slug,
+        icon: t.icon,
+        sortOrder: t.sortOrder,
+        isActive: true,
+        menuMode: t.menuMode,
+        catalogMode: 'CATALOG',
+      },
     });
     typeMap[t.slug] = row.id;
   }
@@ -78,6 +112,8 @@ async function main() {
       approvalStatus: 'APPROVED',
       deletedAt: null,
       businessTypeId: typeMap.restaurant,
+      cityId: city.id,
+      kind: 'RESTAURANT',
     },
     create: {
       name: 'Demo Pizza',
@@ -88,6 +124,7 @@ async function main() {
       isActive: true,
       approvalStatus: 'APPROVED',
       businessTypeId: typeMap.restaurant,
+      cityId: city.id,
       averageRating: 4.8,
       reviewCount: 120,
     },
@@ -100,25 +137,34 @@ async function main() {
     branch = await prisma.businessBranch.create({
       data: {
         businessId: restaurant.id,
+        cityId: city.id,
         name: 'Main Branch',
         address: 'Tashkent, Amir Temur 1',
         latitude: 41.311081,
         longitude: 69.240562,
         isActive: true,
+        isPrimary: true,
+      },
+    });
+  } else {
+    await prisma.businessBranch.update({
+      where: { id: branch.id },
+      data: {
+        isPrimary: true,
+        cityId: branch.cityId || city.id,
       },
     });
   }
 
   const owner = await prisma.user.upsert({
     where: { email: 'owner@foodapp.local' },
-    update: { passwordHash, adminPasswordNote: defaultAdminPassword, isActive: true, deletedAt: null },
+    update: { passwordHash, isActive: true, deletedAt: null },
     create: {
       email: 'owner@foodapp.local',
       phone: '+998900000003',
       fullName: 'Business Owner',
       role: UserRole.BUSINESS,
       passwordHash,
-      adminPasswordNote: defaultAdminPassword,
     },
   });
 
@@ -130,14 +176,13 @@ async function main() {
 
   const courierUser = await prisma.user.upsert({
     where: { email: 'courier@foodapp.local' },
-    update: { passwordHash, adminPasswordNote: defaultAdminPassword, isActive: true, deletedAt: null },
+    update: { passwordHash, isActive: true, deletedAt: null },
     create: {
       email: 'courier@foodapp.local',
       fullName: 'Demo Courier',
       phone: '+998901112233',
       role: UserRole.COURIER,
       passwordHash,
-      adminPasswordNote: defaultAdminPassword,
     },
   });
 
@@ -207,7 +252,7 @@ async function main() {
     data: { placement: 'PROMO' },
   });
 
-  console.log('Seed complete. Staff logins (password: Admin123!):');
+  console.log('Seed complete. Staff logins (hashed password only; no plaintext notes stored):');
   console.log('  Super Admin — email: admin@foodapp.local | phone: +998900000001');
   console.log('  Manager     — email: manager@foodapp.local');
   console.log('  Business    — email: owner@foodapp.local');

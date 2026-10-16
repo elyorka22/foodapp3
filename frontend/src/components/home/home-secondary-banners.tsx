@@ -29,7 +29,7 @@ function AllRestaurantsCard({
       className="flex w-[88px] shrink-0 flex-col active:scale-[0.98]"
       aria-label={title}
     >
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-[20px] bg-brand-600">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-[20px] bg-gradient-to-br from-zinc-800 to-zinc-950 shadow-[0_4px_14px_rgba(0,0,0,0.2)] ring-1 ring-black/[0.04]">
         {src ? (
           <Image
             src={src}
@@ -39,7 +39,11 @@ function AllRestaurantsCard({
             sizes="88px"
             unoptimized
           />
-        ) : null}
+        ) : (
+          <span className="absolute inset-0 flex items-center justify-center px-1 text-center text-[11px] font-bold leading-tight text-white">
+            {title}
+          </span>
+        )}
       </div>
       <p className="mt-1.5 truncate text-center text-xs font-semibold text-zinc-800">
         {title}

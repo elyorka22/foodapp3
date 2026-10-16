@@ -69,6 +69,9 @@ export class OrdersService {
         longitude: Number(branch.longitude),
       },
       customer: { latitude: dto.latitude, longitude: dto.longitude },
+      cityId: branch.cityId,
+      businessId: dto.restaurantId,
+      branchId: branch.id,
     });
   }
 
@@ -79,7 +82,7 @@ export class OrdersService {
         })
       : await this.prisma.businessBranch.findFirst({
           where: { businessId: restaurantId, isActive: true, deletedAt: null },
-          orderBy: { createdAt: 'asc' },
+          orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
         });
     if (!branch) {
       throw new BadRequestException(
@@ -107,19 +110,20 @@ export class OrdersService {
     }
 
     const productIds = dto.items.map((i) => i.productId);
+    const branch = await this.resolveBranch(dto.restaurantId, dto.branchId);
+
     const products = await this.prisma.product.findMany({
       where: {
         id: { in: productIds },
         businessId: dto.restaurantId,
         isAvailable: true,
         deletedAt: null,
+        OR: [{ branchId: null }, { branchId: branch.id }],
       },
     });
     if (products.length !== productIds.length) {
       throw new BadRequestException('Some products are unavailable');
     }
-
-    const branch = await this.resolveBranch(dto.restaurantId, dto.branchId);
 
     const quote = await this.deliveryPricing.quote({
       restaurant: {
@@ -127,6 +131,9 @@ export class OrdersService {
         longitude: Number(branch.longitude),
       },
       customer: { latitude: dto.latitude, longitude: dto.longitude },
+      cityId: branch.cityId,
+      businessId: dto.restaurantId,
+      branchId: branch.id,
     });
     const dist = quote.distanceKm;
     const deliveryFee = quote.deliveryFee;

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ShoppingBasket } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 import { CheckoutProductCard } from '@/components/checkout/checkout-product-card';
 import { CheckoutDualActionBar } from '@/components/checkout/checkout-dual-action-bar';
@@ -26,9 +27,18 @@ export default function CartPage() {
         <div className="mt-6 space-y-4">
           <ActiveOrderBanner />
           {!hasActiveOrder ? (
-            <div className="mt-8 text-center">
-              <p className="text-lg font-semibold text-zinc-900">{uz.cartEmpty}</p>
-              <Link href="/" className="mt-4 inline-block text-[15px] font-semibold text-[#FF7A00]">
+            <div className="mt-6 flex flex-col items-center rounded-[22px] bg-white px-6 py-12 text-center shadow-[0_8px_32px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.03]">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-primary">
+                <ShoppingBasket size={28} strokeWidth={1.75} />
+              </div>
+              <p className="text-lg font-bold text-zinc-900">{uz.cartEmpty}</p>
+              <p className="mt-1.5 max-w-[220px] text-sm text-zinc-500">
+                {uz.noOrdersHint}
+              </p>
+              <Link
+                href="/"
+                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-2xl bg-primary px-5 text-[15px] font-semibold text-white shadow-button-primary transition active:scale-[0.98]"
+              >
                 {uz.browseRestaurants}
               </Link>
             </div>

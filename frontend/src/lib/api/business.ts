@@ -26,9 +26,12 @@ export type BusinessPublic = {
     name: string;
     slug: string;
     icon?: string | null;
-    catalogMode?: 'CATALOG' | 'CONTACT';
+    catalogMode?: 'CATALOG';
+    menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
   } | null;
   category?: string | null;
+  cityId?: string | null;
+  city?: { id: string; name: string; slug: string } | null;
   isOpen?: boolean;
   closesAt?: string | null;
   closingSoon?: boolean;
@@ -45,7 +48,8 @@ export type BusinessType = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
-  catalogMode?: 'CATALOG' | 'CONTACT';
+  catalogMode?: 'CATALOG';
+  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
   sortOrder: number;
 };
 

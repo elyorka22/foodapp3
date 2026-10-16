@@ -37,15 +37,7 @@ export function MerchantOwnerCredentials({
           <div className="flex flex-wrap items-center gap-1">
             <span className="opacity-60">{t.merchant.ownerLogin}:</span>
             <code className="rounded bg-zinc-100 px-1 py-0.5 dark:bg-zinc-800">{login}</code>
-            {showPassword && password ? (
-              <>
-                <span className="opacity-60">{t.merchant.ownerPassword}:</span>
-                <code className="rounded bg-zinc-100 px-1 py-0.5 dark:bg-zinc-800">{password}</code>
-                <Button type="button" size="sm" variant="secondary" onClick={() => copyValue(t.merchant.ownerPassword, password)}>
-                  {t.staff.copyPassword}
-                </Button>
-              </>
-            ) : showPassword ? (
+            {showPassword ? (
               <span className="text-zinc-400">{t.staff.noPassword}</span>
             ) : null}
           </div>
@@ -83,18 +75,7 @@ export function MerchantOwnerCredentials({
         {showPassword ? (
           <div className="sm:col-span-2">
             <dt className="text-xs opacity-60">{t.merchant.ownerPassword}</dt>
-            <dd className="flex flex-wrap items-center gap-2">
-              {password ? (
-                <>
-                  <code className="rounded bg-white px-2 py-1 text-xs dark:bg-zinc-900">{password}</code>
-                  <Button type="button" size="sm" variant="secondary" onClick={() => copyValue(t.merchant.ownerPassword, password)}>
-                    {t.staff.copyPassword}
-                  </Button>
-                </>
-              ) : (
-                <span className="text-zinc-400">{t.staff.noPassword}</span>
-              )}
-            </dd>
+            <dd className="text-zinc-500">{t.staff.noPassword}</dd>
           </div>
         ) : null}
       </dl>

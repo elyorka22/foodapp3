@@ -6,16 +6,16 @@ import { Heart } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
-import { restaurantDeliveryLabel } from '@/lib/restaurant-card-meta';
+import { restaurantDeliveryLabel, restaurantRatingLabel } from '@/lib/restaurant-card-meta';
 import { restaurantPublicPath } from '@/lib/restaurant-url';
 import { uz } from '@/lib/uz';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
 const FALLBACK_BACKGROUNDS = [
-  'bg-[#FF5A45]',
-  'bg-[#EA6A1A]',
-  'bg-[#FF8A3D]',
-  'bg-[#C2410C]',
+  'bg-[#3F3F46]',
+  'bg-[#52525B]',
+  'bg-[#27272A]',
+  'bg-[#18181B]',
 ] as const;
 
 type Props = {
@@ -32,16 +32,21 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
   });
   const href = restaurantPublicPath(restaurant);
   const delivery = restaurantDeliveryLabel(restaurant);
+  const rating = restaurantRatingLabel(restaurant);
 
   return (
-    <Link href={href} className="group block transition active:scale-[0.98]">
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[22px] bg-zinc-200 shadow-sm">
+    <Link
+      href={href}
+      className="group block animate-fade-up transition active:scale-[0.98]"
+      style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+    >
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[22px] bg-zinc-200 shadow-[0_8px_28px_rgba(15,23,42,0.08)] ring-1 ring-black/[0.03]">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={restaurant.name}
             fill
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
             style={coverStyle}
             sizes="(max-width: 430px) 50vw, 210px"
             unoptimized
@@ -57,13 +62,23 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
           </div>
         )}
 
-        <h3 className="absolute left-3 right-3 top-3 line-clamp-2 text-[15px] font-extrabold leading-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
-          {restaurant.name}
-        </h3>
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-black/10 to-black/50"
+          aria-hidden
+        />
+
+        <div className="absolute left-3 right-3 top-3">
+          <h3 className="line-clamp-2 text-[15px] font-extrabold leading-tight tracking-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)]">
+            {restaurant.name}
+          </h3>
+          {rating ? (
+            <p className="mt-1 text-[11px] font-semibold text-white/90">{rating}</p>
+          ) : null}
+        </div>
 
         <button
           type="button"
-          className="absolute bottom-2.5 left-2.5 flex h-[34px] w-[34px] items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm"
+          className="absolute bottom-2.5 left-2.5 flex h-[34px] w-[34px] items-center justify-center rounded-full bg-white/25 text-white shadow-sm backdrop-blur-md transition group-hover:bg-white/35"
           aria-label={uz.favoritesAria}
           onClick={(e) => {
             e.preventDefault();
@@ -73,7 +88,7 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
           <Heart size={17} strokeWidth={2} />
         </button>
 
-        <span className="absolute bottom-2.5 right-2.5 rounded-full bg-[#FF6B00] px-2.5 py-1.5 text-[12px] font-extrabold text-white shadow-[0_3px_10px_rgba(255,107,0,0.35)]">
+        <span className="absolute bottom-2.5 right-2.5 rounded-full bg-zinc-900 px-2.5 py-1.5 text-[12px] font-extrabold text-white shadow-[0_3px_12px_rgba(0,0,0,0.35)]">
           {delivery}
         </span>
       </div>

@@ -34,12 +34,12 @@ function Placeholder({
   const inner = (
     <div
       className={clsx(
-        'flex items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-100',
+        'flex items-center justify-center rounded-3xl bg-gradient-to-br from-zinc-100 to-zinc-200',
         tall ? 'min-h-[280px] h-full' : 'min-h-[132px] flex-1',
       )}
     >
       {label ? (
-        <span className="px-3 text-center text-sm font-semibold text-emerald-800">{label}</span>
+        <span className="px-3 text-center text-sm font-semibold text-zinc-800">{label}</span>
       ) : null}
     </div>
   );

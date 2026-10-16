@@ -14,6 +14,7 @@ import { CategoryPanel } from '@/components/admin/category-panel';
 import { ActiveBadge } from '@/components/admin/active-badge';
 import { StatusBadge, StatCard, EmptyState, LoadingState } from '@/components/admin/ui';
 import { MerchantOwnerCredentials } from '@/components/admin/merchant-owner-credentials';
+import { AdminBranchesPanel } from '@/components/admin/admin-branches-panel';
 
 export default function AdminRestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -163,6 +164,8 @@ export default function AdminRestaurantDetailPage() {
           showPassword
         />
       ) : null}
+
+      <AdminBranchesPanel businessId={id} />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold">Menu categories</p>

@@ -36,20 +36,20 @@ export function CheckoutDeliveryCard({
   return (
     <div
       className={clsx(
-        'overflow-hidden rounded-[24px] shadow-[0_12px_40px_rgba(255,122,0,0.12)]',
+        'overflow-hidden rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.08)]',
         quoted
-          ? 'bg-gradient-to-br from-[#FFF4E8] via-[#FFF7F0] to-[#FFEDD5]'
-          : 'bg-gradient-to-br from-[#FFF7F0] to-[#FFF4E8]',
+          ? 'bg-gradient-to-br from-[#F4F4F5] via-[#FAFAFA] to-[#E4E4E7]'
+          : 'bg-gradient-to-br from-[#FAFAFA] to-[#F4F4F5]',
       )}
     >
       <div className="p-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-[#FF7A00] shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-[#18181B] shadow-sm">
             <Truck size={20} />
           </div>
           <div>
             <p className="text-[16px] font-bold text-[#9A3412]">{uz.deliveryLabel}</p>
-            <p className="text-[13px] text-[#C2410C]/80">{uz.deliveryPriceHint}</p>
+            <p className="text-[13px] text-[#3F3F46]/80">{uz.deliveryPriceHint}</p>
           </div>
         </div>
 
@@ -57,9 +57,9 @@ export function CheckoutDeliveryCard({
           <div className="mt-4 space-y-3 rounded-[20px] bg-white/70 p-4 backdrop-blur-sm">
             {value.address.trim() ? (
               <div className="flex items-start gap-3">
-                <MapPin size={18} className="mt-0.5 shrink-0 text-[#FF7A00]" />
+                <MapPin size={18} className="mt-0.5 shrink-0 text-[#18181B]" />
                 <div className="min-w-0">
-                  <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C2410C]/70">
+                  <p className="text-[12px] font-semibold uppercase tracking-wide text-[#3F3F46]/70">
                     {uz.deliveryAddress}
                   </p>
                   <p className="mt-0.5 text-[14px] font-medium text-[#9A3412]">
@@ -69,9 +69,9 @@ export function CheckoutDeliveryCard({
               </div>
             ) : null}
             <div className="flex items-start gap-3">
-              <Sparkles size={18} className="mt-0.5 shrink-0 text-[#FF7A00]" />
+              <Sparkles size={18} className="mt-0.5 shrink-0 text-[#18181B]" />
               <div>
-                <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C2410C]/70">
+                <p className="text-[12px] font-semibold uppercase tracking-wide text-[#3F3F46]/70">
                   {uz.deliveryLabel}
                 </p>
                 <p className="mt-0.5 text-[20px] font-bold text-[#9A3412]">
@@ -81,9 +81,9 @@ export function CheckoutDeliveryCard({
             </div>
             {eta != null ? (
               <div className="flex items-start gap-3">
-                <Clock size={18} className="mt-0.5 shrink-0 text-[#FF7A00]" />
+                <Clock size={18} className="mt-0.5 shrink-0 text-[#18181B]" />
                 <div>
-                  <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C2410C]/70">
+                  <p className="text-[12px] font-semibold uppercase tracking-wide text-[#3F3F46]/70">
                     Vaqt
                   </p>
                   <p className="mt-0.5 text-[14px] font-semibold text-[#9A3412]">
@@ -93,7 +93,7 @@ export function CheckoutDeliveryCard({
               </div>
             ) : null}
             {billableDistanceKm != null ? (
-              <p className="text-[13px] text-[#C2410C]">{uz.distanceKm(billableDistanceKm)}</p>
+              <p className="text-[13px] text-[#3F3F46]">{uz.distanceKm(billableDistanceKm)}</p>
             ) : null}
           </div>
         ) : null}
@@ -109,7 +109,7 @@ export function CheckoutDeliveryCard({
             type="button"
             onClick={onRecalculate}
             disabled={busy}
-            className="mt-4 w-full text-center text-[13px] font-semibold text-[#C2410C] underline-offset-2 hover:underline disabled:opacity-50"
+            className="mt-4 w-full text-center text-[13px] font-semibold text-[#3F3F46] underline-offset-2 hover:underline disabled:opacity-50"
           >
             {busy ? uz.deliveryCalculating : uz.recalculateDeliveryPrice}
           </button>

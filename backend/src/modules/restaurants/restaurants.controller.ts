@@ -22,23 +22,28 @@ import { SetWorkingHoursDto } from './dto/set-working-hours.dto';
 import { SetupOwnerAccountDto } from './dto/setup-owner-account.dto';
 import { AddHolidayDto } from './dto/add-holiday.dto';
 import { ClearRestaurantTestDataDto } from './dto/clear-restaurant-test-data.dto';
-import { PaginationDto } from '../../common/dto/pagination.dto';
+import { PublicRestaurantsQueryDto } from './dto/public-restaurants-query.dto';
+import { CreateBranchDto } from './dto/create-branch.dto';
+import { UpdateBranchDto } from './dto/update-branch.dto';
+import { BusinessBranchesService } from './business-branches.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
 import { isUuid } from '../../common/utils/uuid';
 
+/** @deprecated Prefer `/businesses` — kept as compatibility alias. */
 @ApiTags('restaurants')
 @Controller('restaurants')
 export class RestaurantsController {
   constructor(
     private restaurants: RestaurantsService,
     private schedule: RestaurantScheduleService,
+    private branches: BusinessBranchesService,
   ) {}
 
   @Get()
-  findAllPublic(@Query() query: PaginationDto) {
+  findAllPublic(@Query() query: PublicRestaurantsQueryDto) {
     return this.restaurants.findAllPublic(query);
   }
 
@@ -147,6 +152,64 @@ export class RestaurantsController {
   getStats(@Param('param') param: string, @CurrentUser() user: JwtPayload) {
     if (!isUuid(param)) throw new BadRequestException('Invalid restaurant id');
     return this.restaurants.getStats(param, user);
+  }
+
+  @Get(':id/branches')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  @ApiOperation({ summary: 'List business branches (multi-city locations)' })
+  listBranches(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.branches.list(id, user);
+  }
+
+  @Post(':id/branches')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  createBranch(
+    @Param('id') id: string,
+    @Body() dto: CreateBranchDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.branches.create(id, dto, user);
+  }
+
+  @Patch(':id/branches/:branchId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  updateBranch(
+    @Param('id') id: string,
+    @Param('branchId') branchId: string,
+    @Body() dto: UpdateBranchDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.branches.update(id, branchId, dto, user);
+  }
+
+  @Post(':id/branches/:branchId/primary')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  setPrimaryBranch(
+    @Param('id') id: string,
+    @Param('branchId') branchId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.branches.setPrimary(id, branchId, user);
+  }
+
+  @Delete(':id/branches/:branchId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  deleteBranch(
+    @Param('id') id: string,
+    @Param('branchId') branchId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.branches.softDelete(id, branchId, user);
   }
 
   @Get(':param')

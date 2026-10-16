@@ -109,7 +109,6 @@ abstract final class AppStrings {
   static const phone = 'Telefon';
   static const password = 'Parol';
   static const fullName = 'Ism';
-  static const telegramLogin = 'Telegram orqali kirish';
   static const continueWithGoogle = 'Google orqali davom etish';
   static const googleSignInCancelled = 'Google kirish bekor qilindi';
   static const googleSignInFailed = 'Google orqali kirish amalga oshmadi';

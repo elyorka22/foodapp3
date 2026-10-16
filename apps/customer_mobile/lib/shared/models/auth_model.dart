@@ -70,33 +70,3 @@ class AuthResponseModel {
     );
   }
 }
-
-class TelegramAuthPayload {
-  const TelegramAuthPayload({
-    required this.id,
-    required this.firstName,
-    required this.authDate,
-    required this.hash,
-    this.lastName,
-    this.username,
-    this.photoUrl,
-  });
-
-  final int id;
-  final String firstName;
-  final int authDate;
-  final String hash;
-  final String? lastName;
-  final String? username;
-  final String? photoUrl;
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'first_name': firstName,
-        'auth_date': authDate,
-        'hash': hash,
-        if (lastName != null) 'last_name': lastName,
-        if (username != null) 'username': username,
-        if (photoUrl != null) 'photo_url': photoUrl,
-      };
-}

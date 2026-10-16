@@ -117,7 +117,7 @@ export function OrderTable({
                       {canRequestCourier && (
                         <Button
                           size="sm"
-                          className="h-8 bg-orange-500 px-3 text-xs hover:bg-orange-600"
+                          className="h-8 bg-zinc-900 px-3 text-xs hover:bg-zinc-800"
                           disabled={requestCourierPendingId === o.id}
                           onClick={() => onRequestCourier?.(o.id)}
                         >
@@ -130,7 +130,7 @@ export function OrderTable({
                       {canRequestCourier && (
                         <Button
                           size="sm"
-                          className="bg-orange-500 hover:bg-orange-600"
+                          className="bg-zinc-900 hover:bg-zinc-800"
                           disabled={requestCourierPendingId === o.id}
                           onClick={() => onRequestCourier?.(o.id)}
                         >

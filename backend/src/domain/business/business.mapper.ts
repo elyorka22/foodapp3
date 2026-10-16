@@ -23,7 +23,10 @@ type BusinessWithRelations = {
     slug: string;
     icon: string | null;
     catalogMode?: string;
+    menuMode?: string;
   } | null;
+  city?: { id: string; name: string; slug: string } | null;
+  cityId?: string | null;
   branches?: { latitude: Prisma.Decimal; longitude: Prisma.Decimal }[];
 };
 
@@ -47,6 +50,8 @@ export function toBusinessPublicDto(row: BusinessWithRelations): BusinessPublicD
     reviewCount: row.reviewCount,
     businessType: row.businessType ?? null,
     category: row.businessType?.name ?? null,
+    cityId: row.cityId ?? row.city?.id ?? null,
+    city: row.city ?? null,
     latitude: branch ? Number(branch.latitude) : null,
     longitude: branch ? Number(branch.longitude) : null,
   };

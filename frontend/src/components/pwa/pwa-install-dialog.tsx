@@ -103,22 +103,22 @@ export function PwaInstallDialog({
           {view === 'ios' ? (
             <ol className="space-y-4 py-1">
               <li className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-[#FF7A00]">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-[#18181B]">
                   1
                 </span>
                 <p className="pt-0.5 text-[15px] leading-snug text-zinc-800">{copy.iosStep1}</p>
               </li>
               <li className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-[#FF7A00]">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-[#18181B]">
                   2
                 </span>
                 <div className="flex min-w-0 items-start gap-2 pt-0.5">
-                  <Share size={18} className="mt-0.5 shrink-0 text-[#FF7A00]" aria-hidden />
+                  <Share size={18} className="mt-0.5 shrink-0 text-[#18181B]" aria-hidden />
                   <p className="text-[15px] leading-snug text-zinc-800">{copy.iosStep2}</p>
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-[#FF7A00]">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-[#18181B]">
                   3
                 </span>
                 <p className="pt-0.5 text-[15px] leading-snug text-zinc-800">{copy.iosStep3}</p>
@@ -138,7 +138,7 @@ export function PwaInstallDialog({
                 type="button"
                 disabled={installing}
                 onClick={() => void onConfirmInstall()}
-                className="flex h-[52px] w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#FF8A1F] via-[#FF7A00] to-[#FF6B00] text-[16px] font-bold text-white shadow-[0_12px_32px_rgba(255,122,0,0.35)] transition active:scale-[0.98] disabled:opacity-60"
+                className="flex h-[52px] w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#27272A] via-[#18181B] to-[#18181B] text-[16px] font-bold text-white shadow-[0_12px_32px_rgba(0,0,0,0.18)] transition active:scale-[0.98] disabled:opacity-60"
               >
                 {installing ? copy.installing : copy.confirm}
               </button>

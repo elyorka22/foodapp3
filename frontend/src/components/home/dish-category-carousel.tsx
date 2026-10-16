@@ -38,7 +38,7 @@ export function DishCategoryCarousel({ categories }: { categories: DishCategory[
                   unoptimized
                 />
               ) : (
-                <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-500 to-orange-400 px-2 text-center text-xs font-semibold text-white">
+                <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand-500 to-zinc-600 px-2 text-center text-xs font-semibold text-white">
                   {cat.name}
                 </div>
               )}

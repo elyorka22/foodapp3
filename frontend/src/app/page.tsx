@@ -4,45 +4,34 @@ import { Store, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { HomeBannerGrid } from '@/components/home/home-banner-grid';
-import { HomeHeadline } from '@/components/home/home-headline';
-import { HomeSecondaryBanners } from '@/components/home/home-secondary-banners';
-import { HomeStoreBannersCarousel } from '@/components/home/home-store-banners-carousel';
+import { HomeCenterHeader } from '@/components/home/home-center-header';
+import { HomePromoBanners } from '@/components/home/home-promo-banners';
+import { HomeServiceGrid } from '@/components/home/home-service-grid';
 import { RestaurantGridCard } from '@/components/home/restaurant-grid-card';
-import { useDishCategories } from '@/hooks/use-dish-categories';
-import { useHomeBanners, useHomeFeaturedStores, useHomeRestaurants } from '@/hooks/use-home-data';
+import { SectionHeader } from '@/components/home/section-header';
+import { useHomeBanners, useHomeRestaurants } from '@/hooks/use-home-data';
 import { uz } from '@/lib/uz';
 
 export default function HomePage() {
   const bannersQuery = useHomeBanners();
-  const storesQuery = useHomeFeaturedStores();
   const restaurantsQuery = useHomeRestaurants();
-  const categoriesQuery = useDishCategories();
 
   const restaurants = restaurantsQuery.data?.data ?? [];
   const hasError = restaurantsQuery.isError;
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
-      <HomeHeadline />
+    <main className="customer-page mx-auto min-h-screen max-w-lg bg-white px-4 pb-8">
+      <HomeCenterHeader />
+      <HomeServiceGrid />
 
-      <HomeBannerGrid
+      <HomePromoBanners
         banners={bannersQuery.data ?? []}
-        featuredStores={storesQuery.data}
-        isLoading={bannersQuery.isLoading || storesQuery.isLoading}
-      />
-
-      <HomeStoreBannersCarousel
-        banners={bannersQuery.data ?? []}
-        stores={storesQuery.data}
-      />
-
-      <HomeSecondaryBanners
-        categories={categoriesQuery.data ?? []}
-        isLoading={categoriesQuery.isLoading}
+        isLoading={bannersQuery.isLoading}
       />
 
       <section className="mt-6" aria-label={uz.restaurants}>
+        <SectionHeader title={uz.restaurants} href="/restaurants" linkLabel={uz.seeAll} />
+
         {restaurantsQuery.isLoading && (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (

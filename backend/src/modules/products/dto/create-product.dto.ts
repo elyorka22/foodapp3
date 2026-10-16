@@ -12,6 +12,13 @@ export class CreateProductDto {
   @IsUUID()
   restaurantId?: string;
 
+  @ApiPropertyOptional({
+    description: 'Branch UUID — omit for shared menu; set for branch-only item',
+  })
+  @IsOptional()
+  @IsUUID()
+  branchId?: string;
+
   @ApiPropertyOptional({ description: 'Global dish category UUID' })
   @IsOptional()
   @IsUUID()

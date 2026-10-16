@@ -74,16 +74,6 @@ class AuthRepository {
     return model;
   }
 
-  Future<AuthResponseModel> loginTelegram(TelegramAuthPayload payload) async {
-    final res = await _dio.post<Map<String, dynamic>>(
-      ApiPaths.authTelegram,
-      data: payload.toJson(),
-    );
-    final model = AuthResponseModel.fromJson(res.data!);
-    await _persist(model);
-    return model;
-  }
-
   Future<CustomerUserModel?> currentUser() async {
     final json = await _storage.getUserJson();
     if (json == null) return null;

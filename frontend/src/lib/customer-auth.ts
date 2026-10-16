@@ -3,20 +3,6 @@ import { registerCustomerDevice } from '@/lib/device-registration';
 import { setCustomerAuth, type CustomerProfile } from '@/lib/customer';
 import { obtainGoogleIdToken } from '@/lib/firebase';
 
-/**
- * Telegram signed user — platform-agnostic contract shared with backend `TelegramSignedPayload`.
- * Web: Telegram Login Widget. Flutter: `telegram_login` / Telegram SDK callback.
- */
-export type TelegramSignedUser = {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
-};
-
 export type CustomerAuthResponse = {
   accessToken: string;
   user: CustomerProfile;
@@ -28,16 +14,6 @@ export async function signInWithGoogle(): Promise<CustomerAuthResponse> {
   return api<CustomerAuthResponse>('/auth/google', {
     method: 'POST',
     body: JSON.stringify({ idToken }),
-  });
-}
-
-/** POST /auth/telegram — same endpoint for Web, Flutter, and future mobile apps. */
-export async function signInWithTelegram(
-  payload: TelegramSignedUser,
-): Promise<CustomerAuthResponse> {
-  return api<CustomerAuthResponse>('/auth/telegram', {
-    method: 'POST',
-    body: JSON.stringify(payload),
   });
 }
 

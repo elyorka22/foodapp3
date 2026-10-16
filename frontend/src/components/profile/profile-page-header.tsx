@@ -35,7 +35,7 @@ export function ProfilePageHeader({ name, photoUrl, badgeCount }: Props) {
           </div>
         )}
         {badgeCount != null && badgeCount > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full border-2 border-[#F5F5F7] bg-[#FFC107] px-1.5 text-[11px] font-bold text-zinc-900">
+          <span className="absolute -right-0.5 -top-0.5 flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full border-2 border-[#F5F5F7] bg-[#18181B] px-1.5 text-[11px] font-bold text-white">
             {badgeCount > 99 ? '99+' : badgeCount}
           </span>
         ) : null}

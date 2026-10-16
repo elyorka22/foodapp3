@@ -10,29 +10,22 @@ import {
   persistCustomerSession,
   signInWithGoogle,
   signInWithPhone,
-  signInWithTelegram,
-  type TelegramSignedUser,
   type CustomerAuthResponse,
 } from '@/lib/customer-auth';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
-import { TelegramLoginButton } from '@/components/auth/telegram-login-button';
 import { GoogleSignInCancelledError } from '@/lib/firebase';
 import { uz } from '@/lib/uz';
-import { clsx } from 'clsx';
 
 type Props = {
   onSuccess: (res: CustomerAuthResponse) => void;
   onSwitchToRegister?: () => void;
 };
 
-const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? '';
-
 export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [widgetReady, setWidgetReady] = useState(false);
 
   const finishAuth = (res: CustomerAuthResponse) => {
     persistCustomerSession(res);
@@ -51,19 +44,6 @@ export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
       } else {
         setError(err instanceof Error ? err.message : uz.googleSignInFailed);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleTelegram = async (payload: TelegramSignedUser) => {
-    setLoading(true);
-    setError('');
-    try {
-      const res = await signInWithTelegram(payload);
-      finishAuth(res);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : uz.loginFailed);
     } finally {
       setLoading(false);
     }
@@ -89,27 +69,7 @@ export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
 
   return (
     <section aria-label={uz.signIn} className="pb-2">
-      <p className="text-[15px] font-semibold text-foreground">{uz.loginWithTelegram}</p>
-      <div className={clsx('relative mt-3 min-h-[48px] rounded-2xl bg-[#F3F4F6] px-2 py-2')}>
-        {!widgetReady && botUsername && (
-          <div className="absolute inset-2 animate-pulse rounded-xl bg-[#E5E7EB]" />
-        )}
-        <div className={clsx('relative z-10', loading && 'pointer-events-none opacity-60')}>
-          {botUsername ? (
-            <TelegramLoginButton
-              botUsername={botUsername}
-              onAuth={handleTelegram}
-              onReady={() => setWidgetReady(true)}
-            />
-          ) : (
-            <p className="px-2 py-3 text-center text-sm text-foreground-muted">
-              {uz.telegramNotConfigured}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-4">
+      <div>
         <GoogleSignInButton loading={loading} disabled={loading} onClick={handleGoogle} />
       </div>
 

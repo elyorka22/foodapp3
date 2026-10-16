@@ -93,7 +93,7 @@ export default function DeleteAccountPage() {
 
       <article className="space-y-4">
         <Card className="rounded-2xl p-5 shadow-card">
-          <div className="flex items-center gap-2 text-[#FF6B00]">
+          <div className="flex items-center gap-2 text-[#18181B]">
             <Trash2 size={20} />
             <h2 className="text-base font-semibold text-zinc-900">Account deletion</h2>
           </div>
@@ -103,7 +103,7 @@ export default function DeleteAccountPage() {
           </p>
           <p className="mt-2 text-sm leading-relaxed text-zinc-600">
             If you are logged in, you can also delete your account from{' '}
-            <Link href="/profile" className="font-medium text-[#FF6B00]">
+            <Link href="/profile" className="font-medium text-[#18181B]">
               Profile
             </Link>
             .
@@ -115,7 +115,7 @@ export default function DeleteAccountPage() {
           <ul className="mt-3 space-y-2">
             {DATA_DELETED.map((item) => (
               <li key={item} className="flex gap-2 text-sm text-zinc-600">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF6B00]" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#18181B]" />
                 {item}
               </li>
             ))}
@@ -204,13 +204,13 @@ export default function DeleteAccountPage() {
           </p>
           <p className="mt-2 text-sm">
             Email:{' '}
-            <a href="mailto:support@foodapp.uz" className="font-medium text-[#FF6B00]">
+            <a href="mailto:support@foodapp.uz" className="font-medium text-[#18181B]">
               support@foodapp.uz
             </a>
           </p>
           <p className="mt-2 text-sm text-zinc-600">
             See also our{' '}
-            <Link href="/privacy" className="font-medium text-[#FF6B00]">
+            <Link href="/privacy" className="font-medium text-[#18181B]">
               Privacy Policy
             </Link>
             .

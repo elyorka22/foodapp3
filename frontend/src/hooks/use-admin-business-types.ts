@@ -16,7 +16,8 @@ export type AdminBusinessType = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
-  catalogMode?: 'CATALOG' | 'CONTACT';
+  catalogMode?: 'CATALOG';
+  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
   sortOrder: number;
   isActive: boolean;
 };
@@ -30,8 +31,10 @@ export type BusinessTypeForm = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
-  catalogMode?: 'CATALOG' | 'CONTACT';
+  catalogMode?: 'CATALOG';
+  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
   sortOrder?: number;
+  isActive?: boolean;
 };
 
 const QUERY_KEY = ['admin-business-types'] as const;
@@ -67,7 +70,7 @@ export function useAdminBusinessTypes() {
   });
 
   const update = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: BusinessTypeForm }) => {
+    mutationFn: ({ id, body }: { id: string; body: Partial<BusinessTypeForm> }) => {
       logApiFetch('PATCH', `/business-types/${id}`, 'mutation:update');
       return api(`/business-types/${id}`, {
         method: 'PATCH',

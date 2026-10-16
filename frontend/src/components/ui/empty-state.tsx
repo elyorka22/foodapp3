@@ -13,16 +13,16 @@ export function EmptyState({ icon: Icon, title, description, action, className }
   return (
     <div
       className={clsx(
-        'flex flex-col items-center rounded-2xl border border-zinc-100 bg-zinc-50/80 px-6 py-10 text-center dark:border-zinc-800 dark:bg-zinc-900/50',
+        'flex flex-col items-center rounded-[22px] bg-white px-6 py-11 text-center shadow-[0_8px_32px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.03] dark:bg-zinc-900/50 dark:ring-white/10',
         className,
       )}
     >
       {Icon && (
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-card dark:bg-zinc-800">
-          <Icon className="h-7 w-7 text-brand-600" strokeWidth={1.75} />
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft dark:bg-zinc-800">
+          <Icon className="h-7 w-7 text-primary" strokeWidth={1.75} />
         </div>
       )}
-      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{title}</h3>
+      <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50">{title}</h3>
       {description && (
         <p className="mt-2 max-w-xs text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
           {description}

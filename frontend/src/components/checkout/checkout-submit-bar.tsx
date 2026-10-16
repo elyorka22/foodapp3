@@ -76,15 +76,15 @@ export function CheckoutSubmitBar({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-white/40 bg-[#FAF7F2]/95 px-4 pb-3 pt-3 backdrop-blur-md">
+    <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-white/40 bg-[#FAFAFA]/95 px-4 pb-3 pt-3 backdrop-blur-md">
       <div className="mx-auto max-w-lg">
         <button
           type="button"
           disabled={disabled}
           onClick={handleClick}
           className={clsx(
-            'flex h-[66px] w-full items-center justify-center rounded-[22px] text-[17px] font-bold text-white shadow-[0_12px_32px_rgba(255,122,0,0.45)] transition',
-            'bg-gradient-to-r from-[#FF8A1F] via-[#FF7A00] to-[#FF6B00]',
+            'flex h-[66px] w-full items-center justify-center rounded-[22px] text-[17px] font-bold text-white shadow-[0_12px_32px_rgba(0,0,0,0.22)] transition',
+            'bg-gradient-to-r from-[#27272A] via-[#18181B] to-[#18181B]',
             'active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none',
           )}
         >

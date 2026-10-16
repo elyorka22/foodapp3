@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/business_model.dart';
+import '../../cities/providers/selected_city_provider.dart';
 import '../data/stores_repository.dart';
 
 class StoresQuery {
@@ -23,9 +24,11 @@ final businessTypesProvider =
 final storesListProvider =
     FutureProvider.autoDispose.family<List<BusinessModel>, StoresQuery>(
   (ref, query) {
+    final citySlug = ref.watch(selectedCitySlugProvider);
     return ref.watch(storesRepositoryProvider).fetchStores(
           search: query.search,
           typeSlug: query.typeSlug,
+          citySlug: citySlug,
         );
   },
 );
@@ -38,5 +41,6 @@ final storeDetailProvider =
 /// Active stores for the home bottom-right banner slot.
 final homeFeaturedStoresProvider =
     FutureProvider.autoDispose<List<BusinessModel>>((ref) {
-  return ref.watch(storesRepositoryProvider).fetchStores();
+  final citySlug = ref.watch(selectedCitySlugProvider);
+  return ref.watch(storesRepositoryProvider).fetchStores(citySlug: citySlug);
 });

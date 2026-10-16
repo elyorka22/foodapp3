@@ -34,6 +34,11 @@ export class UpdateRestaurantDto {
   @IsUUID()
   businessTypeId?: string;
 
+  @ApiPropertyOptional({ description: 'Service city UUID' })
+  @IsOptional()
+  @IsUUID()
+  cityId?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

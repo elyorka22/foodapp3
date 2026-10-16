@@ -27,4 +27,14 @@ export class BusinessesQueryDto extends PaginationDto {
   @IsOptional()
   @IsIn(['restaurant', 'store'])
   vertical?: 'restaurant' | 'store';
+
+  @ApiPropertyOptional({ description: 'Filter by city slug' })
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by city id (UUID)' })
+  @IsOptional()
+  @IsString()
+  cityId?: string;
 }

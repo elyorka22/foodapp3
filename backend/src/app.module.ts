@@ -28,7 +28,6 @@ import { GrowthModule } from './modules/growth/growth.module';
 import { BusinessTypesModule } from './modules/business-types/business-types.module';
 import { BusinessesModule } from './modules/businesses/businesses.module';
 import { MarketplaceModule } from './modules/marketplace/marketplace.module';
-import { TelegramAuthModule } from './modules/telegram-auth/telegram-auth.module';
 import { GoogleAuthModule } from './modules/google-auth/google-auth.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { FirebaseModule } from './common/firebase/firebase.module';
@@ -36,6 +35,7 @@ import { AccountDeletionModule } from './modules/account-deletion/account-deleti
 import { BookingVenuesModule } from './modules/booking-venues/booking-venues.module';
 import { CitiesModule } from './modules/cities/cities.module';
 import { TelegramBotModule } from './modules/telegram-bot/telegram-bot.module';
+import { DeliveryZonesModule } from './modules/delivery-zones/delivery-zones.module';
 
 @Module({
   imports: [
@@ -72,13 +72,13 @@ import { TelegramBotModule } from './modules/telegram-bot/telegram-bot.module';
     BusinessesModule,
     MarketplaceModule,
     FirebaseModule,
-    TelegramAuthModule,
     GoogleAuthModule,
     NotificationsModule,
     AccountDeletionModule,
     BookingVenuesModule,
     CitiesModule,
     TelegramBotModule,
+    DeliveryZonesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })

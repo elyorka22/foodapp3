@@ -18,17 +18,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
 import { MerchantLocationFields } from '@/components/admin/merchant-location-fields';
+import { MerchantCityField } from '@/components/admin/merchant-city-field';
 import { BusinessImageUpload } from '@/components/admin/business-image-upload';
 import {
   MerchantOwnerAccountFields,
   MerchantOwnerCredentials,
 } from '@/components/admin/merchant-owner-credentials';
 import { resolveFormSlug } from '@/lib/slugify';
+import { useAdminCities } from '@/hooks/use-admin-cities';
 
 const emptyForm: RestaurantForm = {
   name: '',
   slug: '',
   businessTypeId: '',
+  cityId: '',
   description: '',
   logoUrl: '',
   coverUrl: '',
@@ -46,6 +49,7 @@ const emptyForm: RestaurantForm = {
 export default function AdminStoresPage() {
   const { ready, authorized, isSuperAdmin } = useAdminAccess({ permission: 'stores' });
   const [search, setSearch] = useState('');
+  const [cityId, setCityId] = useState('');
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const [editRow, setEditRow] = useState<Record<string, unknown> | null>(null);
@@ -53,8 +57,12 @@ export default function AdminStoresPage() {
   const [form, setForm] = useState<RestaurantForm>(emptyForm);
 
   const typesQuery = useAdminBusinessTypes();
+  const citiesQuery = useAdminCities();
   const marketplaceTypes = useMemo(
-    () => (typesQuery.list.data ?? []).filter((t) => t.slug !== 'restaurant' && t.isActive),
+    () =>
+      (typesQuery.list.data ?? []).filter(
+        (t) => t.menuMode !== 'GLOBAL_DISH' && t.slug !== 'restaurant' && t.isActive,
+      ),
     [typesQuery.list.data],
   );
 
@@ -63,6 +71,7 @@ export default function AdminStoresPage() {
     limit: 50,
     search: search || undefined,
     vertical: 'store',
+    cityId: cityId || undefined,
   });
 
   const rows = list.data?.data ?? [];
@@ -80,6 +89,10 @@ export default function AdminStoresPage() {
   const submitCreate = async () => {
     if (!form.name.trim() || !form.businessTypeId) {
       toast.error('Nom va kategoriya tanlang');
+      return;
+    }
+    if (!form.cityId?.trim()) {
+      toast.error('Shaharni tanlang');
       return;
     }
     if (!form.logoUrl?.trim() || !form.coverUrl?.trim()) {
@@ -142,10 +155,12 @@ export default function AdminStoresPage() {
 
   const openEdit = (row: Record<string, unknown>) => {
     setEditRow(row);
+    const city = row.city as { id?: string } | undefined;
     setForm({
       name: String(row.name ?? ''),
       slug: String(row.slug ?? ''),
       businessTypeId: (row.businessType as { id?: string })?.id ?? '',
+      cityId: String(row.cityId ?? city?.id ?? ''),
       description: String(row.description ?? ''),
       logoUrl: String(row.logoUrl ?? ''),
       coverUrl: String(row.coverUrl ?? ''),
@@ -171,6 +186,10 @@ export default function AdminStoresPage() {
 
   const formFields = (
     <div className="space-y-3">
+      <MerchantCityField
+        cityId={form.cityId}
+        onChange={(id) => setForm({ ...form, cityId: id })}
+      />
       <label className="block text-xs font-medium opacity-70">
         Kategoriya *
         <select
@@ -261,7 +280,21 @@ export default function AdminStoresPage() {
         </Button>
       </div>
 
-      <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Qidirish" />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Qidirish" />
+        <select
+          className="rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
+          value={cityId}
+          onChange={(e) => { setCityId(e.target.value); setPage(1); }}
+        >
+          <option value="">Barcha shaharlar</option>
+          {(citiesQuery.list.data ?? []).map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {!rows.length ? (
         <EmptyState title="Do'konlar yo'q" description="Birinchi do'konni yarating." />

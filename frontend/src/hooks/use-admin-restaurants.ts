@@ -10,12 +10,14 @@ export type AdminRestaurantsQuery = {
   search?: string;
   isActive?: boolean;
   vertical?: 'restaurant' | 'store';
+  cityId?: string;
 };
 
 export type RestaurantForm = {
   name: string;
   slug: string;
   businessTypeId?: string;
+  cityId?: string;
   description?: string;
   logoUrl?: string;
   coverUrl?: string;
@@ -43,12 +45,13 @@ export function useAdminRestaurants(query: AdminRestaurantsQuery) {
   if (query.search) params.set('search', query.search);
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive));
   if (query.vertical) params.set('vertical', query.vertical);
+  if (query.cityId) params.set('cityId', query.cityId);
 
   const list = useQuery({
     queryKey: ['admin-restaurants', query],
     queryFn: () =>
       api<{ data: any[]; meta: { total: number; page: number; limit: number; totalPages: number } }>(
-        `/restaurants/admin?${params.toString()}`,
+        `/businesses/admin?${params.toString()}`,
         { token: token ?? undefined },
       ),
     enabled: !!token,
@@ -56,7 +59,7 @@ export function useAdminRestaurants(query: AdminRestaurantsQuery) {
 
   const create = useMutation({
     mutationFn: (body: RestaurantForm) =>
-      api<{ approvalStatus?: string; isActive?: boolean }>('/restaurants', {
+      api<{ approvalStatus?: string; isActive?: boolean }>('/businesses', {
         method: 'POST',
         token: token ?? undefined,
         body: JSON.stringify(body),
@@ -68,7 +71,7 @@ export function useAdminRestaurants(query: AdminRestaurantsQuery) {
 
   const update = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Partial<RestaurantForm> }) =>
-      api(`/restaurants/${id}`, { method: 'PATCH', token: token ?? undefined, body: JSON.stringify(body) }),
+      api(`/businesses/${id}`, { method: 'PATCH', token: token ?? undefined, body: JSON.stringify(body) }),
     onMutate: async ({ id, body }) => {
       await qc.cancelQueries({ queryKey: ['admin-restaurants'] });
       const prev = qc.getQueriesData({ queryKey: ['admin-restaurants'] });
@@ -92,13 +95,13 @@ export function useAdminRestaurants(query: AdminRestaurantsQuery) {
 
   const remove = useMutation({
     mutationFn: (id: string) =>
-      api(`/restaurants/${id}`, { method: 'DELETE', token: token ?? undefined }),
+      api(`/businesses/${id}`, { method: 'DELETE', token: token ?? undefined }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-restaurants'] }),
   });
 
   const updateApproval = useMutation({
     mutationFn: ({ id, status, note }: { id: string; status: string; note?: string }) =>
-      api(`/restaurants/${id}/approval`, {
+      api(`/businesses/${id}/approval`, {
         method: 'PATCH',
         token: token ?? undefined,
         body: JSON.stringify({ status, note }),

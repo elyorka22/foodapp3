@@ -11,30 +11,16 @@ import { CitySelector } from '@/components/home/city-selector';
 
 export function HomeHeadline() {
   const settings = usePublicSettings();
-
-  if (settings.isLoading) {
-    return (
-      <header className="pt-[calc(env(safe-area-inset-top,0px)+12px)]">
-        <div className="flex items-start justify-between gap-3">
-          <Skeleton className="h-9 w-48 rounded-lg" />
-        <div className="flex shrink-0 items-center gap-2">
-          <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
-          <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
-          <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
-        </div>
-        </div>
-      </header>
-    );
-  }
-
   const subtitle = settings.data?.home_subtitle?.trim() || uz.citySubtitle;
 
   return (
-    <header className="pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+    <header className="animate-fade-in pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <CitySelector />
-          {subtitle ? (
+          {settings.isLoading && !settings.data ? (
+            <Skeleton className="mt-1.5 h-4 w-40 rounded shadow-none" />
+          ) : subtitle ? (
             <p className="mt-1 text-sm font-medium text-zinc-500">{subtitle}</p>
           ) : null}
         </div>
@@ -44,7 +30,7 @@ export function HomeHeadline() {
           <Link
             href="/notifications"
             aria-label={uz.notificationsAria}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-zinc-800 shadow-card transition active:scale-95"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-zinc-800 shadow-[0_4px_16px_rgba(15,23,42,0.08)] ring-1 ring-black/[0.04] transition active:scale-95"
           >
             <Bell size={22} strokeWidth={2} />
           </Link>

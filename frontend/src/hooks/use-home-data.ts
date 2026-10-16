@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
 import { filterStoreBusinesses } from '@/lib/business-kind';
 import { unwrapList } from '@/lib/list-utils';
-import { resolveImageUrl } from '@/lib/image-url';
+import { useSelectedCity } from '@/hooks/use-selected-city';
 
 export type HomeCategory = { id: string; name: string; slug: string };
 
@@ -58,26 +58,39 @@ export function useHomeBanners() {
 }
 
 export function useHomeRestaurants() {
+  const { selectedCity, isLoading: cityLoading } = useSelectedCity();
+  const citySlug = selectedCity?.slug;
   return useQuery({
-    queryKey: ['restaurants', 'home'],
-    queryFn: () =>
-      api<{ data: HomeRestaurant[]; meta?: { total: number } }>('/restaurants?limit=50'),
+    queryKey: ['restaurants', 'home', citySlug],
+    queryFn: () => {
+      const params = new URLSearchParams({ limit: '50', vertical: 'restaurant' });
+      if (citySlug) params.set('city', citySlug);
+      return api<{ data: HomeRestaurant[]; meta?: { total: number } }>(
+        `/businesses?${params.toString()}`,
+      );
+    },
     staleTime: 30_000,
     retry: 2,
+    enabled: !cityLoading && Boolean(citySlug),
   });
 }
 
 /** Active marketplace stores for the home bottom-right slot (cover/logo carousel). */
 export function useHomeFeaturedStores() {
+  const { selectedCity, isLoading: cityLoading } = useSelectedCity();
+  const citySlug = selectedCity?.slug;
   return useQuery({
-    queryKey: ['shops-businesses', 'home-featured'],
+    queryKey: ['shops-businesses', 'home-featured', citySlug],
     queryFn: async () => {
+      const params = new URLSearchParams({ limit: '20', vertical: 'store' });
+      if (citySlug) params.set('city', citySlug);
       const res = await api<{ data: ShopBusiness[]; meta?: unknown }>(
-        '/businesses?limit=20&vertical=store',
+        `/businesses?${params.toString()}`,
       );
       return filterStoreBusinesses(unwrapList(res));
     },
     staleTime: 60_000,
     retry: 2,
+    enabled: !cityLoading && Boolean(citySlug),
   });
 }

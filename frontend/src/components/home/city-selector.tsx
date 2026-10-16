@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
+import { clsx } from 'clsx';
 import { useSelectedCity } from '@/hooks/use-selected-city';
 import { uz } from '@/lib/uz';
 import type { City } from '@/hooks/use-cities';
@@ -13,40 +14,54 @@ type CitySelectorProps = {
 export function CitySelector({ className }: CitySelectorProps) {
   const { cities, selectedCity, selectCity, isLoading } = useSelectedCity();
   const [open, setOpen] = useState(false);
+  const centered = Boolean(className?.includes('home-city-center'));
 
   const label = selectedCity?.name ?? uz.cityName;
   const canPick = cities.length > 1;
 
-  if (isLoading) {
-    return <div className={`h-9 w-36 animate-pulse rounded-lg bg-zinc-200/80 ${className ?? ''}`} />;
-  }
-
-  if (!canPick) {
+  if (isLoading || !canPick) {
     return (
-      <span className={`truncate text-[26px] font-bold leading-tight tracking-tight text-zinc-900 ${className ?? ''}`}>
+      <span
+        className={clsx(
+          'truncate font-extrabold leading-tight tracking-tight text-zinc-900',
+          centered ? 'text-[22px]' : 'text-[26px]',
+          isLoading && 'opacity-70',
+          className,
+        )}
+      >
         {label}
       </span>
     );
   }
 
   return (
-    <div className={`relative ${className ?? ''}`}>
+    <div className={clsx('relative', centered && 'flex justify-center', className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="group flex max-w-full items-center gap-1.5 text-left"
+        className={clsx(
+          'group flex max-w-full items-center gap-1 text-left',
+          centered && 'justify-center',
+        )}
         aria-expanded={open}
         aria-haspopup="listbox"
       >
-        <span className="truncate text-[26px] font-bold leading-tight tracking-tight text-zinc-900">
+        <span
+          className={clsx(
+            'truncate font-extrabold leading-tight tracking-tight text-zinc-900',
+            centered ? 'text-[22px]' : 'text-[26px]',
+          )}
+        >
           {label}
         </span>
         <ChevronDown
-          size={22}
+          size={centered ? 18 : 22}
           strokeWidth={2.5}
-          className={`mt-1 shrink-0 text-zinc-800 transition-transform duration-200 ${
-            open ? 'rotate-180' : ''
-          }`}
+          className={clsx(
+            'shrink-0 text-zinc-700 transition-transform duration-200',
+            centered ? 'mt-0.5' : 'mt-1',
+            open && 'rotate-180',
+          )}
         />
       </button>
 
@@ -61,6 +76,7 @@ export function CitySelector({ className }: CitySelectorProps) {
           <CityList
             cities={cities}
             selectedSlug={selectedCity?.slug}
+            centered={centered}
             onSelect={(city) => {
               selectCity(city);
               setOpen(false);
@@ -75,15 +91,22 @@ export function CitySelector({ className }: CitySelectorProps) {
 function CityList({
   cities,
   selectedSlug,
+  centered,
   onSelect,
 }: {
   cities: City[];
   selectedSlug?: string;
+  centered?: boolean;
   onSelect: (city: City) => void;
 }) {
   if (!cities.length) {
     return (
-      <div className="absolute left-0 top-full z-50 mt-2 min-w-[200px] rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-500 shadow-lg">
+      <div
+        className={clsx(
+          'absolute top-full z-50 mt-2 min-w-[200px] rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-500 shadow-lg',
+          centered ? 'left-1/2 -translate-x-1/2' : 'left-0',
+        )}
+      >
         Shaharlar ro‘yxati bo‘sh
       </div>
     );
@@ -92,7 +115,10 @@ function CityList({
   return (
     <ul
       role="listbox"
-      className="absolute left-0 top-full z-50 mt-2 min-w-[220px] overflow-hidden rounded-2xl border border-zinc-200 bg-white py-1.5 shadow-lg"
+      className={clsx(
+        'absolute top-full z-50 mt-2 min-w-[220px] overflow-hidden rounded-2xl border border-zinc-200 bg-white py-1.5 shadow-lg',
+        centered ? 'left-1/2 -translate-x-1/2' : 'left-0',
+      )}
     >
       {cities.map((city) => {
         const selected = city.slug === selectedSlug;
@@ -103,12 +129,13 @@ function CityList({
               role="option"
               aria-selected={selected}
               onClick={() => onSelect(city)}
-              className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-[15px] font-semibold transition hover:bg-zinc-50 ${
-                selected ? 'text-zinc-900' : 'text-zinc-700'
-              }`}
+              className={clsx(
+                'flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-[15px] font-semibold transition hover:bg-zinc-50',
+                selected ? 'text-zinc-900' : 'text-zinc-700',
+              )}
             >
               <span>{city.name}</span>
-              {selected ? <Check size={18} className="shrink-0 text-[#FF6B00]" strokeWidth={2.5} /> : null}
+              {selected ? <Check size={18} className="shrink-0 text-zinc-900" strokeWidth={2.5} /> : null}
             </button>
           </li>
         );

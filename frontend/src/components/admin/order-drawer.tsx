@@ -302,7 +302,7 @@ export function OrderDrawer({
                   <Button
                     type="button"
                     size="sm"
-                    className="bg-orange-500 hover:bg-orange-600"
+                    className="bg-zinc-900 hover:bg-zinc-800"
                     disabled={courierActionPending}
                     onClick={handlePassToCouriers}
                   >

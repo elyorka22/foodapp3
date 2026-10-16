@@ -35,6 +35,10 @@ export class CreateRestaurantDto {
   @IsUUID()
   businessTypeId?: string;
 
+  @ApiProperty({ description: 'Service city UUID (HQ). Branches may use other cities.' })
+  @IsUUID()
+  cityId: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -108,6 +112,7 @@ export class CreateRestaurantDto {
   @ApiPropertyOptional({ enum: ['RESTAURANT', 'STORE'] })
   @IsOptional()
   @IsIn(['RESTAURANT', 'STORE'])
+  /** @deprecated Ignored — kind is derived from BusinessType.menuMode */
   kind?: 'RESTAURANT' | 'STORE';
 
   @ApiPropertyOptional({ description: 'Owner login — email or phone for business panel' })

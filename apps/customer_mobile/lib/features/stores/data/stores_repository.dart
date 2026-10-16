@@ -27,6 +27,7 @@ class StoresRepository {
   Future<List<BusinessModel>> fetchStores({
     String? search,
     String? typeSlug,
+    String? citySlug,
   }) async {
     final res = await _dio.get<Map<String, dynamic>>(
       ApiPaths.businesses,
@@ -35,6 +36,7 @@ class StoresRepository {
         'vertical': 'store',
         if (search != null && search.isNotEmpty) 'search': search,
         if (typeSlug != null) 'type': typeSlug,
+        if (citySlug != null && citySlug.isNotEmpty) 'city': citySlug,
       },
     );
     final list = PaginatedResponse.fromJson(

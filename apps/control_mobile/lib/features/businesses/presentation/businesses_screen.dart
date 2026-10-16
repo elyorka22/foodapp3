@@ -10,16 +10,28 @@ import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/status_chip.dart';
+import '../../cities/data/cities_repository.dart';
 import '../data/businesses_repository.dart';
 import '../data/restaurant_model.dart';
 import 'business_detail_sheet.dart';
 
+final _businessCityFilterProvider = StateProvider.autoDispose<String?>((ref) => null);
+
 final businessesListProvider =
     FutureProvider.autoDispose<PaginatedResponse<ControlRestaurant>>((ref) {
+  final cityId = ref.watch(_businessCityFilterProvider);
   return ref.watch(businessesRepositoryProvider).fetchRestaurants(
         page: 1,
         limit: 40,
+        query: {
+          if (cityId != null && cityId.isNotEmpty) 'cityId': cityId,
+        },
       );
+});
+
+final _citiesForFilterProvider =
+    FutureProvider.autoDispose<List<ControlCity>>((ref) {
+  return ref.watch(citiesRepositoryProvider).fetchCities();
 });
 
 class BusinessesScreen extends ConsumerWidget {
@@ -28,6 +40,8 @@ class BusinessesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(businessesListProvider);
+    final citiesAsync = ref.watch(_citiesForFilterProvider);
+    final selectedCityId = ref.watch(_businessCityFilterProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -39,7 +53,42 @@ class BusinessesScreen extends ConsumerWidget {
             AppSpacing.lg,
             0,
           ),
-          child: Text(AppStrings.businessesTitle, style: AppTypography.display),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(AppStrings.businessesTitle, style: AppTypography.display),
+              const SizedBox(height: AppSpacing.sm),
+              citiesAsync.when(
+                data: (cities) {
+                  final active = cities.where((c) => c.isActive).toList();
+                  return DropdownButtonFormField<String?>(
+                    value: selectedCityId,
+                    decoration: const InputDecoration(
+                      labelText: AppStrings.filterByCity,
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text(AppStrings.allCities),
+                      ),
+                      for (final c in active)
+                        DropdownMenuItem<String?>(
+                          value: c.id,
+                          child: Text(c.name),
+                        ),
+                    ],
+                    onChanged: (v) {
+                      ref.read(_businessCityFilterProvider.notifier).state = v;
+                    },
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+            ],
+          ),
         ),
         Expanded(
           child: AsyncPageBody<PaginatedResponse<ControlRestaurant>>(
@@ -81,6 +130,7 @@ class BusinessesScreen extends ConsumerWidget {
                     ),
                     title: r.name,
                     subtitle: [
+                      if (r.cityName != null && r.cityName!.isNotEmpty) r.cityName!,
                       r.approvalStatus,
                       if (r.branchAddress != null) r.branchAddress!,
                       '${r.ordersCount} buyurtma',

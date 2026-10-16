@@ -1,8 +1,11 @@
-import { Prisma } from '@prisma/client';
+import { BusinessMenuMode, Prisma } from '@prisma/client';
 
 /** Restaurant = food delivery; Store = marketplace merchants (grocery, pharmacy, …). */
 export type MerchantVertical = 'restaurant' | 'store';
 
+/**
+ * Vertical filter based on BusinessType.menuMode (with legacy kind/slug fallback).
+ */
 export function businessWhereForVertical(
   vertical?: MerchantVertical,
 ): Prisma.BusinessWhereInput | undefined {
@@ -10,13 +13,16 @@ export function businessWhereForVertical(
 
   if (vertical === 'restaurant') {
     return {
-      OR: [{ businessTypeId: null }, { businessType: { slug: 'restaurant' } }],
+      OR: [
+        { businessType: { menuMode: BusinessMenuMode.GLOBAL_DISH } },
+        // Legacy rows without a type
+        { businessTypeId: null },
+      ],
     };
   }
 
   return {
-    businessTypeId: { not: null },
-    NOT: { businessType: { slug: 'restaurant' } },
+    businessType: { menuMode: BusinessMenuMode.OWN_CATEGORIES },
   };
 }
 

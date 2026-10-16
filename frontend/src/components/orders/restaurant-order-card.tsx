@@ -87,7 +87,7 @@ export function RestaurantOrderCard({
         {canRequestCourier ? (
           <Button
             size="sm"
-            className="min-h-10 flex-1 bg-orange-500 px-3 hover:bg-orange-600"
+            className="min-h-10 flex-1 bg-zinc-900 px-3 hover:bg-zinc-800"
             disabled={requestCourierPending}
             onClick={() => onRequestCourier?.(order.id)}
           >

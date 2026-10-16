@@ -42,8 +42,11 @@ export type BusinessPublicDto = {
     slug: string;
     icon: string | null;
     catalogMode?: string;
+    menuMode?: string;
   } | null;
   category: string | null;
+  cityId?: string | null;
+  city?: { id: string; name: string; slug: string } | null;
   latitude: number | null;
   longitude: number | null;
 };

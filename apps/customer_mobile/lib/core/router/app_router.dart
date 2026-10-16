@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/complete_profile_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
-import '../../features/auth/presentation/telegram_login_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/cart/presentation/cart_screen.dart';
 import '../../features/checkout/presentation/checkout_details_screen.dart';
@@ -156,10 +155,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'register',
                     builder: (_, __) => const RegisterScreen(),
-                  ),
-                  GoRoute(
-                    path: 'telegram',
-                    builder: (_, __) => const TelegramLoginScreen(),
                   ),
                   GoRoute(
                     path: 'help',

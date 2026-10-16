@@ -75,7 +75,8 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
       _ownerLogin.text = restaurant.ownerLogin ?? '';
       _originalOwnerLogin = restaurant.ownerLogin ?? '';
       _ownerFullName.text = restaurant.ownerFullName ?? '';
-      _ownerPassword.text = restaurant.ownerPassword ?? '';
+      // Never prefill passwords — API no longer returns recoverable passwords.
+      _ownerPassword.clear();
       _hasOwnerAccount = (restaurant.ownerLogin ?? '').trim().isNotEmpty;
       _vertical = restaurant.isStore ? 'store' : 'restaurant';
 

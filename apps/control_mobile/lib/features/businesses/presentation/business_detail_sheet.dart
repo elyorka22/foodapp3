@@ -124,6 +124,8 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
             branchAddress: _restaurant.branchAddress,
             latitude: _restaurant.latitude,
             longitude: _restaurant.longitude,
+            cityId: _restaurant.cityId,
+            cityName: _restaurant.cityName,
             createdAt: _restaurant.createdAt,
           );
         });

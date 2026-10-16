@@ -6,11 +6,12 @@ import { TelegramBotModule } from '../telegram-bot/telegram-bot.module';
 import { RestaurantsService } from './restaurants.service';
 import { RestaurantsController } from './restaurants.controller';
 import { RestaurantScheduleService } from './restaurant-schedule.service';
+import { BusinessBranchesService } from './business-branches.service';
 
 @Module({
   imports: [AdminNotificationsModule, AuthModule, SettingsModule, TelegramBotModule],
   controllers: [RestaurantsController],
-  providers: [RestaurantsService, RestaurantScheduleService],
-  exports: [RestaurantsService, RestaurantScheduleService],
+  providers: [RestaurantsService, RestaurantScheduleService, BusinessBranchesService],
+  exports: [RestaurantsService, RestaurantScheduleService, BusinessBranchesService],
 })
 export class RestaurantsModule {}

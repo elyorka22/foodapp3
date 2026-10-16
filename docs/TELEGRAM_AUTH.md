@@ -1,140 +1,22 @@
-# Customer authentication (mobile-ready)
+# Telegram (messaging only)
 
-One HTTP API for all clients: **FoodApp Web**, **Flutter**, courier/taxi apps.
+Customer **registration / login via Telegram Login Widget was removed**.
 
-## Architecture
+Customers sign in with phone or Google.
 
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────────────────┐
-│ Web Widget  │     │ Flutter SDK  │     │ POST /api/v1/auth/      │
-│ (optional)  │     │ telegram_*   │────▶│      telegram           │
-└─────────────┘     └──────────────┘     └───────────┬─────────────┘
-                                                     │
-                                         TelegramSignatureService
-                                         (HMAC verify)
-                                                     │
-                                         TelegramAuthService
-                                         .authenticateVerifiedUser()
-                                                     │
-                                         CustomerTokenService → JWT
-```
+## What remains
 
-- **Telegram Login Widget** is Web-only UI. It only produces a signed JSON object.
-- **TelegramAuthService** is platform-agnostic: verified user in → customer upsert → JWT out.
-- **Flutter** skips the widget; POST the same JSON the SDK returns.
+- Order-notification bot (`TELEGRAM_BOT_TOKEN`, webhook, `Business.telegramOrderChatId`)
+- Admin / business Telegram settings for linking restaurant chats
+- Support / social `t.me` links in app settings
 
-## Environment
+See `backend/src/modules/telegram-bot/` for the bot API.
 
-| Variable | Where | Purpose |
-|----------|--------|---------|
-| `TELEGRAM_BOT_TOKEN` | Backend | HMAC login verification + bot webhook (default) |
-| `TELEGRAM_BOT_USERNAME` | Backend / mobile | Expected bot @username (must match token) |
-| `TELEGRAM_MESSAGING_BOT_TOKEN` | Backend | Optional — only if messaging uses a different bot |
-| `TELEGRAM_WEBHOOK_SECRET` | Backend | Webhook path secret |
-| `API_PUBLIC_URL` | Backend | e.g. `https://foodapp.uz` for auto webhook |
-| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Web only | Login Widget `data-telegram-login` |
+## Env
 
-## API contract (all mobile/web clients)
-
-### `POST /api/v1/auth/telegram`
-
-**Body** — standard Telegram signed user (snake_case):
-
-```json
-{
-  "id": 123456789,
-  "first_name": "Elyor",
-  "last_name": "K",
-  "username": "elyor",
-  "photo_url": "https://t.me/i/userpic/...",
-  "auth_date": 1717200000,
-  "hash": "<hex-hmac>"
-}
-```
-
-**Response:**
-
-```json
-{
-  "accessToken": "<jwt>",
-  "user": {
-    "id": "uuid",
-    "needsPhone": true,
-    "telegramId": "123456789",
-    ...
-  }
-}
-```
-
-**JWT payload:** `{ "sub": "<customerId>", "role": "CUSTOMER", "authProvider": "TELEGRAM" }`
-
-Use header: `Authorization: Bearer <accessToken>`
-
-### Flutter example
-
-```dart
-// After Telegram SDK / telegram_login returns Map user
-final response = await http.post(
-  Uri.parse('$apiBase/auth/telegram'),
-  headers: {'Content-Type': 'application/json'},
-  body: jsonEncode({
-    'id': user['id'],
-    'first_name': user['first_name'],
-    'last_name': user['last_name'],
-    'username': user['username'],
-    'photo_url': user['photo_url'],
-    'auth_date': user['auth_date'],
-    'hash': user['hash'],
-  }),
-);
-// Store accessToken; if user['needsPhone'] → navigate to complete-profile
-```
-
-### Phone fallback (unchanged)
-
-- `POST /customers/register` → `{ accessToken, user }`
-- `POST /customers/login` → `{ accessToken, user }`
-
-### Profile completion
-
-- `POST /customers/complete-profile` (Bearer customer JWT) — required phone for delivery
-
-### Current user
-
-- `GET /customers/me` (Bearer customer JWT)
-
-## Backend services (NestJS)
-
-| Service | Responsibility |
-|---------|----------------|
-| `TelegramSignatureService` | HMAC verify → `VerifiedTelegramUser` |
-| `TelegramAuthService` | `signInWithTelegramPayload()` / `authenticateVerifiedUser()` → JWT |
-| `CustomerTokenService` | JWT sign + user serialization |
-
-Staff auth is separate: `POST /auth/login` (users table).
-
-## Web frontend
-
-- `lib/customer-auth.ts` — `signInWithTelegram(payload)` (API only)
-- `TelegramLoginButton` — widget loader only; calls `signInWithTelegram` from the login page
-- `/auth/telegram-mobile` — page for the customer mobile app WebView (must be on the BotFather domain)
-
-## Mobile app Telegram login
-
-The Telegram Login Widget only works on domains registered in @BotFather (`/setdomain`).
-
-Do **not** load the widget via `loadHtmlString` in WebView — Telegram shows **Bot domain invalid** because the origin is `about:blank`.
-
-The Flutter app opens `https://<your-domain>/auth/telegram-mobile` (derived from `API_BASE_URL` by stripping `/api/v1`). After auth, the page posts the signed payload to the app via `FoodAppTelegram` JavaScript channel.
-
-**BotFather checklist:**
-
-1. `/setdomain` → your production domain (e.g. `foodapp.uz`)
-2. Bot username matches `TELEGRAM_BOT_USERNAME` / `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` (without `@`)
-3. Backend `TELEGRAM_BOT_TOKEN` matches the same bot
-
-## Migration
-
-```bash
-cd backend && npx prisma migrate deploy
-```
+| Variable | Purpose |
+|----------|---------|
+| `TELEGRAM_BOT_TOKEN` | Bot API (notifications / webhook) |
+| `TELEGRAM_WEBHOOK_SECRET` | Webhook path secret |
+| `API_PUBLIC_URL` | Public API base for webhook registration |
+| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Optional — show bot username in merchant linking UI (not for customer login) |

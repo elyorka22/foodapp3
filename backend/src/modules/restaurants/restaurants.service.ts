@@ -13,7 +13,16 @@ import {
   BusinessApprovalStatus,
   UserRole,
 } from '@prisma/client';
-import { isRestaurantKind, resolveBusinessKind } from '../../common/utils/business-kind.util';
+import {
+  isRestaurantKind,
+  kindFromMenuMode,
+  resolveBusinessKind,
+  resolveMenuMode,
+} from '../../common/utils/business-kind.util';
+import {
+  businessWhereForCity,
+  pickBranchForCity,
+} from '../../common/utils/city-scope.util';
 import {
   buildMenuCategoriesFromProducts,
   sortMenuProducts,
@@ -52,7 +61,13 @@ export class RestaurantsService {
   ) {}
 
   /** Homepage / food delivery — restaurants only, not marketplace shops (grocery, pharmacy, …). */
-  async findAllPublic(query: { page?: number; limit?: number; search?: string }) {
+  async findAllPublic(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    city?: string;
+    cityId?: string;
+  }) {
     const { skip, take } = paginate(query.page, query.limit);
     const where: Prisma.BusinessWhereInput = {
       isActive: true,
@@ -61,10 +76,13 @@ export class RestaurantsService {
       AND: [
         {
           OR: [
+            { businessType: { menuMode: 'GLOBAL_DISH', isActive: true, deletedAt: null } },
             { businessTypeId: null },
-            { businessType: { slug: 'restaurant', isActive: true } },
           ],
         },
+        ...(businessWhereForCity({ cityId: query.cityId, citySlug: query.city })
+          ? [businessWhereForCity({ cityId: query.cityId, citySlug: query.city })!]
+          : []),
         ...(query.search
           ? [
               {
@@ -78,6 +96,15 @@ export class RestaurantsService {
       ],
     };
 
+    let preferCityId = query.cityId?.trim() || undefined;
+    if (!preferCityId && query.city?.trim()) {
+      const city = await this.prisma.city.findFirst({
+        where: { slug: query.city.trim(), deletedAt: null },
+        select: { id: true },
+      });
+      preferCityId = city?.id;
+    }
+
     const [data, total] = await Promise.all([
       this.prisma.business.findMany({
         where,
@@ -85,7 +112,11 @@ export class RestaurantsService {
         take,
         orderBy: { createdAt: 'desc' },
         include: {
-          branches: { where: { isActive: true }, take: 1 },
+          branches: {
+            where: { isActive: true, deletedAt: null },
+            orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+          },
+          city: true,
           productCategories: {
             where: { isActive: true, deletedAt: null },
             select: { id: true, name: true, slug: true },
@@ -99,10 +130,19 @@ export class RestaurantsService {
 
     const framingDefaults = await this.settings.getImageFramingDefaults();
     const availabilityMap = await this.schedule.getAvailabilityBatch(data.map((r) => r.id));
-    const serialized = data.map((r) => ({
-      ...this.serializePublicListItem(r, framingDefaults),
-      ...availabilityMap.get(r.id),
-    }));
+    const serialized = data.map((r) => {
+      const branch = pickBranchForCity(
+        r.branches as Array<{ cityId?: string; isPrimary?: boolean; address: string }>,
+        preferCityId,
+      );
+      return {
+        ...this.serializePublicListItem(
+          { ...r, branches: branch ? [branch] : [] },
+          framingDefaults,
+        ),
+        ...availabilityMap.get(r.id),
+      };
+    });
     return paginatedResponse(serialized, total, query.page ?? 1, query.limit ?? 20);
   }
 
@@ -396,17 +436,28 @@ export class RestaurantsService {
   async findAllAdmin(query: AdminRestaurantsQueryDto, user: JwtPayload) {
     const { skip, take } = paginate(query.page, query.limit);
     const verticalFilter = businessWhereForVertical(query.vertical);
+    const cityFilter = businessWhereForCity({
+      cityId: query.cityId,
+      citySlug: query.city,
+    });
     const where: Prisma.BusinessWhereInput = {
       deletedAt: null,
       ...(query.isActive !== undefined && { isActive: query.isActive }),
-      ...(verticalFilter ?? {}),
-      ...(query.search && {
-        OR: [
-          { name: { contains: query.search, mode: 'insensitive' } },
-          { slug: { contains: query.search, mode: 'insensitive' } },
-          { description: { contains: query.search, mode: 'insensitive' } },
-        ],
-      }),
+      AND: [
+        ...(verticalFilter ? [verticalFilter] : []),
+        ...(cityFilter ? [cityFilter] : []),
+        ...(query.search
+          ? [
+              {
+                OR: [
+                  { name: { contains: query.search, mode: 'insensitive' as const } },
+                  { slug: { contains: query.search, mode: 'insensitive' as const } },
+                  { description: { contains: query.search, mode: 'insensitive' as const } },
+                ],
+              },
+            ]
+          : []),
+      ],
     };
 
     if (user.role === UserRole.BUSINESS) {
@@ -422,9 +473,10 @@ export class RestaurantsService {
         orderBy: { createdAt: 'desc' },
         include: {
           businessType: true,
+          city: true,
           branches: {
             where: { deletedAt: null, isActive: true },
-            orderBy: { createdAt: 'asc' },
+            orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
             take: 1,
           },
         },
@@ -568,30 +620,57 @@ export class RestaurantsService {
       throw new BadRequestException('ownerLogin is required when ownerPassword is set');
     }
 
-    let kind: BusinessKind =
-      dto.kind === 'STORE'
-        ? BusinessKind.STORE
-        : dto.kind === 'RESTAURANT'
-          ? BusinessKind.RESTAURANT
-          : BusinessKind.RESTAURANT;
+    // kind is always derived from BusinessType.menuMode.
+    let kind: BusinessKind = BusinessKind.RESTAURANT;
     let businessTypeId = dto.businessTypeId;
     if (dto.businessTypeId) {
       const type = await this.prisma.businessType.findUnique({
-        where: { id: dto.businessTypeId },
+        where: { id: dto.businessTypeId, deletedAt: null },
       });
       if (!type) throw new NotFoundException('Business type not found');
-      kind = type.slug === 'restaurant' ? BusinessKind.RESTAURANT : BusinessKind.STORE;
-    } else if (kind === BusinessKind.STORE) {
+      kind = kindFromMenuMode(resolveMenuMode({ businessType: type }));
+    } else if (dto.kind === 'STORE') {
       const storeType = await this.prisma.businessType.findFirst({
-        where: { isActive: true, slug: { not: 'restaurant' } },
+        where: {
+          isActive: true,
+          deletedAt: null,
+          menuMode: 'OWN_CATEGORIES',
+        },
         orderBy: { sortOrder: 'asc' },
       });
       businessTypeId = storeType?.id;
+      if (storeType) {
+        kind = kindFromMenuMode(resolveMenuMode({ businessType: storeType }));
+      }
     } else {
-      const restaurantType = await this.prisma.businessType.findUnique({
-        where: { slug: 'restaurant' },
+      const restaurantType = await this.prisma.businessType.findFirst({
+        where: {
+          deletedAt: null,
+          menuMode: 'GLOBAL_DISH',
+        },
+        orderBy: { sortOrder: 'asc' },
       });
       businessTypeId = restaurantType?.id;
+      if (restaurantType) {
+        kind = kindFromMenuMode(resolveMenuMode({ businessType: restaurantType }));
+      }
+    }
+
+    let resolvedCityId: string | undefined = dto.cityId;
+    if (resolvedCityId) {
+      const city = await this.prisma.city.findFirst({
+        where: { id: resolvedCityId, deletedAt: null, isActive: true },
+      });
+      if (!city) throw new NotFoundException('City not found');
+    } else {
+      const defaultCity = await this.prisma.city.findFirst({
+        where: { deletedAt: null, isActive: true },
+        orderBy: [{ isDefault: 'desc' }, { sortOrder: 'asc' }],
+      });
+      resolvedCityId = defaultCity?.id;
+    }
+    if (!resolvedCityId) {
+      throw new BadRequestException('cityId is required (create a city first)');
     }
 
     const restaurant = await this.prisma.business.create({
@@ -600,6 +679,7 @@ export class RestaurantsService {
         slug,
         kind,
         businessTypeId,
+        cityId: resolvedCityId,
         description: dto.description,
         logoUrl: dto.logoUrl,
         coverUrl: dto.coverUrl,
@@ -620,6 +700,7 @@ export class RestaurantsService {
       longitude: dto.longitude,
       address: dto.branchAddress,
       name: restaurant.name,
+      cityId: resolvedCityId,
     });
 
     if (dto.ownerLogin && dto.ownerPassword) {
@@ -649,6 +730,7 @@ export class RestaurantsService {
     this.assertRestaurantAccess(id, user);
     const {
       businessTypeId,
+      cityId,
       slug: slugInput,
       latitude,
       longitude,
@@ -662,16 +744,26 @@ export class RestaurantsService {
     const data: Prisma.BusinessUpdateInput = { ...rest };
     if (businessTypeId !== undefined) {
       if (businessTypeId) {
-        const type = await this.prisma.businessType.findUnique({
-          where: { id: businessTypeId },
+        const type = await this.prisma.businessType.findFirst({
+          where: { id: businessTypeId, deletedAt: null },
         });
         if (!type) throw new NotFoundException('Business type not found');
-        data.kind = type.slug === 'restaurant' ? BusinessKind.RESTAURANT : BusinessKind.STORE;
+        data.kind = kindFromMenuMode(resolveMenuMode({ businessType: type }));
         data.businessType = { connect: { id: businessTypeId } };
       } else {
         data.kind = BusinessKind.RESTAURANT;
         data.businessType = { disconnect: true };
       }
+    }
+    if (cityId !== undefined) {
+      if (!cityId) {
+        throw new BadRequestException('cityId is required');
+      }
+      const city = await this.prisma.city.findFirst({
+        where: { id: cityId, deletedAt: null, isActive: true },
+      });
+      if (!city) throw new NotFoundException('City not found');
+      data.city = { connect: { id: cityId } };
     }
     if (dto.commissionRate !== undefined) {
       data.commissionRate = dto.commissionRate;
@@ -689,6 +781,7 @@ export class RestaurantsService {
       longitude,
       address: branchAddress,
       name: restaurant.name,
+      cityId: restaurant.cityId,
     });
 
     if (workingHours?.length) {
@@ -921,13 +1014,23 @@ export class RestaurantsService {
       longitude?: number;
       address?: string;
       name?: string;
+      cityId?: string;
     },
   ) {
     if (input.latitude == null || input.longitude == null) return;
 
+    const business = await this.prisma.business.findFirst({
+      where: { id: businessId, deletedAt: null },
+      select: { cityId: true },
+    });
+    const cityId = input.cityId ?? business?.cityId;
+    if (!cityId) {
+      throw new BadRequestException('cityId is required for branch');
+    }
+
     const existing = await this.prisma.businessBranch.findFirst({
       where: { businessId, deletedAt: null },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
     });
 
     const address =
@@ -943,7 +1046,9 @@ export class RestaurantsService {
           latitude: input.latitude,
           longitude: input.longitude,
           address,
+          cityId,
           isActive: true,
+          isPrimary: true,
         },
       });
       return;
@@ -952,11 +1057,13 @@ export class RestaurantsService {
     await this.prisma.businessBranch.create({
       data: {
         businessId,
+        cityId,
         name: 'Main',
         address,
         latitude: input.latitude,
         longitude: input.longitude,
         isActive: true,
+        isPrimary: true,
       },
     });
   }
@@ -1162,6 +1269,7 @@ export class RestaurantsService {
       where: { id, deletedAt: null },
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
+    // Partial unique index frees the slug while deletedAt is set.
     const deleted = await this.prisma.business.update({
       where: { id },
       data: { deletedAt: new Date(), isActive: false },

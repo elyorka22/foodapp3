@@ -87,13 +87,23 @@ enum BusinessApprovalStatus {
   SUSPENDED
 }
 
-/// How customers interact with businesses of this vertical.
+/// Legacy catalog mode. Prefer `BusinessMenuMode` for menu rules.
+/// CONTACT is deprecated and treated as CATALOG.
 enum BusinessCatalogMode {
   CATALOG
   CONTACT
 }
 
+/// How this vertical's products are categorized.
+enum BusinessMenuMode {
+  /// Global dish categories (food / restaurants).
+  GLOBAL_DISH
+  /// Per-business product categories (grocery, pharmacy, …).
+  OWN_CATEGORIES
+}
+
 /// Restaurant (global dish menu) vs store (own product categories).
+/// Prefer deriving from BusinessType.menuMode; kept for queries/compat.
 enum BusinessKind {
   RESTAURANT
   STORE
@@ -162,7 +172,8 @@ model User {
 model BusinessType {
   id          String   @id @default(uuid()) @db.Uuid
   name        String
-  slug        String   @unique
+  /// Unique among non-deleted rows (partial unique index in DB).
+  slug        String
   description String?
   icon             String?
   imageUrl         String?  @map("image_url")
@@ -170,24 +181,32 @@ model BusinessType {
   imagePositionX   Int      @default(50) @map("image_position_x")
   imagePositionY   Int      @default(50) @map("image_position_y")
   catalogMode      BusinessCatalogMode @default(CATALOG) @map("catalog_mode")
+  menuMode         BusinessMenuMode    @default(OWN_CATEGORIES) @map("menu_mode")
   isActive         Boolean  @default(true) @map("is_active")
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   businesses Business[]
 
   @@index([isActive, sortOrder])
+  @@index([slug])
   @@map("business_types")
 }
 
 /// Universal merchant (restaurant, grocery, flower shop, etc.). DB table: restaurants.
+/// `kind` is a denormalized cache of BusinessType.menuMode — always sync on write.
 model Business {
   id              String    @id @default(uuid()) @db.Uuid
   businessTypeId  String?   @map("business_type_id") @db.Uuid
+  /// Primary / HQ city. Branches may serve other cities via Branch.cityId.
+  cityId          String    @map("city_id") @db.Uuid
+  /// @deprecated Denormalized cache of BusinessType.menuMode — do not use for logic.
   kind            BusinessKind @default(STORE)
   name            String
-  slug            String    @unique
+  /// Unique among non-deleted rows (partial unique index in DB).
+  slug            String
   description     String?
   logoUrl         String?   @map("logo_url")
   coverUrl        String?   @map("cover_url")
@@ -212,6 +231,7 @@ model Business {
   deletedAt       DateTime?             @map("deleted_at")
 
   businessType       BusinessType?           @relation(fields: [businessTypeId], references: [id])
+  city               City                    @relation(fields: [cityId], references: [id])
   branches           BusinessBranch[]
   productCategories  ProductCategory[]
   products           Product[]
@@ -221,30 +241,41 @@ model Business {
   workingHours       BusinessWorkingHours[]
   holidays           BusinessHoliday[]
   telegramLinkCodes  BusinessTelegramLinkCode[]
+  deliveryZones      DeliveryZone[]
 
   @@index([isActive, deletedAt])
   @@index([approvalStatus])
   @@index([businessTypeId])
+  @@index([cityId])
+  @@index([slug])
   @@map("restaurants")
 }
 
 model BusinessBranch {
   id         String    @id @default(uuid()) @db.Uuid
   businessId String    @map("restaurant_id") @db.Uuid
+  /// City this location serves (may differ from Business.cityId for multi-city brands).
+  cityId     String    @map("city_id") @db.Uuid
   name       String
   address    String
   latitude   Decimal   @db.Decimal(10, 7)
   longitude  Decimal   @db.Decimal(10, 7)
   phone      String?
   isActive   Boolean   @default(true) @map("is_active")
+  isPrimary  Boolean   @default(false) @map("is_primary")
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
 
-  business Business @relation(fields: [businessId], references: [id])
-  orders   Order[]
+  business      Business       @relation(fields: [businessId], references: [id])
+  city          City           @relation(fields: [cityId], references: [id])
+  orders        Order[]
+  deliveryZones DeliveryZone[]
+  products      Product[]
 
   @@index([businessId])
+  @@index([businessId, isPrimary])
+  @@index([cityId])
   @@map("restaurant_branches")
 }
 
@@ -360,9 +391,12 @@ model DishCategory {
 model Product {
   id                String    @id @default(uuid()) @db.Uuid
   businessId        String    @map("restaurant_id") @db.Uuid
+  /// null = available at all branches; set = only this location's menu.
+  branchId          String?   @map("branch_id") @db.Uuid
   productCategoryId String?   @map("category_id") @db.Uuid
   dishCategoryId    String?   @map("dish_category_id") @db.Uuid
   name              String
+  /// Unique among non-deleted rows per business (partial unique index).
   slug              String
   description       String?
   price             Decimal   @db.Decimal(10, 2)
@@ -374,14 +408,16 @@ model Product {
   deletedAt         DateTime? @map("deleted_at")
 
   business         Business         @relation(fields: [businessId], references: [id])
+  branch           BusinessBranch?  @relation(fields: [branchId], references: [id])
   productCategory  ProductCategory? @relation(fields: [productCategoryId], references: [id])
   dishCategory     DishCategory?    @relation(fields: [dishCategoryId], references: [id])
   images           ProductImage[]
   orderItems       OrderItem[]
   cartItems        CartItem[]
 
-  @@unique([businessId, slug])
+  @@index([businessId, slug])
   @@index([businessId, isAvailable])
+  @@index([branchId])
   @@index([productCategoryId])
   @@index([dishCategoryId])
   @@map("products")
@@ -658,17 +694,33 @@ model Transaction {
   @@map("transactions")
 }
 
+/// Delivery coverage: city-wide, per-business, or per-branch.
+/// Prefer circle (center + radiusKm); polygon is optional GeoJSON for irregular areas.
 model DeliveryZone {
-  id            String   @id @default(uuid()) @db.Uuid
-  name          String
-  polygon       Json
-  baseFee       Decimal  @map("base_fee") @db.Decimal(10, 2)
-  pricePerKm    Decimal  @map("price_per_km") @db.Decimal(10, 2)
-  minDeliveryFee Decimal @map("min_delivery_fee") @db.Decimal(10, 2)
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  cityId           String?   @map("city_id") @db.Uuid
+  businessId       String?   @map("business_id") @db.Uuid
+  branchId         String?   @map("branch_id") @db.Uuid
+  centerLatitude   Decimal?  @map("center_latitude") @db.Decimal(10, 7)
+  centerLongitude  Decimal?  @map("center_longitude") @db.Decimal(10, 7)
+  radiusKm         Decimal?  @map("radius_km") @db.Decimal(8, 2)
+  polygon          Json?
+  baseFee          Decimal   @map("base_fee") @db.Decimal(10, 2)
+  pricePerKm       Decimal   @map("price_per_km") @db.Decimal(10, 2)
+  minDeliveryFee   Decimal   @map("min_delivery_fee") @db.Decimal(10, 2)
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
 
+  city     City?           @relation(fields: [cityId], references: [id])
+  business Business?       @relation(fields: [businessId], references: [id])
+  branch   BusinessBranch? @relation(fields: [branchId], references: [id])
+
+  @@index([cityId, isActive])
+  @@index([businessId])
+  @@index([branchId])
   @@map("delivery_zones")
 }
 
@@ -1020,11 +1072,12 @@ model BookingSlide {
   @@map("booking_slides")
 }
 
-/// Service cities — shown in customer app header; expandable to multi-city later.
+/// Service cities — catalog filters by Business.cityId or Branch.cityId.
 model City {
   id        String    @id @default(uuid()) @db.Uuid
   name      String
-  slug      String    @unique
+  /// Unique among non-deleted rows (partial unique index in DB).
+  slug      String
   sortOrder Int       @default(0) @map("sort_order")
   isActive  Boolean   @default(true) @map("is_active")
   isDefault Boolean   @default(false) @map("is_default")
@@ -1032,6 +1085,11 @@ model City {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
+  businesses    Business[]
+  branches      BusinessBranch[]
+  deliveryZones DeliveryZone[]
+
   @@index([isActive, sortOrder])
+  @@index([slug])
   @@map("cities")
 }

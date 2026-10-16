@@ -7,7 +7,7 @@ import { BottomNav } from './bottom-nav';
 const STAFF_PREFIXES = ['/login', '/staff', '/admin', '/manager', '/business', '/restaurant', '/courier'];
 
 /** Minimal pages embedded in the mobile app WebView — no web bottom nav. */
-const EMBED_PATHS = ['/auth/telegram-mobile'];
+const EMBED_PATHS: string[] = [];
 
 /** Legal pages render without global footer/nav clutter. */
 const LEGAL_PATHS = ['/privacy', '/terms', '/delete-account'];
@@ -30,8 +30,8 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))]">{children}</div>
+    <div className="min-h-screen bg-transparent">
+      <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))]">{children}</div>
       <BottomNav />
     </div>
   );

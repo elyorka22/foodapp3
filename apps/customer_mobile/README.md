@@ -39,7 +39,7 @@ Uses existing NestJS API — no duplicated business logic.
 | Restaurants | `GET /restaurants`, `GET /restaurants/:slug` |
 | Stores | `GET /businesses`, `GET /business-types` |
 | Products | `GET /products?restaurantId=` |
-| Auth | `POST /customers/login`, `/customers/register`, `/auth/telegram` |
+| Auth | `POST /customers/login`, `/customers/register`, Google OAuth |
 | Orders | `POST /orders/guest` |
 
 ## Push notifications
@@ -119,7 +119,7 @@ Guest browsing works without login.
 
 ## Telegram login
 
-Production: wire Telegram SDK / `telegram_login` and send the signed payload to `POST /auth/telegram`.
+Customer auth is phone or Google only. Restaurant order notifications still use the Telegram bot (not customer login).
 
 Development: **Profil → Telegram orqali kirish** accepts manual payload fields.
 

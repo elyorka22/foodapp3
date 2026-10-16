@@ -1,9 +1,9 @@
 /** Fixed FoodApp palette — HEX/rgba only (no OKLCH, color-mix, or opacity modifiers). */
 export const colors = {
-  primary: '#FF6B00',
-  primaryHover: '#EA580C',
-  primaryDark: '#C2410C',
-  primarySoft: '#FFF4EB',
+  primary: '#18181B',
+  primaryHover: '#27272A',
+  primaryDark: '#09090B',
+  primarySoft: '#F4F4F5',
   surface: '#FFFFFF',
   background: '#F7F8FA',
   border: '#EAEAEA',
@@ -21,9 +21,9 @@ export const colors = {
 
 export const shadows = {
   card: '0 2px 16px rgba(0, 0, 0, 0.06)',
-  cardElevated: '0 4px 24px rgba(234, 88, 12, 0.12)',
+  cardElevated: '0 4px 24px rgba(0, 0, 0, 0.1)',
   sheet: '0 -12px 48px rgba(0, 0, 0, 0.15)',
   sheetSoft: '0 -8px 40px rgba(0, 0, 0, 0.12)',
-  button: '0 4px 12px rgba(234, 88, 12, 0.25)',
+  button: '0 4px 12px rgba(0, 0, 0, 0.18)',
   nav: '0 -1px 0 rgba(0, 0, 0, 0.06)',
 } as const;

@@ -17,6 +17,8 @@ class ControlRestaurant {
     this.revenue = 0,
     this.productsCount = 0,
     this.branchAddress,
+    this.cityId,
+    this.cityName,
     this.latitude,
     this.longitude,
     this.createdAt,
@@ -36,11 +38,14 @@ class ControlRestaurant {
   final num revenue;
   final int productsCount;
   final String? branchAddress;
+  final String? cityId;
+  final String? cityName;
   final double? latitude;
   final double? longitude;
   final DateTime? createdAt;
 
   factory ControlRestaurant.fromJson(Map<String, dynamic> json) {
+    final city = json['city'] as Map<String, dynamic>?;
     return ControlRestaurant(
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
@@ -56,6 +61,8 @@ class ControlRestaurant {
       revenue: parseNum(json['revenue']),
       productsCount: (json['productsCount'] as num?)?.toInt() ?? 0,
       branchAddress: json['branchAddress'] as String?,
+      cityId: json['cityId'] as String? ?? city?['id'] as String?,
+      cityName: city?['name'] as String?,
       latitude: parseDouble(json['latitude']),
       longitude: parseDouble(json['longitude']),
       createdAt: parseDateTime(json['createdAt']),

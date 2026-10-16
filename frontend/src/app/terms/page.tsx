@@ -82,7 +82,7 @@ export default function TermsPage() {
         <article className="space-y-4 rounded-2xl bg-white p-5 shadow-card">
           <p className="text-sm leading-relaxed text-zinc-600">
             Last updated: {new Date().toISOString().slice(0, 10)}. These Terms govern your use of{' '}
-            <a href={canonicalUrl('/')} className="font-medium text-[#FF6B00]">
+            <a href={canonicalUrl('/')} className="font-medium text-[#18181B]">
               foodapp.uz
             </a>
             .
@@ -97,7 +97,7 @@ export default function TermsPage() {
 
           <p className="border-t border-zinc-100 pt-4 text-sm text-zinc-600">
             Email:{' '}
-            <a href="mailto:support@foodapp.uz" className="font-medium text-[#FF6B00]">
+            <a href="mailto:support@foodapp.uz" className="font-medium text-[#18181B]">
               support@foodapp.uz
             </a>
           </p>

@@ -121,6 +121,8 @@ abstract final class AppStrings {
   // Platform
   static const navMore = 'Platforma';
   static const navCities = 'Shaharlar';
+  static const filterByCity = 'Shahar bo‘yicha';
+  static const allCities = 'Barcha shaharlar';
   static const navBusinessTypes = 'Biznes turlari';
   static const navCouriers = 'Kuryerlar';
   static const navCustomers = 'Mijozlar';

@@ -58,10 +58,10 @@ export function ProfileContactPage({ variant }: Props) {
             <p className="mt-6 text-[15px] font-medium text-zinc-800">{uz.contactViaPhone}</p>
             <a
               href={`tel:${phone.replace(/\s/g, '')}`}
-              className="mt-4 flex items-center gap-3 rounded-2xl bg-[#FFF4EB] px-4 py-4 active:scale-[0.99]"
+              className="mt-4 flex items-center gap-3 rounded-2xl bg-[#F4F4F5] px-4 py-4 active:scale-[0.99]"
             >
-              <Phone size={22} className="shrink-0 text-[#FF6B00]" />
-              <span className="text-[16px] font-semibold text-[#FF6B00]">{phone}</span>
+              <Phone size={22} className="shrink-0 text-[#18181B]" />
+              <span className="text-[16px] font-semibold text-[#18181B]">{phone}</span>
             </a>
           </>
         ) : null}

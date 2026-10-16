@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/config/app_config.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
@@ -11,7 +10,6 @@ import '../data/google_auth_service.dart';
 import '../providers/auth_provider.dart';
 import 'auth_social_layout.dart';
 import 'google_sign_in_button.dart';
-import 'telegram_sign_in_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -57,25 +55,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  bool get _telegramEnabled => AppConfig.telegramBotUsername.trim().isNotEmpty;
-
   @override
   Widget build(BuildContext context) {
-    final actions = <Widget>[
-      GoogleSignInButton(
-        isLoading: _googleLoading,
-        onPressed: _busy ? null : _submitGoogle,
-      ),
-      if (_telegramEnabled)
-        TelegramSignInButton(
-          onPressed: _busy ? null : () => context.push('/profile/telegram'),
-        ),
-    ];
-
     return AuthSocialLayout(
       title: AppStrings.login,
       subtitle: AppStrings.loginSocialSubtitle,
-      actions: actions,
+      actions: [
+        GoogleSignInButton(
+          isLoading: _googleLoading,
+          onPressed: _busy ? null : _submitGoogle,
+        ),
+      ],
       footer: TextButton(
         onPressed: () => context.pushReplacement('/profile/register'),
         child: Text(

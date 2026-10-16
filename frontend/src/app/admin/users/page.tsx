@@ -51,7 +51,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const currentUser = getUser();
   const token = getToken();
-  const { ready, authorized, isSuperAdmin, isManager } = useAdminAccess({ permission: 'staff' });
+  const { ready, authorized, isManager } = useAdminAccess({ permission: 'staff' });
   const [roleFilter, setRoleFilter] = useState<StaffRole | ''>('');
   const [createOpen, setCreateOpen] = useState(false);
   const [editRow, setEditRow] = useState<StaffUser | null>(null);
@@ -94,7 +94,7 @@ export default function AdminUsersPage() {
       });
       setCreateOpen(false);
       setForm(emptyForm);
-      toast.success(`${t.staff.userCreated}. ${t.staff.password}: ${form.password}`);
+      toast.success(t.staff.userCreated);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Xatolik');
     }
@@ -124,23 +124,9 @@ export default function AdminUsersPage() {
       await update.mutateAsync({ id: editRow.id, body });
       setEditRow(null);
       setEditPassword('');
-      toast.success(
-        editPassword.trim()
-          ? `${t.staff.userUpdated}. ${t.staff.password}: ${editPassword.trim()}`
-          : t.staff.userUpdated,
-      );
+      toast.success(t.staff.userUpdated);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Xatolik');
-    }
-  };
-
-  const copyPassword = async (value: string | null) => {
-    if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      toast.success('Parol nusxalandi');
-    } catch {
-      toast.error('Nusxalash mumkin emas');
     }
   };
 
@@ -188,7 +174,6 @@ export default function AdminUsersPage() {
                 <th className="p-3">Telefon</th>
                 <th className="p-3">Rol</th>
                 <th className="p-3">{t.staff.merchant}</th>
-                {isSuperAdmin ? <th className="p-3">{t.staff.password}</th> : null}
                 <th className="p-3">Holat</th>
                 <th className="p-3 text-right">{t.actions}</th>
               </tr>
@@ -207,27 +192,6 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="p-3">{merchantName(row)}</td>
-                    {isSuperAdmin ? (
-                      <td className="p-3">
-                        {row.adminPasswordNote ? (
-                          <div className="flex items-center gap-2">
-                            <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs dark:bg-zinc-800">
-                              {row.adminPasswordNote}
-                            </code>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => copyPassword(row.adminPasswordNote)}
-                            >
-                              {t.staff.copyPassword}
-                            </Button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-zinc-400">{t.staff.noPassword}</span>
-                        )}
-                      </td>
-                    ) : null}
                     <td className="p-3">
                       <ActiveBadge
                         active={row.isActive}
@@ -353,14 +317,6 @@ export default function AdminUsersPage() {
               <span className="font-semibold">{editRow.fullName ?? editRow.email}</span>
               <span className="text-zinc-500"> · {ROLE_LABEL[editRow.role]}</span>
             </p>
-            {editRow.adminPasswordNote && (
-              <p className="text-sm text-zinc-600">
-                {t.staff.password}:{' '}
-                <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">
-                  {editRow.adminPasswordNote}
-                </code>
-              </p>
-            )}
             <PasswordInput
               placeholder={t.staff.newPassword}
               value={editPassword}

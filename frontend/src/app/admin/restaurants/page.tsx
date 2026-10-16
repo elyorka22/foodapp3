@@ -18,16 +18,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CoverPositionControls } from '@/components/admin/cover-position-controls';
 import { MerchantLocationFields } from '@/components/admin/merchant-location-fields';
+import { MerchantCityField } from '@/components/admin/merchant-city-field';
 import {
   MerchantOwnerAccountFields,
   MerchantOwnerCredentials,
 } from '@/components/admin/merchant-owner-credentials';
 import { adminI18n as t } from '@/lib/admin-i18n';
 import { resolveFormSlug } from '@/lib/slugify';
+import { useAdminCities } from '@/hooks/use-admin-cities';
 
 const emptyForm: RestaurantForm = {
   name: '',
   slug: '',
+  cityId: '',
   description: '',
   logoUrl: '',
   coverUrl: '',
@@ -57,6 +60,10 @@ function RestaurantFormFields({
 }) {
   return (
     <div className="space-y-3">
+      <MerchantCityField
+        cityId={form.cityId}
+        onChange={(cityId) => setForm({ ...form, cityId })}
+      />
       <Input
         placeholder="Name"
         value={form.name}
@@ -130,6 +137,7 @@ export default function AdminRestaurantsPage() {
   const { ready, authorized, isSuperAdmin } = useAdminAccess({ permission: 'restaurants' });
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string>('');
+  const [cityId, setCityId] = useState('');
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const [editRow, setEditRow] = useState<any | null>(null);
@@ -137,6 +145,7 @@ export default function AdminRestaurantsPage() {
   const [clearOpen, setClearOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [form, setForm] = useState<RestaurantForm>(emptyForm);
+  const citiesQuery = useAdminCities();
 
   const isActiveFilter = status === '' ? undefined : status === 'active';
 
@@ -146,6 +155,7 @@ export default function AdminRestaurantsPage() {
     search: search || undefined,
     isActive: isActiveFilter,
     vertical: 'restaurant',
+    cityId: cityId || undefined,
   });
   const clearTestData = useClearRestaurantTestData();
 
@@ -187,6 +197,10 @@ export default function AdminRestaurantsPage() {
 
   const submitCreate = async () => {
     try {
+      if (!form.cityId?.trim()) {
+        toast.error('Shaharni tanlang');
+        return;
+      }
       const payload: RestaurantForm = {
         ...form,
         slug: resolveFormSlug(form.name),
@@ -277,6 +291,7 @@ export default function AdminRestaurantsPage() {
     setForm({
       name: row.name,
       slug: row.slug,
+      cityId: row.cityId ?? row.city?.id ?? '',
       description: row.description ?? '',
       logoUrl: row.logoUrl ?? '',
       coverUrl: row.coverUrl ?? '',
@@ -329,8 +344,20 @@ export default function AdminRestaurantsPage() {
       ) : null}
 
       <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-4">
           <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search name or slug" />
+          <select
+            className="rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
+            value={cityId}
+            onChange={(e) => { setCityId(e.target.value); setPage(1); }}
+          >
+            <option value="">Barcha shaharlar</option>
+            {(citiesQuery.list.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
           <select
             className="rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
             value={status}
@@ -341,7 +368,7 @@ export default function AdminRestaurantsPage() {
             <option value="inactive">Inactive only</option>
           </select>
           <div className="flex justify-end">
-            <Button type="button" variant="secondary" onClick={() => { setSearch(''); setStatus(''); setPage(1); }}>
+            <Button type="button" variant="secondary" onClick={() => { setSearch(''); setStatus(''); setCityId(''); setPage(1); }}>
               Reset
             </Button>
           </div>

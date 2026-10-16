@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #ff6b00;
-  --color-primary-hover: #ea580c;
+  --color-primary: #18181b;
+  --color-primary-hover: #27272a;
   --color-surface: #ffffff;
   --color-background: #f7f8fa;
   --color-border: #eaeaea;
@@ -15,8 +15,8 @@
 }
 
 .dark {
-  --color-primary: #ff6b00;
-  --color-primary-hover: #ea580c;
+  --color-primary: #fafafa;
+  --color-primary-hover: #e4e4e7;
   --color-surface: #18181b;
   --color-background: #09090b;
   --color-border: #3f3f46;
@@ -25,8 +25,9 @@
 }
 
 body {
-  background-color: #f7f8fa;
+  background-color: #ffffff;
   color: #1a1a1a;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 input,
@@ -45,6 +46,7 @@ textarea::placeholder {
 
 .dark body {
   background-color: #09090b;
+  background-image: none;
   color: #fafafa;
 }
 
@@ -78,6 +80,34 @@ textarea::placeholder {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .animate-fade-up {
+    animation: fade-up 0.45s ease-out both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.35s ease-out both;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @layer components {
@@ -94,16 +124,22 @@ textarea::placeholder {
   }
 
   .bg-hero-primary {
-    background-image: linear-gradient(135deg, #ff6b00 0%, #ea580c 100%);
+    background-image: linear-gradient(135deg, #18181b 0%, #27272a 100%);
   }
 
   .bg-hero-staff {
-    background-image: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    background-image: linear-gradient(135deg, #27272a 0%, #09090b 100%);
   }
 
   .customer-page {
-    background-color: #f7f8fa;
+    background-color: transparent;
     color: #1a1a1a;
+  }
+
+  .customer-surface {
+    background-color: #ffffff;
+    border-radius: 1.25rem;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
   }
 }
 
