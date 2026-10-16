@@ -1,0 +1,18 @@
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+coverage/
+.idea/
+*.iml
+.DS_Store
+android/
+ios/
+
+# Android signing (generated locally / in CI)
+**/android/key.properties
+*.jks
+*.p12
+.secrets/

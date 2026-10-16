@@ -1,18 +1,29 @@
 # FoodApp applications
 
-Monorepo layout for client apps (isolated from `frontend/`, `backend/`, admin).
+Monorepo layout for client apps (isolated from `frontend/`, `backend/`).
 
 ```
 apps/
-  customer_mobile/   # Flutter — customer app (active)
-  courier_mobile/      # planned
-  manager_mobile/      # planned
+  customer_mobile/   # Flutter — customer app
+  business_mobile/   # Flutter — BUSINESS + MANAGER
+  courier_mobile/    # Flutter — couriers
+  control_mobile/    # Flutter — FoodApp Control (SUPER_ADMIN, Android + Web)
 ```
 
-Web and admin remain at repository root:
+Web and API remain at repository root:
 
-- `frontend/` — Next.js customer web
+- `frontend/` — Next.js customer web (+ current shared admin panel)
 - `backend/` — NestJS API (`/api/v1`)
+
+## FoodApp Control
+
+```bash
+cd apps/control_mobile
+flutter pub get
+flutter run -d chrome --dart-define=API_BASE_URL=https://foodapp.uz/api/v1
+```
+
+See `control_mobile/README.md`.
 
 ## Customer mobile
 
