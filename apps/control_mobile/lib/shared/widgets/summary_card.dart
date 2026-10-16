@@ -53,15 +53,27 @@ class SummaryCard extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                value,
-                style: AppTypography.title.copyWith(
-                  color: isPlaceholder ? AppColors.placeholder : AppColors.textPrimary,
+              const SizedBox(height: 12),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: AppTypography.title.copyWith(
+                    color: isPlaceholder
+                        ? AppColors.placeholder
+                        : AppColors.textPrimary,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
-              Text(title, style: AppTypography.bodySmall),
+              Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.bodySmall,
+              ),
             ],
           ),
         ),

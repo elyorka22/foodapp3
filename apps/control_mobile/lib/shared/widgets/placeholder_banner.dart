@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
+/// Soft info banner (kept for optional notices).
 class PlaceholderBanner extends StatelessWidget {
-  const PlaceholderBanner({super.key, this.message = AppStrings.placeholderHint});
+  const PlaceholderBanner({
+    super.key,
+    this.message = '',
+    this.badge = 'Info',
+  });
 
   final String message;
+  final String badge;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +22,7 @@ class PlaceholderBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.warningSoft,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+        border: Border.all(color: AppColors.warning.withOpacity(0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +34,7 @@ class PlaceholderBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              AppStrings.placeholderBadge,
+              badge,
               style: AppTypography.caption.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,

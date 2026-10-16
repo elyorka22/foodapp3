@@ -14,8 +14,10 @@ abstract final class ApiPaths {
   static const productsAdmin = '/products/admin';
   static const dishCategoriesAdmin = '/dish-categories/admin';
   static const banners = '/banners';
+  static const bannersAdmin = '/banners/admin';
   static const promoCodes = '/promo-codes';
   static const settings = '/settings';
+  static const settingsAdmin = '/settings/admin';
   static const audit = '/audit';
   static const analyticsDashboard = '/analytics/dashboard';
 }

@@ -46,15 +46,8 @@ abstract final class AppTheme {
           );
         }),
       ),
-      cardTheme: CardThemeData(
-        color: AppColors.surface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-          side: const BorderSide(color: AppColors.border),
-        ),
-        margin: EdgeInsets.zero,
-      ),
+      // cardTheme omitted — screens use custom Material cards; avoids
+      // CardTheme vs CardThemeData rename across Flutter versions.
       dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

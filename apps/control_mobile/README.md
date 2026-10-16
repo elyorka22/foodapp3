@@ -12,9 +12,11 @@ Does not replace FoodApp Business or the customer website.
 ## Features (current)
 
 - SUPER_ADMIN login via `POST /auth/login` with `client: "control"`
+- Android Dio uses Cronet (VPN/proxy like Chrome); dart:io fallback if needed
 - Responsive shell: mobile bottom nav + desktop sidebar
-- Dashboard with clearly marked placeholder metrics
-- Section placeholders: employees, businesses, orders, catalog, promotions, settings, audit
+- Live dashboard (`GET /analytics/dashboard`)
+- Live lists: employees, businesses, orders, catalog, promotions, audit
+- Settings read/save (`GET/PUT /settings/admin`)
 - Separate secure session keys: `control_access_token` / `control_user_json`
 
 ## API configuration

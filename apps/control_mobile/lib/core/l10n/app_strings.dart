@@ -25,28 +25,47 @@ abstract final class AppStrings {
 
   static const dashboardTitle = 'Boshqaruv paneli';
   static const dashboardWelcome = 'Xush kelibsiz';
-  static const placeholderBadge = 'Namuna';
-  static const placeholderHint =
-      'Bu ko‘rsatkichlar namuna. API ulanmaguncha haqiqiy ma’lumot emas.';
-  static const apiReadyHint =
-      'API integratsiya tuzilmasi tayyor. PostgreSQL ulanganida ma’lumot yuklanadi.';
+  static const recentOrders = 'So‘nggi buyurtmalar';
+  static const pullToRefresh = 'Yangilash uchun pastga torting';
 
   static const employeesTitle = 'Xodimlar';
   static const businessesTitle = 'Restoran va do‘konlar';
   static const ordersTitle = 'Buyurtmalar';
-  static const catalogTitle = 'Mahsulotlar va kategoriyalar';
+  static const catalogTitle = 'Mahsulotlar';
   static const promotionsTitle = 'Bannerlar va promo';
   static const settingsTitle = 'Ilova sozlamalari';
   static const auditTitle = 'Audit jurnali';
 
-  static const comingSoon = 'Tez orada';
-  static const sectionPlaceholder =
-      'Bu bo‘lim UI tayyor. Haqiqiy API chaqiriqlari keyingi bosqichda ulanadi.';
+  static const emptyList = 'Hali ma’lumot yo‘q';
+  static const retry = 'Qayta urinish';
+  static const save = 'Saqlash';
+  static const saved = 'Saqlandi';
+  static const loading = 'Yuklanmoqda…';
+
+  static const cardTodayOrders = 'Bugungi buyurtmalar';
+  static const cardPending = 'Kutilayotgan';
+  static const cardRevenueToday = 'Bugungi tushum';
+  static const cardRevenueMonth = 'Oylik tushum';
+  static const cardActiveRestaurants = 'Faol restoranlar';
+  static const cardActiveStores = 'Faol do‘konlar';
+  static const cardCouriers = 'Onlayn kuryerlar';
+  static const cardDelivered = 'Yetkazilgan';
 
   static const cardEmployees = 'Xodimlar';
   static const cardBusinesses = 'Bizneslar';
   static const cardOrders = 'Buyurtmalar';
   static const cardOpenIssues = 'Diqqat talab';
+
+  static const bannersSection = 'Bannerlar';
+  static const promosSection = 'Promo kodlar';
+
+  static const settingsAppName = 'Ilova nomi';
+  static const settingsSupportPhone = 'Qo‘llab-quvvatlash telefoni';
+  static const settingsSupportEmail = 'Qo‘llab-quvvatlash email';
+  static const settingsSupportTelegram = 'Support Telegram';
+  static const settingsMinOrder = 'Minimal buyurtma (so‘m)';
+  static const settingsDeliveryFee = 'Yetkazib berish narxi';
+  static const settingsCommission = 'Komissiya (%)';
 
   static const requiredBackendClient =
       'Kirish so‘rovida client=control yuboriladi. Faqat SUPER_ADMIN qabul qilinadi.';

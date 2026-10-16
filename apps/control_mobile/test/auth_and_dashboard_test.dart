@@ -11,6 +11,7 @@ import 'package:control_mobile/core/router/routes.dart';
 import 'package:control_mobile/core/theme/app_theme.dart';
 import 'package:control_mobile/features/auth/data/auth_repository.dart';
 import 'package:control_mobile/features/auth/presentation/login_screen.dart';
+import 'package:control_mobile/features/dashboard/data/dashboard_model.dart';
 import 'package:control_mobile/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:control_mobile/features/auth/providers/auth_provider.dart';
 import 'package:control_mobile/shared/models/auth_model.dart';
@@ -252,23 +253,37 @@ void main() {
     expect(find.text(AppStrings.requiredBackendClient), findsOneWidget);
   });
 
-  testWidgets('Dashboard shows placeholder metrics, not fake data', (tester) async {
+  testWidgets('Dashboard loads live metrics title', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           authStateProvider.overrideWith(() => _FakeAuthNotifier()),
+          dashboardProvider.overrideWith((ref) async {
+            return const DashboardMetrics(
+              todayOrders: 3,
+              pendingOrders: 1,
+              deliveredOrders: 2,
+              cancelledOrders: 0,
+              revenueToday: 150000,
+              revenueMonth: 900000,
+              activeCouriers: 4,
+              activeRestaurants: 5,
+              activeStores: 2,
+              recentOrders: [],
+            );
+          }),
         ],
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: const Scaffold(body: DashboardScreen()),
+        child: const MaterialApp(
+          home: Scaffold(body: DashboardScreen()),
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.text(AppStrings.dashboardTitle), findsOneWidget);
-    expect(find.byType(PlaceholderBanner), findsOneWidget);
-    expect(find.text(AppStrings.placeholderBadge), findsOneWidget);
-    expect(find.text('—'), findsWidgets);
+    expect(find.text(AppStrings.cardTodayOrders), findsOneWidget);
+    expect(find.text('3'), findsWidgets);
+    expect(find.byType(PlaceholderBanner), findsNothing);
   });
 
   testWidgets('compact vs wide breakpoints', (tester) async {
