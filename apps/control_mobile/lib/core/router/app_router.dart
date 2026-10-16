@@ -17,6 +17,29 @@ import 'routes.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
 
+/// Auth gate for Control routes. Splash must not trap users after restore finishes.
+String? resolveControlAuthRedirect({
+  required String location,
+  required bool isLoading,
+  required bool loggedIn,
+}) {
+  final onSplash = location == AppRoutes.splash;
+  final onLogin = location == AppRoutes.login;
+
+  if (isLoading) {
+    return onSplash ? null : AppRoutes.splash;
+  }
+
+  if (!loggedIn) {
+    return onLogin ? null : AppRoutes.login;
+  }
+
+  if (onLogin || onSplash) {
+    return AppRoutes.dashboard;
+  }
+  return null;
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authStateProvider);
 
@@ -25,19 +48,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.splash,
     refreshListenable: _AuthRefresh(ref),
     redirect: (context, state) {
-      final loc = state.matchedLocation;
-      final loggingIn = loc == AppRoutes.login || loc == AppRoutes.splash;
-
-      if (auth.isLoading) {
-        return loc == AppRoutes.splash ? null : AppRoutes.splash;
-      }
-
       final user = auth.valueOrNull;
-      final loggedIn = user != null && user.isSuperAdmin;
-
-      if (!loggedIn && !loggingIn) return AppRoutes.login;
-      if (loggedIn && loggingIn) return AppRoutes.dashboard;
-      return null;
+      return resolveControlAuthRedirect(
+        location: state.matchedLocation,
+        isLoading: auth.isLoading,
+        loggedIn: user != null && user.isSuperAdmin,
+      );
     },
     routes: [
       GoRoute(

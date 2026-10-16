@@ -6,6 +6,8 @@ import 'package:control_mobile/core/config/app_config.dart';
 import 'package:control_mobile/core/l10n/app_strings.dart';
 import 'package:control_mobile/core/layout/breakpoints.dart';
 import 'package:control_mobile/core/network/api_exception.dart';
+import 'package:control_mobile/core/router/app_router.dart';
+import 'package:control_mobile/core/router/routes.dart';
 import 'package:control_mobile/core/theme/app_theme.dart';
 import 'package:control_mobile/features/auth/data/auth_repository.dart';
 import 'package:control_mobile/features/auth/presentation/login_screen.dart';
@@ -15,6 +17,41 @@ import 'package:control_mobile/shared/models/auth_model.dart';
 import 'package:control_mobile/shared/widgets/placeholder_banner.dart';
 
 void main() {
+  group('Auth redirect', () {
+    test('leaves splash for login when session restore finishes empty', () {
+      expect(
+        resolveControlAuthRedirect(
+          location: AppRoutes.splash,
+          isLoading: false,
+          loggedIn: false,
+        ),
+        AppRoutes.login,
+      );
+    });
+
+    test('stays on splash while loading', () {
+      expect(
+        resolveControlAuthRedirect(
+          location: AppRoutes.splash,
+          isLoading: true,
+          loggedIn: false,
+        ),
+        isNull,
+      );
+    });
+
+    test('sends logged-in user from splash to dashboard', () {
+      expect(
+        resolveControlAuthRedirect(
+          location: AppRoutes.splash,
+          isLoading: false,
+          loggedIn: true,
+        ),
+        AppRoutes.dashboard,
+      );
+    });
+  });
+
   group('Auth payload', () {
     test('email login includes client=control', () {
       final payload = AuthRepository.buildLoginPayload(
