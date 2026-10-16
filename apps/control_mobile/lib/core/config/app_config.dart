@@ -9,9 +9,14 @@ class AppConfig {
   /// Staff login client id sent as LoginDto.client (`control` → SUPER_ADMIN only).
   static const String clientId = 'control';
 
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 30);
-  static const Duration sendTimeout = Duration(seconds: 30);
+  /// Mobile networks: allow slower TLS/connect than desktop.
+  static const Duration connectTimeout = Duration(seconds: 30);
+
+  /// Wait for API body after the request has left the device.
+  static const Duration receiveTimeout = Duration(seconds: 60);
+
+  /// Do not set a send timeout. Dio on Android can fire sendTimeout after the
+  /// request already reached the server, which surfaces as a false client timeout.
 
   static String get normalizedApiBaseUrl {
     var url = apiBaseUrl.trim();

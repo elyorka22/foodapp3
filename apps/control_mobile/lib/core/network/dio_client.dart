@@ -17,8 +17,9 @@ Dio createDioClient(TokenStorage storage) {
       baseUrl: AppConfig.normalizedApiBaseUrl,
       connectTimeout: AppConfig.connectTimeout,
       receiveTimeout: AppConfig.receiveTimeout,
-      sendTimeout: AppConfig.sendTimeout,
+      // Intentionally no sendTimeout — see AppConfig comment.
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      responseType: ResponseType.json,
     ),
   );
   dio.interceptors.addAll([

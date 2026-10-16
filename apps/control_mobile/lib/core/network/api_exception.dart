@@ -62,9 +62,11 @@ class ApiException implements Exception {
 
     switch (err.type) {
       case DioExceptionType.connectionTimeout:
+        return 'Ulanish timeout.\nAPI: ${AppConfig.normalizedApiBaseUrl}';
       case DioExceptionType.sendTimeout:
+        return 'So\'rov yuborish timeout.\nAPI: ${AppConfig.normalizedApiBaseUrl}';
       case DioExceptionType.receiveTimeout:
-        return 'Server javob bermadi (timeout)';
+        return 'Server javob bermadi (timeout).\nAPI: ${AppConfig.normalizedApiBaseUrl}';
       case DioExceptionType.connectionError:
         return 'Serverga ulanib bo\'lmadi.\nAPI: ${AppConfig.normalizedApiBaseUrl}';
       case DioExceptionType.badCertificate:

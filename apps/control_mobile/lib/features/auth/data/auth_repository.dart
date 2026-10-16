@@ -31,6 +31,12 @@ class AuthRepository {
     final res = await _dio.post<Map<String, dynamic>>(
       ApiPaths.authLogin,
       data: buildLoginPayload(loginId, password),
+      options: Options(
+        // Login body is tiny; avoid Dio Android false sendTimeouts.
+        sendTimeout: null,
+        receiveTimeout: AppConfig.receiveTimeout,
+        persistentConnection: false,
+      ),
     );
     final auth = AuthResponseModel.fromJson(res.data!);
     if (!auth.user.isSuperAdmin) {
