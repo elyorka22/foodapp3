@@ -60,7 +60,7 @@ jobs:
         with:
           channel: stable
           cache: true
-          cache-key: flutter-control-${{ runner.os }}-${{ hashFiles('apps/control_mobile/pubspec.lock') }}
+          cache-key: flutter-control-web-${{ runner.os }}-${{ hashFiles('apps/control_mobile/pubspec.lock') }}
 
       - name: Flutter version
         run: flutter --version
@@ -87,5 +87,82 @@ jobs:
         with:
           name: foodapp-control-web
           path: apps/control_mobile/build/web
+          if-no-files-found: error
+          retention-days: 7
+
+  # Separate job: Web must not wait on Android. No production signing.
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/control_mobile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Require CONTROL_API_BASE_URL repository variable
+        env:
+          CONTROL_API_BASE_URL: ${{ vars.CONTROL_API_BASE_URL }}
+        run: |
+          if [ -z "${CONTROL_API_BASE_URL// }" ]; then
+            echo "::error::Repository variable CONTROL_API_BASE_URL is not set."
+            echo "Set it under Settings → Secrets and variables → Actions → Variables."
+            echo "Example value: https://foodapp.uz/api/v1"
+            echo "Use a public API base URL (not a secret). Do not use localhost in CI."
+            exit 1
+          fi
+          case "${CONTROL_API_BASE_URL}" in
+            *localhost*|*127.0.0.1*|*10.0.2.2*)
+              echo "::error::CONTROL_API_BASE_URL must not point at localhost."
+              exit 1
+              ;;
+          esac
+          echo "CONTROL_API_BASE_URL is configured (value not printed)."
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-control-apk-${{ runner.os }}-${{ hashFiles('apps/control_mobile/pubspec.lock') }}
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Create Android platform project
+        run: |
+          flutter create . \
+            --org com.foodapp \
+            --project-name control_mobile \
+            --platforms=android \
+            --no-overwrite
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build release APK (debug-signed, no Play Store keys)
+        env:
+          CONTROL_API_BASE_URL: ${{ vars.CONTROL_API_BASE_URL }}
+        run: |
+          API_URL="$(printf '%s' "${CONTROL_API_BASE_URL}" | tr -d '[:space:]')"
+          # android/ is gitignored; no production keystore. Flutter uses the
+          # debug signing config for release when key.properties is absent.
+          # Suitable for internal install only — not for Play Store publishing.
+          flutter build apk --release \
+            --dart-define=API_BASE_URL="${API_URL}"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foodapp-control-apk
+          path: apps/control_mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 7

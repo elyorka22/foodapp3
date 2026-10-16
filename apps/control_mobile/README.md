@@ -88,18 +88,24 @@ Workflow name in the Actions UI: **Control Mobile**
 
 ### What it does
 
-On push/PR to `main` that touch `apps/control_mobile/**` or the workflow file (and on `workflow_dispatch`):
+On push/PR to `main` that touch `apps/control_mobile/**` or the workflow file (and on `workflow_dispatch`), two jobs run **in parallel**:
 
-1. `flutter pub get`
-2. `flutter analyze`
-3. `flutter test`
-4. `flutter build web --release` with  
+**Web** (`build-web`):
+1. `flutter pub get` / `analyze` / `test`
+2. `flutter build web --release` with  
    `--dart-define=API_BASE_URL=${{ vars.CONTROL_API_BASE_URL }}`
-5. Uploads artifact **`foodapp-control-web`** (7-day retention)
+3. Uploads artifact **`foodapp-control-web`** (7-day retention)
+
+**Android APK** (`build-apk`):
+1. Generates `android/` via `flutter create` (folder is gitignored)
+2. `flutter build apk --release` with the same `CONTROL_API_BASE_URL`
+3. Uploads artifact **`foodapp-control-apk`** (7-day retention)
+
+APK is **debug-signed** (no Play Store keystore). For internal install only — not for Play publishing. Failure of the APK job does not block the Web artifact (separate job).
 
 Path filters keep this workflow from running for Business, Courier, Customer, or website changes.
 
-**CI does not deploy.** It only builds, tests, and uploads an artifact.
+**CI does not deploy.** It only builds, tests, and uploads artifacts.
 
 ### Repository variable (required)
 
@@ -111,15 +117,24 @@ Configure a **repository variable** (not a secret), because the API URL is publi
 
 If the variable is missing or points at localhost, the workflow **fails clearly** and does not upload an artifact.
 
-### Where to find runs and the artifact
+### Where to find runs and the artifacts
 
 1. GitHub → **Actions** → workflow **Control Mobile**
 2. Open a successful run
-3. Download artifact **`foodapp-control-web`**
+3. Download:
+   - **`foodapp-control-web`** — static Web build (`build/web`)
+   - **`foodapp-control-apk`** — `app-release.apk` (debug-signed)
 
-### Android APK in CI
+### Build APK locally
 
-Not included in this workflow. `android/` is gitignored and there is no production signing setup for Control yet. Build APKs locally if needed.
+```bash
+cd apps/control_mobile
+flutter create . --org com.foodapp --project-name control_mobile --platforms=android
+flutter build apk --release \
+  --dart-define=API_BASE_URL=https://foodapp.uz/api/v1
+```
+
+Output: `build/app/outputs/flutter-apk/app-release.apk`
 
 ## Auth notes
 
