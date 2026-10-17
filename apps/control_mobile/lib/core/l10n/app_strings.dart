@@ -114,7 +114,7 @@ abstract final class AppStrings {
   static const softDeleteProduct = 'Mahsulotni o‘chirish';
   static const confirmDeleteProduct = 'Mahsulotni o‘chirishni tasdiqlaysizmi?';
   static const addPromo = 'Promo qo‘shish';
-  static const addBanner = 'Banner qo‘shish';
+  static const addBanner = 'Banner + rasm';
   static const promoCode = 'Promo kod';
   static const promoType = 'Turi';
   static const promoValue = 'Qiymat';
