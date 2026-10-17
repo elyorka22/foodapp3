@@ -69,7 +69,6 @@ export const adminI18n = {
     siteSettings: 'Sayt sozlamalari',
     cities: 'Shaharlar',
     deliveryZones: 'Yetkazish zonalari',
-    telegramSettings: 'Telegram sozlamalari',
     paymentSettings: "To'lov sozlamalari",
     deliverySettings: 'Yetkazib berish sozlamalari',
     system: 'Tizim',
@@ -257,38 +256,6 @@ export const adminI18n = {
     placementHomeSideBottom: "Do‘kon bannerlari (kategoriyalar ustida)",
     placementHero: 'Karusel (yuqori)',
     placementPromo: 'Promo blok (karusel ostida)',
-  },
-
-  telegramBot: {
-    title: 'Telegram bot',
-    subtitle:
-      'Umumiy mijoz boti: salomlashish va sayt havolasi tugmalar orqali. Restoranlar buyurtma xabarlari uchun chat ID ni o‘z panelida kiritadi.',
-    welcomeMessage: 'Salomlashish matni (birinchi xabar)',
-    siteUrl: 'Sayt havolasi',
-    botUsername: 'Bot username',
-    webhookUrl: 'Webhook URL',
-    botNotConfigured: 'TELEGRAM_BOT_TOKEN sozlanmagan',
-    botOneTokenNote:
-      'Odatda bitta bot: TELEGRAM_BOT_TOKEN — kirish (login) va xabarlar uchun. Alohida bot kerak bo‘lsa — TELEGRAM_MESSAGING_BOT_TOKEN.',
-    botOpenThis: 'Foydalanuvchilar shu botga yozishi kerak',
-    botTokenMismatch: 'Username token bilan mos kelmaydi!',
-    botMessagingBot: 'Xabarlar boti (getMe)',
-    botLoginBot: 'Login boti (getMe)',
-    statsTitle: 'Bot statistikasi',
-    totalSubscribers: 'Jami foydalanuvchilar',
-    activeLast7Days: 'Faol (7 kun)',
-    newToday: 'Bugun yangi',
-    totalStarts: 'Jami bot ochilishlari',
-    webhookHint:
-      'TELEGRAM_WEBHOOK_SECRET — faqat tasodifiy matn (masalan: openssl rand -hex 32). Bot token yoki curl buyruq EMAS.',
-    webhookRegistered: 'Webhook faol',
-    webhookNotRegistered: 'Webhook ro‘yxatdan o‘tmagan',
-    webhookRegister: 'Webhookni qayta ulash',
-    webhookRegisteredOk: 'Telegram webhook ulandi',
-    webhookRegisterFailed: 'Webhook ulanmadi',
-    missingEnv: 'Yetishmayotgan o‘zgaruvchilar',
-    webhookLastError: 'Telegram xatosi',
-    saved: 'Telegram bot sozlamalari saqlandi',
   },
 
   promoCodes: {

@@ -88,12 +88,6 @@ const controlNavItems = <ControlNavItem>[
     mobile: false,
   ),
   ControlNavItem(
-    label: AppStrings.navTelegram,
-    icon: Icons.chat_outlined,
-    route: AppRoutes.telegram,
-    mobile: false,
-  ),
-  ControlNavItem(
     label: AppStrings.navSettings,
     icon: Icons.settings_outlined,
     route: AppRoutes.settings,

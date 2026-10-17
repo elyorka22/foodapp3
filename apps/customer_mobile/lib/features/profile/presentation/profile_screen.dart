@@ -105,7 +105,6 @@ class ProfileScreen extends ConsumerWidget {
             final settings = settingsAsync.valueOrNull;
             final socialLinks = ProfileSocialLinks(
               instagramUrl: settings?.socialInstagramUrl ?? '',
-              telegramUrl: settings?.socialTelegramUrl ?? '',
               youtubeUrl: settings?.socialYoutubeUrl ?? '',
             );
 

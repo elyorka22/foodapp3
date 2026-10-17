@@ -30,7 +30,7 @@ export class LoginDto {
   /**
    * Optional staff app identifier. When omitted, legacy login behavior is preserved.
    * Allowed values: control | business | web_admin.
-   * Customer / Google / Telegram auth must not use this field.
+   * Customer / Google auth must not use this field.
    */
   @ApiPropertyOptional({
     enum: STAFF_LOGIN_CLIENTS,

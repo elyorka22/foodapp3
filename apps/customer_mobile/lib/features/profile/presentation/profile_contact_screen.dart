@@ -28,10 +28,7 @@ class ProfileContactScreen extends ConsumerWidget {
       data: (data) {
         final isHelp = kind == ProfileContactKind.help;
         final title = isHelp ? AppStrings.help : AppStrings.partnership;
-        final telegramUrl = isHelp ? data.helpTelegramUrl : data.partnershipTelegramUrl;
-        final telegramLabel =
-            isHelp ? data.helpTelegramLabel : data.partnershipTelegramLabel;
-        final phone = isHelp ? '' : data.partnershipPhone;
+        final phone = (isHelp ? data.supportPhone : data.partnershipPhone).trim();
 
         return CustomerPage(
           child: Column(
@@ -60,19 +57,20 @@ class ProfileContactScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      AppStrings.contactViaTelegram,
+                      AppStrings.contactViaPhone,
                       style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    if (telegramUrl.isNotEmpty)
+                    if (phone.isNotEmpty)
                       _ContactTile(
-                        icon: Icons.send_rounded,
-                        iconColor: const Color(0xFF229ED9),
-                        backgroundColor: const Color(0xFFE8F7FD),
-                        label: telegramLabel.isNotEmpty
-                            ? telegramLabel
-                            : AppStrings.openTelegram,
-                        onTap: () => _openUrl(context, telegramUrl),
+                        icon: Icons.phone_outlined,
+                        iconColor: AppColors.primary,
+                        backgroundColor: AppColors.primarySoft,
+                        label: phone,
+                        onTap: () => _openUrl(
+                          context,
+                          Uri(scheme: 'tel', path: phone.replaceAll(' ', '')).toString(),
+                        ),
                       )
                     else
                       Text(
@@ -81,24 +79,6 @@ class ProfileContactScreen extends ConsumerWidget {
                           color: AppColors.textMuted,
                         ),
                       ),
-                    if (!isHelp && phone.trim().isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.xl),
-                      Text(
-                        AppStrings.contactViaPhone,
-                        style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _ContactTile(
-                        icon: Icons.phone_outlined,
-                        iconColor: AppColors.primary,
-                        backgroundColor: AppColors.primarySoft,
-                        label: phone.trim(),
-                        onTap: () => _openUrl(
-                          context,
-                          Uri(scheme: 'tel', path: phone.replaceAll(' ', '')).toString(),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),

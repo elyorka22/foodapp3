@@ -67,7 +67,6 @@ flutter run
 flutter build apk \
   --dart-define=API_BASE_URL=https://YOUR_API_HOST/api/v1 \
   --dart-define=WS_BASE_URL=https://YOUR_API_HOST \
-  --dart-define=TELEGRAM_BOT_USERNAME=your_bot \
   --dart-define=ENABLE_FCM=true \
   --dart-define=GOOGLE_WEB_CLIENT_ID=278845357182-7ell2g4o06h42phpkl07jr7pjq2q2gug.apps.googleusercontent.com
 ```
@@ -116,12 +115,6 @@ CI prints SHA-1/SHA-256 after signing in the **Print signed APK fingerprints** s
 - Profil
 
 Guest browsing works without login.
-
-## Telegram login
-
-Customer auth is phone or Google only. Restaurant order notifications still use the Telegram bot (not customer login).
-
-Development: **Profil → Telegram orqali kirish** accepts manual payload fields.
 
 ## Android / iOS
 

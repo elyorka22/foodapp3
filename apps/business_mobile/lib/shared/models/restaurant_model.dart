@@ -15,9 +15,6 @@ class RestaurantModel {
     this.ownerPassword,
     this.ownerFullName,
     this.workingHours,
-    this.telegramOrderChatId,
-    this.telegramLinkCode,
-    this.telegramLinkExpiresAt,
   });
 
   final String id;
@@ -33,9 +30,6 @@ class RestaurantModel {
   final String? ownerPassword;
   final String? ownerFullName;
   final List<WorkingHourModel>? workingHours;
-  final String? telegramOrderChatId;
-  final String? telegramLinkCode;
-  final String? telegramLinkExpiresAt;
 
   bool get isStore => kind == 'STORE';
 
@@ -53,9 +47,6 @@ class RestaurantModel {
     String? ownerPassword,
     String? ownerFullName,
     List<WorkingHourModel>? workingHours,
-    String? telegramOrderChatId,
-    String? telegramLinkCode,
-    String? telegramLinkExpiresAt,
   }) {
     return RestaurantModel(
       id: id ?? this.id,
@@ -71,9 +62,6 @@ class RestaurantModel {
       ownerPassword: ownerPassword ?? this.ownerPassword,
       ownerFullName: ownerFullName ?? this.ownerFullName,
       workingHours: workingHours ?? this.workingHours,
-      telegramOrderChatId: telegramOrderChatId ?? this.telegramOrderChatId,
-      telegramLinkCode: telegramLinkCode ?? this.telegramLinkCode,
-      telegramLinkExpiresAt: telegramLinkExpiresAt ?? this.telegramLinkExpiresAt,
     );
   }
 
@@ -92,9 +80,6 @@ class RestaurantModel {
       ownerLogin: json['ownerLogin'] as String?,
       ownerFullName: json['ownerFullName'] as String?,
       ownerPassword: json['ownerPassword'] as String?,
-      telegramOrderChatId: json['telegramOrderChatId'] as String?,
-      telegramLinkCode: json['telegramLinkCode'] as String?,
-      telegramLinkExpiresAt: json['telegramLinkExpiresAt'] as String?,
     );
   }
 
@@ -124,11 +109,6 @@ class RestaurantModel {
         if (description != null) 'description': description,
         if (workingHours != null && workingHours!.isNotEmpty)
           'workingHours': workingHours!.map((h) => h.toJson()).toList(),
-        if (telegramOrderChatId != null) 'telegramOrderChatId': telegramOrderChatId,
-      };
-
-  Map<String, dynamic> toTelegramUpdateJson(String? chatId) => {
-        'telegramOrderChatId': chatId,
       };
 }
 

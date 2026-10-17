@@ -72,9 +72,6 @@ abstract final class ApiPaths {
   static const bookingSlidesAdmin = '/booking/admin/slides';
   static String bookingSlide(String id) => '/booking/admin/slides/$id';
 
-  static const telegramBotAdmin = '/telegram-bot/admin';
-  static const telegramBotRegisterWebhook =
-      '/telegram-bot/admin/register-webhook';
 
   static const uploadImage = '/upload/image';
 }

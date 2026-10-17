@@ -11,11 +11,6 @@ const _instagramIcon = Icon(
   size: 40,
   color: Color(0xFFE1306C),
 );
-const _telegramSocialIcon = Icon(
-  Icons.telegram,
-  size: 44,
-  color: Color(0xFF229ED9),
-);
 const _youtubeIcon = Icon(
   Icons.play_circle_outline,
   size: 40,
@@ -25,12 +20,10 @@ const _youtubeIcon = Icon(
 class ProfileSocialLinks {
   const ProfileSocialLinks({
     this.instagramUrl = '',
-    this.telegramUrl = '',
     this.youtubeUrl = '',
   });
 
   final String instagramUrl;
-  final String telegramUrl;
   final String youtubeUrl;
 }
 
@@ -47,12 +40,6 @@ class ProfileSocialSection extends StatelessWidget {
           title: AppStrings.instagram,
           url: links.instagramUrl,
           icon: _instagramIcon,
-        ),
-      if (links.telegramUrl.trim().isNotEmpty)
-        _SocialTileConfig(
-          title: AppStrings.telegram,
-          url: links.telegramUrl,
-          icon: _telegramSocialIcon,
         ),
       if (links.youtubeUrl.trim().isNotEmpty)
         _SocialTileConfig(

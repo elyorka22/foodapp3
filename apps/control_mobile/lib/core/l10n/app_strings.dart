@@ -127,7 +127,6 @@ abstract final class AppStrings {
   static const navCouriers = 'Kuryerlar';
   static const navCustomers = 'Mijozlar';
   static const navBooking = 'Bron';
-  static const navTelegram = 'Telegram';
   static const platformSection = 'Platforma boshqaruvi';
   static const deliveryPricing = 'Yetkazib berish narxlari';
   static const baseDeliveryFee = 'Asosiy narx';
@@ -143,9 +142,6 @@ abstract final class AppStrings {
   static const offline = 'Oflayn';
   static const venuesSection = 'Joylar';
   static const slidesSection = 'Slaydlar';
-  static const telegramWelcome = 'Salomlashuv matni';
-  static const telegramSiteUrl = 'Sayt URL';
-  static const registerWebhook = 'Webhookni ro‘yxatdan o‘tkazish';
   static const systemHealth = 'Tizim holati';
 
   static const cardTodayOrders = 'Bugungi buyurtmalar';
@@ -168,7 +164,6 @@ abstract final class AppStrings {
   static const settingsAppName = 'Ilova nomi';
   static const settingsSupportPhone = 'Qo‘llab-quvvatlash telefoni';
   static const settingsSupportEmail = 'Qo‘llab-quvvatlash email';
-  static const settingsSupportTelegram = 'Support Telegram';
   static const settingsMinOrder = 'Minimal buyurtma (so‘m)';
   static const settingsDeliveryFee = 'Yetkazib berish narxi';
   static const settingsCommission = 'Komissiya (%)';

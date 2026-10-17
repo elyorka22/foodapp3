@@ -8,12 +8,8 @@ class AdminSettings {
     this.homeRestaurantsBannerImageUrl = '',
     this.homeRestaurantsBannerTitle = '',
     this.supportPhone = '',
-    this.supportTelegram = '',
-    this.helpTelegramUrl = '',
-    this.partnershipTelegramUrl = '',
     this.partnershipPhone = '',
     this.socialInstagramUrl = '',
-    this.socialTelegramUrl = '',
     this.socialYoutubeUrl = '',
     this.supportEmail = '',
     this.minOrderAmount = 0,
@@ -35,12 +31,8 @@ class AdminSettings {
   final String homeRestaurantsBannerImageUrl;
   final String homeRestaurantsBannerTitle;
   final String supportPhone;
-  final String supportTelegram;
-  final String helpTelegramUrl;
-  final String partnershipTelegramUrl;
   final String partnershipPhone;
   final String socialInstagramUrl;
-  final String socialTelegramUrl;
   final String socialYoutubeUrl;
   final String supportEmail;
   final num minOrderAmount;
@@ -65,12 +57,8 @@ class AdminSettings {
       homeRestaurantsBannerTitle:
           json['home_restaurants_banner_title'] as String? ?? '',
       supportPhone: json['support_phone'] as String? ?? '',
-      supportTelegram: json['support_telegram'] as String? ?? '',
-      helpTelegramUrl: json['help_telegram_url'] as String? ?? '',
-      partnershipTelegramUrl: json['partnership_telegram_url'] as String? ?? '',
       partnershipPhone: json['partnership_phone'] as String? ?? '',
       socialInstagramUrl: json['social_instagram_url'] as String? ?? '',
-      socialTelegramUrl: json['social_telegram_url'] as String? ?? '',
       socialYoutubeUrl: json['social_youtube_url'] as String? ?? '',
       supportEmail: json['support_email'] as String? ?? '',
       minOrderAmount: parseNum(json['min_order_amount']),
@@ -100,12 +88,8 @@ class AdminSettings {
       'home_restaurants_banner_image_url': homeRestaurantsBannerImageUrl,
       'home_restaurants_banner_title': homeRestaurantsBannerTitle,
       'support_phone': supportPhone,
-      'support_telegram': supportTelegram,
-      'help_telegram_url': helpTelegramUrl,
-      'partnership_telegram_url': partnershipTelegramUrl,
       'partnership_phone': partnershipPhone,
       'social_instagram_url': socialInstagramUrl,
-      'social_telegram_url': socialTelegramUrl,
       'social_youtube_url': socialYoutubeUrl,
       'support_email': supportEmail,
       'min_order_amount': minOrderAmount,

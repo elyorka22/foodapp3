@@ -13,7 +13,6 @@ abstract final class AppStrings {
   static const profileGuestName = 'Mehmon';
   static const profileLoginSubtitle = 'akkauntga kiring';
   static const profileRegisterSubtitle = "yangi hisob oching";
-  static const profileTelegramSubtitle = 'tez kirish';
   static const profilePromotionsSubtitle = "maxsus takliflar";
   static const profileNotificationsSubtitle = "yangi xabarlar";
   static const profileHelpSubtitle = 'savollar va yordam';
@@ -88,7 +87,7 @@ abstract final class AppStrings {
   static const login = 'Kirish';
   static const register = "Ro'yxatdan o'tish";
   static const loginSocialSubtitle =
-      'Google yoki Telegram orqali tez va xavfsiz kiring';
+      'Google orqali tez va xavfsiz kiring';
   static const registerSocialSubtitle =
       "Bir necha soniyada hisob oching — telefon va parol hozircha shart emas";
   static const noAccountRegister = "Hisobingiz yo'qmi? Ro'yxatdan o'ting";
@@ -120,13 +119,10 @@ abstract final class AppStrings {
   static const language = 'Til';
   static const help = 'Yordam';
   static const partnership = 'Hamkorlik';
-  static const contactViaTelegram = "Telegram orqali bog'laning";
   static const contactViaPhone = "Telefon orqali bog'laning";
-  static const openTelegram = 'Telegramga yozish';
   static const contactNotConfigured =
       "Hozircha bog'lanish ma'lumotlari sozlanmagan.";
   static const instagram = 'Instagram';
-  static const telegram = 'Telegram';
   static const youtube = 'YouTube';
   static const terms = 'Foydalanish shartlari';
 

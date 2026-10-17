@@ -9,12 +9,8 @@ class PublicSettings {
     this.homeRestaurantsBannerImageUrl = '',
     this.homeRestaurantsBannerTitle = '',
     this.socialInstagramUrl = '',
-    this.socialTelegramUrl = '',
     this.socialYoutubeUrl = '',
-    this.helpTelegramUrl = '',
-    this.helpTelegramLabel = '',
-    this.partnershipTelegramUrl = '',
-    this.partnershipTelegramLabel = '',
+    this.supportPhone = '',
     this.partnershipPhone = '',
   });
 
@@ -24,12 +20,8 @@ class PublicSettings {
   final String homeRestaurantsBannerImageUrl;
   final String homeRestaurantsBannerTitle;
   final String socialInstagramUrl;
-  final String socialTelegramUrl;
   final String socialYoutubeUrl;
-  final String helpTelegramUrl;
-  final String helpTelegramLabel;
-  final String partnershipTelegramUrl;
-  final String partnershipTelegramLabel;
+  final String supportPhone;
   final String partnershipPhone;
 
   factory PublicSettings.fromJson(Map<String, dynamic> json) {
@@ -42,12 +34,8 @@ class PublicSettings {
       homeRestaurantsBannerTitle:
           json['home_restaurants_banner_title'] as String? ?? '',
       socialInstagramUrl: json['social_instagram_url'] as String? ?? '',
-      socialTelegramUrl: json['social_telegram_url'] as String? ?? '',
       socialYoutubeUrl: json['social_youtube_url'] as String? ?? '',
-      helpTelegramUrl: json['help_telegram_url'] as String? ?? '',
-      helpTelegramLabel: json['help_telegram_label'] as String? ?? '',
-      partnershipTelegramUrl: json['partnership_telegram_url'] as String? ?? '',
-      partnershipTelegramLabel: json['partnership_telegram_label'] as String? ?? '',
+      supportPhone: json['support_phone'] as String? ?? '',
       partnershipPhone: json['partnership_phone'] as String? ?? '',
     );
   }

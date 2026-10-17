@@ -8,7 +8,6 @@ abstract final class AppRoutes {
   static const restaurantMenu = '/restaurant/menu';
   static const restaurantStats = '/restaurant/stats';
   static const restaurantProfile = '/restaurant/profile';
-  static const restaurantTelegram = '/restaurant/telegram';
   static String restaurantOrderDetail(String id) => '/restaurant/orders/$id';
 
   static const managerHome = '/manager';

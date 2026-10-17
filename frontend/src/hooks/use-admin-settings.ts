@@ -11,12 +11,8 @@ export type AdminSettings = {
   home_restaurants_banner_image_url: string;
   home_restaurants_banner_title: string;
   support_phone: string;
-  support_telegram: string;
-  help_telegram_url: string;
-  partnership_telegram_url: string;
   partnership_phone: string;
   social_instagram_url: string;
-  social_telegram_url: string;
   social_youtube_url: string;
   support_email: string;
   min_order_amount: number;

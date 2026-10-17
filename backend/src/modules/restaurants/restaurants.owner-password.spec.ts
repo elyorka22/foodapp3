@@ -91,7 +91,7 @@ describe('RestaurantsService owner password hardening', () => {
       hashPassword: async (password: string) => fakeHash(password),
     } as unknown as AuthService;
 
-    // constructor: prisma, audit, adminNotifications, schedule, settings, auth, telegramLink
+    // constructor: prisma, audit, adminNotifications, schedule, settings, auth
     service = new RestaurantsService(
       prisma,
       { log: async () => undefined } as never,
@@ -99,7 +99,6 @@ describe('RestaurantsService owner password hardening', () => {
       {} as never,
       {} as never,
       auth,
-      {} as never,
     );
   });
 

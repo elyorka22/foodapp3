@@ -23,8 +23,7 @@ flutter drive \
   echo "  splash.png restaurants.png restaurant_detail.png stores.png"
   echo "  store_detail.png cart.png checkout.png profile.png"
   flutter run -d "$DEVICE" \
-    --dart-define=API_BASE_URL="${API_BASE_URL:-http://127.0.0.1:4000/api/v1}" \
-    --dart-define=TELEGRAM_BOT_USERNAME="${TELEGRAM_BOT_USERNAME:-}"
+    --dart-define=API_BASE_URL="${API_BASE_URL:-http://127.0.0.1:4000/api/v1}"
   exit 0
 }
 

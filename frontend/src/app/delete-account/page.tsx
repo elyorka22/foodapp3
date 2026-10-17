@@ -19,7 +19,6 @@ const DATA_DELETED = [
   'Location data',
   'Push notification tokens (FCM)',
   'Google authentication linkage',
-  'Telegram authentication linkage',
   'Personal information',
   'Order history (anonymized)',
 ];

@@ -33,7 +33,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _appName = TextEditingController();
   final _supportPhone = TextEditingController();
   final _supportEmail = TextEditingController();
-  final _supportTelegram = TextEditingController();
   final _minOrder = TextEditingController();
   final _deliveryFee = TextEditingController();
   final _commission = TextEditingController();
@@ -53,7 +52,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _appName.dispose();
     _supportPhone.dispose();
     _supportEmail.dispose();
-    _supportTelegram.dispose();
     _minOrder.dispose();
     _deliveryFee.dispose();
     _commission.dispose();
@@ -69,7 +67,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _appName.text = s.appName;
     _supportPhone.text = s.supportPhone;
     _supportEmail.text = s.supportEmail;
-    _supportTelegram.text = s.supportTelegram;
     _minOrder.text = s.minOrderAmount.toString();
     _deliveryFee.text = s.defaultDeliveryFee.toString();
     _commission.text = s.commissionDefault.toString();
@@ -98,12 +95,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         homeRestaurantsBannerImageUrl: current.homeRestaurantsBannerImageUrl,
         homeRestaurantsBannerTitle: current.homeRestaurantsBannerTitle,
         supportPhone: _supportPhone.text.trim(),
-        supportTelegram: _supportTelegram.text.trim(),
-        helpTelegramUrl: current.helpTelegramUrl,
-        partnershipTelegramUrl: current.partnershipTelegramUrl,
         partnershipPhone: current.partnershipPhone,
         socialInstagramUrl: current.socialInstagramUrl,
-        socialTelegramUrl: current.socialTelegramUrl,
         socialYoutubeUrl: current.socialYoutubeUrl,
         supportEmail: _supportEmail.text.trim(),
         minOrderAmount: num.tryParse(_minOrder.text.trim()) ?? current.minOrderAmount,
@@ -185,7 +178,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               (AppStrings.navCities, AppRoutes.cities),
               (AppStrings.navBusinessTypes, AppRoutes.businessTypes),
               (AppStrings.navBooking, AppRoutes.booking),
-              (AppStrings.navTelegram, AppRoutes.telegram),
               (AppStrings.navCatalog, AppRoutes.catalog),
               (AppStrings.navPromotions, AppRoutes.promotions),
               (AppStrings.navAudit, AppRoutes.audit),
@@ -234,13 +226,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     labelText: AppStrings.settingsSupportEmail,
                   ),
                   keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _supportTelegram,
-                  decoration: const InputDecoration(
-                    labelText: AppStrings.settingsSupportTelegram,
-                  ),
                 ),
                 const SizedBox(height: 12),
                 TextField(

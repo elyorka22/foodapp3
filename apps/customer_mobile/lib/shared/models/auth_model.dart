@@ -3,24 +3,18 @@ class CustomerUserModel {
     required this.id,
     required this.fullName,
     required this.isActive,
-    required this.isTelegramVerified,
     required this.needsPhone,
     this.phone,
     this.email,
-    this.telegramId,
-    this.telegramUsername,
     this.defaultDeliveryAddress,
   });
 
   final String id;
   final String fullName;
   final bool isActive;
-  final bool isTelegramVerified;
   final bool needsPhone;
   final String? phone;
   final String? email;
-  final String? telegramId;
-  final String? telegramUsername;
   final String? defaultDeliveryAddress;
 
   factory CustomerUserModel.fromJson(Map<String, dynamic> json) {
@@ -28,12 +22,9 @@ class CustomerUserModel {
       id: json['id'] as String,
       fullName: json['fullName'] as String,
       isActive: json['isActive'] as bool? ?? true,
-      isTelegramVerified: json['isTelegramVerified'] as bool? ?? false,
       needsPhone: json['needsPhone'] as bool? ?? false,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
-      telegramId: json['telegramId']?.toString(),
-      telegramUsername: json['telegramUsername'] as String?,
       defaultDeliveryAddress: json['defaultDeliveryAddress'] as String?,
     );
   }
@@ -42,12 +33,9 @@ class CustomerUserModel {
         'id': id,
         'fullName': fullName,
         'isActive': isActive,
-        'isTelegramVerified': isTelegramVerified,
         'needsPhone': needsPhone,
         'phone': phone,
         'email': email,
-        'telegramId': telegramId,
-        'telegramUsername': telegramUsername,
         'defaultDeliveryAddress': defaultDeliveryAddress,
       };
 }

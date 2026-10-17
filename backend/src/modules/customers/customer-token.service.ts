@@ -19,16 +19,9 @@ export type SerializedCustomer = {
   referralCode?: string;
   loyalty?: { points: number; level: string };
   createdAt: Date;
-  telegramId?: string;
-  telegramUsername?: string;
-  telegramFirstName?: string;
-  telegramLastName?: string;
-  telegramPhotoUrl?: string;
   googleId?: string;
   googlePhotoUrl?: string;
   authProvider?: CustomerAuthProvider;
-  isTelegramVerified: boolean;
-  lastTelegramLoginAt?: Date;
   isGoogleVerified: boolean;
   lastGoogleLoginAt?: Date;
   needsPhone: boolean;
@@ -53,16 +46,9 @@ export class CustomerTokenService {
         ? { points: customer.loyalty.points, level: customer.loyalty.level }
         : undefined,
       createdAt: customer.createdAt,
-      telegramId: customer.telegramId?.toString(),
-      telegramUsername: customer.telegramUsername ?? undefined,
-      telegramFirstName: customer.telegramFirstName ?? undefined,
-      telegramLastName: customer.telegramLastName ?? undefined,
-      telegramPhotoUrl: customer.telegramPhotoUrl ?? undefined,
       googleId: customer.googleId ?? undefined,
       googlePhotoUrl: customer.googlePhotoUrl ?? undefined,
       authProvider: customer.authProvider ?? undefined,
-      isTelegramVerified: customer.isTelegramVerified,
-      lastTelegramLoginAt: customer.lastTelegramLoginAt ?? undefined,
       isGoogleVerified: customer.isGoogleVerified,
       lastGoogleLoginAt: customer.lastGoogleLoginAt ?? undefined,
       needsPhone: !customer.phone,

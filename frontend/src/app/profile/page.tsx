@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { GuestProfileView } from '@/components/profile/guest-profile-view';
@@ -23,13 +22,6 @@ import {
 } from '@/lib/customer';
 import type { CustomerAuthResponse } from '@/lib/customer-auth';
 import { uz } from '@/lib/uz';
-
-function displayTelegramName(c: CustomerProfile): string {
-  if (c.telegramFirstName) {
-    return [c.telegramFirstName, c.telegramLastName].filter(Boolean).join(' ');
-  }
-  return c.fullName;
-}
 
 export default function ProfilePage() {
   const [customer, setCustomerState] = useState<CustomerProfile | null>(null);
@@ -68,14 +60,11 @@ export default function ProfilePage() {
   };
 
   if (customer) {
-    const tgName = displayTelegramName(customer);
-    const showTelegram = customer.isTelegramVerified || customer.telegramId;
-
     return (
       <main className="customer-page mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
         <ProfilePageHeader
           name={customer.fullName}
-          photoUrl={customer.telegramPhotoUrl}
+          photoUrl={customer.googlePhotoUrl}
           badgeCount={unreadCount}
         />
 
@@ -93,21 +82,6 @@ export default function ProfilePage() {
         <ProfileAccountMenu />
 
         <ProfileSocialSection />
-
-        {showTelegram && (
-          <Card className="mt-4 rounded-2xl border-0 bg-[#E8F7FD] p-4 shadow-none">
-            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-[#229ED9]">
-              <MessageCircle size={14} />
-              {uz.telegramProfile}
-            </p>
-            <p className="mt-1 font-medium text-foreground">{tgName}</p>
-            {customer.telegramUsername && (
-              <p className="text-sm text-foreground-muted">
-                {uz.telegramUsernameLabel}: @{customer.telegramUsername}
-              </p>
-            )}
-          </Card>
-        )}
 
         {customer.referralCode && (
           <Card className="mt-4 rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">

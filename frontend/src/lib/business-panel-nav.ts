@@ -6,6 +6,5 @@ export function businessPanelNav(base: '/restaurant' | '/business') {
     { href: `${base}/dashboard`, label: t.dashboard },
     { href: base, label: t.orders },
     { href: `${base}/schedule`, label: t.schedule },
-    { href: `${base}/telegram`, label: t.telegram },
   ];
 }

@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { Bell } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PwaInstallButton } from '@/components/pwa/pwa-install-button';
-import { TelegramSocialButton } from '@/components/home/telegram-social-button';
 import { usePublicSettings } from '@/hooks/use-public-settings';
 import { uz } from '@/lib/uz';
 import { CitySelector } from '@/components/home/city-selector';
@@ -25,7 +24,6 @@ export function HomeHeadline() {
           ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <TelegramSocialButton />
           <PwaInstallButton />
           <Link
             href="/notifications"

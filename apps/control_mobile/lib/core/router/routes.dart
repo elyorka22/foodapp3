@@ -16,5 +16,4 @@ abstract final class AppRoutes {
   static const couriers = '/couriers';
   static const customers = '/customers';
   static const booking = '/booking';
-  static const telegram = '/telegram';
 }

@@ -20,7 +20,6 @@ import '../../features/push/presentation/push_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/shell/control_shell_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
-import '../../features/telegram/presentation/telegram_screen.dart';
 import 'routes.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
@@ -128,9 +127,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [_branch(AppRoutes.booking, const BookingScreen())],
-          ),
-          StatefulShellBranch(
-            routes: [_branch(AppRoutes.telegram, const TelegramScreen())],
           ),
           StatefulShellBranch(
             routes: [_branch(AppRoutes.settings, const SettingsScreen())],

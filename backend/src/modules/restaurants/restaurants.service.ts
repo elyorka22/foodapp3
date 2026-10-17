@@ -42,7 +42,6 @@ import { userBusinessId } from '../../domain/business/business-id.util';
 import { businessWhereForVertical } from '../../domain/business/merchant-vertical';
 import { resolveSlugForCreate, resolveSlugForUpdate } from '../../common/utils/slug.util';
 import { SettingsService } from '../settings/settings.service';
-import { TelegramBotLinkService } from '../telegram-bot/telegram-bot-link.service';
 import {
   resolveRestaurantCoverFraming,
   type ImageFramingDefaults,
@@ -57,7 +56,6 @@ export class RestaurantsService {
     private schedule: RestaurantScheduleService,
     private settings: SettingsService,
     private auth: AuthService,
-    private telegramLink: TelegramBotLinkService,
   ) {}
 
   /** Homepage / food delivery — restaurants only, not marketplace shops (grocery, pharmacy, …). */
@@ -518,12 +516,10 @@ export class RestaurantsService {
     const productCountMap = new Map(productGroups.map((g) => [g.businessId, g._count._all]));
 
     const ownerMap = await this.loadOwnerCredentialsByBusinessIds(ids, user);
-    const linkCodeMap = await this.telegramLink.loadActiveCodesMap(ids);
 
     const data = rows.map((r) => {
       const branch = r.branches?.[0];
       const owner = ownerMap.get(r.id);
-      const link = linkCodeMap.get(r.id);
       return {
         ...r,
         commissionRate: Number(r.commissionRate),
@@ -536,8 +532,6 @@ export class RestaurantsService {
         ownerLogin: owner?.ownerLogin ?? null,
         ownerFullName: owner?.ownerFullName ?? null,
         ownerPassword: owner?.ownerPassword ?? null,
-        telegramLinkCode: link?.code ?? null,
-        telegramLinkExpiresAt: link?.expiresAt.toISOString() ?? null,
       };
     });
 
@@ -1285,11 +1279,6 @@ export class RestaurantsService {
 
   assertAccess(businessId: string, user: JwtPayload) {
     this.assertRestaurantAccess(businessId, user);
-  }
-
-  getTelegramLinkStatus(businessId: string, user: JwtPayload) {
-    this.assertRestaurantAccess(businessId, user);
-    return this.telegramLink.getLinkStatus(businessId);
   }
 
   private assertRestaurantAccess(businessId: string, user: JwtPayload) {

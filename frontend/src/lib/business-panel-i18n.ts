@@ -10,7 +10,6 @@ export const businessPanelI18n = {
     dashboard: 'Boshqaruv paneli',
     orders: 'Buyurtmalar',
     schedule: 'Ish vaqti va bayramlar',
-    telegram: 'Telegram buyurtmalar',
   },
 
   stats: {
@@ -94,25 +93,6 @@ export const businessPanelI18n = {
     remove: "O'chirish",
     savedHours: 'Ish vaqti saqlandi',
     holidayAdded: "Dam olish kuni qo'shildi",
-  },
-
-  telegram: {
-    title: 'Telegram buyurtmalar',
-    hint: 'Yangi buyurtmalar shu Telegram chatga yuboriladi.',
-    chatId: 'Telegram chat ID',
-    chatIdPlaceholder: 'Masalan: 123456789',
-    botLink: 'Botni ochish',
-    saved: 'Telegram sozlamalari saqlandi',
-    cleared: 'Telegram bildirishnomalari o‘chirildi',
-    save: 'Saqlash',
-    disable: 'O‘chirish',
-    howTo:
-      "1) Botni oching va Start bosing\n2) «🔔 Push sozlash» tugmasini bosing\n3) Restoraningizni ro'yxatdan tanlang\n4) Shu sahifadagi 6 xonali kodni botga yuboring",
-    pairingCode: 'Bot uchun kod',
-    codeExpires: 'Amal qilish vaqti',
-    linked: '✅ Push ulangan',
-    waitingForBot: 'Botda restoranni tanlang — kod shu yerda paydo bo‘ladi.',
-    manualTitle: 'Qo‘lda chat ID (ixtiyoriy)',
   },
 
   dayNames: [

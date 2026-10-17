@@ -58,34 +58,6 @@ function AdminCustomerDetailContent() {
         </div>
       </div>
 
-      {(customer.telegramId || customer.isTelegramVerified) && (
-        <div className="rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-          <p className="text-sm font-semibold">Telegram</p>
-          <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="text-xs opacity-60">Telegram ID</dt>
-              <dd className="font-mono">{customer.telegramId ?? '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs opacity-60">Username</dt>
-              <dd>{customer.telegramUsername ? `@${customer.telegramUsername}` : '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs opacity-60">First name</dt>
-              <dd>{customer.telegramFirstName ?? '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs opacity-60">Last login</dt>
-              <dd>
-                {customer.lastTelegramLoginAt
-                  ? new Date(customer.lastTelegramLoginAt).toLocaleString()
-                  : '—'}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      )}
-
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard label="Total orders" value={stats?.totalOrders ?? 0} />
         <StatCard label="Completed" value={stats?.completedOrders ?? 0} />

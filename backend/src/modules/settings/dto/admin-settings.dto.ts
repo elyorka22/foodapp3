@@ -35,21 +35,6 @@ export class AdminSettingsDto {
   @IsString()
   support_phone?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  support_telegram?: string;
-
-  @ApiPropertyOptional({ description: 'Help page Telegram link (@user or https://t.me/...)' })
-  @IsOptional()
-  @IsString()
-  help_telegram_url?: string;
-
-  @ApiPropertyOptional({ description: 'Partnership page Telegram link' })
-  @IsOptional()
-  @IsString()
-  partnership_telegram_url?: string;
-
   @ApiPropertyOptional({ description: 'Partnership page phone number' })
   @IsOptional()
   @IsString()
@@ -59,11 +44,6 @@ export class AdminSettingsDto {
   @IsOptional()
   @IsString()
   social_instagram_url?: string;
-
-  @ApiPropertyOptional({ description: 'Telegram channel/group URL for customer app profile' })
-  @IsOptional()
-  @IsString()
-  social_telegram_url?: string;
 
   @ApiPropertyOptional({ description: 'YouTube channel URL for customer app profile' })
   @IsOptional()

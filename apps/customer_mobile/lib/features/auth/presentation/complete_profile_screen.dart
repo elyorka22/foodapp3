@@ -14,7 +14,7 @@ import '../../../core/utils/phone_util.dart';
 import '../../../shared/widgets/uz_phone_field.dart';
 import '../providers/auth_provider.dart';
 
-/// Shown when Telegram (or other) auth returns `needsPhone: true`.
+/// Shown when social auth returns `needsPhone: true`.
 class CompleteProfileScreen extends ConsumerStatefulWidget {
   const CompleteProfileScreen({super.key});
 

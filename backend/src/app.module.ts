@@ -34,7 +34,6 @@ import { FirebaseModule } from './common/firebase/firebase.module';
 import { AccountDeletionModule } from './modules/account-deletion/account-deletion.module';
 import { BookingVenuesModule } from './modules/booking-venues/booking-venues.module';
 import { CitiesModule } from './modules/cities/cities.module';
-import { TelegramBotModule } from './modules/telegram-bot/telegram-bot.module';
 import { DeliveryZonesModule } from './modules/delivery-zones/delivery-zones.module';
 
 @Module({
@@ -77,7 +76,6 @@ import { DeliveryZonesModule } from './modules/delivery-zones/delivery-zones.mod
     AccountDeletionModule,
     BookingVenuesModule,
     CitiesModule,
-    TelegramBotModule,
     DeliveryZonesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],

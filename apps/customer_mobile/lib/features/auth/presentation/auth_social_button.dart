@@ -105,21 +105,3 @@ class GoogleBrandIcon extends StatelessWidget {
     );
   }
 }
-
-class TelegramBrandIcon extends StatelessWidget {
-  const TelegramBrandIcon({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: const BoxDecoration(
-        color: Color(0xFF229ED9),
-        shape: BoxShape.circle,
-      ),
-      alignment: Alignment.center,
-      child: const Icon(Icons.send_rounded, size: 14, color: Colors.white),
-    );
-  }
-}

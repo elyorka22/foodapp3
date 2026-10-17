@@ -9,7 +9,7 @@ abstract final class ReleaseConfig {
     'Apple Developer signing & provisioning profile',
     'Push Notifications + Background Modes (remote-notification)',
     'Privacy manifests (photo, location if used)',
-    'TELEGRAM_BOT_USERNAME and API_BASE_URL via dart-define or xcconfig',
+    'API_BASE_URL via dart-define or xcconfig',
     'TestFlight internal QA',
   ];
 }

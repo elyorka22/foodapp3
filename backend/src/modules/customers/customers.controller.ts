@@ -62,7 +62,7 @@ export class CustomersController {
   @UseGuards(CustomerJwtAuthGuard)
   @ApiBearerAuth()
   @Throttle({ default: THROTTLE.CUSTOMER_AUTH })
-  @ApiOperation({ summary: 'Add phone and optional delivery address after Telegram login' })
+  @ApiOperation({ summary: 'Add phone and optional delivery address after auth' })
   completeProfile(
     @CurrentCustomer() customer: CustomerJwtPayload,
     @Body() dto: CompleteProfileDto,

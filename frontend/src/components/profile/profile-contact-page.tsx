@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, MessageCircle, Phone } from 'lucide-react';
+import { ChevronLeft, Phone } from 'lucide-react';
 import { usePublicSettings } from '@/hooks/use-public-settings';
 import { uz } from '@/lib/uz';
 import { Button } from '@/components/ui/button';
@@ -15,11 +15,8 @@ export function ProfileContactPage({ variant }: Props) {
   const data = settings.data;
 
   const title = variant === 'help' ? uz.profileHelp : uz.profilePartnership;
-  const telegramUrl =
-    variant === 'help' ? data?.help_telegram_url : data?.partnership_telegram_url;
-  const telegramLabel =
-    variant === 'help' ? data?.help_telegram_label : data?.partnership_telegram_label;
-  const phone = variant === 'partnership' ? data?.partnership_phone : '';
+  const phone =
+    variant === 'partnership' ? data?.partnership_phone?.trim() ?? '' : '';
 
   return (
     <main className="customer-page mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
@@ -35,27 +32,9 @@ export function ProfileContactPage({ variant }: Props) {
       </div>
 
       <div className="rounded-2xl bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-        <p className="text-[15px] font-medium text-zinc-800">{uz.contactViaTelegram}</p>
-
-        {telegramUrl ? (
-          <a
-            href={telegramUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 flex items-center gap-3 rounded-2xl bg-[#E8F7FD] px-4 py-4 active:scale-[0.99]"
-          >
-            <MessageCircle size={22} className="shrink-0 text-[#229ED9]" />
-            <span className="text-[16px] font-semibold text-[#229ED9]">
-              {telegramLabel || uz.openTelegram}
-            </span>
-          </a>
-        ) : (
-          <p className="mt-3 text-sm text-zinc-500">{uz.contactNotConfigured}</p>
-        )}
-
         {variant === 'partnership' && phone ? (
           <>
-            <p className="mt-6 text-[15px] font-medium text-zinc-800">{uz.contactViaPhone}</p>
+            <p className="text-[15px] font-medium text-zinc-800">{uz.contactViaPhone}</p>
             <a
               href={`tel:${phone.replace(/\s/g, '')}`}
               className="mt-4 flex items-center gap-3 rounded-2xl bg-[#F4F4F5] px-4 py-4 active:scale-[0.99]"
@@ -64,7 +43,9 @@ export function ProfileContactPage({ variant }: Props) {
               <span className="text-[16px] font-semibold text-[#18181B]">{phone}</span>
             </a>
           </>
-        ) : null}
+        ) : (
+          <p className="text-sm text-zinc-500">{uz.contactNotConfigured}</p>
+        )}
       </div>
 
       <div className="mt-6">

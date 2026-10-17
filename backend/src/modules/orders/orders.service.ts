@@ -30,7 +30,6 @@ import { CustomersService } from '../customers/customers.service';
 import { NotificationService } from '../notifications/notifications.service';
 import { PushNotificationHooks } from '../notifications/push/push-notification.hooks';
 import { ORDER_STATUS_TO_CUSTOMER_TEMPLATE } from '../notifications/constants/order-status-notification.map';
-import { TelegramBotService } from '../telegram-bot/telegram-bot.service';
 
 const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
@@ -58,7 +57,6 @@ export class OrdersService {
     private notifications: NotificationService,
     private pushHooks: PushNotificationHooks,
     private deliveryPricing: DeliveryPricingService,
-    private telegramBot: TelegramBotService,
   ) {}
 
   async quoteDelivery(dto: DeliveryQuoteDto) {
@@ -258,7 +256,7 @@ export class OrdersService {
         include: {
           items: true,
           guestOrder: true,
-          business: { select: { id: true, name: true, slug: true, telegramOrderChatId: true } },
+          business: { select: { id: true, name: true, slug: true } },
         },
       });
     });
@@ -288,8 +286,6 @@ export class OrdersService {
       orderNumber: order.orderNumber,
       businessName: order.business?.name,
     });
-
-    void this.telegramBot.notifyRestaurantNewOrder(order).catch(() => undefined);
 
     if (dto.deviceId?.trim()) {
       await this.notifications.linkDevicePhone(dto.deviceId.trim(), phone);

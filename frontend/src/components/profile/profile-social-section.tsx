@@ -1,6 +1,6 @@
 'use client';
 
-import { Instagram, Send, Youtube } from 'lucide-react';
+import { Instagram, Youtube } from 'lucide-react';
 import { ProfileBannerGrid } from '@/components/profile/profile-banner-grid';
 import { ProfileBannerTile } from '@/components/profile/profile-banner-tile';
 import { usePublicSettings } from '@/hooks/use-public-settings';
@@ -10,7 +10,6 @@ import { uz } from '@/lib/uz';
 export function ProfileSocialSection() {
   const settings = usePublicSettings();
   const instagram = settings.data?.social_instagram_url?.trim() ?? '';
-  const telegram = settings.data?.social_telegram_url?.trim() ?? '';
   const youtube = settings.data?.social_youtube_url?.trim() ?? '';
 
   const tiles = [
@@ -20,14 +19,6 @@ export function ProfileSocialSection() {
           title: 'Instagram',
           icon: Instagram,
           onClick: () => openSocialUrl(instagram),
-        }
-      : null,
-    telegram
-      ? {
-          key: 'telegram',
-          title: 'Telegram',
-          icon: Send,
-          onClick: () => openSocialUrl(telegram),
         }
       : null,
     youtube

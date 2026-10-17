@@ -10,10 +10,6 @@ export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
     if (auth?.startsWith('Bearer ') && auth.length > 20) {
       return true;
     }
-    const url = request.originalUrl ?? request.url ?? '';
-    if (url.includes('/telegram-bot/webhook/')) {
-      return true;
-    }
     return super.shouldSkip(context);
   }
 

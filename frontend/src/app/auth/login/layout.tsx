@@ -3,7 +3,7 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Kirish | FoodApp',
-  description: 'FoodApp akkauntingizga kiring — telefon, Telegram yoki Google orqali.',
+  description: 'FoodApp akkauntingizga kiring — telefon yoki Google orqali.',
   path: '/auth/login',
 });
 

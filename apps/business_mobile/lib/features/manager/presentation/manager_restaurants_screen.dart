@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,28 +21,6 @@ final restaurantsListProvider = FutureProvider.autoDispose<List<RestaurantModel>
 final storesListProvider = FutureProvider.autoDispose<List<RestaurantModel>>((ref) async {
   return ref.watch(restaurantRepositoryProvider).fetchAllRestaurants(vertical: 'store');
 });
-
-class _TelegramLinkCodeBadge extends StatelessWidget {
-  const _TelegramLinkCodeBadge({required this.code});
-
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        '${AppStrings.telegramPairingCode}: $code',
-        style: AppTypography.caption.copyWith(fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-}
 
 class ManagerRestaurantsScreen extends StatelessWidget {
   const ManagerRestaurantsScreen({super.key});
@@ -82,7 +58,7 @@ class ManagerStoresScreen extends StatelessWidget {
   }
 }
 
-class ManagerBusinessesScreen extends ConsumerStatefulWidget {
+class ManagerBusinessesScreen extends ConsumerWidget {
   const ManagerBusinessesScreen({
     super.key,
     required this.vertical,
@@ -105,29 +81,8 @@ class ManagerBusinessesScreen extends ConsumerStatefulWidget {
   final IconData listIcon;
 
   @override
-  ConsumerState<ManagerBusinessesScreen> createState() => _ManagerBusinessesScreenState();
-}
-
-class _ManagerBusinessesScreenState extends ConsumerState<ManagerBusinessesScreen> {
-  Timer? _pollTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (mounted) ref.invalidate(widget.listProvider);
-    });
-  }
-
-  @override
-  void dispose() {
-    _pollTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final businesses = ref.watch(widget.listProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final businesses = ref.watch(listProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -186,17 +141,6 @@ class _ManagerBusinessesScreenState extends ConsumerState<ManagerBusinessesScree
                                       Text(business.name, style: AppTypography.subtitle),
                                       if (business.phone != null)
                                         Text(business.phone!, style: AppTypography.bodySmall),
-                                      if (business.telegramLinkCode != null &&
-                                          business.telegramLinkCode!.isNotEmpty)
-                                        _TelegramLinkCodeBadge(code: business.telegramLinkCode!),
-                                      if (business.telegramOrderChatId != null &&
-                                          business.telegramOrderChatId!.isNotEmpty)
-                                        Text(
-                                          AppStrings.telegramLinked,
-                                          style: AppTypography.caption.copyWith(
-                                            color: AppColors.success,
-                                          ),
-                                        ),
                                       if (business.branchAddress != null)
                                         Text(
                                           business.branchAddress!,

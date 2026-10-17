@@ -147,23 +147,13 @@ export class CustomersService {
     });
 
     if (other) {
-      if (current.telegramId) {
-        targetId = current.id;
-        await this.mergeCustomers(targetId, other.id);
-      } else if (other.telegramId) {
-        targetId = other.id;
-        await this.mergeCustomers(targetId, current.id);
-      } else {
-        targetId = other.id;
-        await this.mergeCustomers(targetId, current.id);
-      }
+      targetId = other.id;
+      await this.mergeCustomers(targetId, current.id);
     }
 
     const data: Prisma.CustomerUpdateInput = {
       phone,
-      authProvider: current.telegramId
-        ? CustomerAuthProvider.TELEGRAM
-        : CustomerAuthProvider.LOCAL,
+      authProvider: CustomerAuthProvider.LOCAL,
       ...(dto.deliveryAddress && {
         defaultDeliveryAddress: dto.deliveryAddress.trim(),
         defaultLatitude: dto.latitude,
@@ -180,7 +170,7 @@ export class CustomersService {
     return this.customerTokens.issueToken(customer);
   }
 
-  /** Merge source customer into target; target survives. Priority: telegramId account. */
+  /** Merge source customer into target; target survives. */
   async mergeCustomers(targetId: string, sourceId: string) {
     if (targetId === sourceId) return;
 
@@ -203,27 +193,23 @@ export class CustomersService {
         });
       }
 
-      const telegramPatch: Prisma.CustomerUpdateInput = {};
-      if (!target.telegramId && source.telegramId) {
-        telegramPatch.telegramId = source.telegramId;
-        telegramPatch.telegramUsername = source.telegramUsername;
-        telegramPatch.telegramFirstName = source.telegramFirstName;
-        telegramPatch.telegramLastName = source.telegramLastName;
-        telegramPatch.telegramPhotoUrl = source.telegramPhotoUrl;
-        telegramPatch.isTelegramVerified = source.isTelegramVerified;
-        telegramPatch.lastTelegramLoginAt = source.lastTelegramLoginAt;
+      const patch: Prisma.CustomerUpdateInput = {};
+      if (!target.phone && source.phone) patch.phone = source.phone;
+      if (!target.email && source.email) patch.email = source.email;
+      if (!target.googleId && source.googleId) {
+        patch.googleId = source.googleId;
+        patch.googlePhotoUrl = source.googlePhotoUrl;
+        patch.isGoogleVerified = source.isGoogleVerified;
+        patch.lastGoogleLoginAt = source.lastGoogleLoginAt;
       }
-      if (!target.phone && source.phone) telegramPatch.phone = source.phone;
-      if (!target.email && source.email) telegramPatch.email = source.email;
-      if (Object.keys(telegramPatch).length) {
-        await tx.customer.update({ where: { id: targetId }, data: telegramPatch });
+      if (Object.keys(patch).length) {
+        await tx.customer.update({ where: { id: targetId }, data: patch });
       }
 
       await tx.customer.update({
         where: { id: sourceId },
         data: {
           deletedAt: new Date(),
-          telegramId: null,
           phone: source.phone ? `${source.phone}_merged_${sourceId.slice(0, 8)}` : null,
         },
       });
@@ -252,7 +238,6 @@ export class CustomersService {
           { fullName: { contains: query.search, mode: 'insensitive' } },
           { phone: { contains: query.search, mode: 'insensitive' } },
           { email: { contains: query.search, mode: 'insensitive' } },
-          { telegramUsername: { contains: query.search, mode: 'insensitive' } },
         ],
       }),
     };
@@ -432,13 +417,6 @@ export class CustomersService {
           otpVerified: false,
           otpCode: null,
           otpExpiresAt: null,
-          telegramId: null,
-          telegramUsername: null,
-          telegramFirstName: null,
-          telegramLastName: null,
-          telegramPhotoUrl: null,
-          isTelegramVerified: false,
-          lastTelegramLoginAt: null,
           googleId: null,
           googlePhotoUrl: null,
           isGoogleVerified: false,

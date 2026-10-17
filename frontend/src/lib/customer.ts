@@ -7,14 +7,7 @@ export type CustomerProfile = {
   email?: string;
   referralCode?: string;
   loyalty?: { points: number; level: string };
-  telegramId?: string;
-  telegramUsername?: string;
-  telegramFirstName?: string;
-  telegramLastName?: string;
-  telegramPhotoUrl?: string;
-  authProvider?: 'TELEGRAM' | 'PHONE' | 'LOCAL' | 'GOOGLE';
-  isTelegramVerified?: boolean;
-  lastTelegramLoginAt?: string;
+  authProvider?: 'PHONE' | 'LOCAL' | 'GOOGLE';
   googleId?: string;
   googlePhotoUrl?: string;
   isGoogleVerified?: boolean;

@@ -10,12 +10,7 @@ export type PublicSettings = {
   home_restaurants_banner_image_url: string;
   home_restaurants_banner_title: string;
   social_instagram_url: string;
-  social_telegram_url: string;
   social_youtube_url: string;
-  help_telegram_url: string;
-  help_telegram_label: string;
-  partnership_telegram_url: string;
-  partnership_telegram_label: string;
   partnership_phone: string;
 };
 
