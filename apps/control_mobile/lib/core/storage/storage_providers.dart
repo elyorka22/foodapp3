@@ -3,8 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'token_storage.dart';
 
-final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('SharedPreferences must be overridden in main()');
+/// Optional — may be null when the Android shared_preferences plugin is broken.
+final sharedPreferencesProvider = Provider<SharedPreferences?>((ref) {
+  return null;
 });
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {

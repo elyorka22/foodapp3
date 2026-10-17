@@ -2,18 +2,27 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Control-only session storage. Keys must not collide with Business/Courier/Customer.
+///
+/// Access token + user JSON live in [FlutterSecureStorage] so a broken
+/// `shared_preferences` Android plugin cannot block login / boot.
+/// [SharedPreferences] is optional (diagnostics / legacy migration only).
 class TokenStorage {
-  TokenStorage(this._secure, this._prefs);
+  TokenStorage(this._secure, [this._prefs]);
 
   final FlutterSecureStorage _secure;
-  final SharedPreferences _prefs;
+  final SharedPreferences? _prefs;
 
   static const _tokenKey = 'control_access_token';
   static const _userJsonKey = 'control_user_json';
+  /// Legacy prefs key — migrated once into secure storage.
+  static const _legacyUserPrefsKey = 'control_user_json';
 
   String? _cachedToken;
+  String? _cachedUserJson;
   bool _tokenLoaded = false;
+  bool _userLoaded = false;
   Future<String?>? _tokenLoadFuture;
+  Future<String?>? _userLoadFuture;
 
   Future<String?> getAccessToken() {
     if (_tokenLoaded) return Future<String?>.value(_cachedToken);
@@ -39,31 +48,79 @@ class TokenStorage {
     required String userJson,
   }) async {
     try {
-      await _secure
-          .write(key: _tokenKey, value: accessToken)
-          .timeout(const Duration(seconds: 5));
+      await Future.wait([
+        _secure.write(key: _tokenKey, value: accessToken),
+        _secure.write(key: _userJsonKey, value: userJson),
+      ]).timeout(const Duration(seconds: 5));
     } catch (e) {
       throw Exception(
         'Sessiyani saqlab bo\'lmadi. Qurilma xavfsiz xotirasini tekshiring.',
       );
     }
-    await _prefs.setString(_userJsonKey, userJson);
+    // Best-effort legacy mirror for diagnostics tooling.
+    try {
+      await _prefs?.setString(_legacyUserPrefsKey, userJson);
+    } catch (_) {}
+
     _cachedToken = accessToken;
+    _cachedUserJson = userJson;
     _tokenLoaded = true;
+    _userLoaded = true;
     _tokenLoadFuture = null;
+    _userLoadFuture = null;
   }
 
-  Future<String?> getUserJson() async => _prefs.getString(_userJsonKey);
+  Future<String?> getUserJson() {
+    if (_userLoaded) return Future<String?>.value(_cachedUserJson);
+    _userLoadFuture ??= _loadUserJson();
+    return _userLoadFuture!;
+  }
+
+  Future<String?> _loadUserJson() async {
+    try {
+      _cachedUserJson = await _secure
+          .read(key: _userJsonKey)
+          .timeout(const Duration(seconds: 3));
+    } catch (_) {
+      _cachedUserJson = null;
+    }
+
+    // One-time migration from older builds that stored user JSON in prefs.
+    if ((_cachedUserJson == null || _cachedUserJson!.isEmpty) && _prefs != null) {
+      try {
+        final legacy = _prefs!.getString(_legacyUserPrefsKey);
+        if (legacy != null && legacy.isNotEmpty) {
+          _cachedUserJson = legacy;
+          try {
+            await _secure
+                .write(key: _userJsonKey, value: legacy)
+                .timeout(const Duration(seconds: 3));
+          } catch (_) {}
+        }
+      } catch (_) {}
+    }
+
+    _userLoaded = true;
+    return _cachedUserJson;
+  }
 
   Future<void> clear() async {
     try {
-      await _secure.delete(key: _tokenKey).timeout(const Duration(seconds: 3));
+      await Future.wait([
+        _secure.delete(key: _tokenKey),
+        _secure.delete(key: _userJsonKey),
+      ]).timeout(const Duration(seconds: 3));
     } catch (_) {
       // Ignore hung/corrupt secure storage on logout.
     }
-    await _prefs.remove(_userJsonKey);
+    try {
+      await _prefs?.remove(_legacyUserPrefsKey);
+    } catch (_) {}
     _cachedToken = null;
+    _cachedUserJson = null;
     _tokenLoaded = true;
+    _userLoaded = true;
     _tokenLoadFuture = null;
+    _userLoadFuture = null;
   }
 }

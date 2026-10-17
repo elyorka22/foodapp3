@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,26 +20,25 @@ Future<void> main() async {
     return;
   }
 
-  SharedPreferences prefs;
+  // shared_preferences can crash on some Android builds (Pigeon/NoSuchMethodError).
+  // Session auth uses secure storage; prefs are optional for diagnostics only.
+  SharedPreferences? prefs;
   try {
     prefs = await SharedPreferences.getInstance()
-        .timeout(const Duration(seconds: 8));
-  } catch (e) {
-    runApp(
-      _BootErrorApp(
-        message:
-            'Local storage failed to open.\nRestart the app or reinstall.\n($e)',
-      ),
-    );
-    return;
+        .timeout(const Duration(seconds: 5));
+  } catch (e, st) {
+    debugPrint('[BOOT] SharedPreferences unavailable: $e\n$st');
+    prefs = null;
   }
 
-  try {
-    await DiagnosticLog.instance
-        .attachPrefs(prefs)
-        .timeout(const Duration(seconds: 3));
-  } catch (_) {
-    // Diagnostics are optional — continue boot.
+  if (prefs != null) {
+    try {
+      await DiagnosticLog.instance
+          .attachPrefs(prefs)
+          .timeout(const Duration(seconds: 3));
+    } catch (_) {
+      // Diagnostics are optional — continue boot.
+    }
   }
 
   runApp(

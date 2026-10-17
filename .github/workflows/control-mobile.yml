@@ -160,10 +160,17 @@ jobs:
             --project-name control_mobile \
             --platforms=android \
             --no-overwrite
-          chmod +x scripts/patch_android_permissions.sh
+          chmod +x scripts/patch_android_permissions.sh scripts/patch_android_build.sh
           ./scripts/patch_android_permissions.sh
+          ./scripts/patch_android_build.sh
 
       - name: Install dependencies
+        run: flutter pub get
+
+      - name: Clean stale Android plugin artifacts
+        run: flutter clean
+
+      - name: Re-fetch packages after clean
         run: flutter pub get
 
       - name: Build release APK (debug-signed, no Play Store keys)
