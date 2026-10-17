@@ -21,9 +21,10 @@ const FALLBACK_BACKGROUNDS = [
 type Props = {
   restaurant: HomeRestaurant;
   index: number;
+  priority?: boolean;
 };
 
-export function RestaurantGridCard({ restaurant, index }: Props) {
+export function RestaurantGridCard({ restaurant, index, priority = false }: Props) {
   const imageUrl = resolveImageUrl(restaurant.coverUrl ?? restaurant.logoUrl);
   const coverStyle = categoryImageStyle({
     imageScale: restaurant.coverScale,
@@ -49,7 +50,8 @@ export function RestaurantGridCard({ restaurant, index }: Props) {
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
             style={coverStyle}
             sizes="(max-width: 430px) 50vw, 210px"
-            unoptimized
+            priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
           />
         ) : (
           <div

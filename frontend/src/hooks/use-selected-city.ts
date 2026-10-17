@@ -17,7 +17,10 @@ function pickDefaultCity(cities: City[]): City | null {
 export function useSelectedCity() {
   const citiesQuery = useCities();
   const cities = citiesQuery.data ?? [];
-  const [selectedSlug, setSelectedSlugState] = useState<string | null>(null);
+  // Read stored city on first paint so restaurant list is not blocked on /cities
+  const [selectedSlug, setSelectedSlugState] = useState<string | null>(() =>
+    getSelectedCitySlug(),
+  );
 
   useEffect(() => {
     if (!cities.length) return;

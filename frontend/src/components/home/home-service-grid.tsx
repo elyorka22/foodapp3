@@ -44,7 +44,7 @@ const TOP_ROW: ServiceCard[] = [
     accent: 'from-[#E4E4E7] to-[#F4F4F5]',
     iconClass: 'text-zinc-800',
     image: {
-      src: '/assets/home-services/restaurants.png',
+      src: '/assets/home-services/restaurants.webp',
       widthPercent: 78,
       right: -12,
       bottom: -14,
@@ -162,11 +162,13 @@ function ServiceTile({
       </div>
 
       {showImage && card.image ? (
-        // eslint-disable-next-line @next/next/no-img-element -- local PNG placeholders; final assets TBD
+        // eslint-disable-next-line @next/next/no-img-element -- local static asset with absolute positioning
         <img
           src={card.image.src}
           alt=""
           aria-hidden
+          loading="lazy"
+          decoding="async"
           className="pointer-events-none absolute z-[5] object-contain drop-shadow-[0_8px_16px_rgba(15,23,42,0.12)]"
           style={{
             width: `${card.image.widthPercent}%`,

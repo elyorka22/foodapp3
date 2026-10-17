@@ -46,7 +46,7 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
     <section className="mt-6" aria-label={uz.specialOffers}>
       <SectionHeader title={uz.specialOffers} href="/promotions" linkLabel={uz.seeAll} />
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-hide">
-        {slides.map((banner) => {
+        {slides.map((banner, index) => {
           const src = resolveImageUrl(banner.imageUrl)!;
           const href = banner.linkUrl?.trim() || '/promotions';
           const title = banner.title?.trim();
@@ -68,7 +68,7 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
                   imagePositionY: banner.imagePositionY,
                 })}
                 sizes="(max-width: 430px) 85vw, 360px"
-                unoptimized
+                priority={index === 0}
               />
               {title ? (
                 <>

@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
 import { filterStoreBusinesses } from '@/lib/business-kind';
 import { unwrapList } from '@/lib/list-utils';
+import { getSelectedCitySlug } from '@/lib/city-selection';
 import { useSelectedCity } from '@/hooks/use-selected-city';
 
 export type HomeCategory = { id: string; name: string; slug: string };
@@ -59,11 +60,11 @@ export function useHomeBanners() {
 
 export function useHomeRestaurants() {
   const { selectedCity, isLoading: cityLoading } = useSelectedCity();
-  const citySlug = selectedCity?.slug;
+  const citySlug = selectedCity?.slug ?? getSelectedCitySlug();
   return useQuery({
     queryKey: ['restaurants', 'home', citySlug],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: '50', vertical: 'restaurant' });
+      const params = new URLSearchParams({ limit: '12', vertical: 'restaurant' });
       if (citySlug) params.set('city', citySlug);
       return api<{ data: HomeRestaurant[]; meta?: { total: number } }>(
         `/businesses?${params.toString()}`,
@@ -71,18 +72,19 @@ export function useHomeRestaurants() {
     },
     staleTime: 30_000,
     retry: 2,
-    enabled: !cityLoading && Boolean(citySlug),
+    // Start as soon as we know a city (localStorage or /cities), not after both
+    enabled: Boolean(citySlug) || !cityLoading,
   });
 }
 
 /** Active marketplace stores for the home bottom-right slot (cover/logo carousel). */
 export function useHomeFeaturedStores() {
   const { selectedCity, isLoading: cityLoading } = useSelectedCity();
-  const citySlug = selectedCity?.slug;
+  const citySlug = selectedCity?.slug ?? getSelectedCitySlug();
   return useQuery({
     queryKey: ['shops-businesses', 'home-featured', citySlug],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: '20', vertical: 'store' });
+      const params = new URLSearchParams({ limit: '12', vertical: 'store' });
       if (citySlug) params.set('city', citySlug);
       const res = await api<{ data: ShopBusiness[]; meta?: unknown }>(
         `/businesses?${params.toString()}`,
@@ -91,6 +93,6 @@ export function useHomeFeaturedStores() {
     },
     staleTime: 60_000,
     retry: 2,
-    enabled: !cityLoading && Boolean(citySlug),
+    enabled: Boolean(citySlug) || !cityLoading,
   });
 }

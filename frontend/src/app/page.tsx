@@ -60,7 +60,12 @@ export default function HomePage() {
         {!restaurantsQuery.isLoading && !hasError && restaurants.length > 0 && (
           <div className="grid grid-cols-2 gap-3">
             {restaurants.map((r, i) => (
-              <RestaurantGridCard key={r.id} restaurant={r} index={i} />
+              <RestaurantGridCard
+                key={r.id}
+                restaurant={r}
+                index={i}
+                priority={i < 4}
+              />
             ))}
           </div>
         )}
