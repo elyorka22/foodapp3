@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../core/l10n/app_strings.dart';
-import '../../../core/network/upload_repository.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
@@ -13,6 +10,7 @@ import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/image_framing_controls.dart';
+import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/banner_model.dart';
@@ -44,167 +42,164 @@ class PromotionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(promotionsProvider);
 
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.lg,
-              0,
-            ),
-            child:
-                Text(AppStrings.promotionsTitle, style: AppTypography.display),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            0,
           ),
-          Expanded(
-            child: AsyncPageBody<_PromotionsBundle>(
-              asyncValue: async,
-              onRefresh: () => ref.refresh(promotionsProvider.future),
-              isEmpty: (b) => b.banners.isEmpty && b.promos.isEmpty,
-              emptyMessage: AppStrings.emptyList,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              dataBuilder: (bundle) {
-                final banners = [...bundle.banners]
-                  ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppStrings.bannersSection,
-                            style: AppTypography.subtitle,
-                          ),
+          child: Text(AppStrings.promotionsTitle, style: AppTypography.display),
+        ),
+        Expanded(
+          child: AsyncPageBody<_PromotionsBundle>(
+            asyncValue: async,
+            onRefresh: () => ref.refresh(promotionsProvider.future),
+            isEmpty: (b) => b.banners.isEmpty && b.promos.isEmpty,
+            emptyMessage: AppStrings.emptyList,
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            dataBuilder: (bundle) {
+              final banners = [...bundle.banners]
+                ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppStrings.bannersSection,
+                          style: AppTypography.subtitle,
                         ),
-                        TextButton.icon(
-                          onPressed: () => showDetailSheet(
-                            context: context,
-                            title: AppStrings.addBanner,
-                            builder: (_) => const _BannerFormSheet(),
-                          ),
-                          icon: const Icon(Icons.add),
-                          label: const Text(AppStrings.addBanner),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (banners.isEmpty)
-                      Text(AppStrings.emptyList, style: AppTypography.bodySmall)
-                    else
-                      ReorderableListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: banners.length,
-                        onReorder: (oldIndex, newIndex) async {
-                          if (newIndex > oldIndex) newIndex -= 1;
-                          final next = [...banners];
-                          final item = next.removeAt(oldIndex);
-                          next.insert(newIndex, item);
-                          try {
-                            await ref
-                                .read(promotionsRepositoryProvider)
-                                .reorderBanners(next.map((e) => e.id).toList());
-                            ref.invalidate(promotionsProvider);
-                          } catch (e) {
-                            if (context.mounted) showActionError(context, e);
-                          }
-                        },
-                        itemBuilder: (context, index) {
-                          final b = banners[index];
-                          return Padding(
-                            key: ValueKey(b.id),
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: ControlListCard(
-                              leading: _BannerThumb(banner: b),
-                              title: b.title.isNotEmpty
-                                  ? b.title
-                                  : (b.placement.isNotEmpty
-                                      ? b.placement
-                                      : b.id),
-                              subtitle: [
-                                if (b.placement.isNotEmpty) b.placement,
-                                if (b.linkUrl != null && b.linkUrl!.isNotEmpty)
-                                  b.linkUrl!,
-                              ].join(' · '),
-                              trailing: StatusChip(
-                                status:
-                                    b.isActive ? 'DELIVERED' : 'CANCELLED',
-                                label: b.isActive
-                                    ? AppStrings.active
-                                    : AppStrings.inactive,
-                              ),
-                              onTap: () => showDetailSheet(
-                                context: context,
-                                title: AppStrings.details,
-                                builder: (_) => _BannerFormSheet(banner: b),
-                              ),
-                            ),
-                          );
-                        },
                       ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppStrings.promosSection,
-                            style: AppTypography.subtitle,
-                          ),
+                      FilledButton.icon(
+                        onPressed: () => showDetailSheet(
+                          context: context,
+                          title: AppStrings.addBanner,
+                          initialChildSize: 0.92,
+                          builder: (_) => const _BannerFormSheet(),
                         ),
-                        TextButton.icon(
-                          onPressed: () => showDetailSheet(
-                            context: context,
-                            title: AppStrings.addPromo,
-                            builder: (_) => const _PromoFormSheet(),
-                          ),
-                          icon: const Icon(Icons.add),
-                          label: const Text(AppStrings.addPromo),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (bundle.promos.isEmpty)
-                      Text(AppStrings.emptyList, style: AppTypography.bodySmall)
-                    else
-                      ...bundle.promos.map((p) {
-                        final valueLabel =
-                            p.type.toUpperCase().contains('PERCENT')
-                                ? '${p.value}%'
-                                : formatMoney(p.value);
+                        icon: const Icon(Icons.add_photo_alternate_outlined),
+                        label: const Text(AppStrings.addBanner),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (banners.isEmpty)
+                    Text(AppStrings.emptyList, style: AppTypography.bodySmall)
+                  else
+                    ReorderableListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: banners.length,
+                      onReorder: (oldIndex, newIndex) async {
+                        if (newIndex > oldIndex) newIndex -= 1;
+                        final next = [...banners];
+                        final item = next.removeAt(oldIndex);
+                        next.insert(newIndex, item);
+                        try {
+                          await ref
+                              .read(promotionsRepositoryProvider)
+                              .reorderBanners(next.map((e) => e.id).toList());
+                          ref.invalidate(promotionsProvider);
+                        } catch (e) {
+                          if (context.mounted) showActionError(context, e);
+                        }
+                      },
+                      itemBuilder: (context, index) {
+                        final b = banners[index];
                         return Padding(
+                          key: ValueKey(b.id),
                           padding: const EdgeInsets.only(bottom: 8),
                           child: ControlListCard(
-                            title: p.code,
+                            leading: _BannerThumb(banner: b),
+                            title: b.title.isNotEmpty
+                                ? b.title
+                                : (b.placement.isNotEmpty
+                                    ? b.placement
+                                    : b.id),
                             subtitle: [
-                              valueLabel,
-                              'ishlatilgan: ${p.usageCount}',
-                              if (p.expiresAt != null)
-                                'tugash: ${formatDateTime(p.expiresAt)}',
+                              if (b.placement.isNotEmpty) b.placement,
+                              if (b.linkUrl != null && b.linkUrl!.isNotEmpty)
+                                b.linkUrl!,
                             ].join(' · '),
                             trailing: StatusChip(
-                              status: p.isActive ? 'DELIVERED' : 'CANCELLED',
-                              label: p.isActive
+                              status: b.isActive ? 'DELIVERED' : 'CANCELLED',
+                              label: b.isActive
                                   ? AppStrings.active
                                   : AppStrings.inactive,
                             ),
                             onTap: () => showDetailSheet(
                               context: context,
                               title: AppStrings.details,
-                              builder: (_) => _PromoFormSheet(promo: p),
+                              builder: (_) => _BannerFormSheet(banner: b),
                             ),
                           ),
                         );
-                      }),
-                  ],
-                );
-              },
-            ),
+                      },
+                    ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppStrings.promosSection,
+                          style: AppTypography.subtitle,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => showDetailSheet(
+                          context: context,
+                          title: AppStrings.addPromo,
+                          builder: (_) => const _PromoFormSheet(),
+                        ),
+                        icon: const Icon(Icons.add),
+                        label: const Text(AppStrings.addPromo),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (bundle.promos.isEmpty)
+                    Text(AppStrings.emptyList, style: AppTypography.bodySmall)
+                  else
+                    ...bundle.promos.map((p) {
+                      final valueLabel =
+                          p.type.toUpperCase().contains('PERCENT')
+                              ? '${p.value}%'
+                              : formatMoney(p.value);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ControlListCard(
+                          title: p.code,
+                          subtitle: [
+                            valueLabel,
+                            'ishlatilgan: ${p.usageCount}',
+                            if (p.expiresAt != null)
+                              'tugash: ${formatDateTime(p.expiresAt)}',
+                          ].join(' · '),
+                          trailing: StatusChip(
+                            status: p.isActive ? 'DELIVERED' : 'CANCELLED',
+                            label: p.isActive
+                                ? AppStrings.active
+                                : AppStrings.inactive,
+                          ),
+                          onTap: () => showDetailSheet(
+                            context: context,
+                            title: AppStrings.details,
+                            builder: (_) => _PromoFormSheet(promo: p),
+                          ),
+                        ),
+                      );
+                    }),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -415,7 +410,6 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
   String _placement = 'HERO';
   bool _isActive = true;
   bool _busy = false;
-  bool _uploading = false;
   late ImageFramingValues _framing;
 
   static const _placements = [
@@ -438,7 +432,6 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
     _placement = b?.placement.isNotEmpty == true ? b!.placement : 'HERO';
     _isActive = b?.isActive ?? true;
     _framing = b?.framing ?? const ImageFramingValues();
-    _imageUrl.addListener(() => setState(() {}));
   }
 
   @override
@@ -452,48 +445,6 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
   }
 
   double get _previewAspect => _placement == 'HOME_MAIN' ? 5 / 6 : 2;
-
-  Future<void> _pickAndUpload() async {
-    if (_busy || _uploading) return;
-    try {
-      final picker = ImagePicker();
-      final file = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 2400,
-        imageQuality: 88,
-      );
-      if (file == null) return;
-
-      setState(() => _uploading = true);
-      final bytes = await file.readAsBytes();
-      final name = file.name.isNotEmpty ? file.name : 'banner.jpg';
-      final result = await ref.read(uploadRepositoryProvider).uploadImage(
-            bytes: bytes,
-            filename: name,
-            refererPath: '/admin/banners',
-          );
-      if (!mounted) return;
-      if (result.url.isEmpty) {
-        showActionSnackBar(context, 'Yuklash muvaffaqiyatsiz', error: true);
-        return;
-      }
-      setState(() {
-        _imageUrl.text = result.url;
-      });
-      showActionSnackBar(context, AppStrings.actionDone);
-    } catch (e) {
-      if (mounted) showActionError(context, e);
-    } finally {
-      if (mounted) setState(() => _uploading = false);
-    }
-  }
-
-  void _clearImage() {
-    setState(() {
-      _imageUrl.clear();
-      _framing = const ImageFramingValues();
-    });
-  }
 
   Future<void> _save() async {
     final imageUrl = _imageUrl.text.trim();
@@ -571,79 +522,35 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final locked = _busy || _uploading;
-    final hasImage = _imageUrl.text.trim().isNotEmpty;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
           controller: _title,
-          enabled: !locked,
+          enabled: !_busy,
           decoration: const InputDecoration(labelText: AppStrings.bannerTitle),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _description,
-          enabled: !locked,
+          enabled: !_busy,
           maxLines: 2,
           decoration:
               const InputDecoration(labelText: AppStrings.bannerDescription),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: locked ? null : _pickAndUpload,
-                icon: _uploading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.photo_library_outlined),
-                label: Text(
-                  _uploading
-                      ? AppStrings.bannerUploading
-                      : (hasImage
-                          ? AppStrings.bannerChangeImage
-                          : AppStrings.bannerPickImage),
-                ),
-              ),
-            ),
-            if (hasImage) ...[
-              const SizedBox(width: 8),
-              IconButton(
-                tooltip: AppStrings.bannerRemoveImage,
-                onPressed: locked ? null : _clearImage,
-                icon: const Icon(Icons.delete_outline),
-                color: AppColors.danger,
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _imageUrl,
-          enabled: !locked,
-          decoration: const InputDecoration(
-            labelText: AppStrings.bannerImageUrl,
-            hintText: 'https://…',
-          ),
-        ),
-        const SizedBox(height: 12),
-        ImageFramingControls(
-          imageUrl: _imageUrl.text.trim(),
-          values: _framing,
+        ImageUploadField(
+          imageUrlController: _imageUrl,
+          framing: _framing,
+          onFramingChanged: (v) => setState(() => _framing = v),
+          enabled: !_busy,
           aspectRatio: _previewAspect,
-          enabled: !locked,
-          onChanged: (v) => setState(() => _framing = v),
+          refererPath: '/admin/banners',
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _link,
-          enabled: !locked,
+          enabled: !_busy,
           decoration: const InputDecoration(labelText: AppStrings.bannerLink),
         ),
         const SizedBox(height: 8),
@@ -655,14 +562,13 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
             for (final p in _placements)
               DropdownMenuItem(value: p, child: Text(p)),
           ],
-          onChanged: locked
-              ? null
-              : (v) => setState(() => _placement = v ?? _placement),
+          onChanged:
+              _busy ? null : (v) => setState(() => _placement = v ?? _placement),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _sortOrder,
-          enabled: !locked,
+          enabled: !_busy,
           keyboardType: TextInputType.number,
           decoration:
               const InputDecoration(labelText: AppStrings.bannerSortOrder),
@@ -671,12 +577,12 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
           contentPadding: EdgeInsets.zero,
           title: const Text(AppStrings.active),
           value: _isActive,
-          onChanged: locked ? null : (v) => setState(() => _isActive = v),
+          onChanged: _busy ? null : (v) => setState(() => _isActive = v),
         ),
         MutationButton(
           label: AppStrings.save,
           loading: _busy,
-          onPressed: locked ? null : _save,
+          onPressed: _busy ? null : _save,
         ),
         if (widget.banner != null) ...[
           const SizedBox(height: 8),
@@ -685,7 +591,7 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
             filled: false,
             destructive: true,
             loading: _busy,
-            onPressed: locked ? null : _delete,
+            onPressed: _busy ? null : _delete,
           ),
         ],
       ],

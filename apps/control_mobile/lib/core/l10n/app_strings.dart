@@ -18,8 +18,8 @@ abstract final class AppStrings {
   static const navEmployees = 'Xodimlar';
   static const navBusinesses = 'Bizneslar';
   static const navOrders = 'Buyurtmalar';
-  static const navCatalog = 'Katalog';
-  static const navPromotions = 'Aksiyalar';
+  static const navCatalog = 'Kategoriyalar';
+  static const navPromotions = 'Bannerlar';
   static const navSettings = 'Sozlamalar';
   static const navAudit = 'Audit';
 
@@ -31,9 +31,21 @@ abstract final class AppStrings {
   static const employeesTitle = 'Xodimlar';
   static const businessesTitle = 'Restoran va do‘konlar';
   static const ordersTitle = 'Buyurtmalar';
-  static const catalogTitle = 'Mahsulotlar';
+  static const catalogTitle = 'Kategoriyalar va mahsulotlar';
   static const promotionsTitle = 'Bannerlar va promo';
   static const settingsTitle = 'Ilova sozlamalari';
+  static const mediaSection = 'Rasmlar va bannerlar';
+  static const mediaSectionHint =
+      'Banner va kategoriya rasmlarini yuklash, o‘lcham va joylashuvini sozlash';
+  static const categoriesSection = 'Kategoriyalar';
+  static const productsSection = 'Mahsulotlar';
+  static const addCategory = 'Kategoriya + rasm';
+  static const editCategory = 'Kategoriyani tahrirlash';
+  static const categoryName = 'Kategoriya nomi';
+  static const categoryImageHint =
+      'Kategoriyani bosing — rasm yuklash, masshtab va joylashuv';
+  static const confirmDeleteCategory =
+      'Kategoriyani o‘chirishni tasdiqlaysizmi?';
   static const auditTitle = 'Audit jurnali';
 
   static const emptyList = 'Hali ma’lumot yo‘q';

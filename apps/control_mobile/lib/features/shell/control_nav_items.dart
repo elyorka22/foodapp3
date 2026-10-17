@@ -28,11 +28,13 @@ const controlNavItems = <ControlNavItem>[
     label: AppStrings.navEmployees,
     icon: Icons.badge_outlined,
     route: AppRoutes.employees,
+    mobile: false,
   ),
   ControlNavItem(
     label: AppStrings.navBusinesses,
     icon: Icons.storefront_outlined,
     route: AppRoutes.businesses,
+    mobile: false,
   ),
   ControlNavItem(
     label: AppStrings.navOrders,
@@ -41,15 +43,13 @@ const controlNavItems = <ControlNavItem>[
   ),
   ControlNavItem(
     label: AppStrings.navCatalog,
-    icon: Icons.inventory_2_outlined,
+    icon: Icons.category_outlined,
     route: AppRoutes.catalog,
-    mobile: false,
   ),
   ControlNavItem(
     label: AppStrings.navPromotions,
-    icon: Icons.campaign_outlined,
+    icon: Icons.image_outlined,
     route: AppRoutes.promotions,
-    mobile: false,
   ),
   ControlNavItem(
     label: AppStrings.navPush,

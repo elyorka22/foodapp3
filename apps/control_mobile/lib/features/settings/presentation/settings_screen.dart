@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/action_feedback.dart';
@@ -165,6 +166,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       children: [
         Text(AppStrings.settingsTitle, style: AppTypography.display),
         const SizedBox(height: 16),
+        Text(AppStrings.mediaSection, style: AppTypography.subtitle),
+        const SizedBox(height: 4),
+        Text(
+          AppStrings.mediaSectionHint,
+          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 10),
+        FilledButton.icon(
+          onPressed: () => context.go(AppRoutes.promotions),
+          icon: const Icon(Icons.image_outlined),
+          label: const Text(AppStrings.navPromotions),
+        ),
+        const SizedBox(height: 8),
+        FilledButton.tonalIcon(
+          onPressed: () => context.go(AppRoutes.catalog),
+          icon: const Icon(Icons.category_outlined),
+          label: const Text(AppStrings.navCatalog),
+        ),
+        const SizedBox(height: 24),
         Text(AppStrings.platformSection, style: AppTypography.subtitle),
         const SizedBox(height: 8),
         Wrap(
@@ -172,14 +192,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           runSpacing: 8,
           children: [
             for (final item in const [
+              (AppStrings.navEmployees, AppRoutes.employees),
+              (AppStrings.navBusinesses, AppRoutes.businesses),
               (AppStrings.navPush, AppRoutes.push),
               (AppStrings.navCouriers, AppRoutes.couriers),
               (AppStrings.navCustomers, AppRoutes.customers),
               (AppStrings.navCities, AppRoutes.cities),
               (AppStrings.navBusinessTypes, AppRoutes.businessTypes),
               (AppStrings.navBooking, AppRoutes.booking),
-              (AppStrings.navCatalog, AppRoutes.catalog),
-              (AppStrings.navPromotions, AppRoutes.promotions),
               (AppStrings.navAudit, AppRoutes.audit),
             ])
               OutlinedButton(
