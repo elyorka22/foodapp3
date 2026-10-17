@@ -1,4 +1,5 @@
 import '../../../core/utils/json_parse.dart';
+import '../../../shared/widgets/image_framing_controls.dart';
 
 class ControlBanner {
   const ControlBanner({
@@ -11,6 +12,9 @@ class ControlBanner {
     this.description,
     this.linkUrl,
     this.businessId,
+    this.imageScale,
+    this.imagePositionX,
+    this.imagePositionY,
     this.startsAt,
     this.endsAt,
     this.createdAt,
@@ -25,9 +29,18 @@ class ControlBanner {
   final String? description;
   final String? linkUrl;
   final String? businessId;
+  final int? imageScale;
+  final int? imagePositionX;
+  final int? imagePositionY;
   final DateTime? startsAt;
   final DateTime? endsAt;
   final DateTime? createdAt;
+
+  ImageFramingValues get framing => ImageFramingValues(
+        imageScale: ImageFramingValues.clampScale(imageScale),
+        imagePositionX: ImageFramingValues.clampPos(imagePositionX),
+        imagePositionY: ImageFramingValues.clampPos(imagePositionY),
+      );
 
   factory ControlBanner.fromJson(Map<String, dynamic> json) {
     return ControlBanner(
@@ -39,7 +52,10 @@ class ControlBanner {
       isActive: json['isActive'] as bool? ?? false,
       description: json['description'] as String?,
       linkUrl: json['linkUrl'] as String?,
-      businessId: json['businessId'] as String?,
+      businessId: json['businessId'] as String? ?? json['restaurantId'] as String?,
+      imageScale: (json['imageScale'] as num?)?.toInt(),
+      imagePositionX: (json['imagePositionX'] as num?)?.toInt(),
+      imagePositionY: (json['imagePositionY'] as num?)?.toInt(),
       startsAt: parseDateTime(json['startsAt']),
       endsAt: parseDateTime(json['endsAt']),
       createdAt: parseDateTime(json['createdAt']),

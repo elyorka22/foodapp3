@@ -103,9 +103,21 @@ abstract final class AppStrings {
   static const promoType = 'Turi';
   static const promoValue = 'Qiymat';
   static const bannerTitle = 'Banner sarlavhasi';
+  static const bannerDescription = 'Tavsif';
   static const bannerImageUrl = 'Rasm URL';
+  static const bannerPickImage = 'Galereyadan tanlash';
+  static const bannerChangeImage = 'Rasmni almashtirish';
+  static const bannerRemoveImage = 'Rasmni olib tashlash';
+  static const bannerUploading = 'Yuklanmoqda…';
+  static const bannerImageRequired = 'Rasm majburiy — yuklang yoki URL kiriting';
+  static const bannerImageFraming = 'Rasm joylashuvi';
+  static const bannerImagePreviewHint = 'Rasm yuklang — oldindan ko‘rish';
+  static const bannerImageScale = 'Masshtab';
+  static const bannerImagePosX = 'Gorizontal';
+  static const bannerImagePosY = 'Vertikal';
   static const bannerLink = 'Havola';
   static const bannerPlacement = 'Joylashuv';
+  static const bannerSortOrder = 'Tartib';
   static const confirmDeletePromo = 'Promo kodni o‘chirishni tasdiqlaysizmi?';
   static const confirmDeleteBanner = 'Bannerni o‘chirishni tasdiqlaysizmi?';
 

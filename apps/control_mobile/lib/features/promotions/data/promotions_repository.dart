@@ -76,6 +76,10 @@ class PromotionsRepository {
     int? sortOrder,
     bool isActive = true,
     String? description,
+    String? restaurantId,
+    int? imageScale,
+    int? imagePositionX,
+    int? imagePositionY,
   }) async {
     final res = await _dio.post<Map<String, dynamic>>(
       ApiPaths.banners,
@@ -83,10 +87,15 @@ class PromotionsRepository {
         'imageUrl': imageUrl,
         'isActive': isActive,
         if (title != null) 'title': title,
-        if (link != null) 'link': link,
+        if (link != null && link.isNotEmpty) 'link': link,
         if (placement != null) 'placement': placement,
         if (sortOrder != null) 'sortOrder': sortOrder,
         if (description != null) 'description': description,
+        if (restaurantId != null && restaurantId.isNotEmpty)
+          'restaurantId': restaurantId,
+        if (imageScale != null) 'imageScale': imageScale,
+        if (imagePositionX != null) 'imagePositionX': imagePositionX,
+        if (imagePositionY != null) 'imagePositionY': imagePositionY,
       },
     );
     return ControlBanner.fromJson(res.data ?? <String, dynamic>{});
@@ -100,6 +109,11 @@ class PromotionsRepository {
     String? placement,
     bool? isActive,
     int? sortOrder,
+    String? description,
+    String? restaurantId,
+    int? imageScale,
+    int? imagePositionX,
+    int? imagePositionY,
   }) async {
     final res = await _dio.patch<Map<String, dynamic>>(
       ApiPaths.banner(id),
@@ -110,6 +124,11 @@ class PromotionsRepository {
         if (placement != null) 'placement': placement,
         if (isActive != null) 'isActive': isActive,
         if (sortOrder != null) 'sortOrder': sortOrder,
+        if (description != null) 'description': description,
+        if (restaurantId != null) 'restaurantId': restaurantId,
+        if (imageScale != null) 'imageScale': imageScale,
+        if (imagePositionX != null) 'imagePositionX': imagePositionX,
+        if (imagePositionY != null) 'imagePositionY': imagePositionY,
       },
     );
     return ControlBanner.fromJson(res.data ?? <String, dynamic>{});
@@ -117,6 +136,13 @@ class PromotionsRepository {
 
   Future<void> deleteBanner(String id) async {
     await _dio.delete<dynamic>(ApiPaths.banner(id));
+  }
+
+  Future<void> reorderBanners(List<String> ids) async {
+    await _dio.put<dynamic>(
+      ApiPaths.bannersReorder,
+      data: {'ids': ids},
+    );
   }
 }
 

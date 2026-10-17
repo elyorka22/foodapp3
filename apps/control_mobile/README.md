@@ -19,7 +19,7 @@ Does not replace FoodApp Business or the customer website.
 - **Businesses:** approve/reject/suspend, active toggle, quick edit, owner account
 - **Employees:** create staff, edit profile, reset password, deactivate
 - **Catalog:** availability toggle, soft-delete
-- **Promotions:** promo codes + banners CRUD
+- **Promotions:** promo codes + banners CRUD (upload image, framing scale/position, reorder, delete)
 - **Push** broadcast, couriers/customers, cities, business types, booking
 - Settings + delivery pricing (`PUT /settings/admin`, `PUT /settings/delivery-pricing`)
 - Audit log (read-only)

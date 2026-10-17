@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/network/upload_repository.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
@@ -9,6 +12,7 @@ import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
+import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/banner_model.dart';
@@ -62,6 +66,8 @@ class PromotionsScreen extends ConsumerWidget {
               emptyMessage: AppStrings.emptyList,
               padding: const EdgeInsets.all(AppSpacing.lg),
               dataBuilder: (bundle) {
+                final banners = [...bundle.banners]
+                  ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -85,34 +91,60 @@ class PromotionsScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    if (bundle.banners.isEmpty)
+                    if (banners.isEmpty)
                       Text(AppStrings.emptyList, style: AppTypography.bodySmall)
                     else
-                      ...bundle.banners.map((b) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: ControlListCard(
-                            title: b.title.isNotEmpty
-                                ? b.title
-                                : (b.placement.isNotEmpty ? b.placement : b.id),
-                            subtitle: [
-                              if (b.placement.isNotEmpty) b.placement,
-                              if (b.linkUrl != null) b.linkUrl!,
-                            ].join(' · '),
-                            trailing: StatusChip(
-                              status: b.isActive ? 'DELIVERED' : 'CANCELLED',
-                              label: b.isActive
-                                  ? AppStrings.active
-                                  : AppStrings.inactive,
+                      ReorderableListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: banners.length,
+                        onReorder: (oldIndex, newIndex) async {
+                          if (newIndex > oldIndex) newIndex -= 1;
+                          final next = [...banners];
+                          final item = next.removeAt(oldIndex);
+                          next.insert(newIndex, item);
+                          try {
+                            await ref
+                                .read(promotionsRepositoryProvider)
+                                .reorderBanners(next.map((e) => e.id).toList());
+                            ref.invalidate(promotionsProvider);
+                          } catch (e) {
+                            if (context.mounted) showActionError(context, e);
+                          }
+                        },
+                        itemBuilder: (context, index) {
+                          final b = banners[index];
+                          return Padding(
+                            key: ValueKey(b.id),
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: ControlListCard(
+                              leading: _BannerThumb(banner: b),
+                              title: b.title.isNotEmpty
+                                  ? b.title
+                                  : (b.placement.isNotEmpty
+                                      ? b.placement
+                                      : b.id),
+                              subtitle: [
+                                if (b.placement.isNotEmpty) b.placement,
+                                if (b.linkUrl != null && b.linkUrl!.isNotEmpty)
+                                  b.linkUrl!,
+                              ].join(' · '),
+                              trailing: StatusChip(
+                                status:
+                                    b.isActive ? 'DELIVERED' : 'CANCELLED',
+                                label: b.isActive
+                                    ? AppStrings.active
+                                    : AppStrings.inactive,
+                              ),
+                              onTap: () => showDetailSheet(
+                                context: context,
+                                title: AppStrings.details,
+                                builder: (_) => _BannerFormSheet(banner: b),
+                              ),
                             ),
-                            onTap: () => showDetailSheet(
-                              context: context,
-                              title: AppStrings.details,
-                              builder: (_) => _BannerFormSheet(banner: b),
-                            ),
-                          ),
-                        );
-                      }),
+                          );
+                        },
+                      ),
                     const SizedBox(height: 20),
                     Row(
                       children: [
@@ -172,6 +204,49 @@ class PromotionsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BannerThumb extends StatelessWidget {
+  const _BannerThumb({required this.banner});
+
+  final ControlBanner banner;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = banner.imageUrl.trim();
+    final framing = banner.framing;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: 56,
+        height: 40,
+        child: url.isEmpty
+            ? const ColoredBox(
+                color: Color(0xFFE4E4E7),
+                child: Icon(Icons.image_outlined, size: 20),
+              )
+            : Transform.scale(
+                scale: framing.imageScale / 100,
+                alignment: Alignment(
+                  (framing.imagePositionX / 50) - 1,
+                  (framing.imagePositionY / 50) - 1,
+                ),
+                child: Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  alignment: Alignment(
+                    (framing.imagePositionX / 50) - 1,
+                    (framing.imagePositionY / 50) - 1,
+                  ),
+                  errorBuilder: (_, __, ___) => const ColoredBox(
+                    color: Color(0xFFE4E4E7),
+                    child: Icon(Icons.broken_image_outlined, size: 20),
+                  ),
+                ),
+              ),
       ),
     );
   }
@@ -333,11 +408,15 @@ class _BannerFormSheet extends ConsumerStatefulWidget {
 
 class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
   late final TextEditingController _title;
+  late final TextEditingController _description;
   late final TextEditingController _imageUrl;
   late final TextEditingController _link;
+  late final TextEditingController _sortOrder;
   String _placement = 'HERO';
   bool _isActive = true;
   bool _busy = false;
+  bool _uploading = false;
+  late ImageFramingValues _framing;
 
   static const _placements = [
     'HERO',
@@ -352,45 +431,107 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
     super.initState();
     final b = widget.banner;
     _title = TextEditingController(text: b?.title ?? '');
+    _description = TextEditingController(text: b?.description ?? '');
     _imageUrl = TextEditingController(text: b?.imageUrl ?? '');
     _link = TextEditingController(text: b?.linkUrl ?? '');
+    _sortOrder = TextEditingController(text: '${b?.sortOrder ?? 0}');
     _placement = b?.placement.isNotEmpty == true ? b!.placement : 'HERO';
     _isActive = b?.isActive ?? true;
+    _framing = b?.framing ?? const ImageFramingValues();
+    _imageUrl.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _title.dispose();
+    _description.dispose();
     _imageUrl.dispose();
     _link.dispose();
+    _sortOrder.dispose();
     super.dispose();
+  }
+
+  double get _previewAspect => _placement == 'HOME_MAIN' ? 5 / 6 : 2;
+
+  Future<void> _pickAndUpload() async {
+    if (_busy || _uploading) return;
+    try {
+      final picker = ImagePicker();
+      final file = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 2400,
+        imageQuality: 88,
+      );
+      if (file == null) return;
+
+      setState(() => _uploading = true);
+      final bytes = await file.readAsBytes();
+      final name = file.name.isNotEmpty ? file.name : 'banner.jpg';
+      final result = await ref.read(uploadRepositoryProvider).uploadImage(
+            bytes: bytes,
+            filename: name,
+            refererPath: '/admin/banners',
+          );
+      if (!mounted) return;
+      if (result.url.isEmpty) {
+        showActionSnackBar(context, 'Yuklash muvaffaqiyatsiz', error: true);
+        return;
+      }
+      setState(() {
+        _imageUrl.text = result.url;
+      });
+      showActionSnackBar(context, AppStrings.actionDone);
+    } catch (e) {
+      if (mounted) showActionError(context, e);
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  void _clearImage() {
+    setState(() {
+      _imageUrl.clear();
+      _framing = const ImageFramingValues();
+    });
   }
 
   Future<void> _save() async {
     final imageUrl = _imageUrl.text.trim();
     if (imageUrl.isEmpty) {
-      showActionSnackBar(context, 'Rasm URL majburiy', error: true);
+      showActionSnackBar(context, AppStrings.bannerImageRequired, error: true);
       return;
     }
     setState(() => _busy = true);
     try {
       final repo = ref.read(promotionsRepositoryProvider);
+      final sortOrder = int.tryParse(_sortOrder.text.trim()) ?? 0;
+      final desc = _description.text.trim();
       if (widget.banner == null) {
         await repo.createBanner(
           imageUrl: imageUrl,
           title: _title.text.trim(),
+          description: desc.isEmpty ? null : desc,
           link: _link.text.trim(),
           placement: _placement,
+          sortOrder: sortOrder,
           isActive: _isActive,
+          imageScale: _framing.imageScale,
+          imagePositionX: _framing.imagePositionX,
+          imagePositionY: _framing.imagePositionY,
         );
       } else {
         await repo.updateBanner(
           widget.banner!.id,
           title: _title.text.trim(),
+          description: desc,
           imageUrl: imageUrl,
           link: _link.text.trim(),
           placement: _placement,
+          sortOrder: sortOrder,
           isActive: _isActive,
+          imageScale: _framing.imageScale,
+          imagePositionX: _framing.imagePositionX,
+          imagePositionY: _framing.imagePositionY,
         );
       }
       ref.invalidate(promotionsProvider);
@@ -430,22 +571,79 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final locked = _busy || _uploading;
+    final hasImage = _imageUrl.text.trim().isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
           controller: _title,
+          enabled: !locked,
           decoration: const InputDecoration(labelText: AppStrings.bannerTitle),
         ),
         const SizedBox(height: 8),
         TextField(
-          controller: _imageUrl,
+          controller: _description,
+          enabled: !locked,
+          maxLines: 2,
           decoration:
-              const InputDecoration(labelText: AppStrings.bannerImageUrl),
+              const InputDecoration(labelText: AppStrings.bannerDescription),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: locked ? null : _pickAndUpload,
+                icon: _uploading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.photo_library_outlined),
+                label: Text(
+                  _uploading
+                      ? AppStrings.bannerUploading
+                      : (hasImage
+                          ? AppStrings.bannerChangeImage
+                          : AppStrings.bannerPickImage),
+                ),
+              ),
+            ),
+            if (hasImage) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: AppStrings.bannerRemoveImage,
+                onPressed: locked ? null : _clearImage,
+                icon: const Icon(Icons.delete_outline),
+                color: AppColors.danger,
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _imageUrl,
+          enabled: !locked,
+          decoration: const InputDecoration(
+            labelText: AppStrings.bannerImageUrl,
+            hintText: 'https://…',
+          ),
+        ),
+        const SizedBox(height: 12),
+        ImageFramingControls(
+          imageUrl: _imageUrl.text.trim(),
+          values: _framing,
+          aspectRatio: _previewAspect,
+          enabled: !locked,
+          onChanged: (v) => setState(() => _framing = v),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _link,
+          enabled: !locked,
           decoration: const InputDecoration(labelText: AppStrings.bannerLink),
         ),
         const SizedBox(height: 8),
@@ -457,19 +655,28 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
             for (final p in _placements)
               DropdownMenuItem(value: p, child: Text(p)),
           ],
-          onChanged:
-              _busy ? null : (v) => setState(() => _placement = v ?? _placement),
+          onChanged: locked
+              ? null
+              : (v) => setState(() => _placement = v ?? _placement),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _sortOrder,
+          enabled: !locked,
+          keyboardType: TextInputType.number,
+          decoration:
+              const InputDecoration(labelText: AppStrings.bannerSortOrder),
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text(AppStrings.active),
           value: _isActive,
-          onChanged: _busy ? null : (v) => setState(() => _isActive = v),
+          onChanged: locked ? null : (v) => setState(() => _isActive = v),
         ),
         MutationButton(
           label: AppStrings.save,
           loading: _busy,
-          onPressed: _save,
+          onPressed: locked ? null : _save,
         ),
         if (widget.banner != null) ...[
           const SizedBox(height: 8),
@@ -478,7 +685,7 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
             filled: false,
             destructive: true,
             loading: _busy,
-            onPressed: _delete,
+            onPressed: locked ? null : _delete,
           ),
         ],
       ],
