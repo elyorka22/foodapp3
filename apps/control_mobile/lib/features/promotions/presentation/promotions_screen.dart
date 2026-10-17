@@ -58,8 +58,7 @@ class PromotionsScreen extends ConsumerWidget {
           child: AsyncPageBody<_PromotionsBundle>(
             asyncValue: async,
             onRefresh: () => ref.refresh(promotionsProvider.future),
-            isEmpty: (b) => b.banners.isEmpty && b.promos.isEmpty,
-            emptyMessage: AppStrings.emptyList,
+            // Always show dataBuilder so "Banner qo'shish" stays visible when empty.
             padding: const EdgeInsets.all(AppSpacing.lg),
             dataBuilder: (bundle) {
               final banners = [...bundle.banners]
@@ -67,29 +66,30 @@ class PromotionsScreen extends ConsumerWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppStrings.bannersSection,
-                          style: AppTypography.subtitle,
-                        ),
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => showDetailSheet(
-                          context: context,
-                          title: AppStrings.addBanner,
-                          initialChildSize: 0.92,
-                          builder: (_) => const _BannerFormSheet(),
-                        ),
-                        icon: const Icon(Icons.add_photo_alternate_outlined),
-                        label: const Text(AppStrings.addBanner),
-                      ),
-                    ],
+                  Text(
+                    AppStrings.bannersSection,
+                    style: AppTypography.subtitle,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
+                  FilledButton.icon(
+                    onPressed: () => showDetailSheet(
+                      context: context,
+                      title: AppStrings.addBanner,
+                      initialChildSize: 0.92,
+                      builder: (_) => const _BannerFormSheet(),
+                    ),
+                    icon: const Icon(Icons.add_photo_alternate_outlined),
+                    label: const Text(AppStrings.addBanner),
+                  ),
+                  const SizedBox(height: 12),
                   if (banners.isEmpty)
-                    Text(AppStrings.emptyList, style: AppTypography.bodySmall)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        AppStrings.bannerEmptyHint,
+                        style: AppTypography.bodySmall,
+                      ),
+                    )
                   else
                     ReorderableListView.builder(
                       shrinkWrap: true,

@@ -44,8 +44,12 @@ abstract final class AppStrings {
   static const categoryName = 'Kategoriya nomi';
   static const categoryImageHint =
       'Kategoriyani bosing — rasm yuklash, masshtab va joylashuv';
+  static const categoryEmptyHint =
+      'Hali kategoriya yo‘q. Yuqoridagi tugma orqali qo‘shing va rasm yuklang.';
   static const confirmDeleteCategory =
       'Kategoriyani o‘chirishni tasdiqlaysizmi?';
+  static const bannerEmptyHint =
+      'Hali banner yo‘q. «Banner qo‘shish» → «Galereyadan tanlash».';
   static const auditTitle = 'Audit jurnali';
 
   static const emptyList = 'Hali ma’lumot yo‘q';

@@ -97,8 +97,7 @@ class _CategoriesTab extends ConsumerWidget {
     return AsyncPageBody<List<ControlDishCategory>>(
       asyncValue: async,
       onRefresh: () => ref.refresh(dishCategoriesProvider.future),
-      isEmpty: (list) => list.isEmpty,
-      emptyMessage: AppStrings.emptyList,
+      // Always show dataBuilder so "Kategoriya + rasm" stays visible when empty.
       padding: const EdgeInsets.all(AppSpacing.lg),
       dataBuilder: (categories) {
         final rows = [...categories]
@@ -123,6 +122,13 @@ class _CategoriesTab extends ConsumerWidget {
                 color: AppColors.textSecondary,
               ),
             ),
+            if (rows.isEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                AppStrings.categoryEmptyHint,
+                style: AppTypography.bodySmall,
+              ),
+            ],
             const SizedBox(height: 12),
             ...rows.map((c) {
               return Padding(
