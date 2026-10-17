@@ -8,8 +8,10 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
+  // Avoid encryptedSharedPreferences — it can hang indefinitely on some
+  // Android devices during first read and leave the UI on the Flutter splash.
   return const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(),
   );
 });
 

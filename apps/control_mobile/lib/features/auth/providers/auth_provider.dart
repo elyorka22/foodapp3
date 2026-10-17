@@ -8,7 +8,15 @@ final authStateProvider =
 class AuthNotifier extends AsyncNotifier<AuthUserModel?> {
   @override
   Future<AuthUserModel?> build() async {
-    return ref.read(authRepositoryProvider).currentUser();
+    try {
+      return await ref
+          .read(authRepositoryProvider)
+          .currentUser()
+          .timeout(const Duration(seconds: 6));
+    } catch (_) {
+      // Corrupt / hung secure storage must not leave the app on splash forever.
+      return null;
+    }
   }
 
   Future<void> login(String loginId, String password) async {

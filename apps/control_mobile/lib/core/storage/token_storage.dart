@@ -56,7 +56,11 @@ class TokenStorage {
   Future<String?> getUserJson() async => _prefs.getString(_userJsonKey);
 
   Future<void> clear() async {
-    await _secure.delete(key: _tokenKey);
+    try {
+      await _secure.delete(key: _tokenKey).timeout(const Duration(seconds: 3));
+    } catch (_) {
+      // Ignore hung/corrupt secure storage on logout.
+    }
     await _prefs.remove(_userJsonKey);
     _cachedToken = null;
     _tokenLoaded = true;
