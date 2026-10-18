@@ -9,6 +9,7 @@ import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
+import '../../../shared/widgets/header_action.dart';
 import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
@@ -48,15 +49,23 @@ class PromotionsScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const PageHeader(
+        PageHeader(
           title: AppStrings.promotionsTitle,
-          subtitle: AppStrings.bannersHomeHint,
+          trailing: HeaderAction(
+            label: AppStrings.addBanner,
+            icon: Icons.add_photo_alternate_outlined,
+            onPressed: () => showDetailSheet(
+              context: context,
+              title: AppStrings.addBanner,
+              initialChildSize: 0.92,
+              builder: (_) => const _BannerFormSheet(),
+            ),
+          ),
         ),
         Expanded(
           child: AsyncPageBody<_PromotionsBundle>(
             asyncValue: async,
             onRefresh: () => ref.refresh(promotionsProvider.future),
-            // Always show dataBuilder so add-banner stays visible when empty.
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg,
               AppSpacing.sm,
@@ -71,22 +80,13 @@ class PromotionsScreen extends ConsumerWidget {
                 children: [
                   SectionPanel(
                     title: AppStrings.bannersSection,
-                    subtitle: AppStrings.bannerEmptyHint,
+                    subtitle: banners.isEmpty
+                        ? AppStrings.bannerEmptyHint
+                        : AppStrings.bannersHomeHint,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        FilledButton.icon(
-                          onPressed: () => showDetailSheet(
-                            context: context,
-                            title: AppStrings.addBanner,
-                            initialChildSize: 0.92,
-                            builder: (_) => const _BannerFormSheet(),
-                          ),
-                          icon: const Icon(Icons.add_photo_alternate_outlined),
-                          label: const Text(AppStrings.addBanner),
-                        ),
                         if (banners.isNotEmpty) ...[
-                          const SizedBox(height: 14),
                           ReorderableListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -152,21 +152,17 @@ class PromotionsScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   SectionPanel(
                     title: AppStrings.promosSection,
+                    trailing: HeaderAction(
+                      label: AppStrings.create,
+                      onPressed: () => showDetailSheet(
+                        context: context,
+                        title: AppStrings.addPromo,
+                        builder: (_) => const _PromoFormSheet(),
+                      ),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: () => showDetailSheet(
-                              context: context,
-                              title: AppStrings.addPromo,
-                              builder: (_) => const _PromoFormSheet(),
-                            ),
-                            icon: const Icon(Icons.add),
-                            label: const Text(AppStrings.addPromo),
-                          ),
-                        ),
                         if (bundle.promos.isEmpty)
                           Text(
                             AppStrings.emptyList,

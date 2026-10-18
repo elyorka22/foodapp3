@@ -15,7 +15,7 @@ Future<T?> showDetailSheet<T>({
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: AppColors.surface,
-    barrierColor: Colors.black.withOpacity(0.35),
+    barrierColor: Colors.black.withValues(alpha: 0.4),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(AppSpacing.sheetRadius),
@@ -31,11 +31,11 @@ Future<T?> showDetailSheet<T>({
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Center(
                 child: Container(
-                  width: 36,
-                  height: 4,
+                  width: 32,
+                  height: 3,
                   decoration: BoxDecoration(
                     color: AppColors.border,
                     borderRadius: BorderRadius.circular(99),
@@ -46,31 +46,23 @@ Future<T?> showDetailSheet<T>({
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg,
                   AppSpacing.md,
-                  8,
+                  4,
                   AppSpacing.sm,
                 ),
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        title,
-                        style: AppTypography.title.copyWith(
-                          letterSpacing: -0.3,
-                        ),
-                      ),
+                      child: Text(title, style: AppTypography.title),
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppColors.surfaceMuted,
-                        foregroundColor: AppColors.textSecondary,
-                      ),
-                      icon: const Icon(Icons.close_rounded, size: 20),
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.close, size: 20),
                     ),
                   ],
                 ),
               ),
-              Divider(height: 1, color: AppColors.borderLight),
+              const Divider(height: 1),
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,

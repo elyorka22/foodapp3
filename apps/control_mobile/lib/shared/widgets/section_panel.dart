@@ -3,19 +3,21 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
-/// Soft panel for grouping settings / form blocks.
+/// Bordered panel for grouping settings / form blocks.
 class SectionPanel extends StatelessWidget {
   const SectionPanel({
     super.key,
     required this.child,
     this.title,
     this.subtitle,
+    this.trailing,
     this.padding = const EdgeInsets.all(AppSpacing.lg),
   });
 
   final Widget child;
   final String? title;
   final String? subtitle;
+  final Widget? trailing;
   final EdgeInsetsGeometry padding;
 
   @override
@@ -25,7 +27,6 @@ class SectionPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        boxShadow: AppColors.cardShadow,
         border: Border.all(color: AppColors.borderLight),
       ),
       padding: padding,
@@ -33,17 +34,27 @@ class SectionPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (title != null) ...[
-            Text(title!, style: AppTypography.subtitle),
-            if (subtitle != null && subtitle!.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                subtitle!,
-                style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title!, style: AppTypography.subtitle),
+                      if (subtitle != null && subtitle!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: AppTypography.bodySmall,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-            const SizedBox(height: 14),
+                if (trailing != null) trailing!,
+              ],
+            ),
+            const SizedBox(height: 12),
           ],
           child,
         ],

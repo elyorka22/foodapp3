@@ -8,7 +8,9 @@ import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
+import '../../../shared/widgets/header_action.dart';
 import '../../../shared/widgets/mutation_button.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/courier_model.dart';
 import '../data/couriers_repository.dart';
@@ -24,60 +26,61 @@ class CouriersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(couriersListProvider);
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Text(AppStrings.navCouriers, style: AppTypography.display),
-          ),
-          Expanded(
-            child: AsyncPageBody<PaginatedResponse<ControlCourier>>(
-              asyncValue: async,
-              onRefresh: () => ref.refresh(couriersListProvider.future),
-              isEmpty: (p) => p.data.isEmpty,
-              emptyMessage: AppStrings.emptyList,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              dataBuilder: (page) => ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: page.data.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, i) {
-                  final c = page.data[i];
-                  return ControlListCard(
-                    title: c.displayName,
-                    subtitle: [
-                      if (c.phone != null) c.phone!,
-                      if (c.vehicleType != null) c.vehicleType!,
-                      c.isOnline ? AppStrings.online : AppStrings.offline,
-                    ].join(' · '),
-                    trailing: StatusChip(
-                      status: c.isActive ? 'DELIVERED' : 'CANCELLED',
-                      label: c.isActive ? AppStrings.active : AppStrings.inactive,
-                    ),
-                    onTap: () => showDetailSheet(
-                      context: context,
-                      title: AppStrings.details,
-                      builder: (_) => _CourierActions(courier: c),
-                    ),
-                  );
-                },
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PageHeader(
+          title: AppStrings.navCouriers,
+          trailing: HeaderAction(
+            label: AppStrings.create,
+            onPressed: () => showDetailSheet(
+              context: context,
+              title: AppStrings.addCourier,
+              builder: (_) => const _CourierCreateForm(),
             ),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showDetailSheet(
-          context: context,
-          title: AppStrings.addCourier,
-          builder: (_) => const _CourierCreateForm(),
         ),
-        icon: const Icon(Icons.add),
-        label: const Text(AppStrings.addCourier),
-      ),
+        Expanded(
+          child: AsyncPageBody<PaginatedResponse<ControlCourier>>(
+            asyncValue: async,
+            onRefresh: () => ref.refresh(couriersListProvider.future),
+            isEmpty: (p) => p.data.isEmpty,
+            emptyMessage: AppStrings.emptyList,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
+            dataBuilder: (page) => ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: page.data.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 6),
+              itemBuilder: (context, i) {
+                final c = page.data[i];
+                return ControlListCard(
+                  title: c.displayName,
+                  subtitle: [
+                    if (c.phone != null) c.phone!,
+                    if (c.vehicleType != null) c.vehicleType!,
+                    c.isOnline ? AppStrings.online : AppStrings.offline,
+                  ].join(' · '),
+                  trailing: StatusChip(
+                    status: c.isActive ? 'DELIVERED' : 'CANCELLED',
+                    label: c.isActive ? AppStrings.active : AppStrings.inactive,
+                  ),
+                  onTap: () => showDetailSheet(
+                    context: context,
+                    title: AppStrings.details,
+                    builder: (_) => _CourierActions(courier: c),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

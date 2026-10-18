@@ -49,6 +49,7 @@ const controlNavItems = <ControlNavItem>[
     label: AppStrings.navPromotions,
     icon: Icons.image_outlined,
     route: AppRoutes.promotions,
+    mobile: false,
   ),
   ControlNavItem(
     label: AppStrings.navPush,

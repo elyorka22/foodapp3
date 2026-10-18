@@ -33,67 +33,47 @@ class ControlShellScreen extends ConsumerWidget {
 
     if (compact) {
       final currentRoute = controlNavItems[navigationShell.currentIndex].route;
-      var bottomIndex = mobileItems.indexWhere((e) => e.value.route == currentRoute);
+      var bottomIndex =
+          mobileItems.indexWhere((e) => e.value.route == currentRoute);
       if (bottomIndex < 0) bottomIndex = 0;
 
       return Scaffold(
         appBar: AppBar(
           titleSpacing: 16,
-          title: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.shield_outlined,
-                  size: 18,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                AppStrings.appName,
-                style: AppTypography.subtitle.copyWith(
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ],
+          title: Text(
+            AppStrings.appName,
+            style: AppTypography.subtitle.copyWith(fontWeight: FontWeight.w700),
           ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                tooltip: AppStrings.logout,
-                onPressed: () => ref.read(authStateProvider.notifier).logout(),
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.surfaceMuted,
-                  foregroundColor: AppColors.textSecondary,
-                ),
-                icon: const Icon(Icons.logout_rounded, size: 20),
-              ),
+            IconButton(
+              tooltip: AppStrings.logout,
+              onPressed: () => ref.read(authStateProvider.notifier).logout(),
+              icon: const Icon(Icons.logout_rounded, size: 20),
             ),
+            const SizedBox(width: 4),
           ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppColors.borderLight),
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1),
           ),
         ),
         body: navigationShell,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: bottomIndex,
-          onDestinationSelected: (i) => _goBranch(mobileItems[i].key),
-          destinations: [
-            for (final item in mobileItems)
-              NavigationDestination(
-                icon: Icon(item.value.icon),
-                selectedIcon: Icon(item.value.icon),
-                label: item.value.label,
-              ),
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Divider(height: 1),
+            NavigationBar(
+              selectedIndex: bottomIndex,
+              onDestinationSelected: (i) => _goBranch(mobileItems[i].key),
+              destinations: [
+                for (final item in mobileItems)
+                  NavigationDestination(
+                    icon: Icon(item.value.icon),
+                    selectedIcon: Icon(item.value.icon),
+                    label: item.value.label,
+                  ),
+              ],
+            ),
           ],
         ),
       );
@@ -110,6 +90,7 @@ class ControlShellScreen extends ConsumerWidget {
             onSelect: _goBranch,
             onLogout: () => ref.read(authStateProvider.notifier).logout(),
           ),
+          const VerticalDivider(width: 1),
           Expanded(child: navigationShell),
         ],
       ),
@@ -140,50 +121,65 @@ class _DesktopSidebar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     AppStrings.appName,
-                    style: AppTypography.title.copyWith(color: AppColors.onSidebar),
+                    style: AppTypography.title.copyWith(
+                      color: AppColors.onSidebar,
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     AppStrings.appTagline,
-                    style: AppTypography.caption.copyWith(color: AppColors.onSidebarMuted),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.onSidebarMuted,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 itemCount: controlNavItems.length,
                 itemBuilder: (context, index) {
                   final item = controlNavItems[index];
                   final selected = index == selectedIndex;
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.only(bottom: 2),
                     child: Material(
-                      color: selected ? AppColors.sidebarMuted : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
+                      color: selected
+                          ? AppColors.sidebarMuted
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
                       child: ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
                         leading: Icon(
                           item.icon,
-                          color: selected ? AppColors.onSidebar : AppColors.onSidebarMuted,
+                          size: 20,
+                          color: selected
+                              ? AppColors.onSidebar
+                              : AppColors.onSidebarMuted,
                         ),
                         title: Text(
                           item.label,
                           style: AppTypography.body.copyWith(
-                            color: selected ? AppColors.onSidebar : AppColors.onSidebarMuted,
-                            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                            fontSize: 13,
+                            color: selected
+                                ? AppColors.onSidebar
+                                : AppColors.onSidebarMuted,
+                            fontWeight:
+                                selected ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
                         selected: selected,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         onTap: () => onSelect(index),
                       ),
@@ -194,13 +190,19 @@ class _DesktopSidebar extends StatelessWidget {
             ),
             const Divider(color: AppColors.sidebarMuted, height: 1),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  const CircleAvatar(
-                    radius: 18,
+                  CircleAvatar(
+                    radius: 16,
                     backgroundColor: AppColors.sidebarMuted,
-                    child: Icon(Icons.shield_outlined, color: AppColors.onSidebar, size: 18),
+                    child: Text(
+                      userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.onSidebar,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -208,13 +210,19 @@ class _DesktopSidebar extends StatelessWidget {
                       userName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.onSidebar),
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.onSidebar,
+                      ),
                     ),
                   ),
                   IconButton(
                     tooltip: AppStrings.logout,
                     onPressed: onLogout,
-                    icon: const Icon(Icons.logout, color: AppColors.onSidebarMuted),
+                    icon: const Icon(
+                      Icons.logout,
+                      color: AppColors.onSidebarMuted,
+                      size: 18,
+                    ),
                   ),
                 ],
               ),

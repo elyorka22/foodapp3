@@ -4,11 +4,12 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/paginated_response.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
+import '../../../shared/widgets/header_action.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../cities/data/cities_repository.dart';
 import '../data/businesses_repository.dart';
@@ -16,7 +17,8 @@ import '../data/restaurant_model.dart';
 import 'business_create_sheet.dart';
 import 'business_detail_sheet.dart';
 
-final _businessCityFilterProvider = StateProvider.autoDispose<String?>((ref) => null);
+final _businessCityFilterProvider =
+    StateProvider.autoDispose<String?>((ref) => null);
 
 final businessesListProvider =
     FutureProvider.autoDispose<PaginatedResponse<ControlRestaurant>>((ref) {
@@ -44,129 +46,137 @@ class BusinessesScreen extends ConsumerWidget {
     final citiesAsync = ref.watch(_citiesForFilterProvider);
     final selectedCityId = ref.watch(_businessCityFilterProvider);
 
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PageHeader(
+          title: AppStrings.businessesTitle,
+          trailing: HeaderAction(
+            label: AppStrings.create,
+            onPressed: () => showDetailSheet(
+              context: context,
+              title: AppStrings.addBusiness,
+              initialChildSize: 0.92,
+              builder: (_) => const BusinessCreateSheet(),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            0,
+            AppSpacing.lg,
+            AppSpacing.sm,
+          ),
+          child: citiesAsync.when(
+            data: (cities) {
+              final active = cities.where((c) => c.isActive).toList();
+              return DropdownButtonFormField<String?>(
+                value: selectedCityId,
+                decoration: const InputDecoration(
+                  labelText: AppStrings.filterByCity,
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text(AppStrings.allCities),
+                  ),
+                  for (final c in active)
+                    DropdownMenuItem<String?>(
+                      value: c.id,
+                      child: Text(c.name),
+                    ),
+                ],
+                onChanged: (v) {
+                  ref.read(_businessCityFilterProvider.notifier).state = v;
+                },
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+        ),
+        Expanded(
+          child: AsyncPageBody<PaginatedResponse<ControlRestaurant>>(
+            asyncValue: async,
+            onRefresh: () => ref.refresh(businessesListProvider.future),
+            isEmpty: (p) => p.data.isEmpty,
+            emptyMessage: AppStrings.emptyList,
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg,
+              AppSpacing.sm,
               AppSpacing.lg,
               AppSpacing.lg,
-              0,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(AppStrings.businessesTitle, style: AppTypography.display),
-                const SizedBox(height: AppSpacing.sm),
-                citiesAsync.when(
-                  data: (cities) {
-                    final active = cities.where((c) => c.isActive).toList();
-                    return DropdownButtonFormField<String?>(
-                      value: selectedCityId,
-                      decoration: const InputDecoration(
-                        labelText: AppStrings.filterByCity,
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                      ),
-                      items: [
-                        const DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text(AppStrings.allCities),
-                        ),
-                        for (final c in active)
-                          DropdownMenuItem<String?>(
-                            value: c.id,
-                            child: Text(c.name),
-                          ),
-                      ],
-                      onChanged: (v) {
-                        ref.read(_businessCityFilterProvider.notifier).state = v;
-                      },
-                    );
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                ),
-              ],
-            ),
+            dataBuilder: (page) {
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: page.data.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 6),
+                itemBuilder: (context, index) {
+                  final r = page.data[index];
+                  return ControlListCard(
+                    leading: _BizAvatar(logoUrl: r.logoUrl),
+                    title: r.name,
+                    subtitle: [
+                      if (r.cityName != null && r.cityName!.isNotEmpty)
+                        r.cityName!,
+                      r.approvalStatus,
+                      if (r.branchAddress != null) r.branchAddress!,
+                      formatMoney(r.revenue),
+                    ].join(' · '),
+                    trailing: StatusChip(
+                      status: r.isActive ? 'DELIVERED' : 'CANCELLED',
+                      label:
+                          r.isActive ? AppStrings.active : AppStrings.inactive,
+                    ),
+                    onTap: () => showDetailSheet(
+                      context: context,
+                      title: AppStrings.details,
+                      builder: (_) => BusinessDetailSheet(restaurant: r),
+                    ),
+                  );
+                },
+              );
+            },
           ),
-          Expanded(
-            child: AsyncPageBody<PaginatedResponse<ControlRestaurant>>(
-              asyncValue: async,
-              onRefresh: () => ref.refresh(businessesListProvider.future),
-              isEmpty: (p) => p.data.isEmpty,
-              emptyMessage: AppStrings.emptyList,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              dataBuilder: (page) {
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: page.data.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final r = page.data[index];
-                    return ControlListCard(
-                      leading: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySoft,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: r.logoUrl != null && r.logoUrl!.isNotEmpty
-                            ? Image.network(
-                                r.logoUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(
-                                  Icons.storefront_outlined,
-                                  color: AppColors.primary,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.storefront_outlined,
-                                color: AppColors.primary,
-                              ),
-                      ),
-                      title: r.name,
-                      subtitle: [
-                        if (r.cityName != null && r.cityName!.isNotEmpty)
-                          r.cityName!,
-                        r.approvalStatus,
-                        if (r.branchAddress != null) r.branchAddress!,
-                        '${r.ordersCount} buyurtma',
-                        formatMoney(r.revenue),
-                      ].join(' · '),
-                      trailing: StatusChip(
-                        status: r.isActive ? 'DELIVERED' : 'CANCELLED',
-                        label:
-                            r.isActive ? AppStrings.active : AppStrings.inactive,
-                      ),
-                      onTap: () => showDetailSheet(
-                        context: context,
-                        title: AppStrings.details,
-                        builder: (_) => BusinessDetailSheet(restaurant: r),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showDetailSheet(
-          context: context,
-          title: AppStrings.addBusiness,
-          initialChildSize: 0.92,
-          builder: (_) => const BusinessCreateSheet(),
         ),
-        icon: const Icon(Icons.storefront_outlined),
-        label: const Text(AppStrings.addBusiness),
+      ],
+    );
+  }
+}
+
+class _BizAvatar extends StatelessWidget {
+  const _BizAvatar({this.logoUrl});
+
+  final String? logoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(8),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: logoUrl != null && logoUrl!.isNotEmpty
+          ? Image.network(
+              logoUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const Icon(
+                Icons.storefront_outlined,
+                size: 20,
+                color: AppColors.primary,
+              ),
+            )
+          : const Icon(
+              Icons.storefront_outlined,
+              size: 20,
+              color: AppColors.primary,
+            ),
     );
   }
 }

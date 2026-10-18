@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
 import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/mutation_button.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/order_model.dart';
 import '../data/orders_repository.dart';
@@ -205,30 +206,43 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   Widget build(BuildContext context) {
     final filter = ref.watch(ordersFilterProvider);
     final async = ref.watch(ordersPagedProvider);
+    final hasFilters = filter.status != null ||
+        filter.dateFrom != null ||
+        filter.dateTo != null ||
+        filter.search.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        PageHeader(
+          title: AppStrings.ordersTitle,
+          trailing: hasFilters
+              ? TextButton(
+                  onPressed: () {
+                    _search.clear();
+                    ref.read(ordersFilterProvider.notifier).state =
+                        const OrdersFilter();
+                  },
+                  child: const Text(AppStrings.clearFilters),
+                )
+              : null,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
             0,
+            AppSpacing.lg,
+            AppSpacing.sm,
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(AppStrings.ordersTitle, style: AppTypography.display),
-              const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: _search,
                 decoration: InputDecoration(
-                  labelText: AppStrings.orderSearchHint,
-                  isDense: true,
-                  border: const OutlineInputBorder(),
+                  hintText: AppStrings.orderSearchHint,
+                  prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
+                    icon: const Icon(Icons.arrow_forward, size: 18),
                     onPressed: () {
                       ref.read(ordersFilterProvider.notifier).state =
                           filter.copyWith(search: _search.text);
@@ -241,61 +255,53 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 },
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String?>(
-                value: filter.status,
-                decoration: const InputDecoration(
-                  labelText: AppStrings.orderStatus,
-                  isDense: true,
-                  border: OutlineInputBorder(),
-                ),
-                items: [
-                  const DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(AppStrings.allStatuses),
-                  ),
-                  for (final s in ControlOrder.statusOptions)
-                    DropdownMenuItem<String?>(value: s, child: Text(s)),
-                ],
-                onChanged: (v) {
-                  ref.read(ordersFilterProvider.notifier).state =
-                      filter.copyWith(status: v, clearStatus: v == null);
-                },
-              ),
-              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => _pickDate(from: true),
-                      child: Text('${AppStrings.dateFrom}: ${_dateLabel(filter.dateFrom)}'),
+                    flex: 3,
+                    child: DropdownButtonFormField<String?>(
+                      value: filter.status,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: AppStrings.orderStatus,
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(AppStrings.allStatuses),
+                        ),
+                        for (final s in ControlOrder.statusOptions)
+                          DropdownMenuItem<String?>(
+                            value: s,
+                            child: Text(s, overflow: TextOverflow.ellipsis),
+                          ),
+                      ],
+                      onChanged: (v) {
+                        ref.read(ordersFilterProvider.notifier).state =
+                            filter.copyWith(status: v, clearStatus: v == null);
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => _pickDate(from: false),
-                      child: Text('${AppStrings.dateTo}: ${_dateLabel(filter.dateTo)}'),
-                    ),
+                  _FilterChipButton(
+                    label: _dateLabel(filter.dateFrom),
+                    hint: AppStrings.dateFrom,
+                    active: filter.dateFrom != null,
+                    onPressed: () => _pickDate(from: true),
+                  ),
+                  const SizedBox(width: 6),
+                  _FilterChipButton(
+                    label: _dateLabel(filter.dateTo),
+                    hint: AppStrings.dateTo,
+                    active: filter.dateTo != null,
+                    onPressed: () => _pickDate(from: false),
                   ),
                 ],
               ),
-              if (filter.status != null ||
-                  filter.dateFrom != null ||
-                  filter.dateTo != null ||
-                  filter.search.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    _search.clear();
-                    ref.read(ordersFilterProvider.notifier).state =
-                        const OrdersFilter();
-                  },
-                  child: const Text(AppStrings.clearFilters),
-                ),
-              ],
             ],
           ),
         ),
+        const Divider(height: 1),
         Expanded(
           child: async.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -333,7 +339,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   itemCount: state.items.length + (state.hasMore ? 1 : 0),
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, __) => const SizedBox(height: 6),
                   itemBuilder: (context, index) {
                     if (index >= state.items.length) {
                       return MutationButton(
@@ -378,6 +384,61 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _FilterChipButton extends StatelessWidget {
+  const _FilterChipButton({
+    required this.label,
+    required this.hint,
+    required this.active,
+    required this.onPressed,
+  });
+
+  final String label;
+  final String hint;
+  final bool active;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: active ? AppColors.primarySoft : AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: active ? AppColors.primary : AppColors.border,
+        ),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                hint,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: active ? AppColors.primary : AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

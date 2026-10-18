@@ -11,6 +11,7 @@ import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
+import '../../../shared/widgets/header_action.dart';
 import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
@@ -56,6 +57,9 @@ class _CatalogScreenState extends State<CatalogScreen>
   void initState() {
     super.initState();
     _tabs = TabController(length: 2, vsync: this);
+    _tabs.addListener(() {
+      if (!_tabs.indexIsChanging) setState(() {});
+    });
   }
 
   @override
@@ -64,20 +68,38 @@ class _CatalogScreenState extends State<CatalogScreen>
     super.dispose();
   }
 
+  void _onAdd() {
+    final isProducts = _tabs.index == 1;
+    showDetailSheet(
+      context: context,
+      title: isProducts ? AppStrings.addProduct : AppStrings.addCategory,
+      initialChildSize: 0.92,
+      builder: (_) => isProducts
+          ? const _ProductFormSheet()
+          : const _CategoryFormSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const PageHeader(
+        PageHeader(
           title: AppStrings.catalogTitle,
-          subtitle: AppStrings.categoryImageHint,
+          trailing: HeaderAction(
+            label: AppStrings.create,
+            onPressed: _onAdd,
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Material(
-            color: AppColors.surfaceMuted,
-            borderRadius: BorderRadius.circular(14),
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: AppColors.borderLight),
+              ),
+            ),
             child: TabBar(
               controller: _tabs,
               tabs: const [
@@ -87,7 +109,7 @@ class _CatalogScreenState extends State<CatalogScreen>
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Expanded(
           child: TabBarView(
             controller: _tabs,
@@ -120,34 +142,22 @@ class _CategoriesTab extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FilledButton.icon(
-              onPressed: () => showDetailSheet(
-                context: context,
-                title: AppStrings.addCategory,
-                initialChildSize: 0.92,
-                builder: (_) => const _CategoryFormSheet(),
-              ),
-              icon: const Icon(Icons.add_photo_alternate_outlined),
-              label: const Text(AppStrings.addCategory),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              AppStrings.categoryImageHint,
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            if (rows.isEmpty) ...[
-              const SizedBox(height: 16),
+            if (rows.isEmpty)
               Text(
                 AppStrings.categoryEmptyHint,
                 style: AppTypography.bodySmall,
+              )
+            else
+              Text(
+                AppStrings.categoryImageHint,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
-            ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             ...rows.map((c) {
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 6),
                 child: ControlListCard(
                   leading: _CategoryThumb(category: c),
                   title: c.name,
@@ -404,27 +414,15 @@ class _ProductsTab extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FilledButton.icon(
-              onPressed: () => showDetailSheet(
-                context: context,
-                title: AppStrings.addProduct,
-                initialChildSize: 0.92,
-                builder: (_) => const _ProductFormSheet(),
-              ),
-              icon: const Icon(Icons.add),
-              label: const Text(AppStrings.addProduct),
-            ),
-            if (page.data.isEmpty) ...[
-              const SizedBox(height: 16),
+            if (page.data.isEmpty)
               Text(
                 AppStrings.productEmptyHint,
                 style: AppTypography.bodySmall,
               ),
-            ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             ...page.data.map((p) {
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 6),
                 child: ControlListCard(
                   leading: Container(
                     width: 44,

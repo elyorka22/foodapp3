@@ -3,7 +3,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
-/// Consistent screen title + optional subtitle / trailing action.
+/// Screen title row with optional subtitle and compact trailing action.
 class PageHeader extends StatelessWidget {
   const PageHeader({
     super.key,
@@ -21,44 +21,37 @@ class PageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppTypography.display),
+              if (subtitle != null && subtitle!.isNotEmpty) ...[
+                const SizedBox(height: 4),
                 Text(
-                  title,
-                  style: AppTypography.display.copyWith(
-                    fontSize: 26,
-                    letterSpacing: -0.6,
+                  subtitle!,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
-                if (subtitle != null && subtitle!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle!,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 12),
-            trailing!,
-          ],
+        ),
+        if (trailing != null) ...[
+          const SizedBox(width: 10),
+          trailing!,
         ],
-      );
+      ],
+    );
 
     if (!padded) return content;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
-        AppSpacing.lg,
+        AppSpacing.md,
         AppSpacing.lg,
         AppSpacing.sm,
       ),

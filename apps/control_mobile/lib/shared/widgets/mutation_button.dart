@@ -25,10 +25,10 @@ class MutationButton extends StatelessWidget {
     final effectiveOnPressed = loading ? null : onPressed;
     final child = loading
         ? SizedBox(
-            width: 22,
-            height: 22,
+            width: 18,
+            height: 18,
             child: CircularProgressIndicator(
-              strokeWidth: 2.2,
+              strokeWidth: 2,
               color: filled ? AppColors.onPrimary : AppColors.primary,
             ),
           )
@@ -37,7 +37,7 @@ class MutationButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18),
+                Icon(icon, size: 16),
                 const SizedBox(width: 8),
               ],
               Text(label),
@@ -55,9 +55,11 @@ class MutationButton extends StatelessWidget {
           foregroundColor:
               destructive ? AppColors.danger : AppColors.textPrimary,
           side: BorderSide(
-            color: destructive ? AppColors.danger.withOpacity(0.35) : AppColors.border,
+            color: destructive
+                ? AppColors.danger.withValues(alpha: 0.4)
+                : AppColors.border,
           ),
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size.fromHeight(44),
           shape: shape,
         ),
         child: child,
@@ -69,7 +71,7 @@ class MutationButton extends StatelessWidget {
       style: FilledButton.styleFrom(
         backgroundColor: destructive ? AppColors.danger : AppColors.primary,
         foregroundColor: AppColors.onPrimary,
-        minimumSize: const Size.fromHeight(52),
+        minimumSize: const Size.fromHeight(44),
         elevation: 0,
         shape: shape,
       ),

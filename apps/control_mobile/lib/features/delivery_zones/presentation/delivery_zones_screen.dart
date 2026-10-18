@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
 import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
+import '../../../shared/widgets/header_action.dart';
 import '../../../shared/widgets/mutation_button.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../cities/data/cities_repository.dart';
 import '../data/delivery_zone_model.dart';
@@ -40,80 +41,72 @@ class DeliveryZonesScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        PageHeader(
+          title: AppStrings.deliveryZonesTitle,
+          trailing: HeaderAction(
+            label: AppStrings.create,
+            icon: Icons.add_location_alt_outlined,
+            onPressed: () => showDetailSheet(
+              context: context,
+              title: AppStrings.addDeliveryZone,
+              initialChildSize: 0.92,
+              builder: (_) => const _ZoneFormSheet(),
+            ),
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
             0,
+            AppSpacing.lg,
+            AppSpacing.sm,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppStrings.deliveryZonesTitle,
-                style: AppTypography.display,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              citiesAsync.when(
-                data: (cities) {
-                  final active = cities.where((c) => c.isActive).toList();
-                  return DropdownButtonFormField<String?>(
-                    value: selectedCityId,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.filterByCity,
-                      isDense: true,
-                      border: OutlineInputBorder(),
+          child: citiesAsync.when(
+            data: (cities) {
+              final active = cities.where((c) => c.isActive).toList();
+              return DropdownButtonFormField<String?>(
+                value: selectedCityId,
+                decoration: const InputDecoration(
+                  labelText: AppStrings.filterByCity,
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text(AppStrings.allCities),
+                  ),
+                  for (final c in active)
+                    DropdownMenuItem<String?>(
+                      value: c.id,
+                      child: Text(c.name),
                     ),
-                    items: [
-                      const DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text(AppStrings.allCities),
-                      ),
-                      for (final c in active)
-                        DropdownMenuItem<String?>(
-                          value: c.id,
-                          child: Text(c.name),
-                        ),
-                    ],
-                    onChanged: (v) {
-                      ref.read(_zoneCityFilterProvider.notifier).state = v;
-                    },
-                  );
+                ],
+                onChanged: (v) {
+                  ref.read(_zoneCityFilterProvider.notifier).state = v;
                 },
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-            ],
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
         ),
         Expanded(
           child: AsyncPageBody<List<ControlDeliveryZone>>(
             asyncValue: async,
             onRefresh: () => ref.refresh(deliveryZonesListProvider.future),
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
             dataBuilder: (zones) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  FilledButton.icon(
-                    onPressed: () => showDetailSheet(
-                      context: context,
-                      title: AppStrings.addDeliveryZone,
-                      initialChildSize: 0.92,
-                      builder: (_) => const _ZoneFormSheet(),
-                    ),
-                    icon: const Icon(Icons.add_location_alt_outlined),
-                    label: const Text(AppStrings.addDeliveryZone),
-                  ),
-                  if (zones.isEmpty) ...[
-                    const SizedBox(height: 16),
-                    const Text(AppStrings.emptyList),
-                  ],
-                  const SizedBox(height: 12),
+                  if (zones.isEmpty) const Text(AppStrings.emptyList),
                   ...zones.map((z) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 6),
                       child: ControlListCard(
                         title: z.name,
                         subtitle: [
