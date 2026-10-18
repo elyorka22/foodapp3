@@ -30,6 +30,51 @@ class BusinessesRepository {
     );
   }
 
+  /// `POST /businesses`
+  Future<ControlRestaurant> createRestaurant({
+    required String name,
+    required String cityId,
+    String? phone,
+    String? description,
+    String? branchAddress,
+    double? latitude,
+    double? longitude,
+    String? logoUrl,
+    num? commissionRate,
+    bool isActive = true,
+    String? ownerLogin,
+    String? ownerPassword,
+    String? ownerFullName,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      ApiPaths.businesses,
+      data: {
+        'name': name,
+        'cityId': cityId,
+        'isActive': isActive,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (description != null && description.isNotEmpty)
+          'description': description,
+        if (branchAddress != null && branchAddress.isNotEmpty)
+          'branchAddress': branchAddress,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+        if (logoUrl != null && logoUrl.isNotEmpty) 'logoUrl': logoUrl,
+        if (commissionRate != null) 'commissionRate': commissionRate,
+        if (ownerLogin != null &&
+            ownerLogin.isNotEmpty &&
+            ownerPassword != null &&
+            ownerPassword.isNotEmpty) ...{
+          'ownerLogin': ownerLogin,
+          'ownerPassword': ownerPassword,
+          if (ownerFullName != null && ownerFullName.isNotEmpty)
+            'ownerFullName': ownerFullName,
+        },
+      },
+    );
+    return ControlRestaurant.fromJson(res.data ?? <String, dynamic>{});
+  }
+
   Future<ControlRestaurant> updateRestaurant(
     String id, {
     String? name,

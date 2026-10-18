@@ -84,6 +84,12 @@ abstract final class AppStrings {
   static const cancelReason = 'Bekor qilish sababi';
   static const confirmRemoveCourier =
       'Buyurtmadan kuryerni olib tashlamoqchimisiz?';
+  static const allStatuses = 'Barcha statuslar';
+  static const dateFrom = 'Dan';
+  static const dateTo = 'Gacha';
+  static const loadMore = 'Yana yuklash';
+  static const clearFilters = 'Filtrlarni tozalash';
+  static const orderSearchHint = 'Raqam, telefon, restoran…';
 
   // Businesses manage
   static const approve = 'Tasdiqlash';
@@ -102,6 +108,14 @@ abstract final class AppStrings {
   static const phoneLabel = 'Telefon';
   static const nameLabel = 'Nomi';
   static const addressLabel = 'Manzil';
+  static const addBusiness = 'Biznes qo‘shish';
+  static const businessCity = 'Shahar';
+  static const latitudeLabel = 'Kenglik (lat)';
+  static const longitudeLabel = 'Uzunlik (lng)';
+  static const descriptionLabel = 'Tavsif';
+  static const commissionLabel = 'Komissiya (%)';
+  static const ownerOptionalHint =
+      'Ixtiyoriy: egasi login/parol — birga yaratiladi';
 
   // Employees manage
   static const addEmployee = 'Xodim qo‘shish';
@@ -118,6 +132,14 @@ abstract final class AppStrings {
   static const toggleAvailability = 'Mavjudlikni almashtirish';
   static const softDeleteProduct = 'Mahsulotni o‘chirish';
   static const confirmDeleteProduct = 'Mahsulotni o‘chirishni tasdiqlaysizmi?';
+  static const addProduct = 'Mahsulot qo‘shish';
+  static const editProduct = 'Mahsulotni tahrirlash';
+  static const productName = 'Mahsulot nomi';
+  static const productPrice = 'Narx (so‘m)';
+  static const productBusiness = 'Restoran / do‘kon';
+  static const productCategory = 'Taom kategoriyasi';
+  static const productEmptyHint =
+      'Hali mahsulot yo‘q. Yuqoridagi tugma orqali qo‘shing.';
   static const addPromo = 'Promo qo‘shish';
   static const addBanner = 'Banner + rasm';
   static const promoCode = 'Promo kod';
@@ -155,6 +177,15 @@ abstract final class AppStrings {
   // Platform
   static const navMore = 'Platforma';
   static const navCities = 'Shaharlar';
+  static const navDeliveryZones = 'Yetkazish zonalari';
+  static const deliveryZonesTitle = 'Yetkazib berish zonalari';
+  static const addDeliveryZone = 'Zona qo‘shish';
+  static const editDeliveryZone = 'Zonani tahrirlash';
+  static const zoneRadiusKm = 'Radius (km)';
+  static const zoneBaseFee = 'Asosiy narx';
+  static const zonePricePerKm = 'Km uchun';
+  static const zoneMinFee = 'Minimal narx';
+  static const confirmDeleteZone = 'Zonani o‘chirishni tasdiqlaysizmi?';
   static const filterByCity = 'Shahar bo‘yicha';
   static const allCities = 'Barcha shaharlar';
   static const navBusinessTypes = 'Biznes turlari';

@@ -11,6 +11,8 @@ abstract final class ApiPaths {
   static const users = '/users';
   static String user(String id) => '/users/$id';
 
+  /// Canonical merchant create/list (alias `/restaurants/*` still works).
+  static const businesses = '/businesses';
   static const restaurantsAdmin = '/restaurants/admin';
   static String restaurant(String id) => '/restaurants/$id';
   static String restaurantApproval(String id) => '/restaurants/$id/approval';
@@ -31,8 +33,10 @@ abstract final class ApiPaths {
   static String courier(String id) => '/couriers/$id';
   static String courierStatus(String id) => '/couriers/$id/status';
 
+  static const products = '/products';
   static const productsAdmin = '/products/admin';
   static String product(String id) => '/products/$id';
+  static String productImage(String id) => '/products/$id/image';
   static const productsBulk = '/products/bulk';
 
   static const dishCategoriesAdmin = '/dish-categories/admin';
@@ -59,6 +63,9 @@ abstract final class ApiPaths {
   static const cities = '/cities';
   static const citiesAdmin = '/cities/admin';
   static String city(String id) => '/cities/$id';
+
+  static const deliveryZones = '/delivery-zones';
+  static String deliveryZone(String id) => '/delivery-zones/$id';
 
   static const businessTypes = '/business-types';
   static const businessTypesAdmin = '/business-types/admin';

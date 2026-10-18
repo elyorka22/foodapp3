@@ -216,6 +216,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 (AppStrings.navCouriers, AppRoutes.couriers),
                 (AppStrings.navCustomers, AppRoutes.customers),
                 (AppStrings.navCities, AppRoutes.cities),
+                (AppStrings.navDeliveryZones, AppRoutes.deliveryZones),
                 (AppStrings.navBusinessTypes, AppRoutes.businessTypes),
                 (AppStrings.navBooking, AppRoutes.booking),
                 (AppStrings.navAudit, AppRoutes.audit),

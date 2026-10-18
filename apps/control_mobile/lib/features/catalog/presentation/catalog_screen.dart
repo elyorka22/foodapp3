@@ -16,6 +16,8 @@ import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
+import '../../businesses/data/businesses_repository.dart';
+import '../../businesses/data/restaurant_model.dart';
 import '../data/catalog_repository.dart';
 import '../data/dish_category_model.dart';
 import '../data/product_model.dart';
@@ -28,6 +30,15 @@ final catalogListProvider =
 final dishCategoriesProvider =
     FutureProvider.autoDispose<List<ControlDishCategory>>((ref) {
   return ref.watch(catalogRepositoryProvider).fetchDishCategoriesAdmin();
+});
+
+final _productBusinessesProvider =
+    FutureProvider.autoDispose<List<ControlRestaurant>>((ref) async {
+  final page = await ref.watch(businessesRepositoryProvider).fetchRestaurants(
+        page: 1,
+        limit: 100,
+      );
+  return page.data;
 });
 
 class CatalogScreen extends StatefulWidget {
@@ -388,92 +399,180 @@ class _ProductsTab extends ConsumerWidget {
     return AsyncPageBody<PaginatedResponse<ControlProduct>>(
       asyncValue: async,
       onRefresh: () => ref.refresh(catalogListProvider.future),
-      isEmpty: (p) => p.data.isEmpty,
-      emptyMessage: AppStrings.emptyList,
       padding: const EdgeInsets.all(AppSpacing.lg),
       dataBuilder: (page) {
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: page.data.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final p = page.data[index];
-            return ControlListCard(
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceMuted,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: p.imageUrl != null && p.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        p.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.fastfood_outlined,
-                          color: AppColors.textMuted,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.fastfood_outlined,
-                        color: AppColors.textMuted,
-                      ),
-              ),
-              title: p.name,
-              subtitle: [
-                if (p.businessName != null) p.businessName!,
-                if (p.categoryName != null) p.categoryName!,
-                formatMoney(p.price),
-              ].join(' · '),
-              trailing: StatusChip(
-                status: p.isAvailable ? 'DELIVERED' : 'CANCELLED',
-                label: p.isAvailable ? 'Mavjud' : 'Yopiq',
-              ),
-              onTap: () => showDetailSheet(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FilledButton.icon(
+              onPressed: () => showDetailSheet(
                 context: context,
-                title: AppStrings.details,
-                builder: (_) => _ProductActions(product: p),
+                title: AppStrings.addProduct,
+                initialChildSize: 0.92,
+                builder: (_) => const _ProductFormSheet(),
               ),
-            );
-          },
+              icon: const Icon(Icons.add),
+              label: const Text(AppStrings.addProduct),
+            ),
+            if (page.data.isEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                AppStrings.productEmptyHint,
+                style: AppTypography.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 12),
+            ...page.data.map((p) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ControlListCard(
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceMuted,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: p.imageUrl != null && p.imageUrl!.isNotEmpty
+                        ? Image.network(
+                            p.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.fastfood_outlined,
+                              color: AppColors.textMuted,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.fastfood_outlined,
+                            color: AppColors.textMuted,
+                          ),
+                  ),
+                  title: p.name,
+                  subtitle: [
+                    if (p.businessName != null) p.businessName!,
+                    if (p.categoryName != null) p.categoryName!,
+                    formatMoney(p.price),
+                  ].join(' · '),
+                  trailing: StatusChip(
+                    status: p.isAvailable ? 'DELIVERED' : 'CANCELLED',
+                    label: p.isAvailable ? 'Mavjud' : 'Yopiq',
+                  ),
+                  onTap: () => showDetailSheet(
+                    context: context,
+                    title: AppStrings.editProduct,
+                    initialChildSize: 0.92,
+                    builder: (_) => _ProductFormSheet(product: p),
+                  ),
+                ),
+              );
+            }),
+          ],
         );
       },
     );
   }
 }
 
-class _ProductActions extends ConsumerStatefulWidget {
-  const _ProductActions({required this.product});
+class _ProductFormSheet extends ConsumerStatefulWidget {
+  const _ProductFormSheet({this.product});
 
-  final ControlProduct product;
+  final ControlProduct? product;
 
   @override
-  ConsumerState<_ProductActions> createState() => _ProductActionsState();
+  ConsumerState<_ProductFormSheet> createState() => _ProductFormSheetState();
 }
 
-class _ProductActionsState extends ConsumerState<_ProductActions> {
-  late ControlProduct _product;
+class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
+  late final TextEditingController _name;
+  late final TextEditingController _price;
+  late final TextEditingController _description;
+  late final TextEditingController _imageUrl;
+  ImageFramingValues _framing = const ImageFramingValues();
+  String? _businessId;
+  String? _dishCategoryId;
+  bool _isAvailable = true;
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
-    _product = widget.product;
+    final p = widget.product;
+    _name = TextEditingController(text: p?.name ?? '');
+    _price = TextEditingController(
+      text: p != null ? p.price.toString() : '',
+    );
+    _description = TextEditingController(text: p?.description ?? '');
+    _imageUrl = TextEditingController(text: p?.imageUrl ?? '');
+    _businessId = p?.businessId;
+    _dishCategoryId = p?.dishCategoryId;
+    _isAvailable = p?.isAvailable ?? true;
   }
 
-  Future<void> _toggle() async {
+  @override
+  void dispose() {
+    _name.dispose();
+    _price.dispose();
+    _description.dispose();
+    _imageUrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final name = _name.text.trim();
+    final price = num.tryParse(_price.text.trim().replaceAll(',', '.'));
+    final businessId = _businessId;
+    final dishCategoryId = _dishCategoryId;
+    if (name.length < 2) {
+      showActionSnackBar(context, 'Nom kamida 2 belgi', error: true);
+      return;
+    }
+    if (price == null || price < 0) {
+      showActionSnackBar(context, 'Narx noto‘g‘ri', error: true);
+      return;
+    }
+    if (businessId == null || businessId.isEmpty) {
+      showActionSnackBar(context, 'Restoranni tanlang', error: true);
+      return;
+    }
+    if (dishCategoryId == null || dishCategoryId.isEmpty) {
+      showActionSnackBar(context, 'Kategoriyani tanlang', error: true);
+      return;
+    }
+
     setState(() => _busy = true);
     try {
-      final updated = await ref.read(catalogRepositoryProvider).updateProduct(
-            _product.id,
-            isAvailable: !_product.isAvailable,
-          );
-      setState(() => _product = updated);
+      final repo = ref.read(catalogRepositoryProvider);
+      final imageUrl = _imageUrl.text.trim();
+      final desc = _description.text.trim();
+      late ControlProduct saved;
+      if (widget.product == null) {
+        saved = await repo.createProduct(
+          businessId: businessId,
+          name: name,
+          price: price,
+          dishCategoryId: dishCategoryId,
+          description: desc.isEmpty ? null : desc,
+          isAvailable: _isAvailable,
+        );
+      } else {
+        saved = await repo.updateProduct(
+          widget.product!.id,
+          name: name,
+          price: price,
+          description: desc,
+          dishCategoryId: dishCategoryId,
+          businessId: businessId,
+          isAvailable: _isAvailable,
+        );
+      }
+      if (imageUrl.isNotEmpty && imageUrl != (widget.product?.imageUrl ?? '')) {
+        await repo.addProductImage(saved.id, url: imageUrl);
+      }
       ref.invalidate(catalogListProvider);
-      if (mounted) showActionSnackBar(context, AppStrings.actionDone);
+      if (!mounted) return;
+      showActionSnackBar(context, AppStrings.actionDone);
+      Navigator.of(context).pop();
     } catch (e) {
       if (mounted) showActionError(context, e);
     } finally {
@@ -482,6 +581,8 @@ class _ProductActionsState extends ConsumerState<_ProductActions> {
   }
 
   Future<void> _delete() async {
+    final id = widget.product?.id;
+    if (id == null) return;
     final ok = await showConfirmDialog(
       context,
       title: AppStrings.delete,
@@ -491,7 +592,7 @@ class _ProductActionsState extends ConsumerState<_ProductActions> {
     if (!ok) return;
     setState(() => _busy = true);
     try {
-      await ref.read(catalogRepositoryProvider).deleteProduct(_product.id);
+      await ref.read(catalogRepositoryProvider).deleteProduct(id);
       ref.invalidate(catalogListProvider);
       if (!mounted) return;
       showActionSnackBar(context, AppStrings.actionDone);
@@ -505,22 +606,93 @@ class _ProductActionsState extends ConsumerState<_ProductActions> {
 
   @override
   Widget build(BuildContext context) {
+    final businesses =
+        ref.watch(_productBusinessesProvider).valueOrNull ?? const [];
+    final categories = ref.watch(dishCategoriesProvider).valueOrNull ??
+        const <ControlDishCategory>[];
+    final activeCategories = categories.where((c) => c.isActive).toList();
+    final businessValue =
+        businesses.any((b) => b.id == _businessId) ? _businessId : null;
+    final categoryValue = activeCategories.any((c) => c.id == _dishCategoryId)
+        ? _dishCategoryId
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        MutationButton(
-          label: AppStrings.toggleAvailability,
-          loading: _busy,
-          onPressed: _busy ? null : _toggle,
+        DropdownButtonFormField<String>(
+          value: businessValue,
+          decoration:
+              const InputDecoration(labelText: AppStrings.productBusiness),
+          items: [
+            for (final b in businesses)
+              DropdownMenuItem(value: b.id, child: Text(b.name)),
+          ],
+          onChanged: _busy ? null : (v) => setState(() => _businessId = v),
         ),
         const SizedBox(height: 8),
-        MutationButton(
-          label: AppStrings.softDeleteProduct,
-          filled: false,
-          destructive: true,
-          loading: _busy,
-          onPressed: _busy ? null : _delete,
+        DropdownButtonFormField<String>(
+          value: categoryValue,
+          decoration:
+              const InputDecoration(labelText: AppStrings.productCategory),
+          items: [
+            for (final c in activeCategories)
+              DropdownMenuItem(value: c.id, child: Text(c.name)),
+          ],
+          onChanged: _busy ? null : (v) => setState(() => _dishCategoryId = v),
         ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _name,
+          enabled: !_busy,
+          decoration: const InputDecoration(labelText: AppStrings.productName),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _price,
+          enabled: !_busy,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: AppStrings.productPrice),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _description,
+          enabled: !_busy,
+          maxLines: 2,
+          decoration: const InputDecoration(
+            labelText: AppStrings.descriptionLabel,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ImageUploadField(
+          imageUrlController: _imageUrl,
+          framing: _framing,
+          onFramingChanged: (v) => setState(() => _framing = v),
+          enabled: !_busy,
+          aspectRatio: 1,
+          refererPath: '/admin/products',
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(AppStrings.active),
+          value: _isAvailable,
+          onChanged: _busy ? null : (v) => setState(() => _isAvailable = v),
+        ),
+        MutationButton(
+          label: AppStrings.save,
+          loading: _busy,
+          onPressed: _busy ? null : _save,
+        ),
+        if (widget.product != null) ...[
+          const SizedBox(height: 8),
+          MutationButton(
+            label: AppStrings.softDeleteProduct,
+            filled: false,
+            destructive: true,
+            loading: _busy,
+            onPressed: _busy ? null : _delete,
+          ),
+        ],
       ],
     );
   }

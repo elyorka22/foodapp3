@@ -34,7 +34,6 @@ const controlNavItems = <ControlNavItem>[
     label: AppStrings.navBusinesses,
     icon: Icons.storefront_outlined,
     route: AppRoutes.businesses,
-    mobile: false,
   ),
   ControlNavItem(
     label: AppStrings.navOrders,
@@ -73,6 +72,12 @@ const controlNavItems = <ControlNavItem>[
     label: AppStrings.navCities,
     icon: Icons.location_city_outlined,
     route: AppRoutes.cities,
+    mobile: false,
+  ),
+  ControlNavItem(
+    label: AppStrings.navDeliveryZones,
+    icon: Icons.map_outlined,
+    route: AppRoutes.deliveryZones,
     mobile: false,
   ),
   ControlNavItem(

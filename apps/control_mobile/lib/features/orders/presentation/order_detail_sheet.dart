@@ -59,7 +59,7 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
           await ref.read(ordersRepositoryProvider).fetchOrder(_order.id);
       if (!mounted) return;
       setState(() => _order = refreshed);
-      ref.invalidate(ordersListProvider);
+      ref.invalidate(ordersPagedProvider);
       showActionSnackBar(context, AppStrings.actionDone);
     } catch (e) {
       if (mounted) showActionError(context, e);

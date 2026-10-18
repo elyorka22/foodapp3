@@ -12,6 +12,7 @@ abstract final class AppRoutes {
   static const audit = '/audit';
   static const push = '/push';
   static const cities = '/cities';
+  static const deliveryZones = '/delivery-zones';
   static const businessTypes = '/business-types';
   static const couriers = '/couriers';
   static const customers = '/customers';

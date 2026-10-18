@@ -12,6 +12,7 @@ import '../../features/cities/presentation/cities_screen.dart';
 import '../../features/couriers/presentation/couriers_screen.dart';
 import '../../features/customers/presentation/customers_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
+import '../../features/delivery_zones/presentation/delivery_zones_screen.dart';
 import '../../features/diagnostics/presentation/diagnostics_screen.dart';
 import '../../features/employees/presentation/employees_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
@@ -119,6 +120,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [_branch(AppRoutes.cities, const CitiesScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [
+              _branch(AppRoutes.deliveryZones, const DeliveryZonesScreen()),
+            ],
           ),
           StatefulShellBranch(
             routes: [

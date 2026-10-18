@@ -32,11 +32,37 @@ class CatalogRepository {
     );
   }
 
+  Future<ControlProduct> createProduct({
+    required String businessId,
+    required String name,
+    required num price,
+    required String dishCategoryId,
+    String? description,
+    bool isAvailable = true,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      ApiPaths.products,
+      data: {
+        'businessId': businessId,
+        'name': name,
+        'price': price,
+        'dishCategoryId': dishCategoryId,
+        'isAvailable': isAvailable,
+        if (description != null && description.isNotEmpty)
+          'description': description,
+      },
+    );
+    return ControlProduct.fromJson(res.data ?? <String, dynamic>{});
+  }
+
   Future<ControlProduct> updateProduct(
     String id, {
     bool? isAvailable,
     String? name,
     num? price,
+    String? description,
+    String? dishCategoryId,
+    String? businessId,
   }) async {
     final res = await _dio.patch<Map<String, dynamic>>(
       ApiPaths.product(id),
@@ -44,9 +70,19 @@ class CatalogRepository {
         if (isAvailable != null) 'isAvailable': isAvailable,
         if (name != null) 'name': name,
         if (price != null) 'price': price,
+        if (description != null) 'description': description,
+        if (dishCategoryId != null) 'dishCategoryId': dishCategoryId,
+        if (businessId != null) 'businessId': businessId,
       },
     );
     return ControlProduct.fromJson(res.data ?? <String, dynamic>{});
+  }
+
+  Future<void> addProductImage(String id, {required String url}) async {
+    await _dio.post<dynamic>(
+      ApiPaths.productImage(id),
+      data: {'url': url},
+    );
   }
 
   Future<void> deleteProduct(String id) async {

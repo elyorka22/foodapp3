@@ -12,6 +12,7 @@ class ControlProduct {
     this.imageUrl,
     this.businessId,
     this.businessName,
+    this.dishCategoryId,
     this.categoryName,
     this.createdAt,
   });
@@ -26,6 +27,7 @@ class ControlProduct {
   final String? imageUrl;
   final String? businessId;
   final String? businessName;
+  final String? dishCategoryId;
   final String? categoryName;
   final DateTime? createdAt;
 
@@ -54,8 +56,13 @@ class ControlProduct {
           ? parseNum(json['comparePrice'])
           : null,
       imageUrl: firstImage ?? json['imageUrl'] as String?,
-      businessId: business?['id'] as String?,
+      businessId: json['businessId'] as String? ??
+          json['restaurantId'] as String? ??
+          business?['id'] as String?,
       businessName: business?['name'] as String?,
+      dishCategoryId: json['dishCategoryId'] as String? ??
+          json['categoryId'] as String? ??
+          dishCategory?['id'] as String?,
       categoryName: category?['name'] as String? ??
           dishCategory?['name'] as String? ??
           productCategory?['name'] as String?,
