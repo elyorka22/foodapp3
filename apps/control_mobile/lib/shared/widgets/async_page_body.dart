@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_strings.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
@@ -26,8 +27,13 @@ class AsyncPageBody<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return asyncValue.when(
+      skipLoadingOnReload: true,
+      skipLoadingOnRefresh: true,
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => _ErrorState(message: ApiException.formatError(error)),
+      error: (error, _) => NetworkErrorPanel(
+        message: ApiException.formatError(error),
+        onRetry: onRefresh,
+      ),
       data: (data) {
         if (isEmpty != null && isEmpty!(data)) {
           return _EmptyState(
@@ -61,28 +67,115 @@ class AsyncPageBody<T> extends StatelessWidget {
   }
 }
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message});
+/// Full-screen network/API error with retry (used by list pages).
+class NetworkErrorPanel extends StatefulWidget {
+  const NetworkErrorPanel({
+    super.key,
+    required this.message,
+    this.onRetry,
+  });
 
   final String message;
+  final Future<void> Function()? onRetry;
+
+  @override
+  State<NetworkErrorPanel> createState() => _NetworkErrorPanelState();
+}
+
+class _NetworkErrorPanelState extends State<NetworkErrorPanel> {
+  bool _busy = false;
+
+  Future<void> _retry() async {
+    final fn = widget.onRetry;
+    if (fn == null || _busy) return;
+    setState(() => _busy = true);
+    try {
+      await fn();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    final content = Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: AppColors.danger, size: 40),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(color: AppColors.textSecondary),
-            ),
-          ],
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.dangerSoft,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.wifi_off_rounded,
+                  color: AppColors.danger,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                AppStrings.connectionProblem,
+                textAlign: TextAlign.center,
+                style: AppTypography.title,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                widget.message,
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall,
+              ),
+              if (widget.onRetry != null) ...[
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _busy ? null : _retry,
+                    child: _busy
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.onPrimary,
+                            ),
+                          )
+                        : const Text(AppStrings.retry),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  AppStrings.pullToRefreshHint,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
+      ),
+    );
+
+    if (widget.onRetry == null) return content;
+
+    return RefreshIndicator(
+      onRefresh: _retry,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.55,
+            child: content,
+          ),
+        ],
       ),
     );
   }
@@ -111,7 +204,9 @@ class _EmptyState extends StatelessWidget {
                 child: Center(
                   child: Text(
                     message,
-                    style: AppTypography.body.copyWith(color: AppColors.textMuted),
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.textMuted,
+                    ),
                   ),
                 ),
               ),

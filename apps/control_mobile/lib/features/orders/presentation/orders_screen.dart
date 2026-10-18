@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/format_uz.dart';
 import '../../../shared/widgets/action_feedback.dart';
+import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/mutation_button.dart';
@@ -304,20 +306,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
         const Divider(height: 1),
         Expanded(
           child: async.when(
+            skipLoadingOnReload: true,
+            skipLoadingOnRefresh: true,
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('$e'),
-                  const SizedBox(height: 8),
-                  FilledButton(
-                    onPressed: () =>
-                        ref.read(ordersPagedProvider.notifier).refresh(),
-                    child: const Text(AppStrings.retry),
-                  ),
-                ],
-              ),
+            error: (e, _) => NetworkErrorPanel(
+              message: ApiException.formatError(e),
+              onRetry: () =>
+                  ref.read(ordersPagedProvider.notifier).refresh(),
             ),
             data: (state) {
               if (state.items.isEmpty) {

@@ -90,7 +90,8 @@ void main() {
           type: DioExceptionType.receiveTimeout,
         ),
       );
-      expect(message.startsWith('Server javob bermadi (timeout)'), isTrue);
+      expect(message.startsWith('Server javob bermadi (timeout'), isTrue);
+      expect(message.toLowerCase(), contains('qayta'));
     });
   });
 

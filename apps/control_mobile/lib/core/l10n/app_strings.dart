@@ -59,6 +59,8 @@ abstract final class AppStrings {
 
   static const emptyList = 'Hali ma’lumot yo‘q';
   static const retry = 'Qayta urinish';
+  static const connectionProblem = 'Ulanish muammosi';
+  static const pullToRefreshHint = 'Yoki pastga tortib yangilang';
   static const save = 'Saqlash';
   static const saved = 'Saqlandi';
   static const loading = 'Yuklanmoqda…';

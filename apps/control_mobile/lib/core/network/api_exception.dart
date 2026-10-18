@@ -75,26 +75,27 @@ class ApiException implements Exception {
       }
     }
 
+    final host = AppConfig.apiHostLabel;
     switch (err.type) {
       case DioExceptionType.connectionTimeout:
-        return 'Ulanish timeout.\nAPI: ${AppConfig.normalizedApiBaseUrl}';
+        return 'Serverga ulanish sekin ($host). Internetni tekshirib, qayta urinib ko‘ring.';
       case DioExceptionType.sendTimeout:
-        return 'So\'rov yuborish timeout.\nAPI: ${AppConfig.normalizedApiBaseUrl}';
+        return 'So‘rov yuborilmadi ($host). Qayta urinib ko‘ring.';
       case DioExceptionType.receiveTimeout:
-        return 'Server javob bermadi (timeout).\nAPI: ${AppConfig.normalizedApiBaseUrl}';
+        return 'Server javob bermadi (timeout, $host). Qayta urinib ko‘ring.';
       case DioExceptionType.connectionError:
-        return 'Serverga ulanib bo\'lmadi.\nAPI: ${AppConfig.normalizedApiBaseUrl}';
+        return 'Serverga ulanib bo‘lmadi ($host). Internet yoki VPN ni tekshiring.';
       case DioExceptionType.badCertificate:
-        return 'SSL sertifikat xatosi.\nAPI: ${AppConfig.normalizedApiBaseUrl}';
+        return 'SSL sertifikat xatosi ($host).';
       case DioExceptionType.badResponse:
         if (code != null) return 'Server xatosi (HTTP $code)';
-        return 'Server noto\'g\'ri javob qaytardi';
+        return 'Server noto‘g‘ri javob qaytardi';
       case DioExceptionType.cancel:
-        return 'So\'rov bekor qilindi';
+        return 'So‘rov bekor qilindi';
       case DioExceptionType.unknown:
-        return 'Tarmoq xatosi. API: ${AppConfig.normalizedApiBaseUrl}';
+        return 'Tarmoq xatosi ($host). Qayta urinib ko‘ring.';
       default:
-        return 'Tarmoq xatosi';
+        return 'Tarmoq xatosi. Qayta urinib ko‘ring.';
     }
   }
 
