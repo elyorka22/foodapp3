@@ -234,7 +234,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Expanded(child: form),
                     ],
                   )
-                : SingleChildScrollView(child: form),
+                : SingleChildScrollView(
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.xl),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.cardRadius),
+                        boxShadow: AppColors.cardShadow,
+                        border: Border.all(color: AppColors.borderLight),
+                      ),
+                      child: form,
+                    ),
+                  ),
           ),
         ),
       ),

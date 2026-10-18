@@ -12,6 +12,8 @@ import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
+import '../../../shared/widgets/page_header.dart';
+import '../../../shared/widgets/section_panel.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/banner_model.dart';
 import '../data/banner_placement.dart';
@@ -46,157 +48,165 @@ class PromotionsScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            0,
-          ),
-          child: Text(AppStrings.promotionsTitle, style: AppTypography.display),
+        const PageHeader(
+          title: AppStrings.promotionsTitle,
+          subtitle: AppStrings.bannersHomeHint,
         ),
         Expanded(
           child: AsyncPageBody<_PromotionsBundle>(
             asyncValue: async,
             onRefresh: () => ref.refresh(promotionsProvider.future),
-            // Always show dataBuilder so "Banner qo'shish" stays visible when empty.
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            // Always show dataBuilder so add-banner stays visible when empty.
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
             dataBuilder: (bundle) {
               final banners = [...bundle.banners]
                 ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    AppStrings.bannersSection,
-                    style: AppTypography.subtitle,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    AppStrings.bannersHomeHint,
-                    style: AppTypography.bodySmall,
-                  ),
-                  const SizedBox(height: 10),
-                  FilledButton.icon(
-                    onPressed: () => showDetailSheet(
-                      context: context,
-                      title: AppStrings.addBanner,
-                      initialChildSize: 0.92,
-                      builder: (_) => const _BannerFormSheet(),
-                    ),
-                    icon: const Icon(Icons.add_photo_alternate_outlined),
-                    label: const Text(AppStrings.addBanner),
-                  ),
-                  const SizedBox(height: 12),
-                  if (banners.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        AppStrings.bannerEmptyHint,
-                        style: AppTypography.bodySmall,
-                      ),
-                    )
-                  else
-                    ReorderableListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: banners.length,
-                      onReorder: (oldIndex, newIndex) async {
-                        if (newIndex > oldIndex) newIndex -= 1;
-                        final next = [...banners];
-                        final item = next.removeAt(oldIndex);
-                        next.insert(newIndex, item);
-                        try {
-                          await ref
-                              .read(promotionsRepositoryProvider)
-                              .reorderBanners(next.map((e) => e.id).toList());
-                          ref.invalidate(promotionsProvider);
-                        } catch (e) {
-                          if (context.mounted) showActionError(context, e);
-                        }
-                      },
-                      itemBuilder: (context, index) {
-                        final b = banners[index];
-                        final surface = BannerPlacement.labelUz(b.placement);
-                        return Padding(
-                          key: ValueKey(b.id),
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: ControlListCard(
-                            leading: _BannerThumb(banner: b),
-                            title: b.title.isNotEmpty ? b.title : surface,
-                            subtitle: [
-                              surface,
-                              if (b.linkUrl != null && b.linkUrl!.isNotEmpty)
-                                b.linkUrl!,
-                            ].join(' · '),
-                            trailing: StatusChip(
-                              status: b.isActive ? 'DELIVERED' : 'CANCELLED',
-                              label: b.isActive
-                                  ? AppStrings.active
-                                  : AppStrings.inactive,
-                            ),
-                            onTap: () => showDetailSheet(
-                              context: context,
-                              title: AppStrings.details,
-                              builder: (_) => _BannerFormSheet(banner: b),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppStrings.promosSection,
-                          style: AppTypography.subtitle,
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => showDetailSheet(
-                          context: context,
-                          title: AppStrings.addPromo,
-                          builder: (_) => const _PromoFormSheet(),
-                        ),
-                        icon: const Icon(Icons.add),
-                        label: const Text(AppStrings.addPromo),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (bundle.promos.isEmpty)
-                    Text(AppStrings.emptyList, style: AppTypography.bodySmall)
-                  else
-                    ...bundle.promos.map((p) {
-                      final valueLabel =
-                          p.type.toUpperCase().contains('PERCENT')
-                              ? '${p.value}%'
-                              : formatMoney(p.value);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: ControlListCard(
-                          title: p.code,
-                          subtitle: [
-                            valueLabel,
-                            'ishlatilgan: ${p.usageCount}',
-                            if (p.expiresAt != null)
-                              'tugash: ${formatDateTime(p.expiresAt)}',
-                          ].join(' · '),
-                          trailing: StatusChip(
-                            status: p.isActive ? 'DELIVERED' : 'CANCELLED',
-                            label: p.isActive
-                                ? AppStrings.active
-                                : AppStrings.inactive,
-                          ),
-                          onTap: () => showDetailSheet(
+                  SectionPanel(
+                    title: AppStrings.bannersSection,
+                    subtitle: AppStrings.bannerEmptyHint,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: () => showDetailSheet(
                             context: context,
-                            title: AppStrings.details,
-                            builder: (_) => _PromoFormSheet(promo: p),
+                            title: AppStrings.addBanner,
+                            initialChildSize: 0.92,
+                            builder: (_) => const _BannerFormSheet(),
+                          ),
+                          icon: const Icon(Icons.add_photo_alternate_outlined),
+                          label: const Text(AppStrings.addBanner),
+                        ),
+                        if (banners.isNotEmpty) ...[
+                          const SizedBox(height: 14),
+                          ReorderableListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: banners.length,
+                            onReorder: (oldIndex, newIndex) async {
+                              if (newIndex > oldIndex) newIndex -= 1;
+                              final next = [...banners];
+                              final item = next.removeAt(oldIndex);
+                              next.insert(newIndex, item);
+                              try {
+                                await ref
+                                    .read(promotionsRepositoryProvider)
+                                    .reorderBanners(
+                                      next.map((e) => e.id).toList(),
+                                    );
+                                ref.invalidate(promotionsProvider);
+                              } catch (e) {
+                                if (context.mounted) {
+                                  showActionError(context, e);
+                                }
+                              }
+                            },
+                            itemBuilder: (context, index) {
+                              final b = banners[index];
+                              final surface =
+                                  BannerPlacement.labelUz(b.placement);
+                              return Padding(
+                                key: ValueKey(b.id),
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: ControlListCard(
+                                  leading: _BannerThumb(banner: b),
+                                  title: b.title.isNotEmpty
+                                      ? b.title
+                                      : surface,
+                                  subtitle: [
+                                    surface,
+                                    if (b.linkUrl != null &&
+                                        b.linkUrl!.isNotEmpty)
+                                      b.linkUrl!,
+                                  ].join(' · '),
+                                  trailing: StatusChip(
+                                    status: b.isActive
+                                        ? 'DELIVERED'
+                                        : 'CANCELLED',
+                                    label: b.isActive
+                                        ? AppStrings.active
+                                        : AppStrings.inactive,
+                                  ),
+                                  onTap: () => showDetailSheet(
+                                    context: context,
+                                    title: AppStrings.details,
+                                    builder: (_) =>
+                                        _BannerFormSheet(banner: b),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SectionPanel(
+                    title: AppStrings.promosSection,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () => showDetailSheet(
+                              context: context,
+                              title: AppStrings.addPromo,
+                              builder: (_) => const _PromoFormSheet(),
+                            ),
+                            icon: const Icon(Icons.add),
+                            label: const Text(AppStrings.addPromo),
                           ),
                         ),
-                      );
-                    }),
+                        if (bundle.promos.isEmpty)
+                          Text(
+                            AppStrings.emptyList,
+                            style: AppTypography.bodySmall,
+                          )
+                        else
+                          ...bundle.promos.map((p) {
+                            final valueLabel =
+                                p.type.toUpperCase().contains('PERCENT')
+                                    ? '${p.value}%'
+                                    : formatMoney(p.value);
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: ControlListCard(
+                                title: p.code,
+                                subtitle: [
+                                  valueLabel,
+                                  'ishlatilgan: ${p.usageCount}',
+                                  if (p.expiresAt != null)
+                                    'tugash: ${formatDateTime(p.expiresAt)}',
+                                ].join(' · '),
+                                trailing: StatusChip(
+                                  status: p.isActive
+                                      ? 'DELIVERED'
+                                      : 'CANCELLED',
+                                  label: p.isActive
+                                      ? AppStrings.active
+                                      : AppStrings.inactive,
+                                ),
+                                onTap: () => showDetailSheet(
+                                  context: context,
+                                  title: AppStrings.details,
+                                  builder: (_) => _PromoFormSheet(promo: p),
+                                ),
+                              ),
+                            );
+                          }),
+                      ],
+                    ),
+                  ),
                 ],
               );
             },
@@ -217,10 +227,10 @@ class _BannerThumb extends StatelessWidget {
     final url = banner.imageUrl.trim();
     final framing = banner.framing;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: SizedBox(
-        width: 56,
-        height: 40,
+        width: 64,
+        height: 44,
         child: url.isEmpty
             ? const ColoredBox(
                 color: Color(0xFFE4E4E7),

@@ -13,10 +13,20 @@ abstract final class AppColors {
 
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceMuted = Color(0xFFF4F4F5);
-  static const Color background = Color(0xFFFAFAFA);
+  static const Color surfaceElevated = Color(0xFFFFFFFF);
+  static const Color background = Color(0xFFF8F9FB);
 
   static const Color border = Color(0xFFE4E4E7);
   static const Color borderLight = Color(0xFFF4F4F5);
+
+  /// Soft card elevation used across list tiles and summary cards.
+  static const List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: Color(0x0A18181B),
+      blurRadius: 16,
+      offset: Offset(0, 4),
+    ),
+  ];
 
   static const Color textPrimary = Color(0xFF18181B);
   static const Color textSecondary = Color(0xFF52525B);

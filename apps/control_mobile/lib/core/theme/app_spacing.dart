@@ -4,8 +4,9 @@ abstract final class AppSpacing {
   static const double lg = 16;
   static const double xl = 20;
   static const double xxl = 24;
-  static const double cardRadius = 12;
-  static const double buttonRadius = 10;
-  static const double inputRadius = 10;
-  static const double sidebarWidth = 260;
+  static const double cardRadius = 16;
+  static const double buttonRadius = 14;
+  static const double inputRadius = 14;
+  static const double sheetRadius = 24;
+  static const double sidebarWidth = 272;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 
 class MutationButton extends StatelessWidget {
@@ -23,12 +24,16 @@ class MutationButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveOnPressed = loading ? null : onPressed;
     final child = loading
-        ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
+        ? SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.2,
+              color: filled ? AppColors.onPrimary : AppColors.primary,
+            ),
           )
         : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
@@ -39,15 +44,21 @@ class MutationButton extends StatelessWidget {
             ],
           );
 
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+    );
+
     if (!filled) {
       return OutlinedButton(
         onPressed: effectiveOnPressed,
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(0, 44),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+          foregroundColor:
+              destructive ? AppColors.danger : AppColors.textPrimary,
+          side: BorderSide(
+            color: destructive ? AppColors.danger.withOpacity(0.35) : AppColors.border,
           ),
+          minimumSize: const Size.fromHeight(52),
+          shape: shape,
         ),
         child: child,
       );
@@ -56,12 +67,11 @@ class MutationButton extends StatelessWidget {
     return FilledButton(
       onPressed: effectiveOnPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: destructive ? const Color(0xFFDC2626) : null,
-        minimumSize: const Size(0, 44),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-        ),
+        backgroundColor: destructive ? AppColors.danger : AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
+        minimumSize: const Size.fromHeight(52),
+        elevation: 0,
+        shape: shape,
       ),
       child: child,
     );

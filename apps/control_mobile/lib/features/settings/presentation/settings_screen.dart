@@ -10,6 +10,8 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/mutation_button.dart';
+import '../../../shared/widgets/page_header.dart';
+import '../../../shared/widgets/section_panel.dart';
 import '../data/delivery_pricing_model.dart';
 import '../data/settings_model.dart';
 import '../data/settings_repository.dart';
@@ -162,59 +164,77 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final pricingAsync = ref.watch(deliveryPricingProvider);
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        0,
+        AppSpacing.lg,
+        AppSpacing.xxl,
+      ),
       children: [
-        Text(AppStrings.settingsTitle, style: AppTypography.display),
-        const SizedBox(height: 16),
-        Text(AppStrings.mediaSection, style: AppTypography.subtitle),
-        const SizedBox(height: 4),
-        Text(
-          AppStrings.mediaSectionHint,
-          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+        const PageHeader(
+          padded: false,
+          title: AppStrings.settingsTitle,
+          subtitle: AppStrings.mediaSectionHint,
         ),
-        const SizedBox(height: 10),
-        FilledButton.icon(
-          onPressed: () => context.go(AppRoutes.promotions),
-          icon: const Icon(Icons.image_outlined),
-          label: const Text(AppStrings.bannerSurfaceHomeOffers),
-        ),
-        const SizedBox(height: 8),
-        FilledButton.tonalIcon(
-          onPressed: () => context.go(AppRoutes.catalog),
-          icon: const Icon(Icons.category_outlined),
-          label: const Text(AppStrings.categoriesSection),
-        ),
-        const SizedBox(height: 8),
-        FilledButton.tonalIcon(
-          onPressed: () => context.go(AppRoutes.businesses),
-          icon: const Icon(Icons.storefront_outlined),
-          label: const Text(AppStrings.navBusinesses),
-        ),
-        const SizedBox(height: 24),
-        Text(AppStrings.platformSection, style: AppTypography.subtitle),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final item in const [
-              (AppStrings.navEmployees, AppRoutes.employees),
-              (AppStrings.navBusinesses, AppRoutes.businesses),
-              (AppStrings.navPush, AppRoutes.push),
-              (AppStrings.navCouriers, AppRoutes.couriers),
-              (AppStrings.navCustomers, AppRoutes.customers),
-              (AppStrings.navCities, AppRoutes.cities),
-              (AppStrings.navBusinessTypes, AppRoutes.businessTypes),
-              (AppStrings.navBooking, AppRoutes.booking),
-              (AppStrings.navAudit, AppRoutes.audit),
-            ])
-              OutlinedButton(
-                onPressed: () => context.go(item.$2),
-                child: Text(item.$1),
+        const SizedBox(height: 12),
+        SectionPanel(
+          title: AppStrings.mediaSection,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilledButton.icon(
+                onPressed: () => context.go(AppRoutes.promotions),
+                icon: const Icon(Icons.image_outlined),
+                label: const Text(AppStrings.bannerSurfaceHomeOffers),
               ),
-          ],
+              const SizedBox(height: 8),
+              FilledButton.tonalIcon(
+                onPressed: () => context.go(AppRoutes.catalog),
+                icon: const Icon(Icons.category_outlined),
+                label: const Text(AppStrings.categoriesSection),
+              ),
+              const SizedBox(height: 8),
+              FilledButton.tonalIcon(
+                onPressed: () => context.go(AppRoutes.businesses),
+                icon: const Icon(Icons.storefront_outlined),
+                label: const Text(AppStrings.navBusinesses),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        SectionPanel(
+          title: AppStrings.platformSection,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final item in const [
+                (AppStrings.navEmployees, AppRoutes.employees),
+                (AppStrings.navBusinesses, AppRoutes.businesses),
+                (AppStrings.navPush, AppRoutes.push),
+                (AppStrings.navCouriers, AppRoutes.couriers),
+                (AppStrings.navCustomers, AppRoutes.customers),
+                (AppStrings.navCities, AppRoutes.cities),
+                (AppStrings.navBusinessTypes, AppRoutes.businessTypes),
+                (AppStrings.navBooking, AppRoutes.booking),
+                (AppStrings.navAudit, AppRoutes.audit),
+              ])
+                OutlinedButton(
+                  onPressed: () => context.go(item.$2),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                  ),
+                  child: Text(item.$1),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
         AsyncPageBody<AdminSettings>(
           asyncValue: async,
           onRefresh: () {
@@ -228,7 +248,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (mounted) setState(() => _fill(settings));
               });
             }
-            return Column(
+            return SectionPanel(
+              title: AppStrings.settingsAppName,
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextField(
@@ -287,12 +309,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(_message!, style: AppTypography.bodySmall),
                 ],
               ],
+            ),
             );
           },
         ),
-        const SizedBox(height: 28),
-        Text(AppStrings.deliveryPricing, style: AppTypography.subtitle),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         pricingAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Text(ApiException.formatError(e)),
@@ -302,7 +323,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (mounted) setState(() => _fillPricing(pricing));
               });
             }
-            return Column(
+            return SectionPanel(
+              title: AppStrings.deliveryPricing,
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextField(
@@ -351,6 +374,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onPressed: () => _savePricing(pricing),
                 ),
               ],
+            ),
             );
           },
         ),

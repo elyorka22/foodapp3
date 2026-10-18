@@ -14,6 +14,7 @@ import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/catalog_repository.dart';
 import '../data/dish_category_model.dart';
@@ -57,22 +58,25 @@ class _CatalogScreenState extends State<CatalogScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const PageHeader(
+          title: AppStrings.catalogTitle,
+          subtitle: AppStrings.categoryImageHint,
+        ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            0,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Material(
+            color: AppColors.surfaceMuted,
+            borderRadius: BorderRadius.circular(14),
+            child: TabBar(
+              controller: _tabs,
+              tabs: const [
+                Tab(text: AppStrings.categoriesSection),
+                Tab(text: AppStrings.productsSection),
+              ],
+            ),
           ),
-          child: Text(AppStrings.catalogTitle, style: AppTypography.display),
         ),
-        TabBar(
-          controller: _tabs,
-          tabs: const [
-            Tab(text: AppStrings.categoriesSection),
-            Tab(text: AppStrings.productsSection),
-          ],
-        ),
+        const SizedBox(height: 8),
         Expanded(
           child: TabBarView(
             controller: _tabs,

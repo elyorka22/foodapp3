@@ -10,6 +10,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/control_list_card.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../../shared/widgets/summary_card.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -39,14 +40,14 @@ class DashboardScreen extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(AppStrings.dashboardTitle, style: AppTypography.display),
-            const SizedBox(height: 6),
-            Text(
-              '${AppStrings.dashboardWelcome}'
-              '${user?.fullName.isNotEmpty == true ? ', ${user!.fullName}' : ''}',
-              style: AppTypography.bodySmall,
+            PageHeader(
+              padded: false,
+              title: AppStrings.dashboardTitle,
+              subtitle:
+                  '${AppStrings.dashboardWelcome}'
+                  '${user?.fullName.isNotEmpty == true ? ', ${user!.fullName}' : ''}',
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

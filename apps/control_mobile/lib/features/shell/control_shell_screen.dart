@@ -38,14 +38,50 @@ class ControlShellScreen extends ConsumerWidget {
 
       return Scaffold(
         appBar: AppBar(
-          title: Text(AppStrings.appName, style: AppTypography.subtitle),
+          titleSpacing: 16,
+          title: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.shield_outlined,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                AppStrings.appName,
+                style: AppTypography.subtitle.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
+          ),
           actions: [
-            IconButton(
-              tooltip: AppStrings.logout,
-              onPressed: () => ref.read(authStateProvider.notifier).logout(),
-              icon: const Icon(Icons.logout),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                tooltip: AppStrings.logout,
+                onPressed: () => ref.read(authStateProvider.notifier).logout(),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.surfaceMuted,
+                  foregroundColor: AppColors.textSecondary,
+                ),
+                icon: const Icon(Icons.logout_rounded, size: 20),
+              ),
             ),
           ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(height: 1, color: AppColors.borderLight),
+          ),
         ),
         body: navigationShell,
         bottomNavigationBar: NavigationBar(
@@ -55,6 +91,7 @@ class ControlShellScreen extends ConsumerWidget {
             for (final item in mobileItems)
               NavigationDestination(
                 icon: Icon(item.value.icon),
+                selectedIcon: Icon(item.value.icon),
                 label: item.value.label,
               ),
           ],

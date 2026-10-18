@@ -7,35 +7,38 @@ Future<T?> showDetailSheet<T>({
   required BuildContext context,
   required String title,
   required WidgetBuilder builder,
-  double initialChildSize = 0.72,
-  double maxChildSize = 0.95,
+  double initialChildSize = 0.78,
+  double maxChildSize = 0.96,
 }) {
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: AppColors.surface,
+    barrierColor: Colors.black.withOpacity(0.35),
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(AppSpacing.sheetRadius),
+      ),
     ),
     builder: (ctx) {
       return DraggableScrollableSheet(
         expand: false,
         initialChildSize: initialChildSize,
-        minChildSize: 0.4,
+        minChildSize: 0.42,
         maxChildSize: maxChildSize,
         builder: (context, scrollController) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Center(
                 child: Container(
-                  width: 40,
+                  width: 36,
                   height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(99),
                   ),
                 ),
               ),
@@ -43,26 +46,40 @@ Future<T?> showDetailSheet<T>({
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg,
                   AppSpacing.md,
-                  AppSpacing.sm,
+                  8,
                   AppSpacing.sm,
                 ),
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(title, style: AppTypography.title),
+                      child: Text(
+                        title,
+                        style: AppTypography.title.copyWith(
+                          letterSpacing: -0.3,
+                        ),
+                      ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.surfaceMuted,
+                        foregroundColor: AppColors.textSecondary,
+                      ),
+                      icon: const Icon(Icons.close_rounded, size: 20),
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 1),
+              Divider(height: 1, color: AppColors.borderLight),
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.xxl,
+                  ),
                   child: builder(context),
                 ),
               ),
