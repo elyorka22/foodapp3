@@ -84,10 +84,11 @@ class TokenStorage {
       _cachedUserJson = null;
     }
 
+    final prefs = _prefs;
     if ((_cachedUserJson == null || _cachedUserJson!.isEmpty) &&
-        _prefs != null) {
+        prefs != null) {
       try {
-        final legacy = _prefs!.getString(_legacyUserPrefsKey);
+        final legacy = prefs.getString(_legacyUserPrefsKey);
         if (legacy != null && legacy.isNotEmpty) {
           _cachedUserJson = legacy;
           try {
