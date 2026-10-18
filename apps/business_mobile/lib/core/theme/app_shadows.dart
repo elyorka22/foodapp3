@@ -6,7 +6,7 @@ abstract final class AppShadows {
 
   static List<BoxShadow> get button => [
         BoxShadow(
-          color: AppColors.primary.withOpacity(0.28),
+          color: AppColors.primary.withValues(alpha: 0.28),
           blurRadius: 10,
           offset: const Offset(0, 4),
         ),

@@ -87,16 +87,16 @@ class ManagerBusinessesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(widget.createRoute, extra: widget.vertical),
+        onPressed: () => context.push(createRoute, extra: vertical),
         icon: const Icon(Icons.add),
-        label: Text(widget.createLabel),
+        label: Text(createLabel),
       ),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(widget.listProvider),
+        onRefresh: () async => ref.invalidate(listProvider),
         child: ListView(
           padding: scrollFabPadding(context),
           children: [
-            ScreenHeader(title: widget.title, subtitle: widget.subtitle),
+            ScreenHeader(title: title, subtitle: subtitle),
             businesses.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(48),
@@ -104,15 +104,15 @@ class ManagerBusinessesScreen extends ConsumerWidget {
               ),
               error: (e, _) => ErrorState(
                 message: ApiException.formatError(e),
-                onRetry: () => ref.invalidate(widget.listProvider),
+                onRetry: () => ref.invalidate(listProvider),
               ),
               data: (list) {
                 if (list.isEmpty) {
                   return EmptyState(
-                    icon: widget.listIcon,
-                    title: widget.emptyTitle,
-                    actionLabel: widget.createLabel,
-                    onAction: () => context.push(widget.createRoute, extra: widget.vertical),
+                    icon: listIcon,
+                    title: emptyTitle,
+                    actionLabel: createLabel,
+                    onAction: () => context.push(createRoute, extra: vertical),
                   );
                 }
                 return Padding(
@@ -121,7 +121,9 @@ class ManagerBusinessesScreen extends ConsumerWidget {
                     children: list
                         .map(
                           (business) => AppCard(
-                            onTap: () => context.push(AppRoutes.managerRestaurantEdit(business.id)),
+                            onTap: () => context.push(
+                              AppRoutes.managerRestaurantEdit(business.id),
+                            ),
                             child: Row(
                               children: [
                                 Container(
@@ -131,16 +133,26 @@ class ManagerBusinessesScreen extends ConsumerWidget {
                                     color: AppColors.primarySoft,
                                     borderRadius: BorderRadius.circular(14),
                                   ),
-                                  child: Icon(widget.listIcon, color: AppColors.primary),
+                                  child: Icon(
+                                    listIcon,
+                                    color: AppColors.primary,
+                                  ),
                                 ),
                                 const SizedBox(width: AppSpacing.md),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(business.name, style: AppTypography.subtitle),
+                                      Text(
+                                        business.name,
+                                        style: AppTypography.subtitle,
+                                      ),
                                       if (business.phone != null)
-                                        Text(business.phone!, style: AppTypography.bodySmall),
+                                        Text(
+                                          business.phone!,
+                                          style: AppTypography.bodySmall,
+                                        ),
                                       if (business.branchAddress != null)
                                         Text(
                                           business.branchAddress!,
@@ -154,17 +166,23 @@ class ManagerBusinessesScreen extends ConsumerWidget {
                                 Column(
                                   children: [
                                     Icon(
-                                      business.isActive ? Icons.check_circle : Icons.block,
-                                      color: business.isActive ? AppColors.success : AppColors.danger,
+                                      business.isActive
+                                          ? Icons.check_circle
+                                          : Icons.block,
+                                      color: business.isActive
+                                          ? AppColors.success
+                                          : AppColors.danger,
                                       size: 20,
                                     ),
                                     const SizedBox(height: 8),
                                     IconButton(
                                       onPressed: () => context.push(
-                                        AppRoutes.managerRestaurantMenu(business.id),
+                                        AppRoutes.managerRestaurantMenu(
+                                          business.id,
+                                        ),
                                       ),
                                       icon: Icon(
-                                        widget.vertical == 'store'
+                                        vertical == 'store'
                                             ? Icons.inventory_2_outlined
                                             : Icons.restaurant_menu_outlined,
                                       ),
