@@ -1,21 +1,16 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'firebase_options.dart';
 import 'firebase_push_notification_service.dart';
 
 const enableFcm = bool.fromEnvironment('ENABLE_FCM', defaultValue: true);
 
-Future<void> _ensureFirebaseInitialized() async {
-  if (Firebase.apps.isNotEmpty) return;
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-}
-
+/// Register the FCM background handler only — do not await Firebase.initializeApp
+/// here. Awaiting native init before [runApp] can leave the Flutter splash forever
+/// on some devices. Full init happens in [FirebasePushNotificationService].
 Future<void> bootstrapFirebase() async {
   if (!enableFcm) return;
 
   try {
-    await _ensureFirebaseInitialized();
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   } catch (e, st) {
     debugPrint('Firebase bootstrap failed: $e\n$st');

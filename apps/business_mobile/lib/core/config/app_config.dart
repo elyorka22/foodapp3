@@ -36,24 +36,28 @@ class AppConfig {
     caseSensitive: false,
   );
 
-  static void ensureConfigured() {
+  /// Human-readable boot error, or null when config is OK.
+  /// Prefer this over throwing before [runApp] (native splash would hang).
+  static String? configError() {
     if (apiBaseUrl.trim().isEmpty) {
-      throw FlutterError(
-        'API_BASE_URL is required.\n'
-        'Example: --dart-define=API_BASE_URL=https://foodapp.uz/api/v1',
-      );
+      return 'API_BASE_URL is required.\n'
+          'Example: --dart-define=API_BASE_URL=https://foodapp.uz/api/v1';
     }
     if (hasDuplicateApiV1InBase) {
-      throw FlutterError(
-        'API_BASE_URL must not contain /api/v1 twice.\n'
-        'Use: https://your-host/api/v1',
-      );
+      return 'API_BASE_URL must not contain /api/v1 twice.\n'
+          'Use: https://your-host/api/v1';
     }
     if (kReleaseMode && _forbiddenHost.hasMatch(apiBaseUrl)) {
-      throw FlutterError(
-        'Release builds cannot use localhost in API_BASE_URL.\n'
-        'Use your production host, e.g. https://foodapp.uz/api/v1',
-      );
+      return 'Release builds cannot use localhost in API_BASE_URL.\n'
+          'Use your production host, e.g. https://foodapp.uz/api/v1';
+    }
+    return null;
+  }
+
+  static void ensureConfigured() {
+    final err = configError();
+    if (err != null) {
+      throw FlutterError(err);
     }
   }
 }

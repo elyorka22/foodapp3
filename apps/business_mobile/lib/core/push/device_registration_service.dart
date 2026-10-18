@@ -18,7 +18,10 @@ final deviceRegistrationRepositoryProvider = Provider<DeviceRegistrationReposito
 final deviceRegistrationServiceProvider = Provider<DeviceRegistrationService>((ref) {
   return DeviceRegistrationService(
     ref.watch(deviceRegistrationRepositoryProvider),
-    DeviceIdStorage(ref.watch(sharedPreferencesProvider)),
+    DeviceIdStorage(
+      ref.watch(secureStorageProvider),
+      ref.watch(sharedPreferencesProvider),
+    ),
     ref.watch(pushNotificationServiceProvider),
     ref.watch(tokenStorageProvider),
   );

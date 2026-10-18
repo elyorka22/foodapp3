@@ -25,6 +25,11 @@ dependencies:
   image_picker: ^1.1.2
   cached_network_image: ^3.4.1
 
+# Pin Android implementation to avoid Pigeon/NoSuchMethodError getAll mismatches
+# seen on some release APKs (hangs on Flutter splash before runApp).
+dependency_overrides:
+  shared_preferences_android: 2.4.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
