@@ -44,47 +44,52 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: AppSpacing.xxl),
-              Text(
-                AppStrings.appName,
-                style: AppTypography.title.copyWith(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  height: 1.2,
-                ),
-              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(AppStrings.appName, style: AppTypography.display),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 AppStrings.appTagline,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 48),
-              TextField(
-                controller: _phone,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                autocorrect: false,
-                decoration: const InputDecoration(
-                  labelText: AppStrings.loginId,
-                  hintText: AppStrings.loginIdHint,
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              PasswordTextField(
-                controller: _password,
-                labelText: AppStrings.password,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _submit(),
+                style: AppTypography.bodySmall.copyWith(height: 1.4),
               ),
               const SizedBox(height: AppSpacing.xxl),
-              FoodAppButton(
-                label: AppStrings.login,
-                isLoading: _loading,
-                onPressed: _submit,
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius:
+                      BorderRadius.circular(AppSpacing.cardRadius),
+                  boxShadow: AppColors.cardShadow,
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _phone,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autocorrect: false,
+                      decoration: const InputDecoration(
+                        labelText: AppStrings.loginId,
+                        hintText: AppStrings.loginIdHint,
+                        prefixIcon: Icon(Icons.person_outline),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    PasswordTextField(
+                      controller: _password,
+                      labelText: AppStrings.password,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submit(),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    FoodAppButton(
+                      label: AppStrings.login,
+                      isLoading: _loading,
+                      onPressed: _submit,
+                    ),
+                  ],
+                ),
               ),
               if (kDebugMode) ...[
                 const SizedBox(height: AppSpacing.lg),

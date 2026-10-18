@@ -9,7 +9,7 @@ class StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     this.icon,
-    this.accentColor = AppColors.primary,
+    this.accentColor = AppColors.primaryDark,
   });
 
   final String label;
@@ -25,6 +25,7 @@ class StatCard extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         border: Border.all(color: AppColors.borderLight),
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,20 +33,38 @@ class StatCard extends StatelessWidget {
           Row(
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18, color: accentColor),
-                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, size: 18, color: accentColor),
+                ),
+                const SizedBox(width: 8),
               ],
               Expanded(
-                child: Text(label, style: AppTypography.caption),
+                child: Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: AppTypography.subtitle.copyWith(
-              fontWeight: FontWeight.w800,
-              color: accentColor,
+          const SizedBox(height: 12),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: AppTypography.title.copyWith(
+                fontSize: 22,
+                letterSpacing: -0.4,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
         ],

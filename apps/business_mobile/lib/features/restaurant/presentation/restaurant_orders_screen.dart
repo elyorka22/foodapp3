@@ -45,6 +45,7 @@ class _RestaurantOrdersScreenState extends ConsumerState<RestaurantOrdersScreen>
           children: [
             ScreenHeader(
               title: restaurant.valueOrNull?.name ?? AppStrings.restaurantPanel,
+              subtitle: AppStrings.ordersSubtitle,
               trailing: TextButton.icon(
                 onPressed: () => context.push(AppRoutes.restaurantHistory),
                 icon: const Icon(Icons.history, size: 20),

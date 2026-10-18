@@ -43,7 +43,7 @@ class _ManagerOrdersScreenState extends ConsumerState<ManagerOrdersScreen> {
           children: [
             ScreenHeader(
               title: AppStrings.managerPanel,
-              subtitle: AppStrings.orders,
+              subtitle: AppStrings.ordersSubtitle,
               trailing: TextButton.icon(
                 onPressed: () => context.push(AppRoutes.managerHistory),
                 icon: const Icon(Icons.history, size: 20),

@@ -8,8 +8,8 @@ abstract final class AppColors {
   static const Color accentSoft = Color(0xFFFFF7ED);
 
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceMuted = Color(0xFFFAF8F3);
-  static const Color background = Color(0xFFFCFAF5);
+  static const Color surfaceMuted = Color(0xFFF7F5F0);
+  static const Color background = Color(0xFFFBF9F4);
 
   static const Color border = Color(0xFFE2E8E7);
   static const Color borderLight = Color(0xFFF0F3F2);
@@ -28,4 +28,12 @@ abstract final class AppColors {
   static const Color infoSoft = Color(0xFFEFF6FF);
 
   static const Color onPrimary = Color(0xFF1A1A1A);
+
+  static const List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: Color(0x0A0F172A),
+      blurRadius: 16,
+      offset: Offset(0, 4),
+    ),
+  ];
 }

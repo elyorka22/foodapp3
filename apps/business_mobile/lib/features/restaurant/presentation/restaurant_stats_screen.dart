@@ -36,7 +36,7 @@ class RestaurantStatsScreen extends ConsumerWidget {
           children: [
             ScreenHeader(
               title: AppStrings.statistics,
-              subtitle: restaurant.valueOrNull?.name,
+              subtitle: restaurant.valueOrNull?.name ?? AppStrings.statsSubtitle,
             ),
             stats.when(
               loading: () => const Padding(

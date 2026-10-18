@@ -61,7 +61,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
             if (widget.restaurantId == null)
               const ScreenHeader(
                 title: AppStrings.menu,
-                subtitle: 'Mahsulotlar, narx va mavjudlik',
+                subtitle: AppStrings.menuSubtitle,
               ),
             if (businessId == null)
               const EmptyState(

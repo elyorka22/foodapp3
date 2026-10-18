@@ -10,6 +10,7 @@ import '../../../core/utils/format_sum.dart';
 import '../../../core/utils/phone_dial.dart';
 import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/order_model.dart';
+import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/order_items_list.dart';
 import '../../../shared/widgets/status_badge.dart';
@@ -166,43 +167,32 @@ class _ManagerOrderDetailScreenState extends ConsumerState<ManagerOrderDetailScr
         return;
       }
 
-      final selected = await showModalBottomSheet<String>(
+      final selected = await showBusinessSheet<String>(
         context: context,
-        showDragHandle: true,
+        title: AppStrings.selectCourier,
+        initialChildSize: 0.5,
         builder: (context) {
-          return SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Text(AppStrings.selectCourier, style: AppTypography.subtitle),
-                ),
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: active.length,
-                    itemBuilder: (context, index) {
-                      final courier = active[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primarySoft,
-                          child: Text(courier.fullName.characters.first),
-                        ),
-                        title: Text(courier.fullName),
-                        subtitle: Text(courier.phone ?? ''),
-                        trailing: Icon(
-                          Icons.circle,
-                          color: courier.isOnline ? AppColors.success : AppColors.textMuted,
-                          size: 10,
-                        ),
-                        onTap: () => Navigator.pop(context, courier.id),
-                      );
-                    },
+          return Column(
+            children: [
+              for (final courier in active)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primarySoft,
+                    child: Text(courier.fullName.characters.first),
                   ),
+                  title: Text(courier.fullName),
+                  subtitle: Text(courier.phone ?? ''),
+                  trailing: Icon(
+                    Icons.circle,
+                    color: courier.isOnline
+                        ? AppColors.success
+                        : AppColors.textMuted,
+                    size: 10,
+                  ),
+                  onTap: () => Navigator.pop(context, courier.id),
                 ),
-              ],
-            ),
+            ],
           );
         },
       );

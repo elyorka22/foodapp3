@@ -16,15 +16,13 @@ class RestaurantShellScreen extends StatelessWidget {
         bottom: false,
         child: navigationShell,
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: NavigationBar(
+      bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: navigationShell.goBranch,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.notifications_active_outlined),
-            selectedIcon: Icon(Icons.notifications_active),
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long),
             label: AppStrings.newOrders,
           ),
           NavigationDestination(
@@ -43,7 +41,6 @@ class RestaurantShellScreen extends StatelessWidget {
             label: AppStrings.profile,
           ),
         ],
-        ),
       ),
     );
   }

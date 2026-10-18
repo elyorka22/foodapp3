@@ -8,6 +8,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../../shared/widgets/screen_header.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../restaurant/data/restaurant_repository.dart';
 
@@ -29,6 +30,11 @@ class ProfileScreen extends ConsumerWidget {
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const ScreenHeader(
+                padded: false,
+                title: AppStrings.profile,
+                subtitle: AppStrings.appTagline,
+              ),
               const SizedBox(height: AppSpacing.lg),
               Center(
                 child: CircleAvatar(

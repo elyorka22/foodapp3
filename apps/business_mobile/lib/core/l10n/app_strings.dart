@@ -1,6 +1,9 @@
 abstract final class AppStrings {
   static const appName = 'FoodApp Business';
-  static const appTagline = 'Sizning biznes yordamchingiz!';
+  static const appTagline = 'Buyurtmalar, menyu va yetkazish — bir joyda';
+  static const menuSubtitle = 'Mahsulotlar, narx va mavjudlik';
+  static const ordersSubtitle = 'Yangi buyurtmalarni qabul qiling va kuzating';
+  static const statsSubtitle = 'Bugungi va oylik ko‘rsatkichlar';
 
   static const phone = 'Telefon';
   static const loginId = 'Telefon yoki email';

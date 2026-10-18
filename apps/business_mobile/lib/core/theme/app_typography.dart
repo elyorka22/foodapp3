@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 abstract final class AppTypography {
+  static TextStyle get display => const TextStyle(
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        color: AppColors.textPrimary,
+      );
+
   static TextStyle get title => const TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w700,
+        letterSpacing: -0.2,
         color: AppColors.textPrimary,
       );
 
@@ -33,8 +41,8 @@ abstract final class AppTypography {
       );
 
   static TextStyle get button => const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: Colors.white,
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onPrimary,
       );
 }

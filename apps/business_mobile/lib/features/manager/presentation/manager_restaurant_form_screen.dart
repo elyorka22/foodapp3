@@ -9,6 +9,7 @@ import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/models/working_hour_model.dart';
 import '../../../shared/widgets/password_text_field.dart';
 import '../../../shared/widgets/food_app_button.dart';
+import '../../../shared/widgets/section_panel.dart';
 import '../../../core/utils/safe_area_padding.dart';
 import '../../../core/utils/time_format.dart';
 import '../../../shared/widgets/time_am_pm_field.dart';
@@ -116,68 +117,86 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextField(
-                    controller: _name,
-                    decoration: InputDecoration(
-                      labelText: _isStore ? AppStrings.storeName : AppStrings.restaurantName,
+                  SectionPanel(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextField(
+                          controller: _name,
+                          decoration: InputDecoration(
+                            labelText: _isStore
+                                ? AppStrings.storeName
+                                : AppStrings.restaurantName,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TextField(
+                          controller: _phone,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: AppStrings.restaurantPhone,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TextField(
+                          controller: _address,
+                          decoration: const InputDecoration(
+                            labelText: AppStrings.restaurantAddress,
+                          ),
+                          maxLines: 2,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  TextField(
-                    controller: _phone,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: AppStrings.restaurantPhone),
+                  SectionPanel(
+                    title: AppStrings.workingHours,
+                    subtitle: AppStrings.closedHoursHint,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TimeAmPmField(
+                                labelText: AppStrings.closedFrom,
+                                hintText: AppStrings.closedFromHint,
+                                value24: _closedFrom24,
+                                onChanged: (v) =>
+                                    setState(() => _closedFrom24 = v),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: TimeAmPmField(
+                                labelText: AppStrings.closedUntil,
+                                hintText: AppStrings.closedUntilHint,
+                                value24: _closedUntil24,
+                                onChanged: (v) =>
+                                    setState(() => _closedUntil24 = v),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text(AppStrings.closedSunday),
+                          value: _closedSunday,
+                          onChanged: (v) =>
+                              setState(() => _closedSunday = v),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  TextField(
-                    controller: _address,
-                    decoration: const InputDecoration(labelText: AppStrings.restaurantAddress),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(AppStrings.workingHours, style: AppTypography.subtitle),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppStrings.closedHoursHint,
-                    style: AppTypography.caption,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TimeAmPmField(
-                          labelText: AppStrings.closedFrom,
-                          hintText: AppStrings.closedFromHint,
-                          value24: _closedFrom24,
-                          onChanged: (v) => setState(() => _closedFrom24 = v),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: TimeAmPmField(
-                          labelText: AppStrings.closedUntil,
-                          hintText: AppStrings.closedUntilHint,
-                          value24: _closedUntil24,
-                          onChanged: (v) => setState(() => _closedUntil24 = v),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text(AppStrings.closedSunday),
-                    value: _closedSunday,
-                    onChanged: (v) => setState(() => _closedSunday = v),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    _isEdit
+                  SectionPanel(
+                    title: _isEdit
                         ? AppStrings.ownerAccountSection
                         : AppStrings.ownerAccountSectionCreate,
-                    style: AppTypography.subtitle,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                   if (_isEdit && !_hasOwnerAccount) ...[
                     Container(
                       width: double.infinity,
@@ -236,7 +255,10 @@ class _ManagerRestaurantFormScreenState extends ConsumerState<ManagerRestaurantF
                     value: _isActive,
                     onChanged: (v) => setState(() => _isActive = v),
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
                   FoodAppButton(
                     label: AppStrings.save,
                     isLoading: _loading,
