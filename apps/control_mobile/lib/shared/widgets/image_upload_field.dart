@@ -55,14 +55,28 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
       final picker = ImagePicker();
       final file = await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 2400,
-        imageQuality: 88,
+        maxWidth: 1600,
+        imageQuality: 80,
+        requestFullMetadata: false,
       );
       if (file == null) return;
 
       setState(() => _uploading = true);
       final bytes = await file.readAsBytes();
-      final name = file.name.isNotEmpty ? file.name : 'image.jpg';
+      if (bytes.isEmpty) {
+        showActionSnackBar(context, 'Rasm bo‘sh', error: true);
+        return;
+      }
+      // Keep under nginx client_max_body_size (10M) with headroom.
+      if (bytes.length > 8 * 1024 * 1024) {
+        showActionSnackBar(
+          context,
+          'Rasm juda katta (max ~8 MB). Boshqa rasm tanlang.',
+          error: true,
+        );
+        return;
+      }
+      final name = file.name.isNotEmpty ? file.name : 'banner.jpg';
       final result = await ref.read(uploadRepositoryProvider).uploadImage(
             bytes: bytes,
             filename: name,
