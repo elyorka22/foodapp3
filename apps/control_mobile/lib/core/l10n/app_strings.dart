@@ -19,7 +19,7 @@ abstract final class AppStrings {
   static const navBusinesses = 'Bizneslar';
   static const navOrders = 'Buyurtmalar';
   static const navCatalog = 'Kategoriyalar';
-  static const navPromotions = 'Bannerlar';
+  static const navPromotions = 'Takliflar';
   static const navSettings = 'Sozlamalar';
   static const navAudit = 'Audit';
 
@@ -31,25 +31,30 @@ abstract final class AppStrings {
   static const employeesTitle = 'Xodimlar';
   static const businessesTitle = 'Restoran va do‘konlar';
   static const ordersTitle = 'Buyurtmalar';
-  static const catalogTitle = 'Kategoriyalar va mahsulotlar';
-  static const promotionsTitle = 'Bannerlar va promo';
+  static const catalogTitle = 'Taom kategoriyalari';
+  static const promotionsTitle = 'Maxsus takliflar';
   static const settingsTitle = 'Ilova sozlamalari';
-  static const mediaSection = 'Rasmlar va bannerlar';
+  static const mediaSection = 'Bosh sahifa media';
   static const mediaSectionHint =
-      'Banner va kategoriya rasmlarini yuklash, o‘lcham va joylashuvini sozlash';
-  static const categoriesSection = 'Kategoriyalar';
+      'Yangi dizayn: bannerlar «Maxsus takliflar» qatorida. Restoranlar — Bizneslar + Shaharlar.';
+  static const categoriesSection = 'Taom kategoriyalari';
   static const productsSection = 'Mahsulotlar';
   static const addCategory = 'Kategoriya + rasm';
   static const editCategory = 'Kategoriyani tahrirlash';
   static const categoryName = 'Kategoriya nomi';
   static const categoryImageHint =
-      'Kategoriyani bosing — rasm yuklash, masshtab va joylashuv';
+      'Web bosh sahifada ko‘rinmaydi. /categories va mobil ilova uchun.';
   static const categoryEmptyHint =
       'Hali kategoriya yo‘q. Yuqoridagi tugma orqali qo‘shing va rasm yuklang.';
   static const confirmDeleteCategory =
       'Kategoriyani o‘chirishni tasdiqlaysizmi?';
   static const bannerEmptyHint =
-      'Hali banner yo‘q. «Banner qo‘shish» → «Galereyadan tanlash».';
+      'Hali banner yo‘q. Qo‘shing — mijoz bosh sahifasida «Maxsus takliflar»da ko‘rinadi.';
+  static const bannersHomeHint =
+      'Bosh sahifa karuseli (Maxsus takliflar). HERO / HOME_MAIN kabi eski joylashuvlar yo‘q.';
+  static const bannerSurfaceLabel = 'Ko‘rinish joyi';
+  static const bannerSurfaceHomeOffers = 'Bosh sahifa — Maxsus takliflar';
+  static const bannerLinkHint = 'Masalan /promotions yoki /restaurants/slug';
   static const auditTitle = 'Audit jurnali';
 
   static const emptyList = 'Hali ma’lumot yo‘q';
@@ -119,7 +124,7 @@ abstract final class AppStrings {
   static const promoType = 'Turi';
   static const promoValue = 'Qiymat';
   static const bannerTitle = 'Banner sarlavhasi';
-  static const bannerDescription = 'Tavsif';
+  static const bannerDescription = 'Tavsif (ixtiyoriy)';
   static const bannerImageUrl = 'Rasm URL';
   static const bannerPickImage = 'Galereyadan tanlash';
   static const bannerChangeImage = 'Rasmni almashtirish';
@@ -136,6 +141,7 @@ abstract final class AppStrings {
   static const bannerSortOrder = 'Tartib';
   static const confirmDeletePromo = 'Promo kodni o‘chirishni tasdiqlaysizmi?';
   static const confirmDeleteBanner = 'Bannerni o‘chirishni tasdiqlaysizmi?';
+
 
   // Push
   static const navPush = 'Push';
@@ -186,7 +192,7 @@ abstract final class AppStrings {
   static const cardOrders = 'Buyurtmalar';
   static const cardOpenIssues = 'Diqqat talab';
 
-  static const bannersSection = 'Bannerlar';
+  static const bannersSection = 'Maxsus takliflar (bannerlar)';
   static const promosSection = 'Promo kodlar';
 
   static const settingsAppName = 'Ilova nomi';

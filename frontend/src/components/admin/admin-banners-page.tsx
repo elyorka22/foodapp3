@@ -377,7 +377,7 @@ export function AdminBannersPage({
               <div className="flex flex-wrap justify-end gap-2">
                 {wrongPlacement && (
                   <Button type="button" onClick={() => fixPromoPlacement(b)}>
-                    Promo blokka
+                    Maxsus takliflarga
                   </Button>
                 )}
                 <Button type="button" variant="secondary" onClick={() => toggleActive(b)}>
@@ -434,8 +434,8 @@ export function AdminBannersPage({
             </label>
           )}
           {placementMode === 'PROMO' && (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-              Bu banner bosh sahifada asosiy karusel ostida ko&apos;rinadi.
+            <p className="rounded-lg bg-zinc-100 px-3 py-2 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+              Yangi dizayn: bosh sahifada «Maxsus takliflar» karuselida ko&apos;rinadi.
             </p>
           )}
           <Input
@@ -472,9 +472,7 @@ export function AdminBannersPage({
             <ImageFramingControls
               label="Banner rasm — joylashuv va masshtab"
               imageUrl={form.imageUrl}
-              previewAspectClass={
-                form.placement === 'HOME_MAIN' ? 'aspect-[5/6] max-h-[200px]' : 'aspect-[2/1]'
-              }
+              previewAspectClass="aspect-[2.3/1] max-h-[180px]"
               values={{
                 imageScale: form.imageScale ?? 100,
                 imagePositionX: form.imagePositionX ?? 50,

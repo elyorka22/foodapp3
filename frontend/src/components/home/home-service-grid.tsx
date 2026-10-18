@@ -35,7 +35,7 @@ type ServiceCard = {
   image?: ImageLayout;
 };
 
-const TOP_ROW: ServiceCard[] = [
+const TOP_CAROUSEL: ServiceCard[] = [
   {
     href: '/restaurants',
     title: uz.homeServiceRestaurants,
@@ -45,9 +45,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/restaurants.webp',
-      widthPercent: 78,
-      right: -12,
-      bottom: -14,
+      widthPercent: 72,
+      right: -10,
+      bottom: -12,
     },
   },
   {
@@ -59,7 +59,7 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-emerald-600',
     image: {
       src: '/assets/home-services/products.png',
-      widthPercent: 58,
+      widthPercent: 56,
       right: -4,
       bottom: -8,
     },
@@ -73,7 +73,7 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-indigo-600',
     image: {
       src: '/assets/home-services/promotions.png',
-      widthPercent: 56,
+      widthPercent: 54,
       right: -4,
       bottom: -8,
     },
@@ -116,10 +116,13 @@ function ServiceTile({
   card,
   className,
   iconSize = 44,
+  carousel,
 }: {
   card: ServiceCard;
   className?: string;
   iconSize?: number;
+  /** Fixed width for carousel slides */
+  carousel?: boolean;
 }) {
   const Icon = card.icon;
   const [imageFailed, setImageFailed] = useState(false);
@@ -130,16 +133,21 @@ function ServiceTile({
       href={card.href}
       className={clsx(
         'relative block min-h-[118px] overflow-visible transition active:scale-[0.98]',
+        carousel && 'h-[132px] w-[148px] shrink-0 snap-start',
         className,
       )}
     >
-      {/* Rounded panel only — does not clip the floating image */}
       <div
         className="absolute inset-0 rounded-[26px] bg-[#F3F4F6] shadow-[0_2px_12px_rgba(15,23,42,0.04)]"
         aria-hidden
       />
 
-      <div className="relative z-10 flex h-full min-h-[118px] flex-col p-3.5">
+      <div
+        className={clsx(
+          'relative z-10 flex h-full flex-col p-3.5',
+          !carousel && 'min-h-[118px]',
+        )}
+      >
         <div className="min-w-0 max-w-[62%] pr-1">
           <p className="line-clamp-2 text-[13px] font-bold leading-tight text-zinc-900 sm:text-[15px]">
             {card.title}
@@ -195,12 +203,19 @@ function ServiceTile({
 export function HomeServiceGrid() {
   return (
     <section className="mt-5 space-y-3 overflow-visible" aria-label={uz.categories}>
-      <div className="grid grid-cols-3 gap-3 overflow-visible">
-        {TOP_ROW.map((card) => (
-          <ServiceTile key={card.href + card.title} card={card} iconSize={36} />
+      {/* Row 1 — horizontal carousel */}
+      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 pt-1 scrollbar-hide snap-x snap-mandatory">
+        {TOP_CAROUSEL.map((card) => (
+          <ServiceTile
+            key={card.href + card.title}
+            card={card}
+            carousel
+            iconSize={40}
+          />
         ))}
       </div>
 
+      {/* Row 2 — first card wider, like before */}
       <div className="grid grid-cols-[1.65fr_1fr] gap-3 overflow-visible">
         <ServiceTile card={BOTTOM_LARGE} className="min-h-[132px]" iconSize={52} />
         <ServiceTile card={BOTTOM_SMALL} className="min-h-[132px]" iconSize={40} />

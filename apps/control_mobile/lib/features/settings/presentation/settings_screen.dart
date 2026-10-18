@@ -176,13 +176,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         FilledButton.icon(
           onPressed: () => context.go(AppRoutes.promotions),
           icon: const Icon(Icons.image_outlined),
-          label: const Text(AppStrings.navPromotions),
+          label: const Text(AppStrings.bannerSurfaceHomeOffers),
         ),
         const SizedBox(height: 8),
         FilledButton.tonalIcon(
           onPressed: () => context.go(AppRoutes.catalog),
           icon: const Icon(Icons.category_outlined),
-          label: const Text(AppStrings.navCatalog),
+          label: const Text(AppStrings.categoriesSection),
+        ),
+        const SizedBox(height: 8),
+        FilledButton.tonalIcon(
+          onPressed: () => context.go(AppRoutes.businesses),
+          icon: const Icon(Icons.storefront_outlined),
+          label: const Text(AppStrings.navBusinesses),
         ),
         const SizedBox(height: 24),
         Text(AppStrings.platformSection, style: AppTypography.subtitle),

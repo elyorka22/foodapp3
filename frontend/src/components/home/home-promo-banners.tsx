@@ -14,12 +14,13 @@ type Props = {
   isLoading?: boolean;
 };
 
+/** New home strip «Maxsus takliflar». PROMO is canonical; HERO kept for legacy. */
 function promoList(banners: HomeBanner[]): HomeBanner[] {
   return banners
     .filter((b) => resolveImageUrl(b.imageUrl))
     .filter((b) => {
-      const p = b.placement ?? 'HERO';
-      return p === 'HERO' || p === 'PROMO' || p === 'HOME_MAIN' || p === 'HOME_SIDE_TOP';
+      const p = b.placement ?? 'PROMO';
+      return p === 'PROMO' || p === 'HERO';
     })
     .slice()
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));

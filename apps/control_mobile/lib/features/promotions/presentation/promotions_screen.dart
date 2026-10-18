@@ -14,6 +14,7 @@ import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/banner_model.dart';
+import '../data/banner_placement.dart';
 import '../data/promo_model.dart';
 import '../data/promotions_repository.dart';
 
@@ -70,6 +71,11 @@ class PromotionsScreen extends ConsumerWidget {
                     AppStrings.bannersSection,
                     style: AppTypography.subtitle,
                   ),
+                  const SizedBox(height: 6),
+                  Text(
+                    AppStrings.bannersHomeHint,
+                    style: AppTypography.bodySmall,
+                  ),
                   const SizedBox(height: 10),
                   FilledButton.icon(
                     onPressed: () => showDetailSheet(
@@ -111,18 +117,15 @@ class PromotionsScreen extends ConsumerWidget {
                       },
                       itemBuilder: (context, index) {
                         final b = banners[index];
+                        final surface = BannerPlacement.labelUz(b.placement);
                         return Padding(
                           key: ValueKey(b.id),
                           padding: const EdgeInsets.only(bottom: 8),
                           child: ControlListCard(
                             leading: _BannerThumb(banner: b),
-                            title: b.title.isNotEmpty
-                                ? b.title
-                                : (b.placement.isNotEmpty
-                                    ? b.placement
-                                    : b.id),
+                            title: b.title.isNotEmpty ? b.title : surface,
                             subtitle: [
-                              if (b.placement.isNotEmpty) b.placement,
+                              surface,
                               if (b.linkUrl != null && b.linkUrl!.isNotEmpty)
                                 b.linkUrl!,
                             ].join(' · '),
@@ -407,18 +410,12 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
   late final TextEditingController _imageUrl;
   late final TextEditingController _link;
   late final TextEditingController _sortOrder;
-  String _placement = 'HERO';
   bool _isActive = true;
   bool _busy = false;
   late ImageFramingValues _framing;
 
-  static const _placements = [
-    'HERO',
-    'PROMO',
-    'HOME_MAIN',
-    'HOME_SIDE_TOP',
-    'HOME_SIDE_BOTTOM',
-  ];
+  /// New home carousel aspect (~85% width × 150px).
+  static const _previewAspect = 2.3;
 
   @override
   void initState() {
@@ -429,7 +426,6 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
     _imageUrl = TextEditingController(text: b?.imageUrl ?? '');
     _link = TextEditingController(text: b?.linkUrl ?? '');
     _sortOrder = TextEditingController(text: '${b?.sortOrder ?? 0}');
-    _placement = b?.placement.isNotEmpty == true ? b!.placement : 'HERO';
     _isActive = b?.isActive ?? true;
     _framing = b?.framing ?? const ImageFramingValues();
   }
@@ -444,8 +440,6 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
     super.dispose();
   }
 
-  double get _previewAspect => _placement == 'HOME_MAIN' ? 5 / 6 : 2;
-
   Future<void> _save() async {
     final imageUrl = _imageUrl.text.trim();
     if (imageUrl.isEmpty) {
@@ -457,13 +451,15 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
       final repo = ref.read(promotionsRepositoryProvider);
       final sortOrder = int.tryParse(_sortOrder.text.trim()) ?? 0;
       final desc = _description.text.trim();
+      // Always write canonical placement for the new home design.
+      final placement = BannerPlacement.canonicalHome;
       if (widget.banner == null) {
         await repo.createBanner(
           imageUrl: imageUrl,
           title: _title.text.trim(),
           description: desc.isEmpty ? null : desc,
           link: _link.text.trim(),
-          placement: _placement,
+          placement: placement,
           sortOrder: sortOrder,
           isActive: _isActive,
           imageScale: _framing.imageScale,
@@ -477,7 +473,7 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
           description: desc,
           imageUrl: imageUrl,
           link: _link.text.trim(),
-          placement: _placement,
+          placement: placement,
           sortOrder: sortOrder,
           isActive: _isActive,
           imageScale: _framing.imageScale,
@@ -525,6 +521,17 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        InputDecorator(
+          decoration: const InputDecoration(
+            labelText: AppStrings.bannerSurfaceLabel,
+            border: OutlineInputBorder(),
+          ),
+          child: Text(
+            AppStrings.bannerSurfaceHomeOffers,
+            style: AppTypography.body,
+          ),
+        ),
+        const SizedBox(height: 8),
         TextField(
           controller: _title,
           enabled: !_busy,
@@ -551,19 +558,10 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
         TextField(
           controller: _link,
           enabled: !_busy,
-          decoration: const InputDecoration(labelText: AppStrings.bannerLink),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _placement,
-          decoration:
-              const InputDecoration(labelText: AppStrings.bannerPlacement),
-          items: [
-            for (final p in _placements)
-              DropdownMenuItem(value: p, child: Text(p)),
-          ],
-          onChanged:
-              _busy ? null : (v) => setState(() => _placement = v ?? _placement),
+          decoration: const InputDecoration(
+            labelText: AppStrings.bannerLink,
+            hintText: AppStrings.bannerLinkHint,
+          ),
         ),
         const SizedBox(height: 8),
         TextField(

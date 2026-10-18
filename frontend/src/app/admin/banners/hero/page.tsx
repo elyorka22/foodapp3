@@ -1,15 +1,13 @@
 'use client';
 
-import { AdminBannersPage } from '@/components/admin/admin-banners-page';
-import { adminI18n } from '@/lib/admin-i18n';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
+/** Legacy hero banners — redirected to Maxsus takliflar. */
 export default function HomepageHeroBannersPage() {
-  return (
-    <AdminBannersPage
-      title={adminI18n.banners.heroTitle}
-      hint={adminI18n.banners.heroHint}
-      homepageOnly
-      placementMode="HERO"
-    />
-  );
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/admin/banners/home');
+  }, [router]);
+  return null;
 }
