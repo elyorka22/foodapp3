@@ -59,7 +59,7 @@ abstract final class AppTheme {
           );
         }),
       ),
-      tabBarTheme: const TabBarTheme(
+      tabBarTheme: const TabBarThemeData(
         labelColor: AppColors.primary,
         unselectedLabelColor: AppColors.textMuted,
         indicatorSize: TabBarIndicatorSize.label,
