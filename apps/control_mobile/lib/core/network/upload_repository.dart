@@ -49,11 +49,15 @@ class UploadRepository {
       ApiPaths.uploadImage,
       data: form,
       options: Options(
-        // Do not set contentType — Dio adds multipart boundary for FormData.
+        // Do not set contentType manually — Dio sets multipart + boundary for
+        // FormData (overrides BaseOptions application/json).
         headers: {
           'Referer': '$origin$refererPath',
         },
-        receiveTimeout: const Duration(seconds: 120),
+        // Cronet (native_dio_adapter) applies connect+receive as one total
+        // timeout covering the upload itself — keep headroom for mobile.
+        connectTimeout: const Duration(seconds: 60),
+        receiveTimeout: const Duration(seconds: 180),
         sendTimeout: null,
       ),
     );
