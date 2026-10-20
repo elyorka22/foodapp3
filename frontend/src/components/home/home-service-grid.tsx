@@ -27,54 +27,54 @@ type ServiceCard = {
   eta: string;
   badge?: { label: string; className: string };
   icon: LucideIcon;
-  /** Full tile wash — each category gets its own hue (X5-style variety). */
+  /** Gray-scale tile wash — mono foundation. */
   tile: string;
   accent: string;
   iconClass: string;
   image?: ImageLayout;
 };
 
-/** Row 1 — specialty stores: pink / violet / green, not one brand color. */
+/** Row 1 — specialty stores (white/gray tiles). */
 const TOP_ROW: ServiceCard[] = [
   {
     href: '/stores?type=flowers',
     title: uz.homeServiceFlowers,
     eta: uz.homeServiceFlowersEta,
     icon: Flower2,
-    tile: 'bg-[#FFE4EC]',
-    accent: 'from-[#FB7185] to-[#FDA4AF]',
-    iconClass: 'text-white',
+    tile: 'bg-white',
+    accent: 'from-[#E4E4E7] to-[#F4F4F5]',
+    iconClass: 'text-zinc-800',
   },
   {
     href: '/stores?type=perfume',
     title: uz.homeServiceCosmetics,
     eta: uz.homeServiceCosmeticsEta,
     icon: Sparkles,
-    tile: 'bg-[#EDE4FF]',
-    accent: 'from-[#A78BFA] to-[#C4B5FD]',
-    iconClass: 'text-white',
+    tile: 'bg-[#F4F4F5]',
+    accent: 'from-[#D4D4D8] to-[#E4E4E7]',
+    iconClass: 'text-zinc-800',
   },
   {
     href: '/stores?type=pharmacy',
     title: uz.homeServicePharmacy,
     eta: uz.homeServicePharmacyEta,
     icon: Pill,
-    tile: 'bg-[#DCFCE7]',
-    accent: 'from-[#34D399] to-[#6EE7B7]',
-    iconClass: 'text-white',
+    tile: 'bg-white',
+    accent: 'from-[#E4E4E7] to-[#F4F4F5]',
+    iconClass: 'text-zinc-800',
   },
 ];
 
-/** Row 2 — restaurants (warm amber) + grocery (lime), Tomato only on CTA badge. */
+/** Row 2 — restaurants + grocery. */
 const BOTTOM_LARGE: ServiceCard = {
   href: '/restaurants',
   title: uz.homeServiceRestaurants,
   eta: uz.homeServiceRestaurantsEta,
-  badge: { label: uz.homeServiceDeliveryBadge, className: 'bg-primary text-white' },
+  badge: { label: uz.homeServiceDeliveryBadge, className: 'bg-zinc-900 text-white' },
   icon: UtensilsCrossed,
-  tile: 'bg-[#FFEDD5]',
-  accent: 'from-[#FB923C] to-[#FDBA74]',
-  iconClass: 'text-white',
+  tile: 'bg-[#F4F4F5]',
+  accent: 'from-[#D4D4D8] to-[#E4E4E7]',
+  iconClass: 'text-zinc-800',
   image: {
     src: '/assets/home-services/restaurants.webp',
     widthPercent: 48,
@@ -88,9 +88,9 @@ const BOTTOM_SMALL: ServiceCard = {
   title: uz.homeServiceProducts,
   eta: uz.homeServiceProductsEta,
   icon: ShoppingBag,
-  tile: 'bg-[#ECFCCB]',
-  accent: 'from-[#84CC16] to-[#A3E635]',
-  iconClass: 'text-white',
+  tile: 'bg-white',
+  accent: 'from-[#E4E4E7] to-[#F4F4F5]',
+  iconClass: 'text-zinc-800',
 };
 
 function ServiceTile({
@@ -119,7 +119,7 @@ function ServiceTile({
     >
       <div
         className={clsx(
-          'absolute inset-0 rounded-[26px] shadow-[0_2px_12px_rgba(15,23,42,0.05)]',
+          'absolute inset-0 rounded-[26px] ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)]',
           card.tile,
         )}
         aria-hidden
@@ -145,7 +145,7 @@ function ServiceTile({
           >
             {card.title}
           </p>
-          <p className="mt-0.5 text-[11px] font-medium text-zinc-500 sm:text-[12px]">
+          <p className="mt-0.5 text-[11px] font-medium text-zinc-400 sm:text-[12px]">
             {card.eta}
           </p>
         </div>
@@ -183,7 +183,7 @@ function ServiceTile({
       ) : (
         <div
           className={clsx(
-            'pointer-events-none absolute -bottom-1 -right-1 z-[5] flex items-center justify-center rounded-full bg-gradient-to-br shadow-sm',
+            'pointer-events-none absolute -bottom-1 -right-1 z-[5] flex items-center justify-center rounded-full bg-gradient-to-br',
             compact ? 'h-[56px] w-[56px]' : 'h-[72px] w-[72px]',
             card.accent,
           )}

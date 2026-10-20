@@ -43,7 +43,7 @@ export function CheckoutDualActionBar({
           onClick={onPrimary}
           className={clsx(
             'flex h-14 flex-1 items-center justify-center rounded-[20px] px-4 text-[16px] font-bold text-white shadow-[0_12px_32px_rgba(0,0,0,0.22)] transition',
-            'bg-gradient-to-r from-[#27272A] via-[#E11D48] to-[#E11D48]',
+            'bg-gradient-to-r from-[#27272A] via-[#18181B] to-[#18181B]',
             'active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none',
           )}
         >

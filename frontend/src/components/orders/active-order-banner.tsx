@@ -24,7 +24,7 @@ export function ActiveOrderBanner() {
       className="block rounded-[22px] bg-gradient-to-br from-[#FAFAFA] to-[#E4E4E7] p-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition active:scale-[0.99]"
     >
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-[#E11D48] shadow-sm">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-[#18181B] shadow-sm">
           <Truck size={22} />
         </div>
         <div className="min-w-0 flex-1">
@@ -44,7 +44,7 @@ export function ActiveOrderBanner() {
         </div>
         <ChevronRight size={22} className="mt-2 shrink-0 text-[#3F3F46]" aria-hidden />
       </div>
-      <p className="mt-3 text-center text-[13px] font-semibold text-[#E11D48]">
+      <p className="mt-3 text-center text-[13px] font-semibold text-[#18181B]">
         {uz.activeOrderTrack} →
       </p>
     </Link>

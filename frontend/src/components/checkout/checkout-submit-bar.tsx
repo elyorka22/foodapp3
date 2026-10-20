@@ -84,7 +84,7 @@ export function CheckoutSubmitBar({
           onClick={handleClick}
           className={clsx(
             'flex h-[66px] w-full items-center justify-center rounded-[22px] text-[17px] font-bold text-white shadow-[0_12px_32px_rgba(0,0,0,0.22)] transition',
-            'bg-gradient-to-r from-[#27272A] via-[#E11D48] to-[#E11D48]',
+            'bg-gradient-to-r from-[#27272A] via-[#18181B] to-[#18181B]',
             'active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none',
           )}
         >

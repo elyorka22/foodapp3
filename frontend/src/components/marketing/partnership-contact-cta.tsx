@@ -27,8 +27,8 @@ export function PartnershipContactCta({ className }: Props) {
           href={`tel:${phone.replace(/\s/g, '')}`}
           className="mt-3 flex items-center gap-3 rounded-2xl bg-[#F4F4F5] px-4 py-4 active:scale-[0.99]"
         >
-          <Phone size={22} className="shrink-0 text-[#E11D48]" />
-          <span className="text-[16px] font-semibold text-[#E11D48]">{phone}</span>
+          <Phone size={22} className="shrink-0 text-[#18181B]" />
+          <span className="text-[16px] font-semibold text-[#18181B]">{phone}</span>
         </a>
       </div>
     </div>

@@ -11,8 +11,8 @@ type TabIconProps = {
 };
 
 /** Solid-friendly icons: tomato when active, gray outline when idle. */
-const ACTIVE = '#E11D48';
-const IDLE = '#A8A29E';
+const ACTIVE = '#18181B';
+const IDLE = '#A1A1AA';
 const ICON = 26;
 
 function HomeIcon({ active }: TabIconProps) {
