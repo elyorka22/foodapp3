@@ -6,6 +6,7 @@ Put transparent PNG/WebP files here. Paths used by `HomeServiceGrid`:
 |------|------|
 | `restaurants.png` | Restoranlar (row 2, large) |
 | `products.png` | Mahsulotlar (row 2, small) |
+| `pharmacy.png` | Dorixona (row 1) |
 
 Optional (icons used until added):
 
@@ -13,7 +14,6 @@ Optional (icons used until added):
 |------|------|
 | `flowers.png` | Gullar |
 | `cosmetics.png` | Kosmetika |
-| `pharmacy.png` | Dorixona |
 
 Requirements:
 - Transparent background
