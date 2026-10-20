@@ -46,9 +46,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/flowers.png',
-      widthPercent: 78,
-      right: -14,
-      bottom: -14,
+      widthPercent: 98,
+      right: -10,
+      bottom: -12,
     },
   },
   {
@@ -61,9 +61,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/cosmetics.png',
-      widthPercent: 76,
-      right: -14,
-      bottom: -14,
+      widthPercent: 96,
+      right: -10,
+      bottom: -12,
     },
   },
   {
@@ -76,9 +76,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/pharmacy.png',
-      widthPercent: 78,
-      right: -14,
-      bottom: -14,
+      widthPercent: 98,
+      right: -10,
+      bottom: -12,
     },
   },
 ];
@@ -95,9 +95,9 @@ const BOTTOM_LARGE: ServiceCard = {
   iconClass: 'text-zinc-800',
   image: {
     src: '/assets/home-services/restaurants.png',
-    widthPercent: 64,
-    right: -16,
-    bottom: -18,
+    widthPercent: 82,
+    right: -12,
+    bottom: -14,
   },
 };
 
@@ -111,9 +111,9 @@ const BOTTOM_SMALL: ServiceCard = {
   iconClass: 'text-zinc-800',
   image: {
     src: '/assets/home-services/products.png',
-    widthPercent: 70,
-    right: -14,
-    bottom: -16,
+    widthPercent: 92,
+    right: -10,
+    bottom: -14,
   },
 };
 
@@ -136,19 +136,12 @@ function ServiceTile({
     <Link
       href={card.href}
       className={clsx(
-        'relative block min-h-[118px] overflow-visible transition active:scale-[0.98]',
+        'relative block min-h-[118px] overflow-hidden rounded-[26px] ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
         compact && 'min-h-[120px]',
+        card.tile,
         className,
       )}
     >
-      <div
-        className={clsx(
-          'absolute inset-0 rounded-[26px] ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)]',
-          card.tile,
-        )}
-        aria-hidden
-      />
-
       <div
         className={clsx(
           'relative z-10 flex h-full flex-col p-3.5',
@@ -196,7 +189,7 @@ function ServiceTile({
           aria-hidden
           loading="lazy"
           decoding="async"
-          className="pointer-events-none absolute z-[5] object-contain drop-shadow-[0_10px_18px_rgba(15,23,42,0.18)]"
+          className="pointer-events-none absolute z-[5] object-contain drop-shadow-[0_6px_12px_rgba(15,23,42,0.12)]"
           style={{
             width: `${card.image.widthPercent}%`,
             right: card.image.right,
@@ -207,7 +200,7 @@ function ServiceTile({
       ) : (
         <div
           className={clsx(
-            'pointer-events-none absolute -bottom-1 -right-1 z-[5] flex items-center justify-center rounded-full bg-gradient-to-br',
+            'pointer-events-none absolute bottom-1 right-1 z-[5] flex items-center justify-center rounded-full bg-gradient-to-br',
             compact ? 'h-[56px] w-[56px]' : 'h-[72px] w-[72px]',
             card.accent,
           )}
@@ -222,12 +215,8 @@ function ServiceTile({
 
 export function HomeServiceGrid() {
   return (
-    <section
-      className="mt-5 space-y-3 overflow-visible pb-2 pt-1"
-      aria-label={uz.categories}
-    >
-      {/* Extra horizontal room so overhanging art is not clipped by page padding. */}
-      <div className="-mx-1 grid grid-cols-3 gap-2.5 overflow-visible px-1">
+    <section className="mt-5 space-y-3" aria-label={uz.categories}>
+      <div className="grid grid-cols-3 gap-2.5">
         {TOP_ROW.map((card) => (
           <ServiceTile
             key={card.href + card.title}
@@ -238,7 +227,7 @@ export function HomeServiceGrid() {
         ))}
       </div>
 
-      <div className="-mx-1 grid grid-cols-[1.65fr_1fr] gap-3 overflow-visible px-1">
+      <div className="grid grid-cols-[1.65fr_1fr] gap-3">
         <ServiceTile card={BOTTOM_LARGE} className="min-h-[132px]" iconSize={52} />
         <ServiceTile card={BOTTOM_SMALL} className="min-h-[132px]" iconSize={40} />
       </div>
