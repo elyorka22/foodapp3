@@ -1,6 +1,13 @@
 abstract final class AppStrings {
   static const appName = 'FoodApp Control';
-  static const appTagline = 'Platforma boshqaruvi';
+  static const appTagline = 'Operatsion boshqaruv';
+  static const appShortName = 'Control';
+  static const menuOpen = 'Bo‘limlar';
+  static const navGroupMain = 'Asosiy';
+  static const navGroupOps = 'Operatsiyalar';
+  static const navGroupGrowth = 'Marketing';
+  static const navGroupPlatform = 'Platforma';
+  static const navGroupSystem = 'Tizim';
 
   static const loginTitle = 'Super admin kirishi';
   static const loginSubtitle = 'Faqat SUPER_ADMIN hisoblari uchun';

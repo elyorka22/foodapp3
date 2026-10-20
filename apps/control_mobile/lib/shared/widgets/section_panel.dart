@@ -55,6 +55,8 @@ class SectionPanel extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
           ],
           child,
         ],

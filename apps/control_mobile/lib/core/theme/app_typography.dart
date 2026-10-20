@@ -1,56 +1,92 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
+/// IBM Plex Sans — dense, readable ops UI (not a marketing display face).
 abstract final class AppTypography {
-  static TextStyle get display => const TextStyle(
+  static TextStyle _plex({
+    required double fontSize,
+    required FontWeight fontWeight,
+    double height = 1.35,
+    double letterSpacing = 0,
+    Color color = AppColors.textPrimary,
+  }) {
+    return GoogleFonts.ibmPlexSans(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      height: height,
+      letterSpacing: letterSpacing,
+      color: color,
+    );
+  }
+
+  static TextStyle get display => _plex(
         fontSize: 22,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.4,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.35,
         height: 1.2,
-        color: AppColors.textPrimary,
       );
 
-  static TextStyle get title => const TextStyle(
-        fontSize: 17,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.2,
+  static TextStyle get title => _plex(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.15,
         height: 1.25,
-        color: AppColors.textPrimary,
       );
 
-  static TextStyle get subtitle => const TextStyle(
-        fontSize: 15,
+  static TextStyle get subtitle => _plex(
+        fontSize: 14,
         fontWeight: FontWeight.w600,
         height: 1.3,
-        color: AppColors.textPrimary,
       );
 
-  static TextStyle get body => const TextStyle(
+  static TextStyle get body => _plex(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 1.4,
-        color: AppColors.textPrimary,
       );
 
-  static TextStyle get bodySmall => const TextStyle(
+  static TextStyle get bodySmall => _plex(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         height: 1.35,
         color: AppColors.textSecondary,
       );
 
-  static TextStyle get caption => const TextStyle(
+  static TextStyle get caption => _plex(
         fontSize: 11,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.1,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.15,
         height: 1.3,
         color: AppColors.textSecondary,
       );
 
-  static TextStyle get button => const TextStyle(
-        fontSize: 14,
+  static TextStyle get overline => _plex(
+        fontSize: 10,
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.1,
+        letterSpacing: 0.6,
+        height: 1.2,
+        color: AppColors.onSidebarMuted,
+      );
+
+  static TextStyle get button => _plex(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.05,
         color: AppColors.onPrimary,
       );
+
+  static TextTheme textTheme(TextTheme base) {
+    return GoogleFonts.ibmPlexSansTextTheme(base).copyWith(
+      displaySmall: display,
+      titleLarge: title,
+      titleMedium: subtitle,
+      bodyLarge: body,
+      bodyMedium: body,
+      bodySmall: bodySmall,
+      labelLarge: button,
+      labelMedium: caption,
+      labelSmall: overline,
+    );
+  }
 }

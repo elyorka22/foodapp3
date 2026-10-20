@@ -15,7 +15,7 @@ Future<T?> showDetailSheet<T>({
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: AppColors.surface,
-    barrierColor: Colors.black.withValues(alpha: 0.4),
+    barrierColor: Colors.black.withOpacity(0.4),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(AppSpacing.sheetRadius),

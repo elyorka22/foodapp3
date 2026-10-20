@@ -56,7 +56,7 @@ class MutationButton extends StatelessWidget {
               destructive ? AppColors.danger : AppColors.textPrimary,
           side: BorderSide(
             color: destructive
-                ? AppColors.danger.withValues(alpha: 0.4)
+                ? AppColors.danger.withOpacity(0.4)
                 : AppColors.border,
           ),
           minimumSize: const Size.fromHeight(44),

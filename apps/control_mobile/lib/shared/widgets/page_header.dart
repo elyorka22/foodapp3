@@ -3,7 +3,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
-/// Screen title row with optional subtitle and compact trailing action.
+/// Dense screen title row for ops pages.
 class PageHeader extends StatelessWidget {
   const PageHeader({
     super.key,
@@ -27,9 +27,9 @@ class PageHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: AppTypography.display),
+              Text(title, style: AppTypography.title.copyWith(fontSize: 18)),
               if (subtitle != null && subtitle!.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   subtitle!,
                   style: AppTypography.bodySmall.copyWith(

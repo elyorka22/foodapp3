@@ -31,18 +31,27 @@ class SummaryCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(icon, color: AppColors.primary, size: 18),
+                  Container(
+                    width: 28,
+                    height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySoft,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(icon, color: AppColors.primary, size: 15),
+                  ),
                   const Spacer(),
                   if (onTap != null)
                     const Icon(
-                      Icons.arrow_outward_rounded,
-                      size: 14,
+                      Icons.north_east_rounded,
+                      size: 13,
                       color: AppColors.textMuted,
                     ),
                 ],
@@ -55,7 +64,7 @@ class SummaryCard extends StatelessWidget {
                   value,
                   maxLines: 1,
                   style: AppTypography.title.copyWith(
-                    fontSize: 20,
+                    fontSize: 18,
                     letterSpacing: -0.3,
                     color: isPlaceholder
                         ? AppColors.placeholder

@@ -3,7 +3,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
-/// Dense list row for ops screens — border first, minimal shadow.
+/// Dense list row — hairline border, no soft card chrome.
 class ControlListCard extends StatelessWidget {
   const ControlListCard({
     super.key,
@@ -34,7 +34,7 @@ class ControlListCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
-            vertical: 12,
+            vertical: 11,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -49,10 +49,10 @@ class ControlListCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: AppTypography.subtitle.copyWith(fontSize: 14),
+                      style: AppTypography.subtitle.copyWith(fontSize: 13.5),
                     ),
                     if (subtitle != null && subtitle!.isNotEmpty) ...[
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         subtitle!,
                         maxLines: 2,
@@ -71,7 +71,7 @@ class ControlListCard extends StatelessWidget {
                 const Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.textMuted,
-                  size: 20,
+                  size: 18,
                 ),
               ],
             ],

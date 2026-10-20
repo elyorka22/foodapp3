@@ -18,10 +18,11 @@ class ControlNavItem {
   final bool mobile;
 }
 
+/// Flat list order MUST match [StatefulShellRoute] branch indices in app_router.
 const controlNavItems = <ControlNavItem>[
   ControlNavItem(
     label: AppStrings.navDashboard,
-    icon: Icons.dashboard_outlined,
+    icon: Icons.grid_view_rounded,
     route: AppRoutes.dashboard,
   ),
   ControlNavItem(
@@ -47,7 +48,7 @@ const controlNavItems = <ControlNavItem>[
   ),
   ControlNavItem(
     label: AppStrings.navPromotions,
-    icon: Icons.image_outlined,
+    icon: Icons.campaign_outlined,
     route: AppRoutes.promotions,
     mobile: false,
   ),
@@ -83,7 +84,7 @@ const controlNavItems = <ControlNavItem>[
   ),
   ControlNavItem(
     label: AppStrings.navBusinessTypes,
-    icon: Icons.category_outlined,
+    icon: Icons.apartment_outlined,
     route: AppRoutes.businessTypes,
     mobile: false,
   ),
@@ -97,11 +98,45 @@ const controlNavItems = <ControlNavItem>[
     label: AppStrings.navSettings,
     icon: Icons.settings_outlined,
     route: AppRoutes.settings,
+    mobile: false,
   ),
   ControlNavItem(
     label: AppStrings.navAudit,
     icon: Icons.policy_outlined,
     route: AppRoutes.audit,
     mobile: false,
+  ),
+];
+
+class ControlNavGroup {
+  const ControlNavGroup({required this.label, required this.indices});
+
+  final String label;
+
+  /// Indices into [controlNavItems] / shell branches.
+  final List<int> indices;
+}
+
+/// Grouped sidebar / drawer sections (indices stay aligned with router).
+const controlNavGroups = <ControlNavGroup>[
+  ControlNavGroup(
+    label: AppStrings.navGroupMain,
+    indices: [0, 3, 2, 4], // dashboard, orders, businesses, catalog
+  ),
+  ControlNavGroup(
+    label: AppStrings.navGroupOps,
+    indices: [7, 8, 1, 12], // couriers, customers, employees, booking
+  ),
+  ControlNavGroup(
+    label: AppStrings.navGroupGrowth,
+    indices: [5, 6], // promotions, push
+  ),
+  ControlNavGroup(
+    label: AppStrings.navGroupPlatform,
+    indices: [9, 10, 11], // cities, zones, business types
+  ),
+  ControlNavGroup(
+    label: AppStrings.navGroupSystem,
+    indices: [13, 14], // settings, audit
   ),
 ];

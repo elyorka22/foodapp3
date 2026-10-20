@@ -196,55 +196,90 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
 
+    final brandPanel = Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: AppColors.sidebar,
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        border: Border.all(color: AppColors.sidebarMuted),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.sidebarAccent.withOpacity(0.25),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              'F',
+              style: AppTypography.title.copyWith(color: AppColors.onSidebar),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            AppStrings.appName,
+            style: AppTypography.display.copyWith(color: AppColors.onSidebar),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            AppStrings.appTagline,
+            style: AppTypography.body.copyWith(
+              color: AppColors.onSidebarMuted,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: wide ? 960 : 420),
+          constraints: BoxConstraints(maxWidth: wide ? 920 : 420),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.xxl),
             child: wide
                 ? Row(
                     children: [
+                      Expanded(child: brandPanel),
+                      const SizedBox(width: 28),
                       Expanded(
                         child: Container(
-                          padding: const EdgeInsets.all(32),
+                          padding: const EdgeInsets.all(AppSpacing.xl),
                           decoration: BoxDecoration(
-                            color: AppColors.sidebar,
-                            borderRadius: BorderRadius.circular(16),
+                            color: AppColors.surface,
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.cardRadius),
+                            border: Border.all(color: AppColors.borderLight),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                AppStrings.appName,
-                                style: AppTypography.display.copyWith(color: AppColors.onSidebar),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                AppStrings.appTagline,
-                                style: AppTypography.body.copyWith(color: AppColors.onSidebarMuted),
-                              ),
-                            ],
-                          ),
+                          child: form,
                         ),
                       ),
-                      const SizedBox(width: 32),
-                      Expanded(child: form),
                     ],
                   )
                 : SingleChildScrollView(
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.cardRadius),
-                        boxShadow: AppColors.cardShadow,
-                        border: Border.all(color: AppColors.borderLight),
-                      ),
-                      child: form,
+                    child: Column(
+                      children: [
+                        brandPanel,
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.xl),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.cardRadius),
+                            border: Border.all(color: AppColors.borderLight),
+                          ),
+                          child: form,
+                        ),
+                      ],
                     ),
                   ),
           ),

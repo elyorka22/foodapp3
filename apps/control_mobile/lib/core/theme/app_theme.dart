@@ -7,10 +7,15 @@ import 'app_typography.dart';
 abstract final class AppTheme {
   static ThemeData get light {
     final radius = BorderRadius.circular(AppSpacing.buttonRadius);
-    return ThemeData(
+    final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
+    );
+
+    // copyWith keeps TabBarTheme / TabBarThemeData compatible across Flutter SDKs.
+    return base.copyWith(
+      textTheme: AppTypography.textTheme(base.textTheme),
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: AppColors.onPrimary,
@@ -20,6 +25,27 @@ abstract final class AppTheme {
         outline: AppColors.border,
         error: AppColors.danger,
       ),
+      tabBarTheme: base.tabBarTheme.copyWith(
+        labelColor: AppColors.primary,
+        unselectedLabelColor: AppColors.textMuted,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: AppColors.borderLight,
+        indicator: const UnderlineTabIndicator(
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
+        ),
+        labelStyle: AppTypography.caption.copyWith(fontWeight: FontWeight.w700),
+        unselectedLabelStyle:
+            AppTypography.caption.copyWith(fontWeight: FontWeight.w500),
+      ),
+      cardTheme: base.cardTheme.copyWith(
+        color: AppColors.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+          side: const BorderSide(color: AppColors.borderLight),
+        ),
+      ),
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -28,24 +54,32 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         titleTextStyle: AppTypography.subtitle.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
         ),
         centerTitle: false,
+        toolbarHeight: 52,
+      ),
+      drawerTheme: const DrawerThemeData(
+        backgroundColor: AppColors.sidebar,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        width: AppSpacing.sidebarWidth,
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        height: 64,
+        height: 60,
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         indicatorColor: AppColors.primarySoft,
         indicatorShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(6),
         ),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return AppTypography.caption.copyWith(
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
             fontSize: 10,
             color: selected ? AppColors.primary : AppColors.textMuted,
           );
@@ -54,26 +88,24 @@ abstract final class AppTheme {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
             color: selected ? AppColors.primary : AppColors.textMuted,
-            size: 22,
+            size: 20,
           );
         }),
-      ),
-      tabBarTheme: const TabBarThemeData(
-        labelColor: AppColors.primary,
-        unselectedLabelColor: AppColors.textMuted,
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: AppColors.borderLight,
-        indicator: UnderlineTabIndicator(
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
-        ),
-        labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-        unselectedLabelStyle:
-            TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.borderLight,
         thickness: 1,
         space: 1,
+      ),
+      listTileTheme: ListTileThemeData(
+        dense: true,
+        visualDensity: VisualDensity.compact,
+        iconColor: AppColors.textSecondary,
+        textColor: AppColors.textPrimary,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
@@ -82,7 +114,7 @@ abstract final class AppTheme {
           color: AppColors.onPrimary,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(6),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -90,8 +122,8 @@ abstract final class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
           elevation: 0,
-          minimumSize: const Size(0, 44),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          minimumSize: const Size(0, 40),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           shape: RoundedRectangleBorder(borderRadius: radius),
           textStyle: AppTypography.button,
         ),
@@ -105,14 +137,14 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(borderRadius: radius),
           textStyle: AppTypography.button.copyWith(
             color: AppColors.textPrimary,
-            fontSize: 13,
           ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: AppTypography.caption.copyWith(fontWeight: FontWeight.w700),
+          textStyle:
+              AppTypography.caption.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -120,7 +152,7 @@ abstract final class AppTheme {
         foregroundColor: AppColors.onPrimary,
         elevation: 1,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
       switchTheme: SwitchThemeData(
@@ -138,7 +170,7 @@ abstract final class AppTheme {
         fillColor: AppColors.surface,
         isDense: true,
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         labelStyle: AppTypography.bodySmall.copyWith(
           color: AppColors.textSecondary,
         ),
@@ -167,11 +199,11 @@ abstract final class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceMuted,
         selectedColor: AppColors.primarySoft,
-        side: const BorderSide(color: AppColors.border),
+        side: const BorderSide(color: AppColors.borderLight),
         labelStyle: AppTypography.caption,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(4),
         ),
       ),
     );
