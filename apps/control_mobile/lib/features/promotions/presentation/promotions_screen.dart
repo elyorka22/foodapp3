@@ -420,9 +420,6 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
   bool _busy = false;
   late ImageFramingValues _framing;
 
-  /// New home carousel aspect (~85% width × 150px).
-  static const _previewAspect = 2.3;
-
   @override
   void initState() {
     super.initState();
@@ -554,11 +551,11 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
         const SizedBox(height: 12),
         ImageUploadField(
           imageUrlController: _imageUrl,
+          enabled: !_busy,
+          refererPath: '/admin/banners',
+          enableFraming: true,
           framing: _framing,
           onFramingChanged: (v) => setState(() => _framing = v),
-          enabled: !_busy,
-          aspectRatio: _previewAspect,
-          refererPath: '/admin/banners',
         ),
         const SizedBox(height: 8),
         TextField(

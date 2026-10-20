@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/action_feedback.dart';
-import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../cities/data/cities_repository.dart';
@@ -35,7 +34,6 @@ class _BusinessCreateSheetState extends ConsumerState<BusinessCreateSheet> {
   final _ownerLogin = TextEditingController();
   final _ownerPassword = TextEditingController();
   final _ownerFullName = TextEditingController();
-  ImageFramingValues _framing = const ImageFramingValues();
   String? _cityId;
   bool _isActive = true;
   bool _busy = false;
@@ -203,10 +201,7 @@ class _BusinessCreateSheetState extends ConsumerState<BusinessCreateSheet> {
         const SizedBox(height: 12),
         ImageUploadField(
           imageUrlController: _logoUrl,
-          framing: _framing,
-          onFramingChanged: (v) => setState(() => _framing = v),
           enabled: !_busy,
-          aspectRatio: 1,
           refererPath: '/admin/restaurants',
         ),
         SwitchListTile(

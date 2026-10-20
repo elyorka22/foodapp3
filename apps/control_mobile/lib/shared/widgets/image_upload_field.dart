@@ -7,24 +7,29 @@ import '../../core/theme/app_colors.dart';
 import 'action_feedback.dart';
 import 'image_framing_controls.dart';
 
-/// Gallery upload + optional URL + framing sliders for banners / categories.
+/// Gallery upload + URL field.
+///
+/// Framing preview/sliders are optional and meant only for home banners
+/// ([enableFraming] + [framing] / [onFramingChanged]).
 class ImageUploadField extends ConsumerStatefulWidget {
   const ImageUploadField({
     super.key,
     required this.imageUrlController,
-    required this.framing,
-    required this.onFramingChanged,
     this.enabled = true,
-    this.aspectRatio = 2,
     this.refererPath = '/admin/banners',
+    this.enableFraming = false,
+    this.framing = const ImageFramingValues(),
+    this.onFramingChanged,
   });
 
   final TextEditingController imageUrlController;
-  final ImageFramingValues framing;
-  final ValueChanged<ImageFramingValues> onFramingChanged;
   final bool enabled;
-  final double aspectRatio;
   final String refererPath;
+
+  /// When true, shows home-banner-sized preview + position sliders.
+  final bool enableFraming;
+  final ImageFramingValues framing;
+  final ValueChanged<ImageFramingValues>? onFramingChanged;
 
   @override
   ConsumerState<ImageUploadField> createState() => _ImageUploadFieldState();
@@ -67,7 +72,6 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
         showActionSnackBar(context, 'Rasm bo‘sh', error: true);
         return;
       }
-      // Keep under nginx client_max_body_size (10M) with headroom.
       if (bytes.length > 8 * 1024 * 1024) {
         showActionSnackBar(
           context,
@@ -76,7 +80,7 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
         );
         return;
       }
-      final name = file.name.isNotEmpty ? file.name : 'banner.jpg';
+      final name = file.name.isNotEmpty ? file.name : 'image.jpg';
       final result = await ref.read(uploadRepositoryProvider).uploadImage(
             bytes: bytes,
             filename: name,
@@ -98,13 +102,15 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
 
   void _clear() {
     widget.imageUrlController.clear();
-    widget.onFramingChanged(const ImageFramingValues());
+    widget.onFramingChanged?.call(const ImageFramingValues());
   }
 
   @override
   Widget build(BuildContext context) {
     final locked = !widget.enabled || _uploading;
-    final hasImage = widget.imageUrlController.text.trim().isNotEmpty;
+    final url = widget.imageUrlController.text.trim();
+    final hasImage = url.isNotEmpty;
+    final showFraming = widget.enableFraming && widget.onFramingChanged != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -155,15 +161,48 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
             hintText: 'https://…',
           ),
         ),
-        const SizedBox(height: 12),
-        ImageFramingControls(
-          imageUrl: widget.imageUrlController.text.trim(),
-          values: widget.framing,
-          aspectRatio: widget.aspectRatio,
-          enabled: !locked,
-          onChanged: widget.onFramingChanged,
-        ),
+        if (showFraming) ...[
+          const SizedBox(height: 12),
+          ImageFramingControls(
+            imageUrl: url,
+            values: widget.framing,
+            enabled: !locked,
+            onChanged: widget.onFramingChanged!,
+          ),
+        ] else if (hasImage) ...[
+          const SizedBox(height: 12),
+          _SimpleImagePreview(url: url),
+        ],
       ],
+    );
+  }
+}
+
+class _SimpleImagePreview extends StatelessWidget {
+  const _SimpleImagePreview({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: ColoredBox(
+          color: AppColors.surfaceMuted,
+          child: Image.network(
+            url,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const Center(
+              child: Icon(
+                Icons.broken_image_outlined,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

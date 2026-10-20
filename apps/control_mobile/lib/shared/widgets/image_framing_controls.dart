@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
 class ImageFramingValues {
@@ -30,22 +31,31 @@ class ImageFramingValues {
   static int clampPos(int? v) => (v ?? 50).clamp(0, 100);
 }
 
-/// Preview + sliders matching web admin framing (scale 50–200, position 0–100).
+/// Preview + sliders matching customer home «Maxsus takliflar» banners.
+///
+/// Live web: `h-[150px] w-[85%] rounded-[24px]` ([HomePromoBanners]).
 class ImageFramingControls extends StatelessWidget {
   const ImageFramingControls({
     super.key,
     required this.imageUrl,
     required this.values,
     required this.onChanged,
-    this.aspectRatio = 2,
     this.enabled = true,
   });
 
   final String? imageUrl;
   final ImageFramingValues values;
   final ValueChanged<ImageFramingValues> onChanged;
-  final double aspectRatio;
   final bool enabled;
+
+  /// Same height as `frontend` HomePromoBanners tile.
+  static const double homeBannerHeight = 150;
+
+  /// Same corner radius as the live promo tile.
+  static const double homeBannerRadius = 24;
+
+  /// Width fraction of available form width (live carousel uses ~85vw).
+  static const double homeBannerWidthFraction = 0.85;
 
   @override
   Widget build(BuildContext context) {
@@ -59,50 +69,78 @@ class ImageFramingControls extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surfaceMuted,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(AppStrings.bannerImageFraming, style: AppTypography.subtitle),
-          const SizedBox(height: 10),
-          AspectRatio(
-            aspectRatio: aspectRatio,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: ColoredBox(
-                color: const Color(0xFFE4E4E7),
-                child: hasImage
-                    ? Transform.scale(
-                        scale: scale / 100,
-                        alignment: Alignment(
-                          (x / 50) - 1,
-                          (y / 50) - 1,
-                        ),
-                        child: Image.network(
-                          url,
-                          fit: BoxFit.cover,
+          const SizedBox(height: 4),
+          Text(
+            AppStrings.bannerImagePreviewSizeHint,
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final previewWidth =
+                  constraints.maxWidth * homeBannerWidthFraction;
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  width: previewWidth,
+                  height: homeBannerHeight,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE4E4E7),
+                    borderRadius: BorderRadius.circular(homeBannerRadius),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x140F172A),
+                        blurRadius: 24,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: hasImage
+                      ? Transform.scale(
+                          scale: scale / 100,
                           alignment: Alignment(
                             (x / 50) - 1,
                             (y / 50) - 1,
                           ),
-                          errorBuilder: (_, __, ___) => const Center(
-                            child: Icon(Icons.broken_image_outlined),
+                          child: Image.network(
+                            url,
+                            fit: BoxFit.cover,
+                            width: previewWidth,
+                            height: homeBannerHeight,
+                            alignment: Alignment(
+                              (x / 50) - 1,
+                              (y / 50) - 1,
+                            ),
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Icon(Icons.broken_image_outlined),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              AppStrings.bannerImagePreviewHint,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
-                      )
-                    : Center(
-                        child: Text(
-                          AppStrings.bannerImagePreviewHint,
-                          style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-              ),
-            ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 12),
           _SliderRow(

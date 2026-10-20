@@ -162,8 +162,10 @@ abstract final class AppStrings {
   static const bannerRemoveImage = 'Rasmni olib tashlash';
   static const bannerUploading = 'Yuklanmoqda…';
   static const bannerImageRequired = 'Rasm majburiy — yuklang yoki URL kiriting';
-  static const bannerImageFraming = 'Rasm joylashuvi';
-  static const bannerImagePreviewHint = 'Rasm yuklang — oldindan ko‘rish';
+  static const bannerImageFraming = 'Banner joylashuvi';
+  static const bannerImagePreviewSizeHint =
+      'Ilovadagi «Maxsus takliflar» o‘lchami: balandlik 150px, kenglik ~85%.';
+  static const bannerImagePreviewHint = 'Rasm yuklang — banner ko‘rinishi';
   static const bannerImageScale = 'Masshtab';
   static const bannerImagePosX = 'Gorizontal';
   static const bannerImagePosY = 'Vertikal';

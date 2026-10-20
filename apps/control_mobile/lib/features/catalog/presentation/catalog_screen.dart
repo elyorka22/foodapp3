@@ -12,7 +12,6 @@ import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/header_action.dart';
-import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
@@ -161,10 +160,7 @@ class _CategoriesTab extends ConsumerWidget {
                 child: ControlListCard(
                   leading: _CategoryThumb(category: c),
                   title: c.name,
-                  subtitle: [
-                    if (c.slug.isNotEmpty) c.slug,
-                    'masshtab ${c.framing.imageScale}%',
-                  ].join(' · '),
+                  subtitle: c.slug.isNotEmpty ? c.slug : null,
                   trailing: StatusChip(
                     status: c.isActive ? 'DELIVERED' : 'CANCELLED',
                     label: c.isActive ? AppStrings.active : AppStrings.inactive,
@@ -193,7 +189,6 @@ class _CategoryThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = category.imageUrl?.trim() ?? '';
-    final framing = category.framing;
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
@@ -204,23 +199,12 @@ class _CategoryThumb extends StatelessWidget {
                 color: Color(0xFFE4E4E7),
                 child: Icon(Icons.category_outlined, size: 22),
               )
-            : Transform.scale(
-                scale: framing.imageScale / 100,
-                alignment: Alignment(
-                  (framing.imagePositionX / 50) - 1,
-                  (framing.imagePositionY / 50) - 1,
-                ),
-                child: Image.network(
-                  url,
-                  fit: BoxFit.cover,
-                  alignment: Alignment(
-                    (framing.imagePositionX / 50) - 1,
-                    (framing.imagePositionY / 50) - 1,
-                  ),
-                  errorBuilder: (_, __, ___) => const ColoredBox(
-                    color: Color(0xFFE4E4E7),
-                    child: Icon(Icons.broken_image_outlined, size: 20),
-                  ),
+            : Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const ColoredBox(
+                  color: Color(0xFFE4E4E7),
+                  child: Icon(Icons.broken_image_outlined, size: 20),
                 ),
               ),
       ),
@@ -242,7 +226,6 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
   late final TextEditingController _description;
   late final TextEditingController _imageUrl;
   late final TextEditingController _sortOrder;
-  late ImageFramingValues _framing;
   bool _isActive = true;
   bool _busy = false;
 
@@ -254,7 +237,6 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
     _description = TextEditingController(text: c?.description ?? '');
     _imageUrl = TextEditingController(text: c?.imageUrl ?? '');
     _sortOrder = TextEditingController(text: '${c?.sortOrder ?? 0}');
-    _framing = c?.framing ?? const ImageFramingValues();
     _isActive = c?.isActive ?? true;
   }
 
@@ -284,9 +266,6 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
           name: name,
           description: desc.isEmpty ? null : desc,
           imageUrl: imageUrl.isEmpty ? null : imageUrl,
-          imageScale: _framing.imageScale,
-          imagePositionX: _framing.imagePositionX,
-          imagePositionY: _framing.imagePositionY,
           sortOrder: sortOrder,
           isActive: _isActive,
         );
@@ -296,9 +275,6 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
           name: name,
           description: desc,
           imageUrl: imageUrl,
-          imageScale: _framing.imageScale,
-          imagePositionX: _framing.imagePositionX,
-          imagePositionY: _framing.imagePositionY,
           sortOrder: sortOrder,
           isActive: _isActive,
         );
@@ -359,10 +335,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
         const SizedBox(height: 12),
         ImageUploadField(
           imageUrlController: _imageUrl,
-          framing: _framing,
-          onFramingChanged: (v) => setState(() => _framing = v),
           enabled: !_busy,
-          aspectRatio: 1,
           refererPath: '/admin/restaurants',
         ),
         const SizedBox(height: 8),
@@ -486,7 +459,6 @@ class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
   late final TextEditingController _price;
   late final TextEditingController _description;
   late final TextEditingController _imageUrl;
-  ImageFramingValues _framing = const ImageFramingValues();
   String? _businessId;
   String? _dishCategoryId;
   bool _isAvailable = true;
@@ -664,10 +636,7 @@ class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
         const SizedBox(height: 12),
         ImageUploadField(
           imageUrlController: _imageUrl,
-          framing: _framing,
-          onFramingChanged: (v) => setState(() => _framing = v),
           enabled: !_busy,
-          aspectRatio: 1,
           refererPath: '/admin/products',
         ),
         SwitchListTile(
