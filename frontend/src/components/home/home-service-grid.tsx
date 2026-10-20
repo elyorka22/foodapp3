@@ -46,9 +46,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/flowers.png',
-      widthPercent: 72,
-      right: -6,
-      bottom: -8,
+      widthPercent: 78,
+      right: -14,
+      bottom: -14,
     },
   },
   {
@@ -61,9 +61,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/cosmetics.png',
-      widthPercent: 70,
-      right: -6,
-      bottom: -8,
+      widthPercent: 76,
+      right: -14,
+      bottom: -14,
     },
   },
   {
@@ -76,9 +76,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/pharmacy.png',
-      widthPercent: 72,
-      right: -6,
-      bottom: -8,
+      widthPercent: 78,
+      right: -14,
+      bottom: -14,
     },
   },
 ];
@@ -95,9 +95,9 @@ const BOTTOM_LARGE: ServiceCard = {
   iconClass: 'text-zinc-800',
   image: {
     src: '/assets/home-services/restaurants.png',
-    widthPercent: 58,
-    right: -8,
-    bottom: -12,
+    widthPercent: 64,
+    right: -16,
+    bottom: -18,
   },
 };
 
@@ -111,9 +111,9 @@ const BOTTOM_SMALL: ServiceCard = {
   iconClass: 'text-zinc-800',
   image: {
     src: '/assets/home-services/products.png',
-    widthPercent: 62,
-    right: -8,
-    bottom: -10,
+    widthPercent: 70,
+    right: -14,
+    bottom: -16,
   },
 };
 
@@ -196,7 +196,7 @@ function ServiceTile({
           aria-hidden
           loading="lazy"
           decoding="async"
-          className="pointer-events-none absolute z-[5] object-contain drop-shadow-[0_8px_16px_rgba(15,23,42,0.12)]"
+          className="pointer-events-none absolute z-[5] object-contain drop-shadow-[0_10px_18px_rgba(15,23,42,0.18)]"
           style={{
             width: `${card.image.widthPercent}%`,
             right: card.image.right,
@@ -222,8 +222,12 @@ function ServiceTile({
 
 export function HomeServiceGrid() {
   return (
-    <section className="mt-5 space-y-3 overflow-visible" aria-label={uz.categories}>
-      <div className="grid grid-cols-3 gap-2.5 overflow-visible">
+    <section
+      className="mt-5 space-y-3 overflow-visible pb-2 pt-1"
+      aria-label={uz.categories}
+    >
+      {/* Extra horizontal room so overhanging art is not clipped by page padding. */}
+      <div className="-mx-1 grid grid-cols-3 gap-2.5 overflow-visible px-1">
         {TOP_ROW.map((card) => (
           <ServiceTile
             key={card.href + card.title}
@@ -234,7 +238,7 @@ export function HomeServiceGrid() {
         ))}
       </div>
 
-      <div className="grid grid-cols-[1.65fr_1fr] gap-3 overflow-visible">
+      <div className="-mx-1 grid grid-cols-[1.65fr_1fr] gap-3 overflow-visible px-1">
         <ServiceTile card={BOTTOM_LARGE} className="min-h-[132px]" iconSize={52} />
         <ServiceTile card={BOTTOM_SMALL} className="min-h-[132px]" iconSize={40} />
       </div>
