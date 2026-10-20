@@ -133,7 +133,8 @@ function ServiceTile({
       href={card.href}
       className={clsx(
         'relative block min-h-[118px] overflow-visible transition active:scale-[0.98]',
-        carousel && 'h-[132px] w-[148px] shrink-0 snap-start',
+        // Wider first-row tiles so titles like «Mahsulotlar» fit without clipping.
+        carousel && 'h-[132px] w-[176px] shrink-0 snap-start',
         className,
       )}
     >
@@ -148,7 +149,12 @@ function ServiceTile({
           !carousel && 'min-h-[118px]',
         )}
       >
-        <div className="min-w-0 max-w-[62%] pr-1">
+        <div
+          className={clsx(
+            'min-w-0 pr-1',
+            carousel ? 'max-w-[72%]' : 'max-w-[62%]',
+          )}
+        >
           <p className="line-clamp-2 text-[13px] font-bold leading-tight text-zinc-900 sm:text-[15px]">
             {card.title}
           </p>
