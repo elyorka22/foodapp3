@@ -46,9 +46,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/flowers.png',
-      widthPercent: 98,
-      right: -10,
-      bottom: -12,
+      widthPercent: 112,
+      right: -18,
+      bottom: -22,
     },
   },
   {
@@ -61,9 +61,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/cosmetics.png',
-      widthPercent: 96,
-      right: -10,
-      bottom: -12,
+      widthPercent: 110,
+      right: -18,
+      bottom: -22,
     },
   },
   {
@@ -76,9 +76,9 @@ const TOP_ROW: ServiceCard[] = [
     iconClass: 'text-zinc-800',
     image: {
       src: '/assets/home-services/pharmacy.png',
-      widthPercent: 98,
-      right: -10,
-      bottom: -12,
+      widthPercent: 112,
+      right: -18,
+      bottom: -22,
     },
   },
 ];
@@ -95,9 +95,9 @@ const BOTTOM_LARGE: ServiceCard = {
   iconClass: 'text-zinc-800',
   image: {
     src: '/assets/home-services/restaurants.png',
-    widthPercent: 82,
-    right: -12,
-    bottom: -14,
+    widthPercent: 95,
+    right: -20,
+    bottom: -24,
   },
 };
 
@@ -111,9 +111,9 @@ const BOTTOM_SMALL: ServiceCard = {
   iconClass: 'text-zinc-800',
   image: {
     src: '/assets/home-services/products.png',
-    widthPercent: 92,
-    right: -10,
-    bottom: -14,
+    widthPercent: 108,
+    right: -16,
+    bottom: -22,
   },
 };
 

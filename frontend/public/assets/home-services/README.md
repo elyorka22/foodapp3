@@ -1,6 +1,8 @@
-# Home service card images (NOOR-style floating 3D)
+# Home service card images
 
-Put transparent PNG/WebP files here. Paths used by `HomeServiceGrid`:
+Transparent **real PNG** files (not WebP renamed to `.png` — nginx sends
+`X-Content-Type-Options: nosniff`, so a WebP body with `image/png` breaks
+on many devices and cards fall back to Lucide icons).
 
 | File | Card |
 |------|------|
@@ -11,8 +13,6 @@ Put transparent PNG/WebP files here. Paths used by `HomeServiceGrid`:
 | `flowers.png` | Gullar (row 1) |
 
 Requirements:
-- Transparent background
+- Actual PNG encoding + transparent background
 - Soft baked-in shadow preferred
 - ~400–600px on the long side
-
-Until files are added, cards fall back to Lucide icons.
