@@ -1,5 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, Min, ValidateIf } from 'class-validator';
+import {
+  IsEmail,
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 
 export const COURIER_DISPATCH_MODES = ['auto', 'manager'] as const;
 export type CourierDispatchMode = (typeof COURIER_DISPATCH_MODES)[number];
@@ -128,4 +139,12 @@ export class AdminSettingsDto {
   @Min(0)
   @Max(100)
   restaurant_card_default_cover_position_y?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Home service tiles layout (flowers/cosmetics/pharmacy/restaurants/products). Each: imageUrl, widthPercent, right, bottom.',
+  })
+  @IsOptional()
+  @IsObject()
+  home_service_cards?: Record<string, unknown>;
 }

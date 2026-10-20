@@ -7,6 +7,11 @@ import {
   type ImageFramingDefaults,
   pickImageFramingDefaults,
 } from '../../common/utils/image-framing.util';
+import {
+  DEFAULT_HOME_SERVICE_CARDS,
+  normalizeHomeServiceCards,
+  type HomeServiceCards,
+} from '../../common/utils/home-service-cards.util';
 
 export interface DeliveryPricing {
   baseDeliveryFee: number;
@@ -37,6 +42,7 @@ export interface AdminSettings extends ImageFramingDefaults {
   default_delivery_fee: number;
   commission_default: number;
   courier_dispatch_mode: 'auto' | 'manager';
+  home_service_cards: HomeServiceCards;
 }
 
 export interface PublicSettings {
@@ -55,6 +61,7 @@ export interface PublicSettings {
   social_youtube_url: string;
   partnership_phone: string;
   support_phone: string;
+  home_service_cards: HomeServiceCards;
 }
 
 const DEFAULT_PRICING: DeliveryPricing = {
@@ -82,6 +89,7 @@ const DEFAULT_ADMIN: AdminSettings = {
   default_delivery_fee: 8000,
   commission_default: 10,
   courier_dispatch_mode: 'auto',
+  home_service_cards: DEFAULT_HOME_SERVICE_CARDS,
 };
 
 @Injectable()
@@ -145,6 +153,7 @@ export class SettingsService {
       social_youtube_url: admin.social_youtube_url ?? '',
       partnership_phone: admin.partnership_phone?.trim() ?? '',
       support_phone: admin.support_phone?.trim() ?? '',
+      home_service_cards: admin.home_service_cards,
     };
   }
 
@@ -166,6 +175,7 @@ export class SettingsService {
       ...stored,
       default_delivery_fee: stored.default_delivery_fee ?? pricing.baseDeliveryFee,
       commission_default: stored.commission_default ?? commission,
+      home_service_cards: normalizeHomeServiceCards(stored.home_service_cards),
     };
   }
 
@@ -174,6 +184,9 @@ export class SettingsService {
     const merged: AdminSettings = {
       ...current,
       ...dto,
+      home_service_cards: normalizeHomeServiceCards(
+        dto.home_service_cards ?? current.home_service_cards,
+      ),
     };
 
     await this.prisma.setting.upsert({

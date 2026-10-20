@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
+import type { HomeServiceCards } from '@/lib/home-service-cards';
 
 export type AdminSettings = {
   app_name: string;
@@ -26,6 +27,7 @@ export type AdminSettings = {
   restaurant_card_default_image_scale: number;
   restaurant_card_default_cover_position_x: number;
   restaurant_card_default_cover_position_y: number;
+  home_service_cards?: HomeServiceCards;
 };
 
 export function useAdminSettings() {

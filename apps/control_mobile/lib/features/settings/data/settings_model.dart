@@ -1,4 +1,5 @@
 import '../../../core/utils/json_parse.dart';
+import 'home_service_card_model.dart';
 
 class AdminSettings {
   const AdminSettings({
@@ -23,6 +24,7 @@ class AdminSettings {
     this.restaurantCardDefaultImageScale = 100,
     this.restaurantCardDefaultCoverPositionX = 50,
     this.restaurantCardDefaultCoverPositionY = 50,
+    this.homeServiceCards = HomeServiceCards.defaults,
   });
 
   final String appName;
@@ -46,6 +48,7 @@ class AdminSettings {
   final num restaurantCardDefaultImageScale;
   final num restaurantCardDefaultCoverPositionX;
   final num restaurantCardDefaultCoverPositionY;
+  final HomeServiceCards homeServiceCards;
 
   factory AdminSettings.fromJson(Map<String, dynamic> json) {
     return AdminSettings(
@@ -77,6 +80,8 @@ class AdminSettings {
           parseNum(json['restaurant_card_default_cover_position_x'], 50),
       restaurantCardDefaultCoverPositionY:
           parseNum(json['restaurant_card_default_cover_position_y'], 50),
+      homeServiceCards:
+          HomeServiceCards.fromJson(json['home_service_cards']),
     );
   }
 
@@ -105,6 +110,68 @@ class AdminSettings {
           restaurantCardDefaultCoverPositionX,
       'restaurant_card_default_cover_position_y':
           restaurantCardDefaultCoverPositionY,
+      'home_service_cards': homeServiceCards.toJson(),
     };
+  }
+
+  AdminSettings copyWith({
+    String? appName,
+    String? homeTitle,
+    String? homeSubtitle,
+    String? homeRestaurantsBannerImageUrl,
+    String? homeRestaurantsBannerTitle,
+    String? supportPhone,
+    String? partnershipPhone,
+    String? socialInstagramUrl,
+    String? socialYoutubeUrl,
+    String? supportEmail,
+    num? minOrderAmount,
+    num? freeDeliveryThreshold,
+    num? defaultDeliveryFee,
+    num? commissionDefault,
+    String? courierDispatchMode,
+    num? bannerDefaultImageScale,
+    num? bannerDefaultImagePositionX,
+    num? bannerDefaultImagePositionY,
+    num? restaurantCardDefaultImageScale,
+    num? restaurantCardDefaultCoverPositionX,
+    num? restaurantCardDefaultCoverPositionY,
+    HomeServiceCards? homeServiceCards,
+  }) {
+    return AdminSettings(
+      appName: appName ?? this.appName,
+      homeTitle: homeTitle ?? this.homeTitle,
+      homeSubtitle: homeSubtitle ?? this.homeSubtitle,
+      homeRestaurantsBannerImageUrl:
+          homeRestaurantsBannerImageUrl ?? this.homeRestaurantsBannerImageUrl,
+      homeRestaurantsBannerTitle:
+          homeRestaurantsBannerTitle ?? this.homeRestaurantsBannerTitle,
+      supportPhone: supportPhone ?? this.supportPhone,
+      partnershipPhone: partnershipPhone ?? this.partnershipPhone,
+      socialInstagramUrl: socialInstagramUrl ?? this.socialInstagramUrl,
+      socialYoutubeUrl: socialYoutubeUrl ?? this.socialYoutubeUrl,
+      supportEmail: supportEmail ?? this.supportEmail,
+      minOrderAmount: minOrderAmount ?? this.minOrderAmount,
+      freeDeliveryThreshold:
+          freeDeliveryThreshold ?? this.freeDeliveryThreshold,
+      defaultDeliveryFee: defaultDeliveryFee ?? this.defaultDeliveryFee,
+      commissionDefault: commissionDefault ?? this.commissionDefault,
+      courierDispatchMode: courierDispatchMode ?? this.courierDispatchMode,
+      bannerDefaultImageScale:
+          bannerDefaultImageScale ?? this.bannerDefaultImageScale,
+      bannerDefaultImagePositionX:
+          bannerDefaultImagePositionX ?? this.bannerDefaultImagePositionX,
+      bannerDefaultImagePositionY:
+          bannerDefaultImagePositionY ?? this.bannerDefaultImagePositionY,
+      restaurantCardDefaultImageScale: restaurantCardDefaultImageScale ??
+          this.restaurantCardDefaultImageScale,
+      restaurantCardDefaultCoverPositionX:
+          restaurantCardDefaultCoverPositionX ??
+              this.restaurantCardDefaultCoverPositionX,
+      restaurantCardDefaultCoverPositionY:
+          restaurantCardDefaultCoverPositionY ??
+              this.restaurantCardDefaultCoverPositionY,
+      homeServiceCards: homeServiceCards ?? this.homeServiceCards,
+    );
   }
 }

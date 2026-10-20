@@ -12,19 +12,15 @@ import {
 import { clsx } from 'clsx';
 import { uz } from '@/lib/uz';
 import type { LucideIcon } from 'lucide-react';
-
-/** Cache-bust after fixing mislabeled WebP→PNG assets. */
-const IMG_VER = 'v2';
-
-type ImageLayout = {
-  /** Relative path under /assets/home-services/ */
-  src: string;
-  widthPercent: number;
-  right: number;
-  bottom: number;
-};
+import { usePublicSettings } from '@/hooks/use-public-settings';
+import {
+  mergeHomeServiceCard,
+  type HomeServiceCardKey,
+  type HomeServiceCardLayout,
+} from '@/lib/home-service-cards';
 
 type ServiceCard = {
+  key: HomeServiceCardKey;
   href: string;
   title: string;
   eta: string;
@@ -34,12 +30,12 @@ type ServiceCard = {
   tile: string;
   accent: string;
   iconClass: string;
-  image?: ImageLayout;
 };
 
 /** Row 1 — specialty stores (white/gray tiles). */
 const TOP_ROW: ServiceCard[] = [
   {
+    key: 'flowers',
     href: '/stores?type=flowers',
     title: uz.homeServiceFlowers,
     eta: uz.homeServiceFlowersEta,
@@ -47,14 +43,9 @@ const TOP_ROW: ServiceCard[] = [
     tile: 'bg-white',
     accent: 'from-[#E4E4E7] to-[#F4F4F5]',
     iconClass: 'text-zinc-800',
-    image: {
-      src: `/assets/home-services/flowers.png?${IMG_VER}`,
-      widthPercent: 112,
-      right: -18,
-      bottom: -22,
-    },
   },
   {
+    key: 'cosmetics',
     href: '/stores?type=perfume',
     title: uz.homeServiceCosmetics,
     eta: uz.homeServiceCosmeticsEta,
@@ -62,14 +53,9 @@ const TOP_ROW: ServiceCard[] = [
     tile: 'bg-[#F4F4F5]',
     accent: 'from-[#D4D4D8] to-[#E4E4E7]',
     iconClass: 'text-zinc-800',
-    image: {
-      src: `/assets/home-services/cosmetics.png?${IMG_VER}`,
-      widthPercent: 110,
-      right: -18,
-      bottom: -22,
-    },
   },
   {
+    key: 'pharmacy',
     href: '/stores?type=pharmacy',
     title: uz.homeServicePharmacy,
     eta: uz.homeServicePharmacyEta,
@@ -77,17 +63,12 @@ const TOP_ROW: ServiceCard[] = [
     tile: 'bg-white',
     accent: 'from-[#E4E4E7] to-[#F4F4F5]',
     iconClass: 'text-zinc-800',
-    image: {
-      src: `/assets/home-services/pharmacy.png?${IMG_VER}`,
-      widthPercent: 112,
-      right: -18,
-      bottom: -22,
-    },
   },
 ];
 
 /** Row 2 — restaurants + grocery. */
 const BOTTOM_LARGE: ServiceCard = {
+  key: 'restaurants',
   href: '/restaurants',
   title: uz.homeServiceRestaurants,
   eta: uz.homeServiceRestaurantsEta,
@@ -96,15 +77,10 @@ const BOTTOM_LARGE: ServiceCard = {
   tile: 'bg-[#F4F4F5]',
   accent: 'from-[#D4D4D8] to-[#E4E4E7]',
   iconClass: 'text-zinc-800',
-  image: {
-    src: `/assets/home-services/restaurants.png?${IMG_VER}`,
-    widthPercent: 95,
-    right: -20,
-    bottom: -24,
-  },
 };
 
 const BOTTOM_SMALL: ServiceCard = {
+  key: 'products',
   href: '/stores?type=grocery',
   title: uz.homeServiceProducts,
   eta: uz.homeServiceProductsEta,
@@ -112,28 +88,24 @@ const BOTTOM_SMALL: ServiceCard = {
   tile: 'bg-white',
   accent: 'from-[#E4E4E7] to-[#F4F4F5]',
   iconClass: 'text-zinc-800',
-  image: {
-    src: `/assets/home-services/products.png?${IMG_VER}`,
-    widthPercent: 108,
-    right: -16,
-    bottom: -22,
-  },
 };
 
 function ServiceTile({
   card,
+  layout,
   className,
   iconSize = 44,
   compact,
 }: {
   card: ServiceCard;
+  layout: HomeServiceCardLayout;
   className?: string;
   iconSize?: number;
   compact?: boolean;
 }) {
   const Icon = card.icon;
   const [imageFailed, setImageFailed] = useState(false);
-  const showImage = Boolean(card.image?.src) && !imageFailed;
+  const showImage = Boolean(layout.imageUrl) && !imageFailed;
 
   return (
     <Link
@@ -145,23 +117,22 @@ function ServiceTile({
         className,
       )}
     >
-      {/* Inner clip layer — filter/drop-shadow on <img> bypasses overflow on the same element. */}
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden rounded-[26px]"
         aria-hidden
       >
-        {showImage && card.image ? (
-          // eslint-disable-next-line @next/next/no-img-element -- local static asset with absolute positioning
+        {showImage ? (
+          // eslint-disable-next-line @next/next/no-img-element -- remote or static asset with absolute positioning
           <img
-            src={card.image.src}
+            src={layout.imageUrl}
             alt=""
             loading="lazy"
             decoding="async"
             className="absolute object-contain"
             style={{
-              width: `${card.image.widthPercent}%`,
-              right: card.image.right,
-              bottom: card.image.bottom,
+              width: `${layout.widthPercent}%`,
+              right: layout.right,
+              bottom: layout.bottom,
             }}
             onError={() => setImageFailed(true)}
           />
@@ -221,13 +192,20 @@ function ServiceTile({
 }
 
 export function HomeServiceGrid() {
+  const { data: settings } = usePublicSettings();
+  const cards = settings?.home_service_cards;
+
+  const layoutFor = (key: HomeServiceCardKey) =>
+    mergeHomeServiceCard(key, cards?.[key]);
+
   return (
     <section className="mt-5 space-y-3" aria-label={uz.categories}>
       <div className="grid grid-cols-3 gap-2.5">
         {TOP_ROW.map((card) => (
           <ServiceTile
-            key={card.href + card.title}
+            key={card.key}
             card={card}
+            layout={layoutFor(card.key)}
             compact
             iconSize={28}
           />
@@ -235,8 +213,18 @@ export function HomeServiceGrid() {
       </div>
 
       <div className="grid grid-cols-[1.65fr_1fr] gap-3">
-        <ServiceTile card={BOTTOM_LARGE} className="min-h-[132px]" iconSize={52} />
-        <ServiceTile card={BOTTOM_SMALL} className="min-h-[132px]" iconSize={40} />
+        <ServiceTile
+          card={BOTTOM_LARGE}
+          layout={layoutFor('restaurants')}
+          className="min-h-[132px]"
+          iconSize={52}
+        />
+        <ServiceTile
+          card={BOTTOM_SMALL}
+          layout={layoutFor('products')}
+          className="min-h-[132px]"
+          iconSize={40}
+        />
       </div>
     </section>
   );

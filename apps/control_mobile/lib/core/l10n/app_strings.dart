@@ -44,6 +44,12 @@ abstract final class AppStrings {
   static const mediaSection = 'Bosh sahifa media';
   static const mediaSectionHint =
       'Yangi dizayn: bannerlar «Maxsus takliflar» qatorida. Restoranlar — Bizneslar + Shaharlar.';
+  static const homeServiceCardsTitle = 'Kategoriya rasmlari';
+  static const homeServiceCardsHint =
+      'Bosh sahifa plitkalaridagi rasmlar: hajm va joylashuvni alohida sozlang. Ortgan qism konteyner ichida kesiladi.';
+  static const homeServiceWidth = 'Kenglik (%)';
+  static const homeServiceRight = 'O‘ngdan (px)';
+  static const homeServiceBottom = 'Pastdan (px)';
   static const categoriesSection = 'Taom kategoriyalari';
   static const productsSection = 'Mahsulotlar';
   static const addCategory = 'Kategoriya + rasm';

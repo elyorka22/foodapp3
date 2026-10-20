@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/action_feedback.dart';
@@ -15,6 +14,7 @@ import '../../../shared/widgets/section_panel.dart';
 import '../data/delivery_pricing_model.dart';
 import '../data/settings_model.dart';
 import '../data/settings_repository.dart';
+import 'home_service_cards_screen.dart';
 
 final settingsProvider = FutureProvider.autoDispose<AdminSettings>((ref) {
   return ref.watch(settingsRepositoryProvider).fetchAdminSettings();
@@ -117,6 +117,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             current.restaurantCardDefaultCoverPositionX,
         restaurantCardDefaultCoverPositionY:
             current.restaurantCardDefaultCoverPositionY,
+        homeServiceCards: current.homeServiceCards,
       );
       await ref.read(settingsRepositoryProvider).updateAdminSettings(updated);
       ref.invalidate(settingsProvider);
@@ -186,6 +187,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onPressed: () => context.go(AppRoutes.promotions),
                 icon: const Icon(Icons.image_outlined),
                 label: const Text(AppStrings.bannerSurfaceHomeOffers),
+              ),
+              const SizedBox(height: 8),
+              FilledButton.tonalIcon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const HomeServiceCardsScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.grid_view_rounded),
+                label: const Text(AppStrings.homeServiceCardsTitle),
               ),
               const SizedBox(height: 8),
               FilledButton.tonalIcon(

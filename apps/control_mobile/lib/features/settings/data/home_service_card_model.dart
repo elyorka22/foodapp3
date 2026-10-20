@@ -1,0 +1,165 @@
+import '../../../core/utils/json_parse.dart';
+
+const _keys = <String>[
+  'flowers',
+  'cosmetics',
+  'pharmacy',
+  'restaurants',
+  'products',
+];
+
+class HomeServiceCardLayout {
+  const HomeServiceCardLayout({
+    this.imageUrl = '',
+    this.widthPercent = 100,
+    this.right = -10,
+    this.bottom = -12,
+  });
+
+  final String imageUrl;
+  final double widthPercent;
+  final double right;
+  final double bottom;
+
+  HomeServiceCardLayout copyWith({
+    String? imageUrl,
+    double? widthPercent,
+    double? right,
+    double? bottom,
+  }) {
+    return HomeServiceCardLayout(
+      imageUrl: imageUrl ?? this.imageUrl,
+      widthPercent: widthPercent ?? this.widthPercent,
+      right: right ?? this.right,
+      bottom: bottom ?? this.bottom,
+    );
+  }
+
+  factory HomeServiceCardLayout.fromJson(Map<String, dynamic>? json) {
+    final map = json ?? const <String, dynamic>{};
+    return HomeServiceCardLayout(
+      imageUrl: map['imageUrl'] as String? ?? '',
+      widthPercent: parseNum(map['widthPercent'], 100).toDouble(),
+      right: parseNum(map['right'], -10).toDouble(),
+      bottom: parseNum(map['bottom'], -12).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'imageUrl': imageUrl,
+        'widthPercent': widthPercent.round(),
+        'right': right.round(),
+        'bottom': bottom.round(),
+      };
+
+  static double clampWidth(double v) => v.clamp(40, 160);
+  static double clampOffset(double v) => v.clamp(-80, 40);
+}
+
+class HomeServiceCards {
+  const HomeServiceCards({
+    required this.flowers,
+    required this.cosmetics,
+    required this.pharmacy,
+    required this.restaurants,
+    required this.products,
+  });
+
+  final HomeServiceCardLayout flowers;
+  final HomeServiceCardLayout cosmetics;
+  final HomeServiceCardLayout pharmacy;
+  final HomeServiceCardLayout restaurants;
+  final HomeServiceCardLayout products;
+
+  static const defaults = HomeServiceCards(
+    flowers: HomeServiceCardLayout(
+      imageUrl: '/assets/home-services/flowers.png',
+      widthPercent: 112,
+      right: -18,
+      bottom: -22,
+    ),
+    cosmetics: HomeServiceCardLayout(
+      imageUrl: '/assets/home-services/cosmetics.png',
+      widthPercent: 110,
+      right: -18,
+      bottom: -22,
+    ),
+    pharmacy: HomeServiceCardLayout(
+      imageUrl: '/assets/home-services/pharmacy.png',
+      widthPercent: 112,
+      right: -18,
+      bottom: -22,
+    ),
+    restaurants: HomeServiceCardLayout(
+      imageUrl: '/assets/home-services/restaurants.png',
+      widthPercent: 95,
+      right: -20,
+      bottom: -24,
+    ),
+    products: HomeServiceCardLayout(
+      imageUrl: '/assets/home-services/products.png',
+      widthPercent: 108,
+      right: -16,
+      bottom: -22,
+    ),
+  );
+
+  HomeServiceCardLayout operator [](String key) {
+    switch (key) {
+      case 'flowers':
+        return flowers;
+      case 'cosmetics':
+        return cosmetics;
+      case 'pharmacy':
+        return pharmacy;
+      case 'restaurants':
+        return restaurants;
+      case 'products':
+        return products;
+      default:
+        return const HomeServiceCardLayout();
+    }
+  }
+
+  HomeServiceCards copyWithKey(String key, HomeServiceCardLayout layout) {
+    return HomeServiceCards(
+      flowers: key == 'flowers' ? layout : flowers,
+      cosmetics: key == 'cosmetics' ? layout : cosmetics,
+      pharmacy: key == 'pharmacy' ? layout : pharmacy,
+      restaurants: key == 'restaurants' ? layout : restaurants,
+      products: key == 'products' ? layout : products,
+    );
+  }
+
+  factory HomeServiceCards.fromJson(dynamic raw) {
+    final map = raw is Map<String, dynamic>
+        ? raw
+        : raw is Map
+            ? Map<String, dynamic>.from(raw)
+            : <String, dynamic>{};
+    HomeServiceCardLayout pick(String key, HomeServiceCardLayout fallback) {
+      final value = map[key];
+      if (value is Map<String, dynamic>) {
+        return HomeServiceCardLayout.fromJson(value);
+      }
+      if (value is Map) {
+        return HomeServiceCardLayout.fromJson(Map<String, dynamic>.from(value));
+      }
+      return fallback;
+    }
+
+    return HomeServiceCards(
+      flowers: pick('flowers', defaults.flowers),
+      cosmetics: pick('cosmetics', defaults.cosmetics),
+      pharmacy: pick('pharmacy', defaults.pharmacy),
+      restaurants: pick('restaurants', defaults.restaurants),
+      products: pick('products', defaults.products),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        for (final key in _keys) key: this[key].toJson(),
+      };
+
+  static List<String> get keys => List<String>.from(_keys);
+}

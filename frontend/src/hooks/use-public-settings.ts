@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import type { HomeServiceCards } from '@/lib/home-service-cards';
 
 export type PublicSettings = {
   app_name: string;
@@ -12,6 +13,7 @@ export type PublicSettings = {
   social_instagram_url: string;
   social_youtube_url: string;
   partnership_phone: string;
+  home_service_cards?: HomeServiceCards;
 };
 
 export function usePublicSettings() {
