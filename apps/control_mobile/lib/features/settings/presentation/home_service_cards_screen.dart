@@ -7,7 +7,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/utils/media_url.dart';
+import '../../../core/utils/home_service_image.dart';
 import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/image_upload_field.dart';
@@ -202,7 +202,7 @@ class _CardEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     final previewH = previewHeight;
     final previewW = previewWidth;
-    final resolved = resolveMediaUrl(layout.imageUrl);
+    final hasImage = layout.imageUrl.trim().isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -244,18 +244,16 @@ class _CardEditor extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (resolved.isNotEmpty)
+                  if (hasImage)
                     Positioned(
                       right: layout.right,
                       bottom: layout.bottom,
                       width: previewW * (layout.widthPercent / 100),
                       child: Transform.rotate(
                         angle: layout.rotate * math.pi / 180,
-                        child: Image.network(
-                          resolved,
+                        child: buildHomeServiceImage(
+                          url: layout.imageUrl,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) =>
-                              const SizedBox.shrink(),
                         ),
                       ),
                     ),
@@ -267,6 +265,7 @@ class _CardEditor extends StatelessWidget {
           ImageUploadField(
             imageUrlController: urlController,
             refererPath: '/admin/home-services',
+            showSimplePreview: false,
           ),
           const SizedBox(height: 8),
           _SliderRow(

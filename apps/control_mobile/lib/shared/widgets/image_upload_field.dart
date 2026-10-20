@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/network/upload_repository.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/home_service_image.dart';
+import '../../core/utils/media_url.dart';
 import 'action_feedback.dart';
 import 'image_framing_controls.dart';
 
@@ -20,6 +22,7 @@ class ImageUploadField extends ConsumerStatefulWidget {
     this.enableFraming = false,
     this.framing = const ImageFramingValues(),
     this.onFramingChanged,
+    this.showSimplePreview = true,
   });
 
   final TextEditingController imageUrlController;
@@ -30,6 +33,9 @@ class ImageUploadField extends ConsumerStatefulWidget {
   final bool enableFraming;
   final ImageFramingValues framing;
   final ValueChanged<ImageFramingValues>? onFramingChanged;
+
+  /// Square thumbnail under the URL field (when framing is off).
+  final bool showSimplePreview;
 
   @override
   ConsumerState<ImageUploadField> createState() => _ImageUploadFieldState();
@@ -169,7 +175,7 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
             enabled: !locked,
             onChanged: widget.onFramingChanged!,
           ),
-        ] else if (hasImage) ...[
+        ] else if (hasImage && widget.showSimplePreview) ...[
           const SizedBox(height: 12),
           _SimpleImagePreview(url: url),
         ],
@@ -185,22 +191,35 @@ class _SimpleImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final asset = bundledHomeServiceAssetPath(url);
+    final remote = resolveMediaUrl(url);
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: AspectRatio(
         aspectRatio: 1,
         child: ColoredBox(
           color: AppColors.surfaceMuted,
-          child: Image.network(
-            url,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const Center(
-              child: Icon(
-                Icons.broken_image_outlined,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ),
+          child: asset != null
+              ? Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                )
+              : Image.network(
+                  remote.isNotEmpty ? remote : url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ),
         ),
       ),
     );
