@@ -91,6 +91,12 @@ const BOTTOM_SMALL: ServiceCard = {
   tile: 'bg-white',
   accent: 'from-[#E4E4E7] to-[#F4F4F5]',
   iconClass: 'text-zinc-800',
+  image: {
+    src: '/assets/home-services/products.png',
+    widthPercent: 62,
+    right: -8,
+    bottom: -10,
+  },
 };
 
 function ServiceTile({
