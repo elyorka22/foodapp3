@@ -30,7 +30,7 @@ export default function NotificationsPage() {
   const items = list.data ?? [];
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+    <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">{uz.notificationsTitle}</h1>
         {loggedIn && unreadCount > 0 && (

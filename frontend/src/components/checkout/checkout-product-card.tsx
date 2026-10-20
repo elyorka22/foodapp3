@@ -71,7 +71,7 @@ export function CheckoutProductCard({ item, onIncrement, onDecrement, onRemove }
               <Plus size={18} strokeWidth={2.5} />
             </button>
           </div>
-          <p className="text-[17px] font-bold text-[#18181B]">
+          <p className="text-[17px] font-bold text-[#E11D48]">
             {formatSum(item.price * item.quantity)}
           </p>
         </div>

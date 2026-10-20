@@ -138,7 +138,7 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
       </div>
 
       <div className="mt-2">
-        <p className="text-[17px] font-bold leading-tight text-[#18181B]">{formatSum(price)}</p>
+        <p className="text-[17px] font-bold leading-tight text-[#E11D48]">{formatSum(price)}</p>
         {hasDiscount && (
           <p className="mt-0.5 text-sm text-zinc-400 line-through">{formatSum(compare!)}</p>
         )}

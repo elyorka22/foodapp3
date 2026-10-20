@@ -6,7 +6,7 @@ import { uz } from '@/lib/uz';
 
 export default function FavoritesPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+    <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <div>
         <h1 className="text-xl font-bold text-zinc-900">{uz.favoritesTitle}</h1>
         <div className="mt-6">

@@ -113,7 +113,7 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-lg bg-[#F5F5F7] px-3 pb-24">
+      <div className="mx-auto max-w-lg bg-background px-3 pb-24">
         <Skeleton className="h-12 w-full rounded-xl" />
         <Skeleton className="mt-6 h-8 w-48 rounded-lg" />
         <div className="mt-6 grid grid-cols-2 gap-3">
@@ -145,7 +145,7 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
   const closed = business.isOpen === false;
 
   return (
-    <div className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-3 pb-24">
+    <div className="mx-auto min-h-screen max-w-lg bg-background px-3 pb-24">
       <RestaurantMenuHeader
         title={business.name}
         logoUrl={business.logoUrl}

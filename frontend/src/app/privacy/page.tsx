@@ -67,7 +67,7 @@ export default function PrivacyPage() {
   return (
     <>
       <SiteJsonLd />
-      <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-10">
+      <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-10">
         <div className="flex items-center gap-2 py-4">
           <Link
             href="/"
@@ -83,7 +83,7 @@ export default function PrivacyPage() {
           <p className="text-sm leading-relaxed text-zinc-600">
             Last updated: {new Date().toISOString().slice(0, 10)}. This Privacy Policy explains how
             FoodApp (&quot;we&quot;, &quot;us&quot;) handles personal information when you use{' '}
-            <a href={canonicalUrl('/')} className="font-medium text-[#18181B]">
+            <a href={canonicalUrl('/')} className="font-medium text-[#E11D48]">
               foodapp.uz
             </a>
             .
@@ -98,14 +98,14 @@ export default function PrivacyPage() {
 
           <p className="border-t border-zinc-100 pt-4 text-sm text-zinc-600">
             To request account deletion, visit{' '}
-            <Link href="/delete-account" className="font-medium text-[#18181B]">
+            <Link href="/delete-account" className="font-medium text-[#E11D48]">
               Delete Account
             </Link>
             .
           </p>
           <p className="text-sm text-zinc-600">
             Email:{' '}
-            <a href="mailto:support@foodapp.uz" className="font-medium text-[#18181B]">
+            <a href="mailto:support@foodapp.uz" className="font-medium text-[#E11D48]">
               support@foodapp.uz
             </a>
           </p>

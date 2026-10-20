@@ -25,7 +25,7 @@ export function HamkorlikContent({ backHref = '/', backLabel }: Props) {
   const benefits = uz.hamkorlikBenefits;
 
   return (
-    <main className="customer-page mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-10 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+    <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-10 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <div className="mb-5 flex items-center gap-2">
         <Link
           href={backHref}
@@ -37,7 +37,7 @@ export function HamkorlikContent({ backHref = '/', backLabel }: Props) {
         <h1 className="text-lg font-bold text-zinc-900">{uz.profilePartnership}</h1>
       </div>
 
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#18181B] to-[#3F3F46] p-6 text-white shadow-card">
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#E11D48] to-[#3F3F46] p-6 text-white shadow-card">
         <p className="text-sm font-semibold uppercase tracking-wide text-white/90">
           {uz.hamkorlikEyebrow}
         </p>
@@ -55,7 +55,7 @@ export function HamkorlikContent({ backHref = '/', backLabel }: Props) {
                 key={text}
                 className="flex gap-3 rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F4F4F5] text-[#18181B]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F4F4F5] text-[#E11D48]">
                   <Icon size={20} />
                 </span>
                 <p className="pt-1.5 text-[15px] leading-snug text-zinc-800">{text}</p>

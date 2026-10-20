@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 const linkClass =
-  'text-sm font-medium text-zinc-600 underline-offset-2 transition hover:text-[#18181B] hover:underline';
+  'text-sm font-medium text-zinc-600 underline-offset-2 transition hover:text-[#E11D48] hover:underline';
 
 export function SiteFooter() {
   return (
@@ -20,7 +20,7 @@ export function SiteFooter() {
             Delete Account
           </Link>
         </nav>
-        <a href="mailto:support@foodapp.uz" className="text-xs text-zinc-500 hover:text-[#18181B]">
+        <a href="mailto:support@foodapp.uz" className="text-xs text-zinc-500 hover:text-[#E11D48]">
           support@foodapp.uz
         </a>
       </div>

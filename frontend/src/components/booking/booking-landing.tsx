@@ -100,7 +100,7 @@ export function BookingLanding({ slides, venues }: Props) {
   const slide = withImages[index];
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] text-zinc-900">
+    <div className="min-h-screen bg-background text-zinc-900">
       <div className="mx-auto max-w-lg px-4 pb-12 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
         <Link
           href="/"
@@ -204,7 +204,7 @@ export function BookingVenueDetail({ venue }: { venue: BookingVenue }) {
   const tel = venue.phone?.replace(/\s/g, '');
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] text-zinc-900">
+    <div className="min-h-screen bg-background text-zinc-900">
       <div className="relative mx-auto max-w-lg pb-12">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-100">
           {cover ? (

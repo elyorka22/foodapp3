@@ -15,7 +15,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = buildPageMetadata();
 
 export const viewport: Viewport = {
-  themeColor: '#18181B',
+  themeColor: '#E11D48',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,

@@ -27,7 +27,7 @@ export function RestaurantMenuHeader({
   const logo = resolveImageUrl(logoUrl);
 
   return (
-    <header className="sticky top-0 z-30 bg-[#F5F5F7]/95 backdrop-blur-md pt-[calc(env(safe-area-inset-top,0px)+8px)]">
+    <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md pt-[calc(env(safe-area-inset-top,0px)+8px)]">
       <div className="flex items-start justify-between gap-2 px-1 pb-3">
         <Link
           href={backHref}

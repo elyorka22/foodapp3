@@ -33,7 +33,7 @@ export default function CheckoutDetailsPage() {
       <main className={checkoutMainClass}>
         <div className="mt-12 text-center">
           <p className="text-lg font-semibold text-zinc-900">{uz.cartEmpty}</p>
-          <Link href="/" className="mt-4 inline-block text-[15px] font-semibold text-[#18181B]">
+          <Link href="/" className="mt-4 inline-block text-[15px] font-semibold text-[#E11D48]">
             {uz.browseRestaurants}
           </Link>
         </div>

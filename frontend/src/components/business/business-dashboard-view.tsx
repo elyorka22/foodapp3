@@ -151,8 +151,8 @@ export function BusinessDashboardView({ data, ordersHref }: Props) {
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#18181b"
-              fill="#e4e4e7"
+              stroke="#E11D48"
+              fill="#FFE4E6"
               strokeWidth={2}
             />
           </AreaChart>

@@ -13,7 +13,7 @@ export default function BookingVenuePage() {
 
   if (venue.isLoading) {
     return (
-      <div className="min-h-screen bg-[#F5F5F7]">
+      <div className="min-h-screen bg-background">
         <Skeleton className="aspect-[4/3] w-full rounded-none shadow-none" />
         <div className="p-4">
           <Skeleton className="h-8 w-2/3 rounded-lg shadow-none" />
@@ -25,7 +25,7 @@ export default function BookingVenuePage() {
 
   if (!venue.data) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F5F5F7] p-6 text-center text-zinc-500">
+      <div className="flex min-h-screen items-center justify-center bg-background p-6 text-center text-zinc-500">
         {uz.bookingVenueNotFound}
       </div>
     );

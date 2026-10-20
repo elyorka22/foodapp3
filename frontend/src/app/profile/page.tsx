@@ -61,7 +61,7 @@ export default function ProfilePage() {
 
   if (customer) {
     return (
-      <main className="customer-page mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+      <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
         <ProfilePageHeader
           name={customer.fullName}
           photoUrl={customer.googlePhotoUrl}
@@ -131,7 +131,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+    <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <GuestProfileView onAuthSuccess={handleAuthSuccess} />
     </main>
   );

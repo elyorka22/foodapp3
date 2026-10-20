@@ -17,7 +17,7 @@ export default function CategoryProductsPage({ slug }: { slug: string }) {
   const products = productsQuery.data?.data ?? [];
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+    <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-8">
       <div className="flex items-center gap-2 py-4">
         <Link href="/" className="rounded-full p-2 active:bg-zinc-200" aria-label="Orqaga">
           <ChevronLeft size={22} />

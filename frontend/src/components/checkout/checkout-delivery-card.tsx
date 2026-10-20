@@ -44,7 +44,7 @@ export function CheckoutDeliveryCard({
     >
       <div className="p-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-[#18181B] shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-[#E11D48] shadow-sm">
             <Truck size={20} />
           </div>
           <div>
@@ -57,7 +57,7 @@ export function CheckoutDeliveryCard({
           <div className="mt-4 space-y-3 rounded-[20px] bg-white/70 p-4 backdrop-blur-sm">
             {value.address.trim() ? (
               <div className="flex items-start gap-3">
-                <MapPin size={18} className="mt-0.5 shrink-0 text-[#18181B]" />
+                <MapPin size={18} className="mt-0.5 shrink-0 text-[#E11D48]" />
                 <div className="min-w-0">
                   <p className="text-[12px] font-semibold uppercase tracking-wide text-[#3F3F46]/70">
                     {uz.deliveryAddress}
@@ -69,7 +69,7 @@ export function CheckoutDeliveryCard({
               </div>
             ) : null}
             <div className="flex items-start gap-3">
-              <Sparkles size={18} className="mt-0.5 shrink-0 text-[#18181B]" />
+              <Sparkles size={18} className="mt-0.5 shrink-0 text-[#E11D48]" />
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-wide text-[#3F3F46]/70">
                   {uz.deliveryLabel}
@@ -81,7 +81,7 @@ export function CheckoutDeliveryCard({
             </div>
             {eta != null ? (
               <div className="flex items-start gap-3">
-                <Clock size={18} className="mt-0.5 shrink-0 text-[#18181B]" />
+                <Clock size={18} className="mt-0.5 shrink-0 text-[#E11D48]" />
                 <div>
                   <p className="text-[12px] font-semibold uppercase tracking-wide text-[#3F3F46]/70">
                     Vaqt

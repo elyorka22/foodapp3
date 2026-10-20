@@ -46,7 +46,7 @@ export function CheckoutPromoCard({
               value={promoCode}
               onChange={(e) => onPromoCodeChange(e.target.value.toUpperCase())}
               placeholder={uz.promoCode}
-              className="h-12 min-w-0 flex-1 rounded-2xl border-0 bg-[#FAFAFA] px-4 text-[15px] outline-none ring-1 ring-zinc-100 focus:ring-2 focus:ring-[#18181B]/30"
+              className="h-12 min-w-0 flex-1 rounded-2xl border-0 bg-[#FAFAFA] px-4 text-[15px] outline-none ring-1 ring-zinc-100 focus:ring-2 focus:ring-[#E11D48]/30"
             />
             <Button
               type="button"
@@ -59,7 +59,7 @@ export function CheckoutPromoCard({
             </Button>
           </div>
           {message ? (
-            <p className="mt-2 text-[13px] font-medium text-[#18181B]">{message}</p>
+            <p className="mt-2 text-[13px] font-medium text-[#E11D48]">{message}</p>
           ) : null}
         </div>
       ) : null}

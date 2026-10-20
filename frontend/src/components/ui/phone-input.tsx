@@ -44,7 +44,7 @@ export function PhoneInput({
         'flex w-full items-center overflow-hidden',
         isCheckout ? 'gap-3' : 'gap-2.5',
         isCheckout
-          ? 'h-14 rounded-2xl bg-[#FAFAFA] ring-1 ring-zinc-100 focus-within:ring-2 focus-within:ring-[#18181B]/30'
+          ? 'h-14 rounded-2xl bg-[#FAFAFA] ring-1 ring-zinc-100 focus-within:ring-2 focus-within:ring-[#E11D48]/30'
           : 'min-h-[52px] rounded-2xl border border-zinc-200 bg-white focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-500/30 dark:border-white/20 dark:bg-zinc-900',
         disabled && 'opacity-60',
         className,

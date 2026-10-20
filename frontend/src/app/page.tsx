@@ -20,7 +20,7 @@ export default function HomePage() {
   const hasError = restaurantsQuery.isError;
 
   return (
-    <main className="customer-page mx-auto min-h-screen max-w-lg bg-white px-4 pb-8">
+    <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-8">
       <HomeCenterHeader />
       <HomeServiceGrid />
 

@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #18181b;
-  --color-primary-hover: #27272a;
+  --color-primary: #e11d48;
+  --color-primary-hover: #be123c;
   --color-surface: #ffffff;
-  --color-background: #f7f8fa;
-  --color-border: #eaeaea;
-  --color-text: #1a1a1a;
-  --color-text-muted: #6b7280;
+  --color-background: #fff8f7;
+  --color-border: #f1e7e6;
+  --color-text: #1c1917;
+  --color-text-muted: #78716c;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .dark {
-  --color-primary: #fafafa;
-  --color-primary-hover: #e4e4e7;
-  --color-surface: #18181b;
-  --color-background: #09090b;
-  --color-border: #3f3f46;
-  --color-text: #fafafa;
-  --color-text-muted: #a1a1aa;
+  --color-primary: #fb7185;
+  --color-primary-hover: #fda4af;
+  --color-surface: #1c1917;
+  --color-background: #0c0a09;
+  --color-border: #44403c;
+  --color-text: #fafaf9;
+  --color-text-muted: #a8a29e;
 }
 
 body {
-  background-color: #ffffff;
-  color: #1a1a1a;
+  background-color: #fff8f7;
+  color: #1c1917;
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 input,
 textarea,
 select {
-  color: #1a1a1a;
-  -webkit-text-fill-color: #1a1a1a;
+  color: #1c1917;
+  -webkit-text-fill-color: #1c1917;
 }
 
 input::placeholder,
@@ -45,9 +45,9 @@ textarea::placeholder {
 }
 
 .dark body {
-  background-color: #09090b;
+  background-color: #0c0a09;
   background-image: none;
-  color: #fafafa;
+  color: #fafaf9;
 }
 
 .dark input,
@@ -124,16 +124,16 @@ textarea::placeholder {
   }
 
   .bg-hero-primary {
-    background-image: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+    background-image: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
   }
 
   .bg-hero-staff {
-    background-image: linear-gradient(135deg, #27272a 0%, #09090b 100%);
+    background-image: linear-gradient(135deg, #be123c 0%, #9f1239 100%);
   }
 
   .customer-page {
     background-color: transparent;
-    color: #1a1a1a;
+    color: #1c1917;
   }
 
   .customer-surface {

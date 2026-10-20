@@ -116,7 +116,7 @@ function ServiceTile({
       )}
     >
       <div
-        className="absolute inset-0 rounded-[26px] bg-[#F3F4F6] shadow-[0_2px_12px_rgba(15,23,42,0.04)]"
+        className="absolute inset-0 rounded-[26px] bg-[#F5F0EF] shadow-[0_2px_12px_rgba(15,23,42,0.04)]"
         aria-hidden
       />
 
@@ -149,7 +149,7 @@ function ServiceTile({
           <span
             className={clsx(
               'mt-auto inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-bold text-white',
-              card.badge.tone === 'orange' ? 'bg-zinc-900' : 'bg-sky-500',
+              card.badge.tone === 'orange' ? 'bg-primary' : 'bg-sky-500',
             )}
           >
             {card.badge.label}

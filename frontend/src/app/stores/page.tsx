@@ -45,7 +45,7 @@ function StoresPageInner() {
   const title = type ? storeTypeTitle(type) : uz.allStores;
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+    <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-8">
       <div className="flex items-center gap-2 py-4">
         <Link href="/" className="rounded-full p-2 active:bg-zinc-200" aria-label={uz.back}>
           <ChevronLeft size={22} />
@@ -104,7 +104,7 @@ export default function StoresPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8">
+        <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-8">
           <div className="grid grid-cols-2 gap-3 pt-16">
             {[1, 2, 3, 4].map((i) => (
               <Skeleton key={i} className="aspect-[3/4] w-full rounded-[22px] shadow-none" />

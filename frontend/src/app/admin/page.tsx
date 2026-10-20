@@ -89,7 +89,7 @@ export default function AdminPage() {
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Area type="monotone" dataKey="value" stroke="#18181b" fill="#e4e4e7" />
+              <Area type="monotone" dataKey="value" stroke="#E11D48" fill="#FFE4E6" />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>

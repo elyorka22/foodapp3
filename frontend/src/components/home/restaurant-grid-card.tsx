@@ -15,7 +15,7 @@ const FALLBACK_BACKGROUNDS = [
   'bg-[#3F3F46]',
   'bg-[#52525B]',
   'bg-[#27272A]',
-  'bg-[#18181B]',
+  'bg-[#1C1917]',
 ] as const;
 
 type Props = {
@@ -97,7 +97,7 @@ export function RestaurantGridCard({
           <Heart size={17} strokeWidth={2} />
         </button>
 
-        <span className="absolute bottom-2.5 right-2.5 rounded-full bg-zinc-900 px-2.5 py-1.5 text-[12px] font-extrabold text-white shadow-[0_3px_12px_rgba(0,0,0,0.35)]">
+        <span className="absolute bottom-2.5 right-2.5 rounded-full bg-primary px-2.5 py-1.5 text-[12px] font-extrabold text-white shadow-[0_3px_12px_rgba(225,29,72,0.35)]">
           {delivery}
         </span>
       </div>

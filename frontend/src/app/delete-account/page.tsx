@@ -74,7 +74,7 @@ export default function DeleteAccountPage() {
   };
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-10">
+    <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-10">
       <div className="flex items-center gap-2 py-4">
         <Link href="/" className="rounded-full p-2 active:bg-zinc-200" aria-label="Back to home">
           <ChevronLeft size={22} />
@@ -92,7 +92,7 @@ export default function DeleteAccountPage() {
 
       <article className="space-y-4">
         <Card className="rounded-2xl p-5 shadow-card">
-          <div className="flex items-center gap-2 text-[#18181B]">
+          <div className="flex items-center gap-2 text-[#E11D48]">
             <Trash2 size={20} />
             <h2 className="text-base font-semibold text-zinc-900">Account deletion</h2>
           </div>
@@ -102,7 +102,7 @@ export default function DeleteAccountPage() {
           </p>
           <p className="mt-2 text-sm leading-relaxed text-zinc-600">
             If you are logged in, you can also delete your account from{' '}
-            <Link href="/profile" className="font-medium text-[#18181B]">
+            <Link href="/profile" className="font-medium text-[#E11D48]">
               Profile
             </Link>
             .
@@ -114,7 +114,7 @@ export default function DeleteAccountPage() {
           <ul className="mt-3 space-y-2">
             {DATA_DELETED.map((item) => (
               <li key={item} className="flex gap-2 text-sm text-zinc-600">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#18181B]" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E11D48]" />
                 {item}
               </li>
             ))}
@@ -203,13 +203,13 @@ export default function DeleteAccountPage() {
           </p>
           <p className="mt-2 text-sm">
             Email:{' '}
-            <a href="mailto:support@foodapp.uz" className="font-medium text-[#18181B]">
+            <a href="mailto:support@foodapp.uz" className="font-medium text-[#E11D48]">
               support@foodapp.uz
             </a>
           </p>
           <p className="mt-2 text-sm text-zinc-600">
             See also our{' '}
-            <Link href="/privacy" className="font-medium text-[#18181B]">
+            <Link href="/privacy" className="font-medium text-[#E11D48]">
               Privacy Policy
             </Link>
             .

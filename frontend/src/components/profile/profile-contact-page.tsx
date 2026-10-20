@@ -19,7 +19,7 @@ export function ProfileContactPage({ variant }: Props) {
     variant === 'partnership' ? data?.partnership_phone?.trim() ?? '' : '';
 
   return (
-    <main className="customer-page mx-auto min-h-screen max-w-lg bg-[#F5F5F7] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+    <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <div className="mb-6 flex items-center gap-2">
         <Link
           href="/profile"
@@ -39,8 +39,8 @@ export function ProfileContactPage({ variant }: Props) {
               href={`tel:${phone.replace(/\s/g, '')}`}
               className="mt-4 flex items-center gap-3 rounded-2xl bg-[#F4F4F5] px-4 py-4 active:scale-[0.99]"
             >
-              <Phone size={22} className="shrink-0 text-[#18181B]" />
-              <span className="text-[16px] font-semibold text-[#18181B]">{phone}</span>
+              <Phone size={22} className="shrink-0 text-[#E11D48]" />
+              <span className="text-[16px] font-semibold text-[#E11D48]">{phone}</span>
             </a>
           </>
         ) : (
