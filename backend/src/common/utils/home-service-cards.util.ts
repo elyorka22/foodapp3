@@ -20,37 +20,43 @@ export type HomeServiceCardLayout = {
 
 export type HomeServiceCards = Record<HomeServiceCardKey, HomeServiceCardLayout>;
 
+const ASSET_VER = 'v3';
+
+function defaultAsset(file: string): string {
+  return `/assets/home-services/${file}?${ASSET_VER}`;
+}
+
 export const DEFAULT_HOME_SERVICE_CARDS: HomeServiceCards = {
   flowers: {
-    imageUrl: '/assets/home-services/flowers.png',
+    imageUrl: defaultAsset('flowers.png'),
     widthPercent: 112,
     right: -18,
     bottom: -22,
     rotate: 0,
   },
   cosmetics: {
-    imageUrl: '/assets/home-services/cosmetics.png',
+    imageUrl: defaultAsset('cosmetics.png'),
     widthPercent: 110,
     right: -18,
     bottom: -22,
     rotate: 0,
   },
   pharmacy: {
-    imageUrl: '/assets/home-services/pharmacy.png',
+    imageUrl: defaultAsset('pharmacy.png'),
     widthPercent: 112,
     right: -18,
     bottom: -22,
     rotate: 0,
   },
   restaurants: {
-    imageUrl: '/assets/home-services/restaurants.png',
+    imageUrl: defaultAsset('restaurants.png'),
     widthPercent: 95,
     right: -20,
     bottom: -24,
     rotate: 0,
   },
   products: {
-    imageUrl: '/assets/home-services/products.png',
+    imageUrl: defaultAsset('products.png'),
     widthPercent: 108,
     right: -16,
     bottom: -22,
@@ -79,10 +85,16 @@ function normalizeCard(
   const base = DEFAULT_HOME_SERVICE_CARDS[key];
   const obj =
     raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
-  const imageUrl =
+  let imageUrl =
     typeof obj.imageUrl === 'string' && obj.imageUrl.trim()
       ? obj.imageUrl.trim()
       : base.imageUrl;
+  if (
+    imageUrl.startsWith('/assets/home-services/') &&
+    !imageUrl.includes('?')
+  ) {
+    imageUrl = `${imageUrl}?${ASSET_VER}`;
+  }
   return {
     imageUrl,
     widthPercent: clamp(asNumber(obj.widthPercent, base.widthPercent), 40, 160),

@@ -16,43 +16,63 @@ export type HomeServiceCardLayout = {
 
 export type HomeServiceCards = Record<HomeServiceCardKey, HomeServiceCardLayout>;
 
+/** Bust stale PWA/CDN caches of mislabeled WebP-as-PNG files. */
+const ASSET_VER = 'v3';
+
+function defaultAsset(file: string): string {
+  return `/assets/home-services/${file}?${ASSET_VER}`;
+}
+
 export const DEFAULT_HOME_SERVICE_CARDS: HomeServiceCards = {
   flowers: {
-    imageUrl: '/assets/home-services/flowers.png',
+    imageUrl: defaultAsset('flowers.png'),
     widthPercent: 112,
     right: -18,
     bottom: -22,
     rotate: 0,
   },
   cosmetics: {
-    imageUrl: '/assets/home-services/cosmetics.png',
+    imageUrl: defaultAsset('cosmetics.png'),
     widthPercent: 110,
     right: -18,
     bottom: -22,
     rotate: 0,
   },
   pharmacy: {
-    imageUrl: '/assets/home-services/pharmacy.png',
+    imageUrl: defaultAsset('pharmacy.png'),
     widthPercent: 112,
     right: -18,
     bottom: -22,
     rotate: 0,
   },
   restaurants: {
-    imageUrl: '/assets/home-services/restaurants.png',
+    imageUrl: defaultAsset('restaurants.png'),
     widthPercent: 95,
     right: -20,
     bottom: -24,
     rotate: 0,
   },
   products: {
-    imageUrl: '/assets/home-services/products.png',
+    imageUrl: defaultAsset('products.png'),
     widthPercent: 108,
     right: -16,
     bottom: -22,
     rotate: 0,
   },
 };
+
+/** Make relative asset paths absolute so PWA / deep links still load them. */
+export function resolveHomeServiceImageUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (typeof window === 'undefined') return trimmed;
+  try {
+    return new URL(trimmed, window.location.origin).href;
+  } catch {
+    return trimmed;
+  }
+}
 
 function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n));
@@ -64,10 +84,17 @@ export function mergeHomeServiceCard(
 ): HomeServiceCardLayout {
   const base = DEFAULT_HOME_SERVICE_CARDS[key];
   if (!override) return base;
-  const imageUrl =
+  let imageUrl =
     typeof override.imageUrl === 'string' && override.imageUrl.trim()
       ? override.imageUrl.trim()
       : base.imageUrl;
+  // Default static paths always carry a cache-bust query.
+  if (
+    imageUrl.startsWith('/assets/home-services/') &&
+    !imageUrl.includes('?')
+  ) {
+    imageUrl = `${imageUrl}?${ASSET_VER}`;
+  }
   return {
     imageUrl,
     widthPercent: clamp(

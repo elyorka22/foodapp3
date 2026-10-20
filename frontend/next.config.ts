@@ -11,6 +11,18 @@ const withPWA = require('next-pwa')({
     /\/courier(?:\/|$)/,
     /middleware-manifest\.json$/,
   ],
+  runtimeCaching: [
+    {
+      // Always revalidate home category art (avoids sticky bad PNG/WebP caches).
+      urlPattern: /\/assets\/home-services\/.*/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'home-service-assets',
+        networkTimeoutSeconds: 8,
+        expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 },
+      },
+    },
+  ],
 });
 
 const nextConfig: NextConfig = {

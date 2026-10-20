@@ -85,6 +85,17 @@ class NetworkErrorPanel extends StatefulWidget {
 class _NetworkErrorPanelState extends State<NetworkErrorPanel> {
   bool _busy = false;
 
+  String _errorTitle(String message) {
+    final lower = message.toLowerCase();
+    final looksNetwork = lower.contains('ulan') ||
+        lower.contains('timeout') ||
+        lower.contains('tarmoq') ||
+        lower.contains('internet') ||
+        lower.contains('ssl') ||
+        lower.contains('host');
+    return looksNetwork ? AppStrings.connectionProblem : AppStrings.requestFailed;
+  }
+
   Future<void> _retry() async {
     final fn = widget.onRetry;
     if (fn == null || _busy) return;
@@ -121,7 +132,7 @@ class _NetworkErrorPanelState extends State<NetworkErrorPanel> {
               ),
               const SizedBox(height: 14),
               Text(
-                AppStrings.connectionProblem,
+                _errorTitle(widget.message),
                 textAlign: TextAlign.center,
                 style: AppTypography.title,
               ),

@@ -15,6 +15,7 @@ import type { LucideIcon } from 'lucide-react';
 import { usePublicSettings } from '@/hooks/use-public-settings';
 import {
   mergeHomeServiceCard,
+  resolveHomeServiceImageUrl,
   type HomeServiceCardKey,
   type HomeServiceCardLayout,
 } from '@/lib/home-service-cards';
@@ -124,9 +125,9 @@ function ServiceTile({
         {showImage ? (
           // eslint-disable-next-line @next/next/no-img-element -- remote or static asset with absolute positioning
           <img
-            src={layout.imageUrl}
+            src={resolveHomeServiceImageUrl(layout.imageUrl)}
             alt=""
-            loading="lazy"
+            loading="eager"
             decoding="async"
             className="absolute object-contain origin-center"
             style={{
