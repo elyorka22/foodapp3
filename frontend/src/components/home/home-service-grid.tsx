@@ -13,6 +13,9 @@ import { clsx } from 'clsx';
 import { uz } from '@/lib/uz';
 import type { LucideIcon } from 'lucide-react';
 
+/** Cache-bust after fixing mislabeled WebP→PNG assets. */
+const IMG_VER = 'v2';
+
 type ImageLayout = {
   /** Relative path under /assets/home-services/ */
   src: string;
@@ -45,7 +48,7 @@ const TOP_ROW: ServiceCard[] = [
     accent: 'from-[#E4E4E7] to-[#F4F4F5]',
     iconClass: 'text-zinc-800',
     image: {
-      src: '/assets/home-services/flowers.png',
+      src: `/assets/home-services/flowers.png?${IMG_VER}`,
       widthPercent: 112,
       right: -18,
       bottom: -22,
@@ -60,7 +63,7 @@ const TOP_ROW: ServiceCard[] = [
     accent: 'from-[#D4D4D8] to-[#E4E4E7]',
     iconClass: 'text-zinc-800',
     image: {
-      src: '/assets/home-services/cosmetics.png',
+      src: `/assets/home-services/cosmetics.png?${IMG_VER}`,
       widthPercent: 110,
       right: -18,
       bottom: -22,
@@ -75,7 +78,7 @@ const TOP_ROW: ServiceCard[] = [
     accent: 'from-[#E4E4E7] to-[#F4F4F5]',
     iconClass: 'text-zinc-800',
     image: {
-      src: '/assets/home-services/pharmacy.png',
+      src: `/assets/home-services/pharmacy.png?${IMG_VER}`,
       widthPercent: 112,
       right: -18,
       bottom: -22,
@@ -94,7 +97,7 @@ const BOTTOM_LARGE: ServiceCard = {
   accent: 'from-[#D4D4D8] to-[#E4E4E7]',
   iconClass: 'text-zinc-800',
   image: {
-    src: '/assets/home-services/restaurants.png',
+    src: `/assets/home-services/restaurants.png?${IMG_VER}`,
     widthPercent: 95,
     right: -20,
     bottom: -24,
@@ -110,7 +113,7 @@ const BOTTOM_SMALL: ServiceCard = {
   accent: 'from-[#E4E4E7] to-[#F4F4F5]',
   iconClass: 'text-zinc-800',
   image: {
-    src: '/assets/home-services/products.png',
+    src: `/assets/home-services/products.png?${IMG_VER}`,
     widthPercent: 108,
     right: -16,
     bottom: -22,
@@ -136,12 +139,45 @@ function ServiceTile({
     <Link
       href={card.href}
       className={clsx(
-        'relative block min-h-[118px] overflow-hidden rounded-[26px] ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
+        'relative block min-h-[118px] rounded-[26px] ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
         compact && 'min-h-[120px]',
         card.tile,
         className,
       )}
     >
+      {/* Inner clip layer — filter/drop-shadow on <img> bypasses overflow on the same element. */}
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden rounded-[26px]"
+        aria-hidden
+      >
+        {showImage && card.image ? (
+          // eslint-disable-next-line @next/next/no-img-element -- local static asset with absolute positioning
+          <img
+            src={card.image.src}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute object-contain"
+            style={{
+              width: `${card.image.widthPercent}%`,
+              right: card.image.right,
+              bottom: card.image.bottom,
+            }}
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <div
+            className={clsx(
+              'absolute bottom-1 right-1 flex items-center justify-center rounded-full bg-gradient-to-br',
+              compact ? 'h-[56px] w-[56px]' : 'h-[72px] w-[72px]',
+              card.accent,
+            )}
+          >
+            <Icon size={iconSize} strokeWidth={1.6} className={card.iconClass} />
+          </div>
+        )}
+      </div>
+
       <div
         className={clsx(
           'relative z-10 flex h-full flex-col p-3.5',
@@ -180,35 +216,6 @@ function ServiceTile({
           <span className="mt-auto" />
         )}
       </div>
-
-      {showImage && card.image ? (
-        // eslint-disable-next-line @next/next/no-img-element -- local static asset with absolute positioning
-        <img
-          src={card.image.src}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          decoding="async"
-          className="pointer-events-none absolute z-[5] object-contain drop-shadow-[0_6px_12px_rgba(15,23,42,0.12)]"
-          style={{
-            width: `${card.image.widthPercent}%`,
-            right: card.image.right,
-            bottom: card.image.bottom,
-          }}
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <div
-          className={clsx(
-            'pointer-events-none absolute bottom-1 right-1 z-[5] flex items-center justify-center rounded-full bg-gradient-to-br',
-            compact ? 'h-[56px] w-[56px]' : 'h-[72px] w-[72px]',
-            card.accent,
-          )}
-          aria-hidden
-        >
-          <Icon size={iconSize} strokeWidth={1.6} className={card.iconClass} />
-        </div>
-      )}
     </Link>
   );
 }
