@@ -53,6 +53,12 @@ const TOP_ROW: ServiceCard[] = [
     tile: 'bg-[#F4F4F5]',
     accent: 'from-[#D4D4D8] to-[#E4E4E7]',
     iconClass: 'text-zinc-800',
+    image: {
+      src: '/assets/home-services/cosmetics.png',
+      widthPercent: 70,
+      right: -6,
+      bottom: -8,
+    },
   },
   {
     href: '/stores?type=pharmacy',
