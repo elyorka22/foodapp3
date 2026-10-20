@@ -4,7 +4,7 @@ Put transparent PNG/WebP files here. Paths used by `HomeServiceGrid`:
 
 | File | Card |
 |------|------|
-| `restaurants.webp` | Restoranlar (row 2, large) |
+| `restaurants.png` | Restoranlar (row 2, large) |
 | `products.png` | Mahsulotlar (row 2, small) |
 
 Optional (icons used until added):

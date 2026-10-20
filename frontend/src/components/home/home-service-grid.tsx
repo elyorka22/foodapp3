@@ -76,10 +76,10 @@ const BOTTOM_LARGE: ServiceCard = {
   accent: 'from-[#D4D4D8] to-[#E4E4E7]',
   iconClass: 'text-zinc-800',
   image: {
-    src: '/assets/home-services/restaurants.webp',
-    widthPercent: 48,
-    right: -10,
-    bottom: -14,
+    src: '/assets/home-services/restaurants.png',
+    widthPercent: 58,
+    right: -8,
+    bottom: -12,
   },
 };
 
