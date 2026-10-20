@@ -8,12 +8,7 @@ Put transparent PNG/WebP files here. Paths used by `HomeServiceGrid`:
 | `products.png` | Mahsulotlar (row 2, small) |
 | `pharmacy.png` | Dorixona (row 1) |
 | `cosmetics.png` | Kosmetika (row 1) |
-
-Optional (icons used until added):
-
-| File | Card |
-|------|------|
-| `flowers.png` | Gullar |
+| `flowers.png` | Gullar (row 1) |
 
 Requirements:
 - Transparent background

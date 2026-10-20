@@ -44,6 +44,12 @@ const TOP_ROW: ServiceCard[] = [
     tile: 'bg-white',
     accent: 'from-[#E4E4E7] to-[#F4F4F5]',
     iconClass: 'text-zinc-800',
+    image: {
+      src: '/assets/home-services/flowers.png',
+      widthPercent: 72,
+      right: -6,
+      bottom: -8,
+    },
   },
   {
     href: '/stores?type=perfume',
