@@ -5,8 +5,9 @@ export const colors = {
   primaryDark: '#9F1239',
   primarySoft: '#FFF1F2',
   surface: '#FFFFFF',
-  background: '#FFF8F7',
-  border: '#F1E7E6',
+  /** Neutral canvas — color lives in cards/accents (X5-style), not the page wash. */
+  background: '#F5F5F7',
+  border: '#E8E8EC',
   textPrimary: '#1C1917',
   textSecondary: '#78716C',
   textMuted: '#A8A29E',

@@ -22,7 +22,7 @@ export function SectionHeader({ title, subtitle, href, linkLabel = 'See all' }: 
       {href && (
         <Link
           href={href}
-          className="flex shrink-0 items-center gap-0.5 rounded-full bg-primary-soft px-2.5 py-1 text-sm font-semibold text-primary transition active:opacity-70"
+          className="flex shrink-0 items-center gap-0.5 rounded-full bg-zinc-100 px-2.5 py-1 text-sm font-semibold text-zinc-700 transition active:opacity-70"
         >
           {linkLabel}
           <ChevronRight size={16} strokeWidth={2.25} />

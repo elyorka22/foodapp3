@@ -16,8 +16,8 @@ const config: Config = {
           soft: '#FFF1F2',
         },
         surface: '#FFFFFF',
-        background: '#FFF8F7',
-        border: '#F1E7E6',
+        background: '#F5F5F7',
+        border: '#E8E8EC',
         foreground: {
           DEFAULT: '#1C1917',
           muted: '#78716C',

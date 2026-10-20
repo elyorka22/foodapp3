@@ -6,8 +6,8 @@
   --color-primary: #e11d48;
   --color-primary-hover: #be123c;
   --color-surface: #ffffff;
-  --color-background: #fff8f7;
-  --color-border: #f1e7e6;
+  --color-background: #f5f5f7;
+  --color-border: #e8e8ec;
   --color-text: #1c1917;
   --color-text-muted: #78716c;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -25,7 +25,7 @@
 }
 
 body {
-  background-color: #fff8f7;
+  background-color: #f5f5f7;
   color: #1c1917;
   font-family: var(--font-sans), system-ui, sans-serif;
 }

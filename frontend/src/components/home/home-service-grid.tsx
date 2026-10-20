@@ -16,11 +16,8 @@ import type { LucideIcon } from 'lucide-react';
 type ImageLayout = {
   /** Relative path under /assets/home-services/ */
   src: string;
-  /** Width as % of the card */
   widthPercent: number;
-  /** Offset from the right edge (px, may be negative to overhang) */
   right: number;
-  /** Offset from the bottom edge (px, may be negative to overhang) */
   bottom: number;
 };
 
@@ -28,51 +25,56 @@ type ServiceCard = {
   href: string;
   title: string;
   eta: string;
-  badge?: { label: string; tone: 'orange' | 'blue' };
+  badge?: { label: string; className: string };
   icon: LucideIcon;
+  /** Full tile wash — each category gets its own hue (X5-style variety). */
+  tile: string;
   accent: string;
   iconClass: string;
   image?: ImageLayout;
 };
 
-/** Row 1 — specialty store categories (business type slugs from seed). */
+/** Row 1 — specialty stores: pink / violet / green, not one brand color. */
 const TOP_ROW: ServiceCard[] = [
   {
     href: '/stores?type=flowers',
     title: uz.homeServiceFlowers,
     eta: uz.homeServiceFlowersEta,
     icon: Flower2,
-    accent: 'from-[#FCE7F3] to-[#FDF2F8]',
-    iconClass: 'text-pink-600',
+    tile: 'bg-[#FFE4EC]',
+    accent: 'from-[#FB7185] to-[#FDA4AF]',
+    iconClass: 'text-white',
   },
   {
-    // Seed slug is `perfume` (Parfyumeriya); UI label is Kosmetika.
     href: '/stores?type=perfume',
     title: uz.homeServiceCosmetics,
     eta: uz.homeServiceCosmeticsEta,
     icon: Sparkles,
-    accent: 'from-[#F3E8FF] to-[#FAF5FF]',
-    iconClass: 'text-violet-600',
+    tile: 'bg-[#EDE4FF]',
+    accent: 'from-[#A78BFA] to-[#C4B5FD]',
+    iconClass: 'text-white',
   },
   {
     href: '/stores?type=pharmacy',
     title: uz.homeServicePharmacy,
     eta: uz.homeServicePharmacyEta,
     icon: Pill,
-    accent: 'from-[#DCFCE7] to-[#F0FDF4]',
-    iconClass: 'text-emerald-600',
+    tile: 'bg-[#DCFCE7]',
+    accent: 'from-[#34D399] to-[#6EE7B7]',
+    iconClass: 'text-white',
   },
 ];
 
-/** Row 2 — large restaurants + products (grocery marketplace). */
+/** Row 2 — restaurants (warm amber) + grocery (lime), Tomato only on CTA badge. */
 const BOTTOM_LARGE: ServiceCard = {
   href: '/restaurants',
   title: uz.homeServiceRestaurants,
   eta: uz.homeServiceRestaurantsEta,
-  badge: { label: uz.homeServiceDeliveryBadge, tone: 'orange' },
+  badge: { label: uz.homeServiceDeliveryBadge, className: 'bg-primary text-white' },
   icon: UtensilsCrossed,
-  accent: 'from-[#E4E4E7] to-[#F4F4F5]',
-  iconClass: 'text-zinc-800',
+  tile: 'bg-[#FFEDD5]',
+  accent: 'from-[#FB923C] to-[#FDBA74]',
+  iconClass: 'text-white',
   image: {
     src: '/assets/home-services/restaurants.webp',
     widthPercent: 48,
@@ -86,8 +88,9 @@ const BOTTOM_SMALL: ServiceCard = {
   title: uz.homeServiceProducts,
   eta: uz.homeServiceProductsEta,
   icon: ShoppingBag,
-  accent: 'from-[#E8F5E9] to-[#F1F8F2]',
-  iconClass: 'text-emerald-600',
+  tile: 'bg-[#ECFCCB]',
+  accent: 'from-[#84CC16] to-[#A3E635]',
+  iconClass: 'text-white',
 };
 
 function ServiceTile({
@@ -99,7 +102,6 @@ function ServiceTile({
   card: ServiceCard;
   className?: string;
   iconSize?: number;
-  /** Equal-width top-row tiles */
   compact?: boolean;
 }) {
   const Icon = card.icon;
@@ -116,7 +118,10 @@ function ServiceTile({
       )}
     >
       <div
-        className="absolute inset-0 rounded-[26px] bg-[#F5F0EF] shadow-[0_2px_12px_rgba(15,23,42,0.04)]"
+        className={clsx(
+          'absolute inset-0 rounded-[26px] shadow-[0_2px_12px_rgba(15,23,42,0.05)]',
+          card.tile,
+        )}
         aria-hidden
       />
 
@@ -140,7 +145,7 @@ function ServiceTile({
           >
             {card.title}
           </p>
-          <p className="mt-0.5 text-[11px] font-medium text-zinc-400 sm:text-[12px]">
+          <p className="mt-0.5 text-[11px] font-medium text-zinc-500 sm:text-[12px]">
             {card.eta}
           </p>
         </div>
@@ -148,8 +153,8 @@ function ServiceTile({
         {card.badge ? (
           <span
             className={clsx(
-              'mt-auto inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-bold text-white',
-              card.badge.tone === 'orange' ? 'bg-primary' : 'bg-sky-500',
+              'mt-auto inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-bold',
+              card.badge.className,
             )}
           >
             {card.badge.label}
@@ -178,7 +183,7 @@ function ServiceTile({
       ) : (
         <div
           className={clsx(
-            'pointer-events-none absolute -bottom-1 -right-1 z-[5] flex items-center justify-center rounded-full bg-gradient-to-br opacity-95',
+            'pointer-events-none absolute -bottom-1 -right-1 z-[5] flex items-center justify-center rounded-full bg-gradient-to-br shadow-sm',
             compact ? 'h-[56px] w-[56px]' : 'h-[72px] w-[72px]',
             card.accent,
           )}
@@ -194,7 +199,6 @@ function ServiceTile({
 export function HomeServiceGrid() {
   return (
     <section className="mt-5 space-y-3 overflow-visible" aria-label={uz.categories}>
-      {/* Row 1 — Gullar · Kosmetika · Dorixona */}
       <div className="grid grid-cols-3 gap-2.5 overflow-visible">
         {TOP_ROW.map((card) => (
           <ServiceTile
@@ -206,7 +210,6 @@ export function HomeServiceGrid() {
         ))}
       </div>
 
-      {/* Row 2 — Restoranlar (wide) + Mahsulotlar */}
       <div className="grid grid-cols-[1.65fr_1fr] gap-3 overflow-visible">
         <ServiceTile card={BOTTOM_LARGE} className="min-h-[132px]" iconSize={52} />
         <ServiceTile card={BOTTOM_SMALL} className="min-h-[132px]" iconSize={40} />
