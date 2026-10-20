@@ -142,7 +142,7 @@ export class AdminSettingsDto {
 
   @ApiPropertyOptional({
     description:
-      'Home service tiles layout (flowers/cosmetics/pharmacy/restaurants/products). Each: imageUrl, widthPercent, right, bottom.',
+      'Home service tiles layout (flowers/cosmetics/pharmacy/restaurants/products). Each: imageUrl, widthPercent, right, bottom, rotate (deg).',
   })
   @IsOptional()
   @IsObject()

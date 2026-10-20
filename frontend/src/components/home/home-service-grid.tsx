@@ -128,11 +128,15 @@ function ServiceTile({
             alt=""
             loading="lazy"
             decoding="async"
-            className="absolute object-contain"
+            className="absolute object-contain origin-center"
             style={{
               width: `${layout.widthPercent}%`,
               right: layout.right,
               bottom: layout.bottom,
+              transform:
+                layout.rotate !== 0
+                  ? `rotate(${layout.rotate}deg)`
+                  : undefined,
             }}
             onError={() => setImageFailed(true)}
           />

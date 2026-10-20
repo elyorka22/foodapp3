@@ -50,6 +50,7 @@ abstract final class AppStrings {
   static const homeServiceWidth = 'Kenglik (%)';
   static const homeServiceRight = 'O‘ngdan (px)';
   static const homeServiceBottom = 'Pastdan (px)';
+  static const homeServiceRotate = 'Burilish (°)';
   static const categoriesSection = 'Taom kategoriyalari';
   static const productsSection = 'Mahsulotlar';
   static const addCategory = 'Kategoriya + rasm';

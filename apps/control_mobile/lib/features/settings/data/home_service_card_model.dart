@@ -14,24 +14,28 @@ class HomeServiceCardLayout {
     this.widthPercent = 100,
     this.right = -10,
     this.bottom = -12,
+    this.rotate = 0,
   });
 
   final String imageUrl;
   final double widthPercent;
   final double right;
   final double bottom;
+  final double rotate;
 
   HomeServiceCardLayout copyWith({
     String? imageUrl,
     double? widthPercent,
     double? right,
     double? bottom,
+    double? rotate,
   }) {
     return HomeServiceCardLayout(
       imageUrl: imageUrl ?? this.imageUrl,
       widthPercent: widthPercent ?? this.widthPercent,
       right: right ?? this.right,
       bottom: bottom ?? this.bottom,
+      rotate: rotate ?? this.rotate,
     );
   }
 
@@ -42,6 +46,7 @@ class HomeServiceCardLayout {
       widthPercent: parseNum(map['widthPercent'], 100).toDouble(),
       right: parseNum(map['right'], -10).toDouble(),
       bottom: parseNum(map['bottom'], -12).toDouble(),
+      rotate: parseNum(map['rotate'], 0).toDouble(),
     );
   }
 
@@ -50,10 +55,12 @@ class HomeServiceCardLayout {
         'widthPercent': widthPercent.round(),
         'right': right.round(),
         'bottom': bottom.round(),
+        'rotate': rotate.round(),
       };
 
   static double clampWidth(double v) => v.clamp(40, 160);
   static double clampOffset(double v) => v.clamp(-80, 40);
+  static double clampRotate(double v) => v.clamp(-30, 30);
 }
 
 class HomeServiceCards {

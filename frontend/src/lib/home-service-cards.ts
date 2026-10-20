@@ -10,6 +10,8 @@ export type HomeServiceCardLayout = {
   widthPercent: number;
   right: number;
   bottom: number;
+  /** Degrees — negative tilts counter-clockwise. */
+  rotate: number;
 };
 
 export type HomeServiceCards = Record<HomeServiceCardKey, HomeServiceCardLayout>;
@@ -20,30 +22,35 @@ export const DEFAULT_HOME_SERVICE_CARDS: HomeServiceCards = {
     widthPercent: 112,
     right: -18,
     bottom: -22,
+    rotate: 0,
   },
   cosmetics: {
     imageUrl: '/assets/home-services/cosmetics.png',
     widthPercent: 110,
     right: -18,
     bottom: -22,
+    rotate: 0,
   },
   pharmacy: {
     imageUrl: '/assets/home-services/pharmacy.png',
     widthPercent: 112,
     right: -18,
     bottom: -22,
+    rotate: 0,
   },
   restaurants: {
     imageUrl: '/assets/home-services/restaurants.png',
     widthPercent: 95,
     right: -20,
     bottom: -24,
+    rotate: 0,
   },
   products: {
     imageUrl: '/assets/home-services/products.png',
     widthPercent: 108,
     right: -16,
     bottom: -22,
+    rotate: 0,
   },
 };
 
@@ -70,5 +77,6 @@ export function mergeHomeServiceCard(
     ),
     right: clamp(Number(override.right ?? base.right), -80, 40),
     bottom: clamp(Number(override.bottom ?? base.bottom), -80, 40),
+    rotate: clamp(Number(override.rotate ?? base.rotate), -30, 30),
   };
 }

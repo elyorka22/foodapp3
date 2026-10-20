@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
@@ -247,10 +249,14 @@ class _CardEditor extends StatelessWidget {
                       right: layout.right,
                       bottom: layout.bottom,
                       width: previewW * (layout.widthPercent / 100),
-                      child: Image.network(
-                        resolved,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      child: Transform.rotate(
+                        angle: layout.rotate * math.pi / 180,
+                        child: Image.network(
+                          resolved,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) =>
+                              const SizedBox.shrink(),
+                        ),
                       ),
                     ),
                 ],
@@ -290,6 +296,15 @@ class _CardEditor extends StatelessWidget {
             max: 40,
             onChanged: (v) => onChanged(
               layout.copyWith(bottom: HomeServiceCardLayout.clampOffset(v)),
+            ),
+          ),
+          _SliderRow(
+            label: AppStrings.homeServiceRotate,
+            value: HomeServiceCardLayout.clampRotate(layout.rotate),
+            min: -30,
+            max: 30,
+            onChanged: (v) => onChanged(
+              layout.copyWith(rotate: HomeServiceCardLayout.clampRotate(v)),
             ),
           ),
         ],
