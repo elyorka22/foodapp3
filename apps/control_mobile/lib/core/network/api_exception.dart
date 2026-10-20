@@ -84,7 +84,10 @@ class ApiException implements Exception {
       case DioExceptionType.receiveTimeout:
         return 'Server javob bermadi (timeout, $host). Qayta urinib ko‘ring.';
       case DioExceptionType.connectionError:
-        return 'Serverga ulanib bo‘lmadi ($host). Internet yoki VPN ni tekshiring.';
+        return _withTransport(
+          'Serverga ulanib bo‘lmadi ($host). Internet yoki VPN ni tekshiring.',
+          err,
+        );
       case DioExceptionType.badCertificate:
         return 'SSL sertifikat xatosi ($host).';
       case DioExceptionType.badResponse:
@@ -93,10 +96,27 @@ class ApiException implements Exception {
       case DioExceptionType.cancel:
         return 'So‘rov bekor qilindi';
       case DioExceptionType.unknown:
-        return 'Tarmoq xatosi ($host). Qayta urinib ko‘ring.';
+        return _withTransport(
+          'Tarmoq xatosi ($host). Qayta urinib ko‘ring.',
+          err,
+        );
       default:
         return 'Tarmoq xatosi. Qayta urinib ko‘ring.';
     }
+  }
+
+  /// Append a short native hint when Dio only reports a generic failure.
+  static String _withTransport(String base, DioException err) {
+    final raw = err.error?.toString().trim() ?? '';
+    if (raw.isEmpty) return base;
+    // Skip noisy wrapper prefixes.
+    final cleaned = raw
+        .replaceFirst(RegExp(r'^Exception:\s*'), '')
+        .replaceFirst(RegExp(r'^DioException\s*\[[^\]]+\]:\s*'), '');
+    if (cleaned.isEmpty || cleaned == base) return base;
+    final short =
+        cleaned.length <= 120 ? cleaned : '${cleaned.substring(0, 120)}…';
+    return '$base\n$short';
   }
 
   static String formatError(Object error) {
