@@ -22,16 +22,23 @@ type Props = {
   restaurant: HomeRestaurant;
   index: number;
   priority?: boolean;
+  /** Override default /restaurants/:slug (e.g. /shops/:slug for stores). */
+  href?: string;
 };
 
-export function RestaurantGridCard({ restaurant, index, priority = false }: Props) {
+export function RestaurantGridCard({
+  restaurant,
+  index,
+  priority = false,
+  href: hrefOverride,
+}: Props) {
   const imageUrl = resolveImageUrl(restaurant.coverUrl ?? restaurant.logoUrl);
   const coverStyle = categoryImageStyle({
     imageScale: restaurant.coverScale,
     imagePositionX: restaurant.coverPositionX,
     imagePositionY: restaurant.coverPositionY,
   });
-  const href = restaurantPublicPath(restaurant);
+  const href = hrefOverride ?? restaurantPublicPath(restaurant);
   const delivery = restaurantDeliveryLabel(restaurant);
   const rating = restaurantRatingLabel(restaurant);
 

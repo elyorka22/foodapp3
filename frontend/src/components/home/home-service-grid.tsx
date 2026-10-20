@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
-  Bike,
-  Gift,
+  Flower2,
+  Pill,
   ShoppingBag,
   Sparkles,
   UtensilsCrossed,
@@ -35,61 +35,46 @@ type ServiceCard = {
   image?: ImageLayout;
 };
 
-const TOP_CAROUSEL: ServiceCard[] = [
+/** Row 1 — specialty store categories (business type slugs from seed). */
+const TOP_ROW: ServiceCard[] = [
   {
-    href: '/restaurants',
-    title: uz.homeServiceRestaurants,
-    eta: uz.homeServiceRestaurantsEta,
-    icon: UtensilsCrossed,
-    accent: 'from-[#E4E4E7] to-[#F4F4F5]',
-    iconClass: 'text-zinc-800',
-    image: {
-      src: '/assets/home-services/restaurants.webp',
-      widthPercent: 72,
-      right: -10,
-      bottom: -12,
-    },
+    href: '/stores?type=flowers',
+    title: uz.homeServiceFlowers,
+    eta: uz.homeServiceFlowersEta,
+    icon: Flower2,
+    accent: 'from-[#FCE7F3] to-[#FDF2F8]',
+    iconClass: 'text-pink-600',
   },
   {
-    href: '/products',
-    title: uz.homeServiceProducts,
-    eta: uz.homeServiceProductsEta,
-    icon: ShoppingBag,
-    accent: 'from-[#E8F5E9] to-[#F1F8F2]',
+    // Seed slug is `perfume` (Parfyumeriya); UI label is Kosmetika.
+    href: '/stores?type=perfume',
+    title: uz.homeServiceCosmetics,
+    eta: uz.homeServiceCosmeticsEta,
+    icon: Sparkles,
+    accent: 'from-[#F3E8FF] to-[#FAF5FF]',
+    iconClass: 'text-violet-600',
+  },
+  {
+    href: '/stores?type=pharmacy',
+    title: uz.homeServicePharmacy,
+    eta: uz.homeServicePharmacyEta,
+    icon: Pill,
+    accent: 'from-[#DCFCE7] to-[#F0FDF4]',
     iconClass: 'text-emerald-600',
-    image: {
-      src: '/assets/home-services/products.png',
-      widthPercent: 56,
-      right: -4,
-      bottom: -8,
-    },
-  },
-  {
-    href: '/promotions',
-    title: uz.homeServicePromos,
-    eta: uz.homeServicePromosEta,
-    icon: Gift,
-    accent: 'from-[#E0E7FF] to-[#F5F7FF]',
-    iconClass: 'text-indigo-600',
-    image: {
-      src: '/assets/home-services/promotions.png',
-      widthPercent: 54,
-      right: -4,
-      bottom: -8,
-    },
   },
 ];
 
+/** Row 2 — large restaurants + products (grocery marketplace). */
 const BOTTOM_LARGE: ServiceCard = {
   href: '/restaurants',
-  title: uz.homeServiceDelivery,
-  eta: uz.homeServiceDeliveryEta,
+  title: uz.homeServiceRestaurants,
+  eta: uz.homeServiceRestaurantsEta,
   badge: { label: uz.homeServiceDeliveryBadge, tone: 'orange' },
-  icon: Bike,
-  accent: 'from-[#D4D4D8] to-[#F4F4F5]',
+  icon: UtensilsCrossed,
+  accent: 'from-[#E4E4E7] to-[#F4F4F5]',
   iconClass: 'text-zinc-800',
   image: {
-    src: '/assets/home-services/delivery.png',
+    src: '/assets/home-services/restaurants.webp',
     widthPercent: 48,
     right: -10,
     bottom: -14,
@@ -97,32 +82,25 @@ const BOTTOM_LARGE: ServiceCard = {
 };
 
 const BOTTOM_SMALL: ServiceCard = {
-  href: '/booking',
-  title: uz.homeServiceBooking,
-  eta: uz.homeServiceBookingEta,
-  badge: { label: uz.homeServiceBookingBadge, tone: 'blue' },
-  icon: Sparkles,
-  accent: 'from-[#E0F2FE] to-[#F0F9FF]',
-  iconClass: 'text-sky-600',
-  image: {
-    src: '/assets/home-services/booking.png',
-    widthPercent: 58,
-    right: -6,
-    bottom: -10,
-  },
+  href: '/stores?type=grocery',
+  title: uz.homeServiceProducts,
+  eta: uz.homeServiceProductsEta,
+  icon: ShoppingBag,
+  accent: 'from-[#E8F5E9] to-[#F1F8F2]',
+  iconClass: 'text-emerald-600',
 };
 
 function ServiceTile({
   card,
   className,
   iconSize = 44,
-  carousel,
+  compact,
 }: {
   card: ServiceCard;
   className?: string;
   iconSize?: number;
-  /** Fixed width for carousel slides */
-  carousel?: boolean;
+  /** Equal-width top-row tiles */
+  compact?: boolean;
 }) {
   const Icon = card.icon;
   const [imageFailed, setImageFailed] = useState(false);
@@ -133,8 +111,7 @@ function ServiceTile({
       href={card.href}
       className={clsx(
         'relative block min-h-[118px] overflow-visible transition active:scale-[0.98]',
-        // Wider first-row tiles so titles like «Mahsulotlar» fit without clipping.
-        carousel && 'h-[132px] w-[176px] shrink-0 snap-start',
+        compact && 'min-h-[120px]',
         className,
       )}
     >
@@ -146,19 +123,26 @@ function ServiceTile({
       <div
         className={clsx(
           'relative z-10 flex h-full flex-col p-3.5',
-          !carousel && 'min-h-[118px]',
+          compact ? 'min-h-[120px] p-3' : 'min-h-[118px]',
         )}
       >
         <div
           className={clsx(
             'min-w-0 pr-1',
-            carousel ? 'max-w-[72%]' : 'max-w-[62%]',
+            compact ? 'max-w-[78%]' : 'max-w-[62%]',
           )}
         >
-          <p className="line-clamp-2 text-[13px] font-bold leading-tight text-zinc-900 sm:text-[15px]">
+          <p
+            className={clsx(
+              'line-clamp-2 font-bold leading-tight text-zinc-900',
+              compact ? 'text-[12px] sm:text-[13px]' : 'text-[13px] sm:text-[15px]',
+            )}
+          >
             {card.title}
           </p>
-          <p className="mt-0.5 text-[12px] font-medium text-zinc-400">{card.eta}</p>
+          <p className="mt-0.5 text-[11px] font-medium text-zinc-400 sm:text-[12px]">
+            {card.eta}
+          </p>
         </div>
 
         {card.badge ? (
@@ -194,7 +178,8 @@ function ServiceTile({
       ) : (
         <div
           className={clsx(
-            'pointer-events-none absolute -bottom-1 -right-1 z-[5] flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gradient-to-br opacity-95',
+            'pointer-events-none absolute -bottom-1 -right-1 z-[5] flex items-center justify-center rounded-full bg-gradient-to-br opacity-95',
+            compact ? 'h-[56px] w-[56px]' : 'h-[72px] w-[72px]',
             card.accent,
           )}
           aria-hidden
@@ -209,19 +194,19 @@ function ServiceTile({
 export function HomeServiceGrid() {
   return (
     <section className="mt-5 space-y-3 overflow-visible" aria-label={uz.categories}>
-      {/* Row 1 — horizontal carousel */}
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 pt-1 scrollbar-hide snap-x snap-mandatory">
-        {TOP_CAROUSEL.map((card) => (
+      {/* Row 1 — Gullar · Kosmetika · Dorixona */}
+      <div className="grid grid-cols-3 gap-2.5 overflow-visible">
+        {TOP_ROW.map((card) => (
           <ServiceTile
             key={card.href + card.title}
             card={card}
-            carousel
-            iconSize={40}
+            compact
+            iconSize={28}
           />
         ))}
       </div>
 
-      {/* Row 2 — first card wider, like before */}
+      {/* Row 2 — Restoranlar (wide) + Mahsulotlar */}
       <div className="grid grid-cols-[1.65fr_1fr] gap-3 overflow-visible">
         <ServiceTile card={BOTTOM_LARGE} className="min-h-[132px]" iconSize={52} />
         <ServiceTile card={BOTTOM_SMALL} className="min-h-[132px]" iconSize={40} />
