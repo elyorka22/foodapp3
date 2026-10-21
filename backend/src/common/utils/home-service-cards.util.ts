@@ -20,7 +20,7 @@ export type HomeServiceCardLayout = {
 
 export type HomeServiceCards = Record<HomeServiceCardKey, HomeServiceCardLayout>;
 
-const ASSET_VER = 'v3';
+const ASSET_VER = 'v4';
 
 function defaultAsset(file: string): string {
   return `/assets/home-services/${file}?${ASSET_VER}`;
