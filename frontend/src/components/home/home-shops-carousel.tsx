@@ -11,6 +11,10 @@ import { uz } from '@/lib/uz';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
 
+/** Landscape logo tile — matches Yandex «Магазины» (~112×74). */
+const SHOP_CARD_WIDTH = 'w-[7rem]';
+const SHOP_TILE_ASPECT = 'aspect-[3/2]';
+
 const TILE_TINTS = [
   'bg-[#E8F5E9]',
   'bg-[#E3F2FD]',
@@ -57,17 +61,17 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
       </div>
 
       {isLoading ? (
-        <div className="-mx-4 flex gap-3 overflow-hidden px-4">
+        <div className="-mr-4 flex gap-2.5 overflow-hidden pr-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="w-[7.25rem] shrink-0 space-y-2">
-              <Skeleton className="aspect-square w-full rounded-2xl shadow-none" />
-              <Skeleton className="h-3 w-16 shadow-none" />
-              <Skeleton className="h-5 w-20 rounded-full shadow-none" />
+            <div key={i} className={clsx(SHOP_CARD_WIDTH, 'shrink-0 space-y-1.5')}>
+              <Skeleton className={clsx(SHOP_TILE_ASPECT, 'w-full rounded-[16px] shadow-none')} />
+              <Skeleton className="h-3 w-14 shadow-none" />
+              <Skeleton className="h-5 w-[4.5rem] rounded-full shadow-none" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="-mr-4 flex gap-3 overflow-x-auto pr-4 pb-1 scrollbar-hide">
+        <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-1 scrollbar-hide">
           {stores.map((store, index) => {
             const logo = resolveImageUrl(store.logoUrl ?? store.coverUrl);
             const href = shopPublicPath(store);
@@ -78,11 +82,12 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
               <Link
                 key={store.id}
                 href={href}
-                className="w-[7.25rem] shrink-0 transition active:scale-[0.98]"
+                className={clsx(SHOP_CARD_WIDTH, 'shrink-0 transition active:scale-[0.98]')}
               >
                 <div
                   className={clsx(
-                    'relative aspect-square overflow-hidden rounded-2xl ring-1 ring-black/[0.04]',
+                    'relative overflow-hidden rounded-[16px] ring-1 ring-black/[0.04]',
+                    SHOP_TILE_ASPECT,
                     tintFor(store.name, index),
                   )}
                 >
@@ -91,18 +96,18 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
                       src={logo}
                       alt={store.name}
                       fill
-                      className="object-contain p-3"
-                      sizes="116px"
+                      className="object-contain p-2.5"
+                      sizes="112px"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center">
-                      <span className="text-3xl font-black text-zinc-400/70">
+                      <span className="text-2xl font-black text-zinc-400/70">
                         {store.name.charAt(0)}
                       </span>
                     </div>
                   )}
                 </div>
-                <p className="mt-2 line-clamp-1 text-[13px] font-semibold leading-tight text-zinc-900">
+                <p className="mt-1.5 line-clamp-1 text-[13px] font-semibold leading-tight text-zinc-900">
                   {delivery}
                 </p>
                 {typeLabel ? (

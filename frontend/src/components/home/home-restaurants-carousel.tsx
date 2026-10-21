@@ -19,6 +19,13 @@ const FALLBACK = [
   'bg-[#1C1917]',
 ] as const;
 
+/**
+ * Two cards visible with a peek of the next — same density as Yandex «Рестораны».
+ * ~50% of content width minus gap on a max-w-lg phone frame.
+ */
+const REST_CARD_WIDTH = 'w-[calc(50%-6px)] min-w-[10.5rem] max-w-[11.5rem]';
+const REST_IMAGE_ASPECT = 'aspect-square';
+
 function minOrderLabel(amount: string | number | null | undefined): string | null {
   if (amount == null || amount === '') return null;
   const n = Number(amount);
@@ -58,10 +65,10 @@ export function HomeRestaurantsCarousel({
       </div>
 
       {isLoading ? (
-        <div className="-mx-4 flex gap-3 overflow-hidden px-4">
+        <div className="-mr-4 flex gap-3 overflow-hidden pr-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="w-[10.5rem] shrink-0 space-y-2">
-              <Skeleton className="aspect-[4/5] w-full rounded-2xl shadow-none" />
+            <div key={i} className={clsx(REST_CARD_WIDTH, 'shrink-0 space-y-2')}>
+              <Skeleton className={clsx(REST_IMAGE_ASPECT, 'w-full rounded-[18px] shadow-none')} />
               <Skeleton className="h-4 w-28 shadow-none" />
               <Skeleton className="h-3 w-24 shadow-none" />
             </div>
@@ -78,7 +85,7 @@ export function HomeRestaurantsCarousel({
             const rating =
               restaurant.averageRating != null &&
               !Number.isNaN(Number(restaurant.averageRating))
-                ? Number(restaurant.averageRating).toFixed(1)
+                ? Number(restaurant.averageRating).toFixed(1).replace('.', ',')
                 : null;
             const minOrder = minOrderLabel(restaurant.minOrderAmount);
             const framing = categoryImageStyle({
@@ -92,11 +99,16 @@ export function HomeRestaurantsCarousel({
               <Link
                 key={restaurant.id}
                 href={href}
-                className="w-[10.5rem] shrink-0 transition active:scale-[0.98]"
+                className={clsx(REST_CARD_WIDTH, 'shrink-0 transition active:scale-[0.98]')}
               >
-                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-zinc-200 ring-1 ring-black/[0.04]">
+                <div
+                  className={clsx(
+                    'relative overflow-hidden rounded-[18px] bg-zinc-200 ring-1 ring-black/[0.04]',
+                    REST_IMAGE_ASPECT,
+                  )}
+                >
                   {imageUrl ? (
-                    <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                    <div className="absolute inset-0 overflow-hidden rounded-[18px]">
                       <div
                         className="absolute inset-0"
                         style={{ transform, transformOrigin }}
@@ -107,7 +119,7 @@ export function HomeRestaurantsCarousel({
                           fill
                           className="object-cover"
                           style={{ objectPosition }}
-                          sizes="168px"
+                          sizes="180px"
                           priority={index < 2}
                         />
                       </div>
