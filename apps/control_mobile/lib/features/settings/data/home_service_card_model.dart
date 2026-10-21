@@ -78,25 +78,25 @@ class HomeServiceCards {
   final HomeServiceCardLayout restaurants;
   final HomeServiceCardLayout products;
 
-  /// Defaults match Control-tuned live layout (foodapp.uz settings).
+  /// Defaults match live foodapp.uz home_service_cards (Control-tuned).
   static const defaults = HomeServiceCards(
     flowers: HomeServiceCardLayout(
       imageUrl: '/assets/home-services/flowers.png',
-      widthPercent: 119,
-      right: -28,
-      bottom: -21,
+      widthPercent: 80,
+      right: -18,
+      bottom: -16,
       rotate: -30,
     ),
     cosmetics: HomeServiceCardLayout(
       imageUrl: '/assets/home-services/cosmetics.png',
-      widthPercent: 110,
-      right: -26,
-      bottom: -39,
+      widthPercent: 75,
+      right: -12,
+      bottom: -27,
     ),
     pharmacy: HomeServiceCardLayout(
       imageUrl: '/assets/home-services/pharmacy.png',
-      widthPercent: 112,
-      right: -18,
+      widthPercent: 80,
+      right: -12,
       bottom: -29,
     ),
     restaurants: HomeServiceCardLayout(
@@ -108,7 +108,7 @@ class HomeServiceCards {
     ),
     products: HomeServiceCardLayout(
       imageUrl: '/assets/home-services/products.png',
-      widthPercent: 109,
+      widthPercent: 103,
       right: -19,
       bottom: -38,
       rotate: -1,

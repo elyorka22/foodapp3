@@ -23,26 +23,26 @@ function defaultAsset(file: string): string {
   return `/assets/home-services/${file}?${ASSET_VER}`;
 }
 
-/** Defaults match Control-tuned live layout (foodapp.uz settings). */
+/** Defaults match live foodapp.uz home_service_cards (Control-tuned). */
 export const DEFAULT_HOME_SERVICE_CARDS: HomeServiceCards = {
   flowers: {
     imageUrl: defaultAsset('flowers.png'),
-    widthPercent: 119,
-    right: -28,
-    bottom: -21,
+    widthPercent: 80,
+    right: -18,
+    bottom: -16,
     rotate: -30,
   },
   cosmetics: {
     imageUrl: defaultAsset('cosmetics.png'),
-    widthPercent: 110,
-    right: -26,
-    bottom: -39,
+    widthPercent: 75,
+    right: -12,
+    bottom: -27,
     rotate: 0,
   },
   pharmacy: {
     imageUrl: defaultAsset('pharmacy.png'),
-    widthPercent: 112,
-    right: -18,
+    widthPercent: 80,
+    right: -12,
     bottom: -29,
     rotate: 0,
   },
@@ -55,7 +55,7 @@ export const DEFAULT_HOME_SERVICE_CARDS: HomeServiceCards = {
   },
   products: {
     imageUrl: defaultAsset('products.png'),
-    widthPercent: 109,
+    widthPercent: 103,
     right: -19,
     bottom: -38,
     rotate: -1,
