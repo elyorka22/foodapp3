@@ -120,6 +120,9 @@ class BusinessesScreen extends ConsumerWidget {
                     leading: _BizAvatar(logoUrl: r.logoUrl),
                     title: r.name,
                     subtitle: [
+                      if (r.businessTypeName != null &&
+                          r.businessTypeName!.isNotEmpty)
+                        r.businessTypeName!,
                       if (r.cityName != null && r.cityName!.isNotEmpty)
                         r.cityName!,
                       r.approvalStatus,

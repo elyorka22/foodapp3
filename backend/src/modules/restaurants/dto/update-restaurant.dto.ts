@@ -28,7 +28,10 @@ export class UpdateRestaurantDto {
   @IsString()
   slug?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      'Ignored unless unchanged. Changing business type after create returns 400.',
+  })
   @IsOptional()
   @IsUUID()
   businessTypeId?: string;

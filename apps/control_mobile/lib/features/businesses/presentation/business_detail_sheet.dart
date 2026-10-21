@@ -126,6 +126,8 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
             longitude: _restaurant.longitude,
             cityId: _restaurant.cityId,
             cityName: _restaurant.cityName,
+            businessTypeId: _restaurant.businessTypeId,
+            businessTypeName: _restaurant.businessTypeName,
             createdAt: _restaurant.createdAt,
           );
         });
@@ -188,6 +190,28 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
             '${_restaurant.productsCount} mahsulot',
           ].join(' · '),
           style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 16),
+        Text(AppStrings.businessTypeLabel, style: AppTypography.subtitle),
+        const SizedBox(height: 8),
+        InputDecorator(
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            enabled: false,
+          ),
+          child: Text(
+            _restaurant.businessTypeName?.trim().isNotEmpty == true
+                ? _restaurant.businessTypeName!
+                : '—',
+            style: AppTypography.body,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          AppStrings.businessTypeLockedHint,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
         const SizedBox(height: 16),
         Text(AppStrings.approvalStatus, style: AppTypography.subtitle),

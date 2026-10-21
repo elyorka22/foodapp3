@@ -736,17 +736,18 @@ export class RestaurantsService {
       ...rest
     } = dto;
     const data: Prisma.BusinessUpdateInput = { ...rest };
+    // Business type is locked after create (restaurant vs store / catalog mode).
     if (businessTypeId !== undefined) {
-      if (businessTypeId) {
-        const type = await this.prisma.businessType.findFirst({
-          where: { id: businessTypeId, deletedAt: null },
-        });
-        if (!type) throw new NotFoundException('Business type not found');
-        data.kind = kindFromMenuMode(resolveMenuMode({ businessType: type }));
-        data.businessType = { connect: { id: businessTypeId } };
-      } else {
-        data.kind = BusinessKind.RESTAURANT;
-        data.businessType = { disconnect: true };
+      const existing = await this.prisma.business.findFirst({
+        where: { id, deletedAt: null },
+        select: { businessTypeId: true },
+      });
+      if (!existing) throw new NotFoundException('Restaurant not found');
+      const nextId = businessTypeId || null;
+      if (nextId !== existing.businessTypeId) {
+        throw new BadRequestException(
+          'Business type cannot be changed after creation',
+        );
       }
     }
     if (cityId !== undefined) {

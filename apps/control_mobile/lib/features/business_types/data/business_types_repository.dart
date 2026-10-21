@@ -12,6 +12,7 @@ class ControlBusinessType {
     this.slug,
     this.description,
     this.catalogMode,
+    this.menuMode,
     this.sortOrder = 0,
   });
 
@@ -21,7 +22,14 @@ class ControlBusinessType {
   final String? slug;
   final String? description;
   final String? catalogMode;
+  /// `GLOBAL_DISH` = restaurant, `OWN_CATEGORIES` = store.
+  final String? menuMode;
   final int sortOrder;
+
+  bool get isStoreVertical => menuMode == 'OWN_CATEGORIES';
+
+  String get verticalHint =>
+      isStoreVertical ? "Do'kon" : 'Restoran';
 
   factory ControlBusinessType.fromJson(Map<String, dynamic> json) {
     return ControlBusinessType(
@@ -31,6 +39,7 @@ class ControlBusinessType {
       slug: json['slug'] as String?,
       description: json['description'] as String?,
       catalogMode: json['catalogMode'] as String?,
+      menuMode: json['menuMode'] as String?,
       sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
     );
   }

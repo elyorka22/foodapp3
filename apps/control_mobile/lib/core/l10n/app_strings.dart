@@ -130,6 +130,13 @@ abstract final class AppStrings {
   static const addressLabel = 'Manzil';
   static const addBusiness = 'Biznes qo‘shish';
   static const businessCity = 'Shahar';
+  static const businessTypeLabel = 'Biznes turi';
+  static const businessTypeRequired = 'Biznes turini tanlang';
+  static const businessTypeImmutableHint =
+      'Diqqat: biznes turi yaratilgandan keyin o‘zgartirilmaydi. '
+      'Restoran yoki do‘konni to‘g‘ri tanlang.';
+  static const businessTypeLockedHint =
+      'Biznes turi o‘zgartirilmaydi. Yangi tur kerak bo‘lsa — yangi biznes yarating.';
   static const latitudeLabel = 'Kenglik (lat)';
   static const longitudeLabel = 'Uzunlik (lng)';
   static const descriptionLabel = 'Tavsif';

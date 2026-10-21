@@ -34,6 +34,7 @@ class BusinessesRepository {
   Future<ControlRestaurant> createRestaurant({
     required String name,
     required String cityId,
+    required String businessTypeId,
     String? phone,
     String? description,
     String? branchAddress,
@@ -51,6 +52,7 @@ class BusinessesRepository {
       data: {
         'name': name,
         'cityId': cityId,
+        'businessTypeId': businessTypeId,
         'isActive': isActive,
         if (phone != null && phone.isNotEmpty) 'phone': phone,
         if (description != null && description.isNotEmpty)

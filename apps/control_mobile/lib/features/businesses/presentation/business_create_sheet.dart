@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
+import '../../business_types/data/business_types_repository.dart';
 import '../../cities/data/cities_repository.dart';
 import '../data/businesses_repository.dart';
 import 'businesses_screen.dart';
@@ -12,6 +15,11 @@ import 'businesses_screen.dart';
 final _createCitiesProvider =
     FutureProvider.autoDispose<List<ControlCity>>((ref) {
   return ref.watch(citiesRepositoryProvider).fetchCities();
+});
+
+final _createBusinessTypesProvider =
+    FutureProvider.autoDispose<List<ControlBusinessType>>((ref) {
+  return ref.watch(businessTypesRepositoryProvider).fetchTypes();
 });
 
 class BusinessCreateSheet extends ConsumerStatefulWidget {
@@ -35,6 +43,7 @@ class _BusinessCreateSheetState extends ConsumerState<BusinessCreateSheet> {
   final _ownerPassword = TextEditingController();
   final _ownerFullName = TextEditingController();
   String? _cityId;
+  String? _businessTypeId;
   bool _isActive = true;
   bool _busy = false;
 
@@ -57,8 +66,13 @@ class _BusinessCreateSheetState extends ConsumerState<BusinessCreateSheet> {
   Future<void> _create() async {
     final name = _name.text.trim();
     final cityId = _cityId;
+    final businessTypeId = _businessTypeId;
     if (name.length < 2) {
       showActionSnackBar(context, 'Nom kamida 2 belgi', error: true);
+      return;
+    }
+    if (businessTypeId == null || businessTypeId.isEmpty) {
+      showActionSnackBar(context, AppStrings.businessTypeRequired, error: true);
       return;
     }
     if (cityId == null || cityId.isEmpty) {
@@ -84,6 +98,7 @@ class _BusinessCreateSheetState extends ConsumerState<BusinessCreateSheet> {
       await ref.read(businessesRepositoryProvider).createRestaurant(
             name: name,
             cityId: cityId,
+            businessTypeId: businessTypeId,
             phone: _phone.text.trim(),
             description: _description.text.trim(),
             branchAddress: _address.text.trim(),
@@ -110,12 +125,19 @@ class _BusinessCreateSheetState extends ConsumerState<BusinessCreateSheet> {
   @override
   Widget build(BuildContext context) {
     final citiesAsync = ref.watch(_createCitiesProvider);
+    final typesAsync = ref.watch(_createBusinessTypesProvider);
     final cities = citiesAsync.valueOrNull
             ?.where((c) => c.isActive)
             .toList() ??
         const <ControlCity>[];
+    final types = (typesAsync.valueOrNull ?? const <ControlBusinessType>[])
+        .where((t) => t.isActive)
+        .toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     final cityValue =
         cities.any((c) => c.id == _cityId) ? _cityId : null;
+    final typeValue =
+        types.any((t) => t.id == _businessTypeId) ? _businessTypeId : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -124,6 +146,30 @@ class _BusinessCreateSheetState extends ConsumerState<BusinessCreateSheet> {
           controller: _name,
           enabled: !_busy,
           decoration: const InputDecoration(labelText: AppStrings.nameLabel),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: typeValue,
+          decoration: const InputDecoration(
+            labelText: AppStrings.businessTypeLabel,
+          ),
+          items: [
+            for (final t in types)
+              DropdownMenuItem(
+                value: t.id,
+                child: Text('${t.name} · ${t.verticalHint}'),
+              ),
+          ],
+          onChanged: _busy
+              ? null
+              : (v) => setState(() => _businessTypeId = v),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          AppStrings.businessTypeImmutableHint,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
