@@ -11,8 +11,8 @@ import { uz } from '@/lib/uz';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
 
-/** Landscape logo tile — matches Yandex «Магазины» (~112×74). */
-const SHOP_CARD_WIDTH = 'w-[7rem]';
+/** Landscape logo tile — slightly wider than the Yandex baseline for readability. */
+const SHOP_CARD_WIDTH = 'w-[8.25rem]';
 const SHOP_TILE_ASPECT = 'aspect-[3/2]';
 
 const TILE_TINTS = [
@@ -97,7 +97,7 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
                       alt={store.name}
                       fill
                       className="object-contain p-2.5"
-                      sizes="112px"
+                      sizes="132px"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center">
