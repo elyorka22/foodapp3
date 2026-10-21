@@ -1,5 +1,6 @@
 'use client';
 
+import { Menu } from 'lucide-react';
 import { clsx } from 'clsx';
 
 export type MenuCategory = {
@@ -25,7 +26,13 @@ export function RestaurantCategoryTabs({
   const tabs = [{ id: 'all', name: allLabel }, ...categories];
 
   return (
-    <div className="scrollbar-hide -mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1">
+    <div className="scrollbar-hide sticky top-0 z-20 -mx-3 mb-4 flex items-center gap-2 overflow-x-auto bg-background/95 px-3 py-2.5 backdrop-blur-md">
+      <span
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600"
+        aria-hidden
+      >
+        <Menu size={18} strokeWidth={2.25} />
+      </span>
       {tabs.map((tab) => {
         const active = activeId === tab.id;
         return (
@@ -34,10 +41,10 @@ export function RestaurantCategoryTabs({
             type="button"
             onClick={() => onChange(tab.id)}
             className={clsx(
-              'shrink-0 rounded-full border px-4 py-2.5 text-[14px] font-bold transition-colors',
+              'shrink-0 rounded-full px-3.5 py-2 text-[14px] font-bold transition-colors',
               active
-                ? 'border-brand-600 bg-brand-600 text-white'
-                : 'border-zinc-200 bg-white text-zinc-500',
+                ? 'bg-brand-600 text-white'
+                : 'bg-transparent text-zinc-600 active:bg-zinc-100',
             )}
           >
             {tab.name}

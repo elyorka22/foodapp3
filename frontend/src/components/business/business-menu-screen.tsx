@@ -31,6 +31,10 @@ export type BusinessMenuDetail = {
   coverUrl?: string | null;
   commissionRate?: number;
   address?: string | null;
+  averageRating?: number | null;
+  reviewCount?: number | null;
+  deliveryMinutes?: number | null;
+  minOrderAmount?: number | null;
   productCategories?: MenuCategory[];
   products: MenuProduct[];
 };
@@ -113,12 +117,12 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-lg bg-background px-3 pb-24">
-        <Skeleton className="h-12 w-full rounded-xl" />
-        <Skeleton className="mt-6 h-8 w-48 rounded-lg" />
-        <div className="mt-6 grid grid-cols-2 gap-3">
+      <div className="mx-auto max-w-lg bg-background pb-24">
+        <Skeleton className="h-[210px] w-full rounded-none" />
+        <Skeleton className="mx-3 -mt-8 h-28 rounded-[22px]" />
+        <div className="mt-6 grid grid-cols-2 gap-3 px-3">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="aspect-square rounded-2xl" />
+            <Skeleton key={i} className="aspect-square rounded-[18px]" />
           ))}
         </div>
       </div>
@@ -145,74 +149,81 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
   const closed = business.isOpen === false;
 
   return (
-    <div className="mx-auto min-h-screen max-w-lg bg-background px-3 pb-24">
+    <div className="mx-auto min-h-screen max-w-lg bg-background pb-24">
       <RestaurantMenuHeader
         title={business.name}
         logoUrl={business.logoUrl}
+        coverUrl={business.coverUrl}
         backHref={backHref}
         isOpen={business.isOpen}
         closesAt={business.closesAt}
         closingSoon={business.closingSoon}
+        averageRating={business.averageRating}
+        reviewCount={business.reviewCount}
+        deliveryMinutes={business.deliveryMinutes}
+        minOrderAmount={business.minOrderAmount}
       />
 
-      {restaurantBanners.length > 0 ? (
-        <div className="mb-4 h-40">
-          <BannerSlotCarousel banners={restaurantBanners} tall />
-        </div>
-      ) : null}
+      <div className="px-3 pt-3">
+        {restaurantBanners.length > 0 ? (
+          <div className="mb-3 h-36">
+            <BannerSlotCarousel banners={restaurantBanners} tall />
+          </div>
+        ) : null}
 
-      <RestaurantCategoryTabs
-        categories={categories}
-        activeId={activeCategoryId}
-        onChange={setActiveCategoryId}
-      />
-
-      {filteredProducts.length === 0 ? (
-        <EmptyState
-          icon={Package}
-          title={uz.menuEmpty}
-          description={uz.menuEmptyHint}
-          className="mt-8"
+        <RestaurantCategoryTabs
+          categories={categories}
+          activeId={activeCategoryId}
+          onChange={setActiveCategoryId}
         />
-      ) : menuSections ? (
-        <div className="space-y-6 pb-4">
-          {menuSections.map((section) => (
-            <section key={section.category.id}>
-              <h2 className="mb-3 text-base font-semibold text-zinc-900">
-                {section.category.name}
-              </h2>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-5">
-                {section.products.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={p}
-                    restaurantId={business.id}
-                    restaurantName={business.name}
-                    disabled={closed}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-5 pb-4">
-          {filteredProducts.map((p) => (
-            <ProductCard
-              key={p.id}
-              product={p}
-              restaurantId={business.id}
-              restaurantName={business.name}
-              disabled={closed}
-            />
-          ))}
-        </div>
-      )}
+
+        {filteredProducts.length === 0 ? (
+          <EmptyState
+            icon={Package}
+            title={uz.menuEmpty}
+            description={uz.menuEmptyHint}
+            className="mt-8"
+          />
+        ) : menuSections ? (
+          <div className="space-y-6 pb-4">
+            {menuSections.map((section) => (
+              <section key={section.category.id}>
+                <h2 className="mb-3 text-[18px] font-extrabold tracking-tight text-zinc-900">
+                  {section.category.name}
+                </h2>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-5">
+                  {section.products.map((p) => (
+                    <ProductCard
+                      key={p.id}
+                      product={p}
+                      restaurantId={business.id}
+                      restaurantName={business.name}
+                      disabled={closed}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 pb-4">
+            {filteredProducts.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                restaurantId={business.id}
+                restaurantName={business.name}
+                disabled={closed}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {cartCount > 0 && (
         <button
           type="button"
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] left-3 right-3 mx-auto flex max-w-lg items-center justify-center gap-2 rounded-2xl bg-brand-600 py-3.5 text-base font-semibold text-white active:scale-[0.98]"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] left-1/2 z-30 flex -translate-x-1/2 items-center justify-center gap-2 rounded-full bg-brand-600 px-8 py-3.5 text-base font-bold text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] active:scale-[0.98]"
           onClick={() => router.push('/cart')}
         >
           <ShoppingCart size={20} /> {uz.cartFab(cartCount)}

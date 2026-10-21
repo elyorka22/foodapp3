@@ -38,6 +38,7 @@ export const uz = {
   homeSecondaryBanners: 'Bosh sahifa bannerlari',
   seeAll: 'Barchasi',
   orderFromAmount: (amount: string) => `Buyurtma ${amount} so‘mdan`,
+  ratingsCount: (n: number) => `${n} baho`,
   retry: 'Qayta urinish',
   restaurantsLoadError: 'Restoranlar yuklanmadi',
   productsLoadError: 'Mahsulotlar yuklanmadi',

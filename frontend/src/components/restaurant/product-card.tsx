@@ -1,6 +1,6 @@
 'use client';
 
-import { Minus, Plus } from 'lucide-react';
+import { Heart, Minus, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { formatSum } from '@/lib/format-sum';
@@ -81,11 +81,14 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
 
   return (
     <article className="flex flex-col">
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-white">
+      {/* Image — plus lives here (bottom-right), not under the card. */}
+      <div className="relative aspect-square overflow-hidden rounded-[18px] bg-zinc-100">
         {imageUrl ? (
           <MenuProductImage src={imageUrl} alt={product.name} />
         ) : (
-          <div className="flex h-full items-center justify-center bg-white text-3xl opacity-30">🍽</div>
+          <div className="flex h-full items-center justify-center bg-zinc-100 text-3xl opacity-30">
+            🍽
+          </div>
         )}
 
         {discount != null && discount > 0 && (
@@ -94,13 +97,25 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
           </span>
         )}
 
+        <button
+          type="button"
+          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-zinc-500/90 active:scale-95"
+          aria-label={uz.favoritesAria}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <Heart size={20} strokeWidth={2} />
+        </button>
+
         {quantity === 0 ? (
           <button
             type="button"
             disabled={disabled}
             onClick={addToCart}
             className={clsx(
-              'absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-white shadow-md transition active:scale-95',
+              'absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-900 shadow-[0_4px_14px_rgba(15,23,42,0.18)] transition active:scale-95',
               disabled && 'opacity-40',
             )}
             aria-label={uz.addToCart}
@@ -110,7 +125,7 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
         ) : (
           <div
             className={clsx(
-              'absolute bottom-2 right-2 flex items-center rounded-full bg-white text-zinc-900 shadow-md',
+              'absolute bottom-2 right-2 flex items-center rounded-full bg-white text-zinc-900 shadow-[0_4px_14px_rgba(15,23,42,0.18)]',
               disabled && 'opacity-40',
             )}
           >
@@ -118,39 +133,45 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
               type="button"
               disabled={disabled}
               onClick={removeFromCart}
-              className="flex h-10 w-9 items-center justify-center rounded-l-full active:bg-zinc-100"
+              className="flex h-9 w-8 items-center justify-center rounded-l-full active:bg-zinc-100"
               aria-label={uz.remove}
             >
-              <Minus size={20} strokeWidth={2.5} />
+              <Minus size={18} strokeWidth={2.5} />
             </button>
-            <span className="min-w-[1.25rem] text-center text-sm font-bold tabular-nums">{quantity}</span>
+            <span className="min-w-[1.1rem] text-center text-sm font-bold tabular-nums">
+              {quantity}
+            </span>
             <button
               type="button"
               disabled={disabled}
               onClick={addToCart}
-              className="flex h-10 w-9 items-center justify-center rounded-r-full active:bg-zinc-100"
+              className="flex h-9 w-8 items-center justify-center rounded-r-full active:bg-zinc-100"
               aria-label={uz.addToCart}
             >
-              <Plus size={20} strokeWidth={2.5} />
+              <Plus size={18} strokeWidth={2.5} />
             </button>
           </div>
         )}
       </div>
 
-      <div className="mt-2">
-        <p className="text-[17px] font-bold leading-tight text-[#18181B]">{formatSum(price)}</p>
+      <div className="mt-2 px-0.5">
+        <p className="text-[16px] font-extrabold leading-tight text-zinc-900">
+          {formatSum(price)}
+        </p>
         {hasDiscount && (
-          <p className="mt-0.5 text-sm text-zinc-400 line-through">{formatSum(compare!)}</p>
+          <p className="mt-0.5 text-sm text-zinc-400 line-through">
+            {formatSum(compare!)}
+          </p>
         )}
         <h3 className="mt-1 line-clamp-2 text-[14px] font-medium leading-snug text-zinc-900">
           {product.name}
         </h3>
-        {product.description?.trim() ? (
+        {weight ? (
+          <p className="mt-0.5 text-xs text-zinc-400">{weight}</p>
+        ) : product.description?.trim() ? (
           <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-zinc-500">
             {product.description.trim()}
           </p>
-        ) : weight ? (
-          <p className="mt-0.5 text-xs text-zinc-400">{weight}</p>
         ) : null}
       </div>
     </article>
