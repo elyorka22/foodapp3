@@ -91,6 +91,9 @@ const BOTTOM_SMALL: ServiceCard = {
   iconClass: 'text-zinc-800',
 };
 
+/** Shared tile height — top carousel and bottom row must match. */
+const TILE_HEIGHT_CLASS = 'h-[120px]';
+
 function ServiceTile({
   card,
   layout,
@@ -112,8 +115,8 @@ function ServiceTile({
     <Link
       href={card.href}
       className={clsx(
-        'relative block min-h-[118px] rounded-[26px] ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
-        compact && 'min-h-[120px]',
+        'relative block overflow-hidden rounded-[26px] ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
+        TILE_HEIGHT_CLASS,
         card.tile,
         className,
       )}
@@ -156,8 +159,8 @@ function ServiceTile({
 
       <div
         className={clsx(
-          'relative z-10 flex h-full flex-col p-3.5',
-          compact ? 'min-h-[120px] p-3' : 'min-h-[118px]',
+          'relative z-10 flex h-full flex-col',
+          compact ? 'p-3' : 'p-3.5',
         )}
       >
         <div
@@ -205,7 +208,7 @@ export function HomeServiceGrid() {
 
   return (
     <section className="mt-5 space-y-3" aria-label={uz.categories}>
-      {/* Top specialty tiles — horizontal carousel, wider than 1/3 grid. */}
+      {/* Top specialty tiles — horizontal carousel, same height as bottom row. */}
       <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 snap-x snap-mandatory scrollbar-hide">
         {TOP_ROW.map((card) => (
           <ServiceTile
@@ -214,7 +217,7 @@ export function HomeServiceGrid() {
             layout={layoutFor(card.key)}
             compact
             iconSize={30}
-            className="min-h-[128px] w-[44%] min-w-[10.25rem] shrink-0 snap-start"
+            className="w-[44%] min-w-[10.25rem] shrink-0 snap-start"
           />
         ))}
       </div>
@@ -223,13 +226,11 @@ export function HomeServiceGrid() {
         <ServiceTile
           card={BOTTOM_LARGE}
           layout={layoutFor('restaurants')}
-          className="min-h-[132px]"
           iconSize={52}
         />
         <ServiceTile
           card={BOTTOM_SMALL}
           layout={layoutFor('products')}
-          className="min-h-[132px]"
           iconSize={40}
         />
       </div>

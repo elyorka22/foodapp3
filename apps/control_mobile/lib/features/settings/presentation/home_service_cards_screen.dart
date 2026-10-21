@@ -345,8 +345,9 @@ class _ProdLikeGrid extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // Same height as web HomeServiceGrid tiles (h-[120px]).
           SizedBox(
-            height: 128,
+            height: 120,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _topRow.length,
@@ -359,7 +360,7 @@ class _ProdLikeGrid extends StatelessWidget {
                     meta: meta,
                     layout: cards[meta.keyName],
                     selected: selectedKey == meta.keyName,
-                    height: 128,
+                    height: 120,
                     onTap: () => onSelect(meta.keyName),
                   ),
                 );
@@ -376,7 +377,7 @@ class _ProdLikeGrid extends StatelessWidget {
                   meta: _restaurantsMeta,
                   layout: cards.restaurants,
                   selected: selectedKey == 'restaurants',
-                  height: 132,
+                  height: 120,
                   onTap: () => onSelect('restaurants'),
                 ),
               ),
@@ -387,7 +388,7 @@ class _ProdLikeGrid extends StatelessWidget {
                   meta: _productsMeta,
                   layout: cards.products,
                   selected: selectedKey == 'products',
-                  height: 132,
+                  height: 120,
                   onTap: () => onSelect('products'),
                 ),
               ),
