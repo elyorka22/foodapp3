@@ -208,8 +208,12 @@ export function HomeServiceGrid() {
 
   return (
     <section className="mt-5 space-y-3" aria-label={uz.categories}>
-      {/* Top specialty tiles — horizontal carousel, same height as bottom row. */}
-      <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 snap-x snap-mandatory scrollbar-hide">
+      {/*
+        Top carousel: same left edge as the bottom grid (page px-4).
+        Only bleed right (-mr-4 pr-4) so scroll can peek the next tile —
+        bilateral -mx-4 made the first tile stick to the screen edge.
+      */}
+      <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-1 snap-x snap-mandatory scrollbar-hide">
         {TOP_ROW.map((card) => (
           <ServiceTile
             key={card.key}
