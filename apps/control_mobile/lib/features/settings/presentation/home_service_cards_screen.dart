@@ -451,6 +451,7 @@ class _ProdTile extends StatelessWidget {
                         angle: layout.rotate * math.pi / 180,
                         child: buildHomeServiceImage(
                           url: layout.imageUrl,
+                          cardKey: meta.keyName,
                           fit: BoxFit.contain,
                         ),
                       ),
