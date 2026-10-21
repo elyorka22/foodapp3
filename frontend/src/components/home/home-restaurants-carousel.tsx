@@ -20,11 +20,10 @@ const FALLBACK = [
 ] as const;
 
 /**
- * Two cards visible with a peek of the next — same density as Yandex «Рестораны».
- * ~50% of content width minus gap on a max-w-lg phone frame.
+ * Two cards + peek: a bit wider and shorter than square (landscape cover).
  */
-const REST_CARD_WIDTH = 'w-[calc(50%-6px)] min-w-[10.5rem] max-w-[11.5rem]';
-const REST_IMAGE_ASPECT = 'aspect-square';
+const REST_CARD_WIDTH = 'w-[calc(52%-6px)] min-w-[11rem] max-w-[12.25rem]';
+const REST_IMAGE_ASPECT = 'aspect-[5/4]';
 
 function minOrderLabel(amount: string | number | null | undefined): string | null {
   if (amount == null || amount === '') return null;
@@ -119,7 +118,7 @@ export function HomeRestaurantsCarousel({
                           fill
                           className="object-cover"
                           style={{ objectPosition }}
-                          sizes="180px"
+                          sizes="196px"
                           priority={index < 2}
                         />
                       </div>
