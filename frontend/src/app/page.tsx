@@ -3,21 +3,28 @@
 import { Store, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Skeleton } from '@/components/ui/skeleton';
 import { HomeCenterHeader } from '@/components/home/home-center-header';
 import { HomePromoBanners } from '@/components/home/home-promo-banners';
+import { HomeRestaurantsCarousel } from '@/components/home/home-restaurants-carousel';
 import { HomeServiceGrid } from '@/components/home/home-service-grid';
-import { RestaurantGridCard } from '@/components/home/restaurant-grid-card';
-import { SectionHeader } from '@/components/home/section-header';
-import { useHomeBanners, useHomeRestaurants } from '@/hooks/use-home-data';
+import { HomeShopsCarousel } from '@/components/home/home-shops-carousel';
+import { useHomeBanners, useHomeFeaturedStores, useHomeRestaurants } from '@/hooks/use-home-data';
 import { uz } from '@/lib/uz';
 
 export default function HomePage() {
   const bannersQuery = useHomeBanners();
   const restaurantsQuery = useHomeRestaurants();
+  const storesQuery = useHomeFeaturedStores();
 
   const restaurants = restaurantsQuery.data?.data ?? [];
-  const hasError = restaurantsQuery.isError;
+  const restaurantsTotal =
+    restaurantsQuery.data?.meta?.total ?? restaurants.length;
+  const stores = storesQuery.data ?? [];
+  const hasRestaurantError = restaurantsQuery.isError;
+  const showRestaurantEmpty =
+    !restaurantsQuery.isLoading &&
+    !hasRestaurantError &&
+    restaurants.length === 0;
 
   return (
     <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-8">
@@ -29,18 +36,20 @@ export default function HomePage() {
         isLoading={bannersQuery.isLoading}
       />
 
-      <section className="mt-6" aria-label={uz.restaurants}>
-        <SectionHeader title={uz.restaurants} href="/restaurants" linkLabel={uz.seeAll} />
+      <HomeShopsCarousel
+        stores={stores}
+        isLoading={storesQuery.isLoading}
+        total={stores.length}
+      />
 
-        {restaurantsQuery.isLoading && (
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="aspect-[3/4] w-full rounded-[22px] shadow-none" />
-            ))}
-          </div>
-        )}
+      <HomeRestaurantsCarousel
+        restaurants={restaurants}
+        isLoading={restaurantsQuery.isLoading}
+        total={restaurantsTotal}
+      />
 
-        {hasError && (
+      {hasRestaurantError && (
+        <div className="mt-4">
           <EmptyState
             icon={Store}
             title={uz.restaurantsLoadError}
@@ -55,29 +64,18 @@ export default function HomePage() {
               </Button>
             }
           />
-        )}
+        </div>
+      )}
 
-        {!restaurantsQuery.isLoading && !hasError && restaurants.length > 0 && (
-          <div className="grid grid-cols-2 gap-3">
-            {restaurants.map((r, i) => (
-              <RestaurantGridCard
-                key={r.id}
-                restaurant={r}
-                index={i}
-                priority={i < 4}
-              />
-            ))}
-          </div>
-        )}
-
-        {!restaurantsQuery.isLoading && !hasError && restaurants.length === 0 && (
+      {showRestaurantEmpty && (
+        <div className="mt-4">
           <EmptyState
             icon={UtensilsCrossed}
             title={uz.restaurantsComingSoon}
             description={uz.restaurantsEmptyHint}
           />
-        )}
-      </section>
+        </div>
+      )}
     </main>
   );
 }

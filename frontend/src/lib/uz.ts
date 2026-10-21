@@ -37,6 +37,7 @@ export const uz = {
   dishCategories: 'Taom kategoriyalari',
   homeSecondaryBanners: 'Bosh sahifa bannerlari',
   seeAll: 'Barchasi',
+  orderFromAmount: (amount: string) => `Buyurtma ${amount} so‘mdan`,
   retry: 'Qayta urinish',
   restaurantsLoadError: 'Restoranlar yuklanmadi',
   productsLoadError: 'Mahsulotlar yuklanmadi',

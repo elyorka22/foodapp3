@@ -64,7 +64,7 @@ export function useHomeRestaurants() {
   return useQuery({
     queryKey: ['restaurants', 'home', citySlug],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: '12', vertical: 'restaurant' });
+      const params = new URLSearchParams({ limit: '20', vertical: 'restaurant' });
       if (citySlug) params.set('city', citySlug);
       return api<{ data: HomeRestaurant[]; meta?: { total: number } }>(
         `/businesses?${params.toString()}`,
@@ -77,16 +77,16 @@ export function useHomeRestaurants() {
   });
 }
 
-/** Active marketplace stores for the home bottom-right slot (cover/logo carousel). */
+/** Active marketplace stores for home carousels (logo row + legacy slots). */
 export function useHomeFeaturedStores() {
   const { selectedCity, isLoading: cityLoading } = useSelectedCity();
   const citySlug = selectedCity?.slug ?? getSelectedCitySlug();
   return useQuery({
     queryKey: ['shops-businesses', 'home-featured', citySlug],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: '12', vertical: 'store' });
+      const params = new URLSearchParams({ limit: '20', vertical: 'store' });
       if (citySlug) params.set('city', citySlug);
-      const res = await api<{ data: ShopBusiness[]; meta?: unknown }>(
+      const res = await api<{ data: ShopBusiness[]; meta?: { total?: number } }>(
         `/businesses?${params.toString()}`,
       );
       return filterStoreBusinesses(unwrapList(res));
