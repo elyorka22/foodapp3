@@ -18,6 +18,66 @@ import '../data/settings_model.dart';
 import '../data/settings_repository.dart';
 import 'settings_screen.dart';
 
+class _TileMeta {
+  const _TileMeta({
+    required this.keyName,
+    required this.title,
+    required this.eta,
+    required this.tileColor,
+    this.badge,
+    this.compact = false,
+    this.wide = false,
+  });
+
+  final String keyName;
+  final String title;
+  final String eta;
+  final Color tileColor;
+  final String? badge;
+  final bool compact;
+  final bool wide;
+}
+
+const _topRow = <_TileMeta>[
+  _TileMeta(
+    keyName: 'flowers',
+    title: 'Gullar',
+    eta: '40 daq',
+    tileColor: Colors.white,
+    compact: true,
+  ),
+  _TileMeta(
+    keyName: 'cosmetics',
+    title: 'Kosmetika',
+    eta: '45 daq',
+    tileColor: Color(0xFFF4F4F5),
+    compact: true,
+  ),
+  _TileMeta(
+    keyName: 'pharmacy',
+    title: 'Dorixona',
+    eta: '35 daq',
+    tileColor: Colors.white,
+    compact: true,
+  ),
+];
+
+const _restaurantsMeta = _TileMeta(
+  keyName: 'restaurants',
+  title: 'Restoranlar',
+  eta: '25 daq',
+  tileColor: Color(0xFFF4F4F5),
+  badge: 'Tez',
+  wide: true,
+);
+
+const _productsMeta = _TileMeta(
+  keyName: 'products',
+  title: 'Mahsulotlar',
+  eta: '30 daq',
+  tileColor: Colors.white,
+);
+
 class HomeServiceCardsScreen extends ConsumerStatefulWidget {
   const HomeServiceCardsScreen({super.key});
 
@@ -32,14 +92,7 @@ class _HomeServiceCardsScreenState
   final Map<String, TextEditingController> _urlControllers = {};
   bool _saving = false;
   String? _message;
-
-  static const _labels = <String, String>{
-    'flowers': 'Gullar',
-    'cosmetics': 'Kosmetika',
-    'pharmacy': 'Dorixona',
-    'restaurants': 'Restoranlar',
-    'products': 'Mahsulotlar',
-  };
+  String _selectedKey = 'flowers';
 
   @override
   void dispose() {
@@ -112,6 +165,14 @@ class _HomeServiceCardsScreenState
     });
   }
 
+  _TileMeta get _selectedMeta {
+    for (final m in _topRow) {
+      if (m.keyName == _selectedKey) return m;
+    }
+    if (_selectedKey == 'products') return _productsMeta;
+    return _restaurantsMeta;
+  }
+
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(settingsProvider);
@@ -127,6 +188,10 @@ class _HomeServiceCardsScreenState
         dataBuilder: (settings) {
           _ensureDraft(settings);
           final draft = _draft!;
+          final selected = draft[_selectedKey];
+          final meta = _selectedMeta;
+          final urlController = _urlControllers[_selectedKey]!;
+
           return ListView(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg,
@@ -151,23 +216,97 @@ class _HomeServiceCardsScreenState
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
-              for (final key in HomeServiceCards.keys) ...[
-                _CardEditor(
-                  title: _labels[key] ?? key,
-                  previewWidth: key == 'restaurants'
-                      ? 220
-                      : key == 'products'
-                          ? 140
-                          : 118,
-                  previewHeight:
-                      key == 'restaurants' || key == 'products' ? 132 : 120,
-                  layout: draft[key],
-                  urlController: _urlControllers[key]!,
-                  onChanged: (layout) => _updateLayout(key, layout),
+              const SizedBox(height: 14),
+              Text(AppStrings.homeServiceLivePreview, style: AppTypography.subtitle),
+              const SizedBox(height: 4),
+              Text(
+                AppStrings.homeServiceLivePreviewHint,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
                 ),
-                const SizedBox(height: 14),
-              ],
+              ),
+              const SizedBox(height: 12),
+              _ProdLikeGrid(
+                cards: draft,
+                selectedKey: _selectedKey,
+                onSelect: (key) => setState(() => _selectedKey = key),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                '${AppStrings.edit}: ${meta.title}',
+                style: AppTypography.subtitle,
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ImageUploadField(
+                      imageUrlController: urlController,
+                      refererPath: '/admin/home-services',
+                      showSimplePreview: false,
+                    ),
+                    const SizedBox(height: 8),
+                    _SliderRow(
+                      label: AppStrings.homeServiceWidth,
+                      value: HomeServiceCardLayout.clampWidth(
+                        selected.widthPercent,
+                      ),
+                      min: 40,
+                      max: 160,
+                      onChanged: (v) => _updateLayout(
+                        _selectedKey,
+                        selected.copyWith(
+                          widthPercent: HomeServiceCardLayout.clampWidth(v),
+                        ),
+                      ),
+                    ),
+                    _SliderRow(
+                      label: AppStrings.homeServiceRight,
+                      value: HomeServiceCardLayout.clampOffset(selected.right),
+                      min: -80,
+                      max: 40,
+                      onChanged: (v) => _updateLayout(
+                        _selectedKey,
+                        selected.copyWith(
+                          right: HomeServiceCardLayout.clampOffset(v),
+                        ),
+                      ),
+                    ),
+                    _SliderRow(
+                      label: AppStrings.homeServiceBottom,
+                      value: HomeServiceCardLayout.clampOffset(selected.bottom),
+                      min: -80,
+                      max: 40,
+                      onChanged: (v) => _updateLayout(
+                        _selectedKey,
+                        selected.copyWith(
+                          bottom: HomeServiceCardLayout.clampOffset(v),
+                        ),
+                      ),
+                    ),
+                    _SliderRow(
+                      label: AppStrings.homeServiceRotate,
+                      value: HomeServiceCardLayout.clampRotate(selected.rotate),
+                      min: -30,
+                      max: 30,
+                      onChanged: (v) => _updateLayout(
+                        _selectedKey,
+                        selected.copyWith(
+                          rotate: HomeServiceCardLayout.clampRotate(v),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               MutationButton(
                 label: AppStrings.save,
                 loading: _saving,
@@ -181,74 +320,133 @@ class _HomeServiceCardsScreenState
   }
 }
 
-class _CardEditor extends StatelessWidget {
-  const _CardEditor({
-    required this.title,
-    required this.previewWidth,
-    required this.previewHeight,
-    required this.layout,
-    required this.urlController,
-    required this.onChanged,
+/// Mirrors web `HomeServiceGrid`: 3 compact tiles, then restaurants + products.
+class _ProdLikeGrid extends StatelessWidget {
+  const _ProdLikeGrid({
+    required this.cards,
+    required this.selectedKey,
+    required this.onSelect,
   });
 
-  final String title;
-  final double previewWidth;
-  final double previewHeight;
-  final HomeServiceCardLayout layout;
-  final TextEditingController urlController;
-  final ValueChanged<HomeServiceCardLayout> onChanged;
+  final HomeServiceCards cards;
+  final String selectedKey;
+  final ValueChanged<String> onSelect;
 
   @override
   Widget build(BuildContext context) {
-    final previewH = previewHeight;
-    final previewW = previewWidth;
-    final hasImage = layout.imageUrl.trim().isNotEmpty;
-
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        color: const Color(0xFFF5F5F7),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(title, style: AppTypography.subtitle),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              width: previewW,
-              height: previewH,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF4F4F5),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: const Color(0x0A000000)),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 10,
-                    top: 10,
-                    right: previewW * 0.35,
-                    child: Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF18181B),
-                      ),
-                    ),
+          Row(
+            children: [
+              for (var i = 0; i < _topRow.length; i++) ...[
+                if (i > 0) const SizedBox(width: 10),
+                Expanded(
+                  child: _ProdTile(
+                    meta: _topRow[i],
+                    layout: cards[_topRow[i].keyName],
+                    selected: selectedKey == _topRow[i].keyName,
+                    height: 120,
+                    onTap: () => onSelect(_topRow[i].keyName),
                   ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 165,
+                child: _ProdTile(
+                  meta: _restaurantsMeta,
+                  layout: cards.restaurants,
+                  selected: selectedKey == 'restaurants',
+                  height: 132,
+                  onTap: () => onSelect('restaurants'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 100,
+                child: _ProdTile(
+                  meta: _productsMeta,
+                  layout: cards.products,
+                  selected: selectedKey == 'products',
+                  height: 132,
+                  onTap: () => onSelect('products'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProdTile extends StatelessWidget {
+  const _ProdTile({
+    required this.meta,
+    required this.layout,
+    required this.selected,
+    required this.height,
+    required this.onTap,
+  });
+
+  final _TileMeta meta;
+  final HomeServiceCardLayout layout;
+  final bool selected;
+  final double height;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasImage = layout.imageUrl.trim().isNotEmpty;
+    final titleMax = meta.compact ? 0.78 : 0.62;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(26),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          height: height,
+          decoration: BoxDecoration(
+            color: meta.tileColor,
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(
+              color: selected ? AppColors.primary : const Color(0x0A000000),
+              width: selected ? 2 : 1,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A0F172A),
+                blurRadius: 12,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final imgW = constraints.maxWidth *
+                  (layout.widthPercent / 100).clamp(0.4, 1.6);
+              return Stack(
+                children: [
                   if (hasImage)
                     Positioned(
                       right: layout.right,
                       bottom: layout.bottom,
-                      width: previewW * (layout.widthPercent / 100),
+                      width: imgW,
                       child: Transform.rotate(
                         angle: layout.rotate * math.pi / 180,
                         child: buildHomeServiceImage(
@@ -257,56 +455,67 @@ class _CardEditor extends StatelessWidget {
                         ),
                       ),
                     ),
+                  Padding(
+                    padding: EdgeInsets.all(meta.compact ? 12 : 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FractionallySizedBox(
+                          widthFactor: titleMax,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                meta.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: meta.compact ? 12.5 : 14,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.15,
+                                  color: const Color(0xFF18181B),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                meta.eta,
+                                style: TextStyle(
+                                  fontSize: meta.compact ? 11 : 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFFA1A1AA),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        if (meta.badge != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF18181B),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              meta.badge!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
-            ),
+              );
+            },
           ),
-          const SizedBox(height: 12),
-          ImageUploadField(
-            imageUrlController: urlController,
-            refererPath: '/admin/home-services',
-            showSimplePreview: false,
-          ),
-          const SizedBox(height: 8),
-          _SliderRow(
-            label: AppStrings.homeServiceWidth,
-            value: HomeServiceCardLayout.clampWidth(layout.widthPercent),
-            min: 40,
-            max: 160,
-            onChanged: (v) => onChanged(
-              layout.copyWith(
-                widthPercent: HomeServiceCardLayout.clampWidth(v),
-              ),
-            ),
-          ),
-          _SliderRow(
-            label: AppStrings.homeServiceRight,
-            value: HomeServiceCardLayout.clampOffset(layout.right),
-            min: -80,
-            max: 40,
-            onChanged: (v) => onChanged(
-              layout.copyWith(right: HomeServiceCardLayout.clampOffset(v)),
-            ),
-          ),
-          _SliderRow(
-            label: AppStrings.homeServiceBottom,
-            value: HomeServiceCardLayout.clampOffset(layout.bottom),
-            min: -80,
-            max: 40,
-            onChanged: (v) => onChanged(
-              layout.copyWith(bottom: HomeServiceCardLayout.clampOffset(v)),
-            ),
-          ),
-          _SliderRow(
-            label: AppStrings.homeServiceRotate,
-            value: HomeServiceCardLayout.clampRotate(layout.rotate),
-            min: -30,
-            max: 30,
-            onChanged: (v) => onChanged(
-              layout.copyWith(rotate: HomeServiceCardLayout.clampRotate(v)),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

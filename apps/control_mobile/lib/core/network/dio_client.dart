@@ -10,6 +10,7 @@ import 'http_adapter_stub.dart'
     if (dart.library.io) 'http_adapter_io.dart' as http_adapter;
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
+import 'interceptors/retry_interceptor.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   return createDioClient(ref.watch(tokenStorageProvider));
@@ -30,6 +31,7 @@ Dio createDioClient(TokenStorage storage) {
       responseType: ResponseType.json,
       // NestJS @Post() defaults to 201 Created; treat all 2xx as success.
       validateStatus: (status) => status != null && status >= 200 && status < 300,
+      // VPN / flaky mobile networks — avoid sticky broken pooled sockets.
       persistentConnection: false,
     ),
   );
@@ -49,6 +51,8 @@ Dio createDioClient(TokenStorage storage) {
   );
   dio.interceptors.addAll([
     AuthInterceptor(storage),
+    // Retry before ErrorInterceptor so transient VPN drops can recover.
+    RetryInterceptor(dio),
     ErrorInterceptor(),
   ]);
   if (kDebugMode) {

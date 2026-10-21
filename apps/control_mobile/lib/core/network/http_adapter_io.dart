@@ -15,6 +15,12 @@ import '../diagnostics/native_error_formatter.dart';
 /// Kept for isolation probes and Cronet-disabled fallback devices.
 const List<String> kControlClientAlpnProtocols = ['http/1.1'];
 
+/// Chrome-like UA so VPN / middleboxes treat traffic like the browser.
+const String kControlCronetUserAgent =
+    'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 '
+    '(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 '
+    'FoodAppControl/1.0';
+
 bool controlNativeHttpAdapterInstalled = false;
 
 /// `native_cronet` | `custom_io_alpn` | `stub`
@@ -30,8 +36,11 @@ SecurityContext createControlSecurityContext() {
 /// HttpClient for dart:io fallback and diagnostic HttpClient probes.
 HttpClient createControlHttpClient() {
   final client = HttpClient(context: createControlSecurityContext());
-  client.idleTimeout = const Duration(seconds: 15);
+  // Short idle — VPN path changes leave stale sockets that fail as "Tarmoq xatosi".
+  client.idleTimeout = const Duration(seconds: 5);
+  client.connectionTimeout = const Duration(seconds: 45);
   client.autoUncompress = true;
+  client.userAgent = kControlCronetUserAgent;
   return client;
 }
 
@@ -48,6 +57,13 @@ void configureNativeHttpClient(Dio dio) {
   final HttpClientAdapter inner;
   if (Platform.isAndroid) {
     inner = NativeAdapter(
+      createCronetEngine: () => CronetEngine.build(
+        cacheMode: CacheMode.disabled,
+        enableHttp2: true,
+        enableQuic: false,
+        enableBrotli: true,
+        userAgent: kControlCronetUserAgent,
+      ),
       createFallbackAdapter: (Object error, StackTrace stackTrace) {
         controlHttpAdapterKind = 'custom_io_alpn';
         DiagnosticLog.instance.log(
@@ -67,7 +83,7 @@ void configureNativeHttpClient(Dio dio) {
       stage: 'http_adapter',
       message:
           'NativeAdapter(Cronet) installed — VPN/proxy via Android system stack; '
-          'TLS verify=system/Cronet defaults (not disabled)',
+          'HTTP/2 on, QUIC off, cache off; TLS verify=system/Cronet defaults',
     );
   } else {
     inner = _TimedHttpClientAdapter(_createIoAlpnAdapter());
