@@ -1,25 +1,25 @@
 'use client';
 
+import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import { resolveImageUrl } from '@/lib/image-url';
 import { uz } from '@/lib/uz';
 
-export type StoreCategoryTile = {
+export type CatalogCategoryTile = {
   id: string;
   name: string;
-  /** Optional product/cover image for the tile art. */
+  href: string;
   imageUrl?: string | null;
 };
 
 type Props = {
-  title?: string;
-  categories: StoreCategoryTile[];
-  activeId?: string;
-  onSelect: (id: string) => void;
-  /** Soft pastel family — peach for food, green for produce, etc. */
+  title: string;
+  categories: CatalogCategoryTile[];
   tone?: 'peach' | 'mint' | 'sky' | 'lilac';
-  showAllTile?: boolean;
+  /** Optional “see all” tile at the end of the grid. */
+  allHref?: string;
+  allLabel?: string;
 };
 
 const TONE_BG: Record<NonNullable<Props['tone']>, string[]> = {
@@ -29,38 +29,31 @@ const TONE_BG: Record<NonNullable<Props['tone']>, string[]> = {
   lilac: ['bg-[#EEE6F3]', 'bg-[#E8DFF0]', 'bg-[#F2EAF6]'],
 };
 
-export function StoreCategoryTiles({
+export function CategoryTileGrid({
   title,
   categories,
-  activeId,
-  onSelect,
   tone = 'peach',
-  showAllTile = true,
+  allHref,
+  allLabel = uz.storeAllCategories,
 }: Props) {
   if (categories.length === 0) return null;
   const palette = TONE_BG[tone];
 
   return (
-    <section className="mt-5 px-4">
-      {title ? (
-        <h2 className="mb-3 text-[20px] font-extrabold tracking-tight text-zinc-900">
-          {title}
-        </h2>
-      ) : null}
-
+    <section className="mt-5">
+      <h2 className="mb-3 text-[20px] font-extrabold tracking-tight text-zinc-900">
+        {title}
+      </h2>
       <div className="grid grid-cols-3 gap-2">
         {categories.map((cat, index) => {
           const img = resolveImageUrl(cat.imageUrl);
-          const active = activeId === cat.id;
           return (
-            <button
+            <Link
               key={cat.id}
-              type="button"
-              onClick={() => onSelect(cat.id)}
+              href={cat.href}
               className={clsx(
                 'relative aspect-[5/4] overflow-hidden rounded-[16px] text-left transition active:scale-[0.98]',
                 palette[index % palette.length],
-                active && 'ring-2 ring-brand-600 ring-offset-1',
               )}
             >
               <span className="absolute left-2.5 top-2 z-10 line-clamp-2 max-w-[88%] text-[12px] font-bold leading-tight text-zinc-900">
@@ -78,27 +71,24 @@ export function StoreCategoryTiles({
                   {cat.name.trim().charAt(0).toUpperCase()}
                 </span>
               )}
-            </button>
+            </Link>
           );
         })}
-
-        {showAllTile ? (
-          <button
-            type="button"
-            onClick={() => onSelect('all')}
+        {allHref ? (
+          <Link
+            href={allHref}
             className={clsx(
               'relative flex aspect-[5/4] flex-col items-start justify-between overflow-hidden rounded-[16px] p-2.5 text-left transition active:scale-[0.98]',
               palette[0],
-              activeId === 'all' && 'ring-2 ring-brand-600 ring-offset-1',
             )}
           >
             <span className="line-clamp-2 text-[12px] font-bold leading-tight text-zinc-900">
-              {uz.storeAllCategories}
+              {allLabel}
             </span>
             <span className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-white text-zinc-800 shadow-sm">
               <ArrowRight size={16} strokeWidth={2.5} />
             </span>
-          </button>
+          </Link>
         ) : null}
       </div>
     </section>

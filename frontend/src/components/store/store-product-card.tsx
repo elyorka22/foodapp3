@@ -73,12 +73,7 @@ export function StoreProductCard({
   };
 
   return (
-    <article
-      className={clsx(
-        'flex shrink-0 flex-col',
-        className ?? 'w-[8.75rem]',
-      )}
-    >
+    <article className={clsx('flex w-[8.75rem] shrink-0 flex-col', className)}>
       <div className="relative aspect-square overflow-hidden rounded-[16px] bg-zinc-100">
         {imageUrl ? (
           <MenuProductImage src={imageUrl} alt={product.name} />

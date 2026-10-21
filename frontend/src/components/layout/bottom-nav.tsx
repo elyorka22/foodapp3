@@ -64,6 +64,27 @@ function CartIcon({ active }: TabIconProps) {
   );
 }
 
+function CatalogIcon({ active }: TabIconProps) {
+  if (active) {
+    return (
+      <svg width={ICON} height={ICON} viewBox="0 0 24 24" aria-hidden>
+        <path
+          fill={ACTIVE}
+          d="M5 4.5h5.5A1.5 1.5 0 0 1 12 6v5.5A1.5 1.5 0 0 1 10.5 13H5A1.5 1.5 0 0 1 3.5 11.5V6A1.5 1.5 0 0 1 5 4.5Zm8.5 0H19A1.5 1.5 0 0 1 20.5 6v5.5A1.5 1.5 0 0 1 19 13h-5.5A1.5 1.5 0 0 1 12 11.5V6A1.5 1.5 0 0 1 13.5 4.5ZM5 14.5h5.5A1.5 1.5 0 0 1 12 16v3.5A1.5 1.5 0 0 1 10.5 21H5A1.5 1.5 0 0 1 3.5 19.5V16A1.5 1.5 0 0 1 5 14.5Zm8.5 0H19A1.5 1.5 0 0 1 20.5 16v3.5A1.5 1.5 0 0 1 19 21h-5.5A1.5 1.5 0 0 1 12 19.5V16a1.5 1.5 0 0 1 1.5-1.5Z"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3.75" y="3.75" width="7" height="7" rx="1.5" stroke={IDLE} strokeWidth="1.85" />
+      <rect x="13.25" y="3.75" width="7" height="7" rx="1.5" stroke={IDLE} strokeWidth="1.85" />
+      <rect x="3.75" y="13.25" width="7" height="7" rx="1.5" stroke={IDLE} strokeWidth="1.85" />
+      <rect x="13.25" y="13.25" width="7" height="7" rx="1.5" stroke={IDLE} strokeWidth="1.85" />
+    </svg>
+  );
+}
+
 function ProfileIcon({ active }: TabIconProps) {
   if (active) {
     return (
@@ -95,7 +116,13 @@ const tabs = [
     label: uz.navHome,
     Icon: HomeIcon,
     match: (path: string) =>
-      path === '/' || path.startsWith('/restaurants/'),
+      path === '/' || path.startsWith('/restaurants/') || path.startsWith('/shops/'),
+  },
+  {
+    href: '/categories',
+    label: uz.navCatalog,
+    Icon: CatalogIcon,
+    match: (path: string) => path === '/categories' || path.startsWith('/categories/'),
   },
   {
     href: '/cart',

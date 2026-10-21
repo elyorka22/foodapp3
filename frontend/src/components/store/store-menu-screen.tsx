@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, Package, Search, ShoppingCart, X } from 'lucide-react';
+import { ChevronRight, Package, Search, ShoppingCart, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { api } from '@/lib/api';
 import { resolveImageUrl } from '@/lib/image-url';
@@ -13,7 +13,7 @@ import { useHomeBanners } from '@/hooks/use-home-data';
 import { BannerSlotCarousel } from '@/components/home/banner-slot-carousel';
 import type { BusinessMenuDetail } from '@/components/business/business-menu-screen';
 import type { MenuProduct } from '@/components/restaurant/product-card';
-import { StoreCategoryTiles } from '@/components/store/store-category-tiles';
+import { StoreCategoryCircles } from '@/components/store/store-category-circles';
 import { StoreProductCard } from '@/components/store/store-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -28,33 +28,35 @@ function categoryIdOf(p: MenuProduct): string | null {
   return p.productCategoryId ?? p.productCategory?.id ?? null;
 }
 
-function productThumb(p: MenuProduct): string | null {
-  const primary = p.images?.find((i) => i.isPrimary) ?? p.images?.[0];
-  return resolveImageUrl(primary?.url);
-}
-
 function ProductRow({
   title,
   products,
   storeId,
   storeName,
   disabled,
+  href,
 }: {
   title: string;
   products: MenuProduct[];
   storeId: string;
   storeName: string;
   disabled?: boolean;
+  href?: string;
 }) {
   if (products.length === 0) return null;
   return (
     <section className="mt-5">
-      <div className="mb-3 px-4">
+      <div className="mb-3 flex items-center justify-between gap-2 px-4">
         <h2 className="text-[18px] font-extrabold tracking-tight text-zinc-900">
           {title}
         </h2>
+        {href ? (
+          <Link href={href} className="text-zinc-400 active:opacity-70" aria-label={uz.seeAll}>
+            <ChevronRight size={22} strokeWidth={2.25} />
+          </Link>
+        ) : null}
       </div>
-      <div className="flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide">
+      <div className="-mx-0 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide">
         {products.map((p) => (
           <StoreProductCard
             key={p.id}
@@ -72,7 +74,7 @@ function ProductRow({
 export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
   const router = useRouter();
   const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState('all');
   const [fulfillment, setFulfillment] = useState<'delivery' | 'pickup'>('delivery');
   const [query, setQuery] = useState('');
 
@@ -109,27 +111,6 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
   }, [business?.products, fallbackProducts]);
 
   const search = query.trim().toLowerCase();
-  const isSearching = search.length > 0;
-  const showCatalog = !isSearching && activeCategoryId == null;
-
-  const categoryTiles = useMemo(
-    () =>
-      categories.map((cat) => {
-        const sample = allProducts.find((p) => categoryIdOf(p) === cat.id);
-        return {
-          id: cat.id,
-          name: cat.name,
-          imageUrl: sample ? productThumb(sample) : null,
-        };
-      }),
-    [categories, allProducts],
-  );
-
-  /** Split categories into two visual groups for Magnit-like sections. */
-  const mid = Math.ceil(categoryTiles.length / 2) || 0;
-  const groupA = categoryTiles.slice(0, mid);
-  const groupB = categoryTiles.slice(mid);
-
   const searched = useMemo(() => {
     if (!search) return allProducts;
     return allProducts.filter((p) => p.name.toLowerCase().includes(search));
@@ -137,27 +118,32 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
 
   const discounted = useMemo(
     () =>
-      allProducts.filter((p) => {
+      searched.filter((p) => {
         const price = Number(p.price);
         const compare = p.comparePrice != null ? Number(p.comparePrice) : null;
         return compare != null && compare > price;
       }),
-    [allProducts],
+    [searched],
   );
 
-  const activeProducts = useMemo(() => {
-    if (isSearching) return searched;
-    if (activeCategoryId === 'all') return allProducts;
-    if (activeCategoryId) {
-      return allProducts.filter((p) => categoryIdOf(p) === activeCategoryId);
+  const sections = useMemo(() => {
+    if (activeCategoryId !== 'all') {
+      const cat = categories.find((c) => c.id === activeCategoryId);
+      if (!cat) return [];
+      return [
+        {
+          category: cat,
+          products: searched.filter((p) => categoryIdOf(p) === cat.id),
+        },
+      ];
     }
-    return [];
-  }, [isSearching, searched, activeCategoryId, allProducts]);
-
-  const activeTitle =
-    activeCategoryId === 'all'
-      ? uz.storeAllCategories
-      : categories.find((c) => c.id === activeCategoryId)?.name ?? uz.shopsTitle;
+    return categories
+      .map((category) => ({
+        category,
+        products: searched.filter((p) => categoryIdOf(p) === category.id),
+      }))
+      .filter((s) => s.products.length > 0);
+  }, [activeCategoryId, categories, searched]);
 
   const closed = business?.isOpen === false;
 
@@ -166,9 +152,10 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
       <div className="mx-auto max-w-lg bg-background px-4 pb-24 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
         <Skeleton className="h-8 w-40" />
         <Skeleton className="mt-3 h-11 w-full rounded-2xl" />
-        <div className="mt-5 grid grid-cols-3 gap-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="aspect-[5/4] rounded-[16px]" />
+        <Skeleton className="mt-3 h-10 w-full rounded-full" />
+        <div className="mt-5 grid grid-cols-4 gap-3">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <Skeleton key={i} className="mx-auto h-[4.25rem] w-[4.25rem] rounded-full" />
           ))}
         </div>
       </div>
@@ -196,18 +183,8 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
     <div className="mx-auto min-h-screen max-w-lg bg-background pb-24">
       <header className="sticky top-0 z-30 bg-background/95 px-4 pb-3 pt-[calc(env(safe-area-inset-top,0px)+10px)] backdrop-blur-md">
         <div className="flex items-center justify-between gap-3">
-          {activeCategoryId != null && !isSearching ? (
-            <button
-              type="button"
-              onClick={() => setActiveCategoryId(null)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-800 active:scale-95"
-              aria-label={uz.back}
-            >
-              <ChevronLeft size={20} strokeWidth={2.25} />
-            </button>
-          ) : null}
-          <h1 className="min-w-0 flex-1 truncate text-[22px] font-extrabold tracking-tight text-zinc-900">
-            {activeCategoryId != null && !isSearching ? activeTitle : business.name}
+          <h1 className="min-w-0 truncate text-[22px] font-extrabold tracking-tight text-zinc-900">
+            {business.name}
           </h1>
           <Link
             href={backHref}
@@ -222,129 +199,63 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
           <Search size={18} className="shrink-0 text-zinc-400" aria-hidden />
           <input
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              if (e.target.value.trim()) setActiveCategoryId(null);
-            }}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder={uz.searchInStore(business.name)}
             className="min-w-0 flex-1 bg-transparent text-[15px] text-zinc-900 outline-none placeholder:text-zinc-400"
           />
         </label>
 
-        {showCatalog ? (
-          <>
-            <div className="mt-3 flex rounded-full bg-zinc-100 p-1">
-              <button
-                type="button"
-                onClick={() => setFulfillment('delivery')}
-                className={clsx(
-                  'flex-1 rounded-full py-2 text-[13px] font-bold transition',
-                  fulfillment === 'delivery'
-                    ? 'bg-zinc-900 text-white'
-                    : 'text-zinc-600',
-                )}
-              >
-                {uz.deliveryLabel}
-              </button>
-              <button
-                type="button"
-                onClick={() => setFulfillment('pickup')}
-                className={clsx(
-                  'flex-1 rounded-full py-2 text-[13px] font-bold transition',
-                  fulfillment === 'pickup'
-                    ? 'bg-zinc-900 text-white'
-                    : 'text-zinc-600',
-                )}
-              >
-                {uz.pickupLabel}
-              </button>
-            </div>
-            {closed ? (
-              <p className="mt-2 text-[13px] font-semibold text-red-500">
-                {uz.deliveryTimeEnded}
-              </p>
-            ) : null}
-          </>
+        <div className="mt-3 flex rounded-full bg-zinc-100 p-1">
+          <button
+            type="button"
+            onClick={() => setFulfillment('delivery')}
+            className={clsx(
+              'flex-1 rounded-full py-2 text-[13px] font-bold transition',
+              fulfillment === 'delivery'
+                ? 'bg-zinc-900 text-white'
+                : 'text-zinc-600',
+            )}
+          >
+            {uz.deliveryLabel}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFulfillment('pickup')}
+            className={clsx(
+              'flex-1 rounded-full py-2 text-[13px] font-bold transition',
+              fulfillment === 'pickup'
+                ? 'bg-zinc-900 text-white'
+                : 'text-zinc-600',
+            )}
+          >
+            {uz.pickupLabel}
+          </button>
+        </div>
+
+        {closed ? (
+          <p className="mt-2 text-[13px] font-semibold text-red-500">
+            {uz.deliveryTimeEnded}
+          </p>
         ) : null}
       </header>
 
-      {showCatalog ? (
-        <>
-          {discounted.length > 0 ? (
-            <div className="mt-2 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-hide">
-              {[
-                { id: 'deals', label: uz.storeDiscountsForYou, emoji: '%' },
-                ...categories.slice(0, 3).map((c) => ({
-                  id: c.id,
-                  label: c.name,
-                  emoji: c.name.trim().charAt(0).toUpperCase(),
-                })),
-              ].map((chip) => (
-                <button
-                  key={chip.id}
-                  type="button"
-                  onClick={() =>
-                    setActiveCategoryId(chip.id === 'deals' ? 'all' : chip.id)
-                  }
-                  className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 active:scale-[0.97]"
-                >
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 text-lg font-black text-zinc-700">
-                    {chip.emoji}
-                  </span>
-                  <span className="line-clamp-2 text-center text-[11px] font-semibold leading-tight text-zinc-700">
-                    {chip.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : null}
+      <div className="px-4 pt-1">
+        {categories.length > 0 ? (
+          <StoreCategoryCircles
+            categories={categories}
+            activeId={activeCategoryId}
+            onChange={setActiveCategoryId}
+          />
+        ) : null}
+      </div>
 
-          {storeBanners.length > 0 ? (
-            <div className="mt-4 h-[7.5rem] px-4">
-              <BannerSlotCarousel banners={storeBanners} />
-            </div>
-          ) : null}
+      {storeBanners.length > 0 ? (
+        <div className="mt-4 h-28 px-4">
+          <BannerSlotCarousel banners={storeBanners} />
+        </div>
+      ) : null}
 
-          {groupA.length > 0 ? (
-            <StoreCategoryTiles
-              title={business.name}
-              categories={groupA}
-              onSelect={setActiveCategoryId}
-              tone="peach"
-              showAllTile={groupB.length === 0}
-            />
-          ) : null}
-
-          {groupB.length > 0 ? (
-            <StoreCategoryTiles
-              title={uz.shopsTitle}
-              categories={groupB}
-              onSelect={setActiveCategoryId}
-              tone="mint"
-              showAllTile
-            />
-          ) : null}
-
-          {categories.length === 0 && allProducts.length > 0 ? (
-            <ProductRow
-              title={uz.shopsTitle}
-              products={allProducts}
-              storeId={business.id}
-              storeName={business.name}
-              disabled={closed}
-            />
-          ) : null}
-
-          {categories.length === 0 && allProducts.length === 0 ? (
-            <EmptyState
-              icon={Package}
-              title={uz.menuEmpty}
-              description={uz.menuEmptyHint}
-              className="mt-8 px-4"
-            />
-          ) : null}
-        </>
-      ) : activeProducts.length === 0 ? (
+      {searched.length === 0 ? (
         <EmptyState
           icon={Package}
           title={uz.menuEmpty}
@@ -352,18 +263,38 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
           className="mt-8 px-4"
         />
       ) : (
-        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-4 px-4 pb-4">
-          {activeProducts.map((p) => (
-            <StoreProductCard
-              key={p.id}
-              product={p}
-              restaurantId={business.id}
-              restaurantName={business.name}
+        <>
+          {activeCategoryId === 'all' && discounted.length > 0 ? (
+            <ProductRow
+              title={uz.storeDiscountsForYou}
+              products={discounted}
+              storeId={business.id}
+              storeName={business.name}
               disabled={closed}
-              className="w-full"
+            />
+          ) : null}
+
+          {sections.map((section) => (
+            <ProductRow
+              key={section.category.id}
+              title={section.category.name}
+              products={section.products}
+              storeId={business.id}
+              storeName={business.name}
+              disabled={closed}
             />
           ))}
-        </div>
+
+          {sections.length === 0 && discounted.length === 0 ? (
+            <ProductRow
+              title={uz.shopsTitle}
+              products={searched}
+              storeId={business.id}
+              storeName={business.name}
+              disabled={closed}
+            />
+          ) : null}
+        </>
       )}
 
       {cartCount > 0 && (

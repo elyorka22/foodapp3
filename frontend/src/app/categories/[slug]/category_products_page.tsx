@@ -19,7 +19,7 @@ export default function CategoryProductsPage({ slug }: { slug: string }) {
   return (
     <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-8">
       <div className="flex items-center gap-2 py-4">
-        <Link href="/" className="rounded-full p-2 active:bg-zinc-200" aria-label="Orqaga">
+        <Link href="/categories" className="rounded-full p-2 active:bg-zinc-200" aria-label="Orqaga">
           <ChevronLeft size={22} />
         </Link>
         <h1 className="text-lg font-bold">{category?.name ?? slug}</h1>
