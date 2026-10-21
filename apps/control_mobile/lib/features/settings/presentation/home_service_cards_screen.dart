@@ -345,21 +345,26 @@ class _ProdLikeGrid extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              for (var i = 0; i < _topRow.length; i++) ...[
-                if (i > 0) const SizedBox(width: 10),
-                Expanded(
+          SizedBox(
+            height: 128,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _topRow.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, i) {
+                final meta = _topRow[i];
+                return SizedBox(
+                  width: 148,
                   child: _ProdTile(
-                    meta: _topRow[i],
-                    layout: cards[_topRow[i].keyName],
-                    selected: selectedKey == _topRow[i].keyName,
-                    height: 120,
-                    onTap: () => onSelect(_topRow[i].keyName),
+                    meta: meta,
+                    layout: cards[meta.keyName],
+                    selected: selectedKey == meta.keyName,
+                    height: 128,
+                    onTap: () => onSelect(meta.keyName),
                   ),
-                ),
-              ],
-            ],
+                );
+              },
+            ),
           ),
           const SizedBox(height: 12),
           Row(

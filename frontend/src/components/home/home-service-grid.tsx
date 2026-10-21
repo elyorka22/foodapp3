@@ -205,14 +205,16 @@ export function HomeServiceGrid() {
 
   return (
     <section className="mt-5 space-y-3" aria-label={uz.categories}>
-      <div className="grid grid-cols-3 gap-2.5">
+      {/* Top specialty tiles — horizontal carousel, wider than 1/3 grid. */}
+      <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 snap-x snap-mandatory scrollbar-hide">
         {TOP_ROW.map((card) => (
           <ServiceTile
             key={card.key}
             card={card}
             layout={layoutFor(card.key)}
             compact
-            iconSize={28}
+            iconSize={30}
+            className="min-h-[128px] w-[44%] min-w-[10.25rem] shrink-0 snap-start"
           />
         ))}
       </div>
