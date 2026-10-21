@@ -38,26 +38,28 @@ class _TileMeta {
   final bool wide;
 }
 
+const _tileBg = Colors.white;
+
 const _topRow = <_TileMeta>[
   _TileMeta(
     keyName: 'flowers',
     title: 'Gullar',
     eta: '40 daq',
-    tileColor: Colors.white,
+    tileColor: _tileBg,
     compact: true,
   ),
   _TileMeta(
     keyName: 'cosmetics',
     title: 'Kosmetika',
     eta: '45 daq',
-    tileColor: Color(0xFFF4F4F5),
+    tileColor: _tileBg,
     compact: true,
   ),
   _TileMeta(
     keyName: 'pharmacy',
     title: 'Dorixona',
     eta: '35 daq',
-    tileColor: Colors.white,
+    tileColor: _tileBg,
     compact: true,
   ),
 ];
@@ -66,7 +68,7 @@ const _restaurantsMeta = _TileMeta(
   keyName: 'restaurants',
   title: 'Restoranlar',
   eta: '25 daq',
-  tileColor: Color(0xFFF4F4F5),
+  tileColor: _tileBg,
   badge: 'Tez',
   wide: true,
 );
@@ -75,7 +77,7 @@ const _productsMeta = _TileMeta(
   keyName: 'products',
   title: 'Mahsulotlar',
   eta: '30 daq',
-  tileColor: Colors.white,
+  tileColor: _tileBg,
 );
 
 class HomeServiceCardsScreen extends ConsumerStatefulWidget {

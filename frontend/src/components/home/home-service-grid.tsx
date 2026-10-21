@@ -51,8 +51,8 @@ const TOP_ROW: ServiceCard[] = [
     title: uz.homeServiceCosmetics,
     eta: uz.homeServiceCosmeticsEta,
     icon: Sparkles,
-    tile: 'bg-[#F4F4F5]',
-    accent: 'from-[#D4D4D8] to-[#E4E4E7]',
+    tile: 'bg-white',
+    accent: 'from-[#E4E4E7] to-[#F4F4F5]',
     iconClass: 'text-zinc-800',
   },
   {
@@ -75,8 +75,8 @@ const BOTTOM_LARGE: ServiceCard = {
   eta: uz.homeServiceRestaurantsEta,
   badge: { label: uz.homeServiceDeliveryBadge, className: 'bg-zinc-900 text-white' },
   icon: UtensilsCrossed,
-  tile: 'bg-[#F4F4F5]',
-  accent: 'from-[#D4D4D8] to-[#E4E4E7]',
+  tile: 'bg-white',
+  accent: 'from-[#E4E4E7] to-[#F4F4F5]',
   iconClass: 'text-zinc-800',
 };
 
