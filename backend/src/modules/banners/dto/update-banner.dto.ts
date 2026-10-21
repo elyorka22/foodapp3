@@ -43,10 +43,10 @@ export class UpdateBannerDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Zoom-in 100–200' })
   @IsOptional()
   @IsInt()
-  @Min(50)
+  @Min(100)
   @Max(200)
   imageScale?: number;
 

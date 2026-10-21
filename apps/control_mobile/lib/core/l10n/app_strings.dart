@@ -175,7 +175,7 @@ abstract final class AppStrings {
   static const bannerImageRequired = 'Rasm majburiy — yuklang yoki URL kiriting';
   static const bannerImageFraming = 'Banner joylashuvi';
   static const bannerImagePreviewSizeHint =
-      'Ilovadagi «Maxsus takliflar» o‘lchami: balandlik 150px, kenglik ~85%.';
+      '«Maxsus takliflar»: 150×~85%. Masshtab 100–200% — yaqinlashtirish (kesish); burchaklar yumaloq.';
   static const bannerImagePreviewHint = 'Rasm yuklang — banner ko‘rinishi';
   static const bannerImageScale = 'Masshtab';
   static const bannerImagePosX = 'Gorizontal';

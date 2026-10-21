@@ -45,14 +45,14 @@ export function CategoryImagePositionControls<T extends FormWithImage>({ form, s
         </span>
         <input
           type="range"
-          min={50}
+          min={100}
           max={200}
-          value={scale}
+          value={Math.max(100, scale)}
           className="mt-1 w-full accent-brand-600"
           onChange={(e) => setForm({ ...form, imageScale: Number(e.target.value) })}
         />
         <span className="flex justify-between text-[10px] opacity-50">
-          <span>50%</span>
+          <span>100%</span>
           <span>200%</span>
         </span>
       </label>

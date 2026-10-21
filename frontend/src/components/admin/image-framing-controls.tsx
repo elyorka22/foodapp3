@@ -26,10 +26,16 @@ export function ImageFramingControls({
   previewMaxWidthClass = 'max-w-full',
   className,
 }: Props) {
-  const scale = values.imageScale ?? 100;
+  const scale = Math.max(100, values.imageScale ?? 100);
   const x = values.imagePositionX ?? 50;
   const y = values.imagePositionY ?? 50;
   const previewSrc = imageUrl ? resolveImageUrl(imageUrl) ?? imageUrl : null;
+  const framing = categoryImageStyle({
+    imageScale: scale,
+    imagePositionX: x,
+    imagePositionY: y,
+  });
+  const { transform, transformOrigin, objectPosition, objectFit } = framing;
 
   const set = (patch: Partial<ImageFramingValues>) =>
     onChange({ imageScale: scale, imagePositionX: x, imagePositionY: y, ...patch });
@@ -50,13 +56,17 @@ export function ImageFramingControls({
         )}
       >
         {previewSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={previewSrc}
-            alt="Preview"
-            className="h-full w-full"
-            style={categoryImageStyle({ imageScale: scale, imagePositionX: x, imagePositionY: y })}
-          />
+          <div className="absolute inset-0 overflow-hidden rounded-xl">
+            <div className="absolute inset-0" style={{ transform, transformOrigin }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewSrc}
+                alt="Preview"
+                className="h-full w-full"
+                style={{ objectFit, objectPosition }}
+              />
+            </div>
+          </div>
         ) : (
           <div className="flex h-full min-h-[80px] items-center justify-center text-xs text-zinc-400">
             Rasm yuklang — oldindan ko&apos;rish
@@ -70,7 +80,7 @@ export function ImageFramingControls({
         </span>
         <input
           type="range"
-          min={50}
+          min={100}
           max={200}
           value={scale}
           className="mt-1 w-full accent-brand-600"

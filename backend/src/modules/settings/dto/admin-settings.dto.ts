@@ -98,10 +98,10 @@ export class AdminSettingsDto {
   @IsIn(COURIER_DISPATCH_MODES)
   courier_dispatch_mode?: CourierDispatchMode;
 
-  @ApiPropertyOptional({ description: 'Default banner zoom % (50–200)' })
+  @ApiPropertyOptional({ description: 'Default banner zoom-in % (100–200)' })
   @IsOptional()
   @IsInt()
-  @Min(50)
+  @Min(100)
   @Max(200)
   banner_default_image_scale?: number;
 

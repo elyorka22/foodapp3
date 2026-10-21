@@ -42,10 +42,10 @@ export class CreateBannerDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Zoom 50–200; omit to use global default' })
+  @ApiPropertyOptional({ description: 'Zoom-in 100–200; omit to use global default' })
   @IsOptional()
   @IsInt()
-  @Min(50)
+  @Min(100)
   @Max(200)
   imageScale?: number;
 

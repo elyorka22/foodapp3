@@ -31,6 +31,12 @@ function BannerSlide({
 
   const href = banner.linkUrl?.trim() || defaultHref;
   const title = banner.title?.trim();
+  const framing = categoryImageStyle({
+    imageScale: banner.imageScale,
+    imagePositionX: banner.imagePositionX,
+    imagePositionY: banner.imagePositionY,
+  });
+  const { transform, transformOrigin, objectPosition } = framing;
 
   const inner = (
     <div
@@ -39,19 +45,19 @@ function BannerSlide({
         tall ? 'h-full min-h-[280px]' : 'min-h-[132px] h-full flex-1',
       )}
     >
-      <Image
-        src={src}
-        alt={title || 'Banner'}
-        fill
-        className="h-full w-full"
-        style={categoryImageStyle({
-          imageScale: banner.imageScale,
-          imagePositionX: banner.imagePositionX,
-          imagePositionY: banner.imagePositionY,
-        })}
-        sizes="50vw"
-        unoptimized
-      />
+      <div className="absolute inset-0 overflow-hidden rounded-3xl">
+        <div className="absolute inset-0" style={{ transform, transformOrigin }}>
+          <Image
+            src={src}
+            alt={title || 'Banner'}
+            fill
+            className="object-cover"
+            style={{ objectPosition }}
+            sizes="50vw"
+            unoptimized
+          />
+        </div>
+      </div>
       {title ? (
         <>
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />

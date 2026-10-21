@@ -27,7 +27,9 @@ class ImageFramingValues {
     );
   }
 
-  static int clampScale(int? v) => (v ?? 100).clamp(50, 200);
+  /// Zoom-in only (100–200%). Below 100% shrunk the bitmap and left sharp
+  /// corners inside the rounded banner preview.
+  static int clampScale(int? v) => (v ?? 100).clamp(100, 200);
   static int clampPos(int? v) => (v ?? 50).clamp(0, 100);
 }
 
@@ -106,23 +108,31 @@ class ImageFramingControls extends StatelessWidget {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: hasImage
-                      ? Transform.scale(
-                          scale: scale / 100,
-                          alignment: Alignment(
-                            (x / 50) - 1,
-                            (y / 50) - 1,
-                          ),
-                          child: Image.network(
-                            url,
-                            fit: BoxFit.cover,
-                            width: previewWidth,
-                            height: homeBannerHeight,
+                      ? ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(homeBannerRadius),
+                          child: Transform.scale(
+                            scale: scale / 100,
                             alignment: Alignment(
                               (x / 50) - 1,
                               (y / 50) - 1,
                             ),
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(Icons.broken_image_outlined),
+                            child: SizedBox(
+                              width: previewWidth,
+                              height: homeBannerHeight,
+                              child: Image.network(
+                                url,
+                                fit: BoxFit.cover,
+                                width: previewWidth,
+                                height: homeBannerHeight,
+                                alignment: Alignment(
+                                  (x / 50) - 1,
+                                  (y / 50) - 1,
+                                ),
+                                errorBuilder: (_, __, ___) => const Center(
+                                  child: Icon(Icons.broken_image_outlined),
+                                ),
+                              ),
                             ),
                           ),
                         )
@@ -147,7 +157,7 @@ class ImageFramingControls extends StatelessWidget {
             label: AppStrings.bannerImageScale,
             valueLabel: '$scale%',
             value: scale.toDouble(),
-            min: 50,
+            min: 100,
             max: 200,
             enabled: enabled,
             onChanged: (v) => onChanged(

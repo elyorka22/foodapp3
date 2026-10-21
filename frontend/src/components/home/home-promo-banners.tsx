@@ -52,29 +52,40 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
           const href = banner.linkUrl?.trim() || '/promotions';
           const title = banner.title?.trim();
 
+          const framing = categoryImageStyle({
+            imageScale: banner.imageScale,
+            imagePositionX: banner.imagePositionX,
+            imagePositionY: banner.imagePositionY,
+          });
+          const { transform, transformOrigin, objectPosition } = framing;
+
           return (
             <Link
               key={banner.id}
               href={href}
               className="relative h-[150px] w-[85%] shrink-0 overflow-hidden rounded-[24px] bg-zinc-200 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition active:scale-[0.99]"
             >
-              <Image
-                src={src}
-                alt={title || uz.specialOffers}
-                fill
-                className="object-cover"
-                style={categoryImageStyle({
-                  imageScale: banner.imageScale,
-                  imagePositionX: banner.imagePositionX,
-                  imagePositionY: banner.imagePositionY,
-                })}
-                sizes="(max-width: 430px) 85vw, 360px"
-                priority={index === 0}
-              />
+              {/* Scale on a wrapper so Next/Image fill stays edge-to-edge inside the rounded clip. */}
+              <div className="absolute inset-0 overflow-hidden rounded-[24px]">
+                <div
+                  className="absolute inset-0"
+                  style={{ transform, transformOrigin }}
+                >
+                  <Image
+                    src={src}
+                    alt={title || uz.specialOffers}
+                    fill
+                    className="object-cover"
+                    style={{ objectPosition }}
+                    sizes="(max-width: 430px) 85vw, 360px"
+                    priority={index === 0}
+                  />
+                </div>
+              </div>
               {title ? (
                 <>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-                  <p className="absolute bottom-3 left-3 right-3 line-clamp-2 text-[15px] font-bold text-white">
+                  <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                  <p className="absolute bottom-3 left-3 right-3 z-[1] line-clamp-2 text-[15px] font-bold text-white">
                     {title}
                   </p>
                 </>
