@@ -11,6 +11,8 @@ abstract final class AppColors {
   static const Color background = Color(0xFFF5F5F7);
   static const Color pageBackground = Color(0xFFF5F5F7);
   static const Color border = Color(0xFFE8E8EC);
+  /// Stronger hairline for chips / icon buttons on gray page backgrounds.
+  static const Color borderStrong = Color(0xFFD4D4D8);
 
   static const Color textPrimary = Color(0xFF18181B);
   static const Color textSecondary = Color(0xFF71717A);

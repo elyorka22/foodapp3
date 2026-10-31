@@ -7,6 +7,7 @@ import '../../../core/orders/order_status_steps.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/order_error.dart';
 import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/order_track_model.dart';
 import '../../../shared/widgets/food_app_button.dart' show FoodAppButton, FoodAppButtonVariant;
@@ -24,14 +25,22 @@ class OrderTrackingScreen extends ConsumerWidget {
     final track = ref.watch(orderTrackingProvider(trackingToken));
 
     ref.listen(orderTrackingProvider(trackingToken), (previous, next) {
-      next.whenData((snapshot) {
-        final order = snapshot.order;
-        ref.read(activeOrderProvider.notifier).setActive(
-              trackingToken,
-              orderNumber: order.orderNumber,
-            );
-        ref.read(activeOrderProvider.notifier).syncFromOrderStatus(order.status);
-      });
+      next.when(
+        data: (snapshot) {
+          final order = snapshot.order;
+          ref.read(activeOrderProvider.notifier).setActive(
+                trackingToken,
+                orderNumber: order.orderNumber,
+              );
+          ref.read(activeOrderProvider.notifier).syncFromOrderStatus(order.status);
+        },
+        error: (error, _) {
+          if (isOrderMissingError(error)) {
+            ref.read(activeOrderProvider.notifier).clearActive();
+          }
+        },
+        loading: () {},
+      );
     });
 
     return Scaffold(

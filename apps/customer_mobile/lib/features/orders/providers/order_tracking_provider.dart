@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../checkout/data/orders_repository.dart';
+import '../../../core/utils/order_error.dart';
 import '../../../shared/models/order_track_model.dart';
 import '../models/order_tracking_snapshot.dart';
 
@@ -20,6 +21,8 @@ final orderTrackingProvider = StreamProvider.autoDispose
       yield OrderTrackingSnapshot(order: order);
       if (_isTerminal(order.status)) break;
     } catch (e) {
+      // Missing order on server — stop polling and surface error so UI can clear local state.
+      if (isOrderMissingError(e)) rethrow;
       if (lastOrder != null) {
         yield OrderTrackingSnapshot(
           order: lastOrder,

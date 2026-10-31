@@ -11,6 +11,7 @@ import '../../../shared/models/banner_model.dart';
 import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/widgets/banner_slot_carousel.dart';
 import '../../../shared/widgets/business_availability_badge.dart';
+import '../../../shared/widgets/circle_icon_button.dart';
 import '../../../shared/widgets/menu_product_card.dart';
 import '../../../shared/widgets/restaurant_category_tabs.dart';
 import '../../cart/providers/cart_provider.dart';
@@ -119,7 +120,7 @@ class _RestaurantDetailBody extends ConsumerWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _IconCircleButton(
+                        CircleIconButton(
                           icon: Icons.arrow_back_rounded,
                           onTap: () => context.pop(),
                         ),
@@ -133,9 +134,9 @@ class _RestaurantDetailBody extends ConsumerWidget {
                             closingSoon: restaurant.closingSoon ?? false,
                           ),
                         ),
-                        _IconCircleButton(icon: Icons.search_rounded, onTap: () {}),
+                        CircleIconButton(icon: Icons.search_rounded, onTap: () {}),
                         const SizedBox(width: AppSpacing.sm),
-                        _IconCircleButton(
+                        CircleIconButton(
                           icon: Icons.favorite_border_rounded,
                           onTap: () {},
                         ),
@@ -180,7 +181,7 @@ class _RestaurantDetailBody extends ConsumerWidget {
                   AppSpacing.lg,
                   0,
                   AppSpacing.lg,
-                  AppSpacing.xxxl,
+                  96,
                 ),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
@@ -242,7 +243,7 @@ class _RestaurantDetailBody extends ConsumerWidget {
                   AppSpacing.lg,
                   0,
                   AppSpacing.lg,
-                  AppSpacing.xxxl,
+                  96,
                 ),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -347,28 +348,3 @@ class _RestaurantBrandHeader extends StatelessWidget {
   }
 }
 
-class _IconCircleButton extends StatelessWidget {
-  const _IconCircleButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      elevation: 1,
-      shadowColor: Colors.black26,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(icon, size: 22, color: AppColors.textPrimary),
-        ),
-      ),
-    );
-  }
-}

@@ -7,6 +7,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/widgets/business_availability_badge.dart';
+import '../../../shared/widgets/circle_icon_button.dart';
 import '../../../shared/widgets/menu_product_card.dart';
 import '../../../shared/widgets/restaurant_category_tabs.dart';
 import '../../cart/providers/cart_provider.dart';
@@ -89,8 +90,8 @@ class _StoreMenuBody extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        _IconCircleButton(
-                          icon: Icons.arrow_back,
+                        CircleIconButton(
+                          icon: Icons.arrow_back_rounded,
                           onTap: () => context.pop(),
                         ),
                       ],
@@ -137,7 +138,7 @@ class _StoreMenuBody extends ConsumerWidget {
                   AppSpacing.lg,
                   0,
                   AppSpacing.lg,
-                  AppSpacing.xxxl,
+                  96,
                 ),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -185,28 +186,3 @@ class _StoreMenuBody extends ConsumerWidget {
   }
 }
 
-class _IconCircleButton extends StatelessWidget {
-  const _IconCircleButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      elevation: 1,
-      shadowColor: Colors.black26,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(icon, size: 22, color: AppColors.textPrimary),
-        ),
-      ),
-    );
-  }
-}

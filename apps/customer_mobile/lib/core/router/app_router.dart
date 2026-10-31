@@ -100,35 +100,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           trackingToken: state.pathParameters['token']!,
         ),
       ),
-      GoRoute(
-        path: AppRoutes.stores,
-        builder: (_, state) => StoresScreen(
-          initialType: state.uri.queryParameters['type'],
-        ),
-        routes: [
-          GoRoute(
-            path: 'flowers',
-            builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'flowers'),
-          ),
-          GoRoute(
-            path: 'cosmetics',
-            builder: (_, __) => const StoreTypeHubScreen(
-              typeSlug: 'perfume',
-              titleOverride: AppStrings.homeServiceCosmetics,
-            ),
-          ),
-          GoRoute(
-            path: 'perfume',
-            builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'perfume'),
-          ),
-          GoRoute(
-            path: ':slug',
-            builder: (_, state) => StoreDetailScreen(
-              slug: state.pathParameters['slug']!,
-            ),
-          ),
-        ],
-      ),
       StatefulShellRoute.indexedStack(
         builder: (_, __, navigationShell) =>
             MainShellScreen(navigationShell: navigationShell),
@@ -146,6 +117,36 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':slug',
                     builder: (_, state) => RestaurantDetailScreen(
+                      slug: state.pathParameters['slug']!,
+                    ),
+                  ),
+                ],
+              ),
+              // Keep bottom nav on store hubs/details (same as web CustomerShell).
+              GoRoute(
+                path: AppRoutes.stores,
+                builder: (_, state) => StoresScreen(
+                  initialType: state.uri.queryParameters['type'],
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'flowers',
+                    builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'flowers'),
+                  ),
+                  GoRoute(
+                    path: 'cosmetics',
+                    builder: (_, __) => const StoreTypeHubScreen(
+                      typeSlug: 'perfume',
+                      titleOverride: AppStrings.homeServiceCosmetics,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'perfume',
+                    builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'perfume'),
+                  ),
+                  GoRoute(
+                    path: ':slug',
+                    builder: (_, state) => StoreDetailScreen(
                       slug: state.pathParameters['slug']!,
                     ),
                   ),

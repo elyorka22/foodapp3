@@ -252,9 +252,10 @@ class _AllRestaurantsScreenState extends ConsumerState<AllRestaurantsScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: const Color(0xFFF4F4F5),
-                      border: active
-                          ? Border.all(color: AppColors.primary, width: 2)
-                          : null,
+                      border: Border.all(
+                        color: active ? AppColors.primary : AppColors.borderStrong,
+                        width: active ? 2 : 1.25,
+                      ),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: img != null
@@ -326,8 +327,11 @@ class _AllRestaurantsScreenState extends ConsumerState<AllRestaurantsScreen> {
             ),
           ),
           selectedColor: AppColors.textPrimary,
-          backgroundColor: const Color(0xFFF4F4F5),
-          side: BorderSide.none,
+          backgroundColor: AppColors.surface,
+          side: BorderSide(
+            color: active ? AppColors.textPrimary : AppColors.borderStrong,
+            width: 1.25,
+          ),
           onSelected: (_) => onTap(),
         ),
       );

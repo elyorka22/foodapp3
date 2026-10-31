@@ -12,6 +12,7 @@ import '../../../core/utils/restaurant_card_meta.dart';
 import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/business_model.dart';
 import '../../../shared/models/restaurant_model.dart';
+import '../../../shared/widgets/circle_icon_button.dart';
 import '../data/stores_repository.dart';
 import '../providers/stores_provider.dart';
 
@@ -146,9 +147,9 @@ class _StoreTypeHubScreenState extends ConsumerState<StoreTypeHubScreen> {
       children: [
         Row(
           children: [
-            IconButton(
-              onPressed: () => context.pop(),
-              icon: const Icon(Icons.chevron_left, size: 28),
+            CircleIconButton(
+              onTap: () => context.pop(),
+              icon: Icons.arrow_back_rounded,
             ),
             Expanded(
               child: Text(
@@ -160,7 +161,7 @@ class _StoreTypeHubScreenState extends ConsumerState<StoreTypeHubScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 48),
+            const SizedBox(width: 40),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),

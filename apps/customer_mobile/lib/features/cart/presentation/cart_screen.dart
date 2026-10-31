@@ -35,25 +35,22 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   Widget build(BuildContext context) {
     final items = ref.watch(cartProvider);
     final total = ref.watch(cartProvider.notifier).total;
-    final hasActiveOrder = ref.watch(activeOrderProvider) != null;
 
     if (items.isEmpty) {
       return CustomerPage(
         child: Column(
           children: [
             const ActiveOrderBanner(),
-            if (!hasActiveOrder) ...[
-              const SizedBox(height: 32),
-              Text(AppStrings.cartEmpty, style: AppTypography.subtitle),
-              const SizedBox(height: AppSpacing.lg),
-              GestureDetector(
-                onTap: () => context.go(AppRoutes.restaurants),
-                child: Text(
-                  AppStrings.browseRestaurants,
-                  style: AppTypography.body.copyWith(color: AppColors.primary),
-                ),
+            const SizedBox(height: 32),
+            Text(AppStrings.cartEmpty, style: AppTypography.subtitle),
+            const SizedBox(height: AppSpacing.lg),
+            GestureDetector(
+              onTap: () => context.go(AppRoutes.restaurants),
+              child: Text(
+                AppStrings.browseRestaurants,
+                style: AppTypography.body.copyWith(color: AppColors.primary),
               ),
-            ],
+            ),
           ],
         ),
       );

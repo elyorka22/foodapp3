@@ -37,10 +37,19 @@ class ActiveOrderStorage {
     final raw = _prefs.getString(_activeOrderKey);
     if (raw == null || raw.isEmpty) return null;
     try {
-      return ActiveOrderRef.fromJson(
+      final parsed = ActiveOrderRef.fromJson(
         Map<String, dynamic>.from(jsonDecode(raw) as Map),
       );
+      final saved = DateTime.tryParse(parsed.savedAt);
+      // Drop ancient local refs so empty-server / wiped DBs don't keep a ghost banner.
+      if (saved != null &&
+          DateTime.now().toUtc().difference(saved) > const Duration(days: 2)) {
+        _prefs.remove(_activeOrderKey);
+        return null;
+      }
+      return parsed;
     } catch (_) {
+      _prefs.remove(_activeOrderKey);
       return null;
     }
   }

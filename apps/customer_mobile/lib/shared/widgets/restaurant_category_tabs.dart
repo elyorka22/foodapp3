@@ -60,10 +60,11 @@ class _Chip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Material(
-        color: active ? AppColors.primary : Colors.white,
+        color: active ? AppColors.primary : AppColors.surface,
         shape: StadiumBorder(
           side: BorderSide(
-            color: active ? AppColors.primary : AppColors.border,
+            color: active ? AppColors.primary : AppColors.borderStrong,
+            width: 1.25,
           ),
         ),
         child: InkWell(
