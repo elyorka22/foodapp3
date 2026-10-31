@@ -9,7 +9,9 @@ import '../providers/selected_city_provider.dart';
 
 /// City name with inverted caret — opens a bottom sheet picker.
 class CitySelector extends ConsumerWidget {
-  const CitySelector({super.key});
+  const CitySelector({super.key, this.centered = false});
+
+  final bool centered;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,10 +29,12 @@ class CitySelector extends ConsumerWidget {
       ),
       error: (_, __) => _CityButton(
         label: selected?.name ?? 'Chust',
+        centered: centered,
         onTap: () {},
       ),
       data: (cities) => _CityButton(
         label: selected?.name ?? (cities.isNotEmpty ? cities.first.name : 'Chust'),
+        centered: centered,
         onTap: cities.length <= 1
             ? null
             : () => _openCitySheet(context, ref, cities, selected?.slug),
@@ -99,28 +103,40 @@ class CitySelector extends ConsumerWidget {
 }
 
 class _CityButton extends StatelessWidget {
-  const _CityButton({required this.label, this.onTap});
+  const _CityButton({
+    required this.label,
+    this.onTap,
+    this.centered = false,
+  });
 
   final String label;
   final VoidCallback? onTap;
+  final bool centered;
 
   @override
   Widget build(BuildContext context) {
     final child = Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: centered ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment:
+          centered ? MainAxisAlignment.center : MainAxisAlignment.start,
       children: [
         Flexible(
           child: Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTypography.title.copyWith(fontSize: 26),
+            textAlign: centered ? TextAlign.center : TextAlign.start,
+            style: AppTypography.title.copyWith(
+              fontSize: centered ? 22 : 26,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 2),
         Icon(
           Icons.keyboard_arrow_down_rounded,
-          size: 28,
+          size: centered ? 22 : 28,
           color: AppColors.textPrimary.withValues(alpha: onTap == null ? 0.35 : 1),
         ),
       ],

@@ -462,12 +462,12 @@ class _ShopRow extends StatelessWidget {
   final VoidCallback onTap;
 
   static const _tints = [
-    Color(0xFF16A34A),
-    Color(0xFF2563EB),
-    Color(0xFFDC2626),
-    Color(0xFFEA580C),
-    Color(0xFF1D4ED8),
-    Color(0xFFCA8A04),
+    Color(0xFFE8F5E9),
+    Color(0xFFE3F2FD),
+    Color(0xFFFFF3E0),
+    Color(0xFFFCE4EC),
+    Color(0xFFE0F7FA),
+    Color(0xFFFFF8E1),
   ];
 
   @override
@@ -584,7 +584,7 @@ class _ShopRow extends StatelessWidget {
       child: Center(
         child: Text(
           store.name.isNotEmpty ? store.name[0].toUpperCase() : 'D',
-          style: AppTypography.title.copyWith(color: Colors.white),
+          style: AppTypography.title.copyWith(color: AppColors.textMuted),
         ),
       ),
     );

@@ -225,6 +225,7 @@ abstract final class AppStrings {
   static const notificationsMarkAll = "Hammasini o'qilgan";
 
   static const promotionsTitle = 'Aksiyalar';
+  static const specialOffers = 'Maxsus takliflar';
   static const promotionsHint =
       "Maxsus takliflar va promo kodlar tez orada shu yerda ko'rinadi.";
 

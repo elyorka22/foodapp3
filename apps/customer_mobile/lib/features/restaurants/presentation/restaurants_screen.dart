@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/config/public_settings_provider.dart';
-import '../../../core/network/api_exception.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../shared/models/banner_model.dart';
-import '../../../shared/models/business_model.dart';
-import '../../../shared/widgets/food_app_restaurant_card.dart';
-import '../../../shared/widgets/home_banner_grid.dart';
 import '../../../shared/widgets/home_headline.dart';
-import '../../../shared/widgets/home_secondary_banners.dart';
+import '../../../shared/widgets/home_promo_banners.dart';
+import '../../../shared/widgets/home_restaurants_carousel.dart';
 import '../../../shared/widgets/home_service_grid.dart';
-import '../../../shared/widgets/home_store_banners_carousel.dart';
+import '../../../shared/widgets/home_shops_carousel.dart';
 import '../../stores/providers/stores_provider.dart';
-import '../providers/dish_categories_provider.dart';
 import '../providers/restaurants_provider.dart';
 
+/// Home tab — same composition as web `page.tsx`.
 class RestaurantsScreen extends ConsumerWidget {
   const RestaurantsScreen({super.key});
 
@@ -28,101 +25,66 @@ class RestaurantsScreen extends ConsumerWidget {
     final restaurants = ref.watch(restaurantsListProvider(null));
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: RefreshIndicator(
+          color: AppColors.primary,
           onRefresh: () async {
             ref.invalidate(publicSettingsProvider);
             ref.invalidate(bannersProvider);
             ref.invalidate(homeFeaturedStoresProvider);
-            ref.invalidate(dishCategoriesProvider);
             ref.invalidate(restaurantsListProvider);
           },
           child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              10,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
             children: [
               const HomeHeadline(),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: 20),
               const HomeServiceGrid(),
-              const SizedBox(height: AppSpacing.lg),
-              _HomeBannerSection(
-                banners: banners,
-                featuredStores: featuredStores,
-              ),
-              HomeStoreBannersCarousel(
+              const SizedBox(height: 24),
+              HomePromoBanners(
                 banners: banners.valueOrNull ?? const [],
+                isLoading: banners.isLoading,
+              ),
+              const SizedBox(height: 24),
+              HomeShopsCarousel(
                 stores: featuredStores.valueOrNull ?? const [],
+                isLoading: featuredStores.isLoading,
+                total: featuredStores.valueOrNull?.length,
               ),
-              const SizedBox(height: AppSpacing.md),
-              const HomeSecondaryBanners(),
-              const SizedBox(height: AppSpacing.lg),
-              Text(AppStrings.popular, style: AppTypography.subtitle),
-              const SizedBox(height: AppSpacing.md),
-              restaurants.when(
-                data: (list) {
-                  if (list.isEmpty) {
-                    return Text(AppStrings.errorGeneric, style: AppTypography.bodySmall);
-                  }
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: list.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 3 / 4,
-                    ),
-                    itemBuilder: (context, index) {
-                      final r = list[index];
-                      return FoodAppRestaurantCard(
-                        restaurant: r,
-                        onTap: () => context.go('/restaurants/${r.slug}'),
-                      );
-                    },
-                  );
-                },
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                error: (e, _) => Text(
-                  ApiException.formatError(e),
+              const SizedBox(height: 24),
+              HomeRestaurantsCarousel(
+                restaurants: restaurants.valueOrNull ?? const [],
+                isLoading: restaurants.isLoading,
+                total: restaurants.valueOrNull?.length,
+              ),
+              if (restaurants.hasError) ...[
+                const SizedBox(height: 16),
+                Text(
+                  ApiException.formatError(restaurants.error!),
                   style: AppTypography.bodySmall,
+                  textAlign: TextAlign.center,
                 ),
-              ),
+              ],
+              if (!restaurants.isLoading &&
+                  !restaurants.hasError &&
+                  (restaurants.valueOrNull?.isEmpty ?? false)) ...[
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.restaurantsComingSoon,
+                  style: AppTypography.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Shows banners and stores independently — one slow request must not block the other.
-class _HomeBannerSection extends StatelessWidget {
-  const _HomeBannerSection({
-    required this.banners,
-    required this.featuredStores,
-  });
-
-  final AsyncValue<List<BannerModel>> banners;
-  final AsyncValue<List<BusinessModel>> featuredStores;
-
-  @override
-  Widget build(BuildContext context) {
-    final bothLoading = banners.isLoading && featuredStores.isLoading;
-    if (bothLoading) {
-      return const SizedBox(
-        height: 280,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return HomeBannerGrid(
-      banners: banners.valueOrNull ?? const [],
-      featuredStores: featuredStores.valueOrNull ?? const [],
     );
   }
 }

@@ -424,7 +424,7 @@ class _CategoryTile extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFFFBCFE8), Color(0xFFE879F9)],
+                        colors: [Color(0xFFE4E4E7), Color(0xFFF4F4F5)],
                       ),
                     ),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/dio_client.dart';
+import '../utils/home_service_cards.dart';
 
 class PublicSettings {
   const PublicSettings({
@@ -12,6 +13,7 @@ class PublicSettings {
     this.socialYoutubeUrl = '',
     this.supportPhone = '',
     this.partnershipPhone = '',
+    this.homeServiceCards,
   });
 
   final String appName;
@@ -23,6 +25,7 @@ class PublicSettings {
   final String socialYoutubeUrl;
   final String supportPhone;
   final String partnershipPhone;
+  final Map<HomeServiceCardKey, Map<String, dynamic>>? homeServiceCards;
 
   factory PublicSettings.fromJson(Map<String, dynamic> json) {
     return PublicSettings(
@@ -37,6 +40,7 @@ class PublicSettings {
       socialYoutubeUrl: json['social_youtube_url'] as String? ?? '',
       supportPhone: json['support_phone'] as String? ?? '',
       partnershipPhone: json['partnership_phone'] as String? ?? '',
+      homeServiceCards: parseHomeServiceCardsJson(json['home_service_cards']),
     );
   }
 }

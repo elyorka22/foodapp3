@@ -21,7 +21,7 @@ const _bannerAddIcon = Icon(
 const _bannerRegisterIcon = Icon(
   Icons.person_add_alt_1_outlined,
   size: 40,
-  color: Color(0xD9FF6B00),
+  color: Color(0xD918181B),
 );
 const _bannerHelpIcon = Icon(
   Icons.help_outline_rounded,
