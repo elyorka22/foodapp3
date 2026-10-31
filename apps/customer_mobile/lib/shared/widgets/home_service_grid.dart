@@ -94,9 +94,9 @@ class HomeServiceGrid extends StatelessWidget {
           height: 120,
           child: Row(
             children: [
-              Expanded(flex: restaurants.flex, child: _Tile(tile: restaurants)),
+              Expanded(flex: restaurants.flex, child: const _Tile(tile: restaurants)),
               const SizedBox(width: 8),
-              Expanded(flex: products.flex, child: _Tile(tile: products)),
+              Expanded(flex: products.flex, child: const _Tile(tile: products)),
             ],
           ),
         ),

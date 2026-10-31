@@ -538,7 +538,7 @@ class _ShopRow extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.directions_walk,
                         size: 15,
                         color: AppColors.textMuted,

@@ -63,7 +63,7 @@ class RestaurantListCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.directions_walk, size: 15, color: AppColors.textMuted),
+                        const Icon(Icons.directions_walk, size: 15, color: AppColors.textMuted),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
