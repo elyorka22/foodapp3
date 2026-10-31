@@ -37,7 +37,7 @@ type ServiceCard = {
 const TOP_ROW: ServiceCard[] = [
   {
     key: 'flowers',
-    href: '/stores?type=flowers',
+    href: '/stores/flowers',
     title: uz.homeServiceFlowers,
     eta: uz.homeServiceFlowersEta,
     icon: Flower2,
@@ -47,7 +47,7 @@ const TOP_ROW: ServiceCard[] = [
   },
   {
     key: 'cosmetics',
-    href: '/stores?type=perfume',
+    href: '/stores/cosmetics',
     title: uz.homeServiceCosmetics,
     eta: uz.homeServiceCosmeticsEta,
     icon: Sparkles,

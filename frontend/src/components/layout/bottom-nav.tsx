@@ -95,7 +95,12 @@ const tabs = [
     label: uz.navHome,
     Icon: HomeIcon,
     match: (path: string) =>
-      path === '/' || path.startsWith('/restaurants/') || path.startsWith('/shops/'),
+      path === '/' ||
+      path === '/restaurants' ||
+      path.startsWith('/restaurants/') ||
+      path === '/stores' ||
+      path.startsWith('/stores') ||
+      path.startsWith('/shops/'),
   },
   {
     href: '/cart',

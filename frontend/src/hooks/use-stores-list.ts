@@ -28,7 +28,7 @@ export function useStoresList(type?: string | null) {
   return useQuery({
     queryKey: ['stores', 'list', citySlug, normalized ?? 'all'],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: '40', vertical: 'store' });
+      const params = new URLSearchParams({ limit: '50', vertical: 'store' });
       if (citySlug) params.set('city', citySlug);
       if (normalized) params.set('type', normalized);
       return api<{ data: ShopBusiness[]; meta?: { total: number } }>(

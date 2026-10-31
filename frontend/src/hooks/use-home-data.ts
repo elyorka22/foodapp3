@@ -64,7 +64,7 @@ export function useHomeRestaurants() {
   return useQuery({
     queryKey: ['restaurants', 'home', citySlug],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: '20', vertical: 'restaurant' });
+      const params = new URLSearchParams({ limit: '50', vertical: 'restaurant' });
       if (citySlug) params.set('city', citySlug);
       return api<{ data: HomeRestaurant[]; meta?: { total: number } }>(
         `/businesses?${params.toString()}`,
