@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/jobs/job_service_type.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../shared/widgets/app_atmosphere.dart';
 import '../../../shared/widgets/brand_mark.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/password_text_field.dart';
@@ -28,15 +26,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   bool _loading = false;
   late final AnimationController _controller;
   late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 480),
     );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
   }
 
@@ -51,82 +54,64 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppAtmosphere(
-        intense: true,
-        child: SafeArea(
-          child: FadeTransition(
-            opacity: _fade,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Spacer(flex: 2),
-                  const Center(child: BrandMark(size: 84)),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    AppStrings.appName,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.display.copyWith(fontSize: 32),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fade,
+          child: SlideTransition(
+            position: _slide,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+              children: [
+                const BrandMark(size: 72, showGlow: false),
+                const SizedBox(height: 20),
+                Text(AppStrings.appName, style: AppTypography.display.copyWith(fontSize: 30)),
+                const SizedBox(height: 8),
+                Text(AppStrings.loginTitle, style: AppTypography.title.copyWith(fontSize: 20)),
+                const SizedBox(height: 6),
+                Text(AppStrings.loginHint, style: AppTypography.bodySmall),
+                const SizedBox(height: 28),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0F000000),
+                        blurRadius: 16,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    AppStrings.appTagline,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.bodySmall,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: JobServiceType.values.map((t) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Column(
-                          children: [
-                            Icon(
-                              t.icon,
-                              color: t.isAvailable ? t.color : AppColors.textMuted,
-                              size: 20,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              t.label,
-                              style: AppTypography.caption.copyWith(
-                                color: t.isAvailable
-                                    ? AppColors.textSecondary
-                                    : AppColors.textMuted,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextField(
+                        controller: _phone,
+                        keyboardType: TextInputType.phone,
+                        style: AppTypography.body,
+                        decoration: const InputDecoration(
+                          labelText: AppStrings.phone,
+                          hintText: '+998901234567',
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      PasswordTextField(
+                        controller: _password,
+                        labelText: AppStrings.password,
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      FoodAppButton(
+                        label: AppStrings.login,
+                        isLoading: _loading,
+                        onPressed: _submit,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  TextField(
-                    controller: _phone,
-                    keyboardType: TextInputType.phone,
-                    style: AppTypography.body,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.phone,
-                      hintText: '+998901234567',
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  PasswordTextField(
-                    controller: _password,
-                    labelText: AppStrings.password,
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  FoodAppButton(
-                    label: AppStrings.login,
-                    isLoading: _loading,
-                    onPressed: _submit,
-                  ),
-                  const Spacer(flex: 3),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

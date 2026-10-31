@@ -5,13 +5,13 @@ import 'app_spacing.dart';
 import 'app_typography.dart';
 
 abstract final class AppTheme {
-  static ThemeData get dark {
+  static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
       textTheme: AppTypography.textTheme,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: AppColors.onPrimary,
         secondary: AppColors.accent,
@@ -25,7 +25,7 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
         titleTextStyle: AppTypography.title,
         centerTitle: false,
       ),
@@ -52,9 +52,9 @@ abstract final class AppTheme {
       ),
       dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.surfaceElevated,
-        contentTextStyle: AppTypography.body.copyWith(color: AppColors.textPrimary),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: AppColors.primary,
+        contentTextStyle: AppTypography.body.copyWith(color: AppColors.onPrimary),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         behavior: SnackBarBehavior.floating,
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -62,17 +62,17 @@ abstract final class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceElevated,
+        fillColor: AppColors.surfaceHighlight,
         labelStyle: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
         hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -84,7 +84,7 @@ abstract final class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
           textStyle: AppTypography.button,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size.fromHeight(56),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
           ),
@@ -93,6 +93,6 @@ abstract final class AppTheme {
     );
   }
 
-  /// Legacy alias — courier app uses dark theme only.
-  static ThemeData get light => dark;
+  /// Courier app uses the light «Kuryer ilovasi» theme.
+  static ThemeData get dark => light;
 }

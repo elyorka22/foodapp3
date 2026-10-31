@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../core/jobs/courier_job_adapter.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_order_model.dart';
-import '../../../shared/widgets/food_app_card.dart';
-import '../../../shared/widgets/service_type_badge.dart';
 import '../data/courier_repository.dart';
 
 final orderHistoryProvider = FutureProvider.autoDispose((ref) async {
@@ -24,34 +20,65 @@ class OrderHistoryScreen extends ConsumerWidget {
     final history = ref.watch(orderHistoryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.orderHistory)),
-      body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(orderHistoryProvider),
-        color: AppColors.primary,
-        child: history.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [Center(child: Text('$e'))],
-          ),
-          data: (orders) {
-            if (orders.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 120),
-                  Center(child: Text(AppStrings.noHistory)),
-                ],
-              );
-            }
-            return ListView.separated(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async => ref.invalidate(orderHistoryProvider),
+          color: AppColors.primary,
+          child: history.when(
+            loading: () => ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: orders.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) => _HistoryCard(order: orders[index]),
-            );
-          },
+              children: const [
+                SizedBox(height: 180),
+                Center(child: CircularProgressIndicator()),
+              ],
+            ),
+            error: (e, _) => ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              children: [
+                const SizedBox(height: 80),
+                Text('$e', style: AppTypography.bodySmall, textAlign: TextAlign.center),
+              ],
+            ),
+            data: (orders) {
+              if (orders.isEmpty) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      child: Text(
+                        AppStrings.orderHistory,
+                        style: AppTypography.title.copyWith(fontSize: 26),
+                      ),
+                    ),
+                    const SizedBox(height: 100),
+                    Center(
+                      child: Text(AppStrings.noHistory, style: AppTypography.bodySmall),
+                    ),
+                  ],
+                );
+              }
+
+              return ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+                itemCount: orders.length + 1,
+                separatorBuilder: (_, index) =>
+                    index == 0 ? const SizedBox(height: 12) : const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Text(
+                      AppStrings.orderHistory,
+                      style: AppTypography.title.copyWith(fontSize: 26),
+                    );
+                  }
+                  return _HistoryCard(order: orders[index - 1]);
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -66,61 +93,69 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateLabel = order.createdAt != null
-        ? DateFormat('dd.MM.yyyy HH:mm').format(order.createdAt!.toLocal())
+        ? DateFormat('dd.MM.yyyy · HH:mm').format(order.createdAt!.toLocal())
         : null;
-    final pickup = order.stops.isNotEmpty ? order.stops.first.title : order.restaurantName;
+    final isStore = order.businessTypeSlug != null &&
+        order.businessTypeSlug != 'restaurant' &&
+        order.businessTypeSlug!.isNotEmpty;
+    final title = isStore ? AppStrings.storeOrder : AppStrings.restaurantOrder;
+    final subtitle = order.restaurantName ?? order.customerAddress ?? '#${order.orderNumber}';
+    final distance = order.distanceKm != null
+        ? '${order.distanceKm!.toStringAsFixed(1)} km'
+        : null;
 
-    return FoodAppCard(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
         children: [
-          Row(
-            children: [
-              ServiceTypeBadge(type: order.serviceType, compact: true),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceHighlight,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              isStore ? Icons.store_mall_directory_outlined : Icons.restaurant_outlined,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTypography.subtitle.copyWith(fontSize: 15)),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: AppTypography.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (dateLabel != null) ...[
+                  const SizedBox(height: 4),
                   Text(
-                    formatSum(order.collectFromCustomer),
-                    style: AppTypography.subtitle.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    '${AppStrings.courierIncomeShort}: ${formatSum(order.courierEarnings)}',
-                    style: AppTypography.caption.copyWith(color: AppColors.primary),
+                    distance == null ? dateLabel : '$dateLabel · $distance',
+                    style: AppTypography.caption,
                   ),
                 ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text('#${order.orderNumber}', style: AppTypography.subtitle),
-          if (pickup != null) ...[
-            const SizedBox(height: 4),
-            Text(pickup, style: AppTypography.merchantName),
-          ],
-          if (order.customerAddress != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              order.customerAddress!,
-              style: AppTypography.bodySmall,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          if (dateLabel != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.check_circle, size: 14, color: AppColors.success),
-                const SizedBox(width: 4),
-                Text(dateLabel, style: AppTypography.caption),
               ],
             ),
-          ],
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '+${formatSumNumber(order.courierEarnings)}',
+            style: AppTypography.subtitle.copyWith(
+              color: AppColors.accent,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ],
       ),
     );

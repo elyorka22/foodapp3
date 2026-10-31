@@ -63,21 +63,17 @@ class _NewJobAlertBannerState extends State<NewJobAlertBanner>
         child: AnimatedBuilder(
           animation: _pulse,
           builder: (context, child) {
-            final glow = 0.18 + (_pulse.value * 0.18);
+            final glow = 0.08 + (_pulse.value * 0.1);
             return Container(
-              margin: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0D4A3F), Color(0xFF123A48)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.55)),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.primary, width: 1.5),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primary.withValues(alpha: glow),
-                    blurRadius: 20,
+                    blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),
                 ],
@@ -89,7 +85,7 @@ class _NewJobAlertBannerState extends State<NewJobAlertBanner>
             color: Colors.transparent,
             child: InkWell(
               onTap: widget.onTap,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Row(
@@ -98,12 +94,12 @@ class _NewJobAlertBannerState extends State<NewJobAlertBanner>
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: AppColors.primarySoft,
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
                         Icons.notifications_active_rounded,
-                        color: AppColors.primary,
+                        color: AppColors.onPrimary,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -114,7 +110,7 @@ class _NewJobAlertBannerState extends State<NewJobAlertBanner>
                           Text(
                             AppStrings.newJobAlertTitle,
                             style: AppTypography.caption.copyWith(
-                              color: AppColors.primary,
+                              color: AppColors.accent,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -125,8 +121,8 @@ class _NewJobAlertBannerState extends State<NewJobAlertBanner>
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            '${AppStrings.courierIncomeShort}: ${formatSum(widget.alert.courierEarnings)} · ${AppStrings.newJobAlertTap}',
-                            style: AppTypography.caption.copyWith(color: AppColors.primary),
+                            '${formatSum(widget.alert.courierEarnings)} · ${AppStrings.newJobAlertTap}',
+                            style: AppTypography.caption,
                           ),
                         ],
                       ),

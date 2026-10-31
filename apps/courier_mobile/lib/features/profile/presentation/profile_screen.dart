@@ -7,11 +7,9 @@ import '../../../core/jobs/job_service_type.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_sum.dart';
-import '../../../shared/widgets/app_atmosphere.dart';
-import '../../../shared/widgets/metric_block.dart';
+import '../../../shared/widgets/courier_avatar.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../home/providers/courier_home_provider.dart';
 
@@ -27,128 +25,151 @@ class ProfileScreen extends ConsumerWidget {
     final alertPrefs = ref.watch(alertPreferencesProvider);
 
     return Scaffold(
-      body: AppAtmosphere(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              title: const Text(AppStrings.profile),
-              backgroundColor: AppColors.background.withValues(alpha: 0.92),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.sm,
-                AppSpacing.lg,
-                AppSpacing.xxl,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+          children: [
+            Text(AppStrings.profile, style: AppTypography.title.copyWith(fontSize: 26)),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: AppColors.border),
               ),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: AppColors.primarySoft,
-                        child: Text(
-                          (user?.fullName ?? '?').substring(0, 1).toUpperCase(),
-                          style: AppTypography.title.copyWith(color: AppColors.primary),
+              child: Row(
+                children: [
+                  CourierAvatar(name: user?.fullName, size: 64),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.fullName ?? '—',
+                          style: AppTypography.title.copyWith(fontSize: 20),
                         ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 2),
+                        Text(user?.phone ?? '—', style: AppTypography.bodySmall),
+                        const SizedBox(height: 8),
+                        Row(
                           children: [
-                            Text(user?.fullName ?? '—', style: AppTypography.title.copyWith(fontSize: 20)),
-                            const SizedBox(height: 2),
-                            Text(user?.phone ?? '—', style: AppTypography.bodySmall),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: shiftOpen ? AppColors.online : AppColors.offline,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  shiftOpen ? AppStrings.online : AppStrings.offline,
-                                  style: AppTypography.caption.copyWith(
-                                    color: shiftOpen ? AppColors.online : AppColors.textMuted,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: shiftOpen ? AppColors.online : AppColors.offline,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              shiftOpen ? AppStrings.online : AppStrings.offline,
+                              style: AppTypography.caption.copyWith(
+                                color: shiftOpen ? AppColors.online : AppColors.textMuted,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              '4,9 · ${AppStrings.vehicleScooter}',
+                              style: AppTypography.caption,
                             ),
                           ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  earnings.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (_, __) => const SizedBox.shrink(),
-                    data: (data) => MetricRow(
-                      children: [
-                        MetricBlock(
-                          label: AppStrings.earned,
-                          value: formatSum(data.totalEarnings),
-                          accent: true,
-                          icon: Icons.payments_outlined,
-                        ),
-                        MetricBlock(
-                          label: AppStrings.deliveries,
-                          value: '${data.completedAssignments}',
-                          icon: Icons.check_circle_outline,
                         ),
                       ],
                     ),
                   ),
-                  profile.when(
-                    data: (p) => Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.lg),
-                      child: Text(
-                        '${AppStrings.totalDeliveries}: ${p.totalDeliveries}',
-                        style: AppTypography.bodySmall,
-                      ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            earnings.when(
+              loading: () => const SizedBox(
+                height: 88,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (data) => Row(
+                children: [
+                  Expanded(
+                    child: _ProfileMetric(
+                      label: AppStrings.earned,
+                      value: formatSumNumber(data.totalEarnings),
+                      unit: AppStrings.currencySom,
                     ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  Text(AppStrings.serviceTypesTitle, style: AppTypography.caption),
-                  const SizedBox(height: AppSpacing.md),
-                  ...JobServiceType.values.map(
-                    (t) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _ProfileMetric(
+                      label: AppStrings.deliveries,
+                      value: '${data.completedAssignments}',
+                      unit: AppStrings.unitOrders,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            profile.when(
+              data: (p) => Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  '${AppStrings.totalDeliveries}: ${p.totalDeliveries}',
+                  style: AppTypography.bodySmall,
+                ),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 22),
+            Text(AppStrings.serviceTypesTitle, style: AppTypography.subtitle),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  for (final t in JobServiceType.values)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Row(
                         children: [
                           Icon(t.icon, color: t.color, size: 20),
                           const SizedBox(width: 12),
                           Expanded(child: Text(t.label, style: AppTypography.body)),
                           Text(
-                            t.isAvailable ? AppStrings.serviceActive : AppStrings.serviceComingSoon,
+                            t.isAvailable
+                                ? AppStrings.serviceActive
+                                : AppStrings.serviceComingSoon,
                             style: AppTypography.caption.copyWith(
                               color: t.isAvailable ? AppColors.success : AppColors.textMuted,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  const Divider(),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(AppStrings.alertSettings, style: AppTypography.subtitle),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
+            Text(AppStrings.alertSettings, style: AppTypography.subtitle),
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
                   SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
                     title: Text(AppStrings.alertSound, style: AppTypography.body),
                     activeThumbColor: AppColors.primary,
                     activeTrackColor: AppColors.primary.withValues(alpha: 0.35),
@@ -156,8 +177,8 @@ class ProfileScreen extends ConsumerWidget {
                     onChanged: (v) =>
                         ref.read(alertPreferencesProvider.notifier).setSoundEnabled(v),
                   ),
+                  const Divider(height: 1),
                   SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
                     title: Text(AppStrings.alertVibration, style: AppTypography.body),
                     activeThumbColor: AppColors.primary,
                     activeTrackColor: AppColors.primary.withValues(alpha: 0.35),
@@ -165,19 +186,36 @@ class ProfileScreen extends ConsumerWidget {
                     onChanged: (v) =>
                         ref.read(alertPreferencesProvider.notifier).setVibrationEnabled(v),
                   ),
-                  const Divider(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
                   _ProfileTile(
                     icon: Icons.history_rounded,
                     label: AppStrings.orderHistory,
                     onTap: () => context.push(AppRoutes.orderHistory),
                   ),
+                  const Divider(height: 1),
                   _ProfileTile(
                     icon: Icons.notifications_none_rounded,
                     label: AppStrings.notifications,
                     onTap: () => context.push(AppRoutes.notifications),
                   ),
-                  const _NotificationSettingsTile(),
-                  const SizedBox(height: AppSpacing.md),
+                  const Divider(height: 1),
+                  const _ProfileTile(
+                    icon: Icons.settings_outlined,
+                    label: AppStrings.notificationSettings,
+                    onTap: openAppSettings,
+                  ),
+                  const Divider(height: 1),
                   _ProfileTile(
                     icon: Icons.logout_rounded,
                     label: AppStrings.logout,
@@ -187,7 +225,7 @@ class ProfileScreen extends ConsumerWidget {
                       if (context.mounted) context.go(AppRoutes.login);
                     },
                   ),
-                ]),
+                ],
               ),
             ),
           ],
@@ -197,15 +235,40 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _NotificationSettingsTile extends StatelessWidget {
-  const _NotificationSettingsTile();
+class _ProfileMetric extends StatelessWidget {
+  const _ProfileMetric({
+    required this.label,
+    required this.value,
+    required this.unit,
+  });
+
+  final String label;
+  final String value;
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
-    return const _ProfileTile(
-      icon: Icons.settings_outlined,
-      label: AppStrings.notificationSettings,
-      onTap: openAppSettings,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTypography.caption),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: AppTypography.title.copyWith(fontSize: 22),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(unit, style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
+        ],
+      ),
     );
   }
 }
@@ -226,7 +289,6 @@ class _ProfileTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: color ?? AppColors.textSecondary),
       title: Text(
         label,

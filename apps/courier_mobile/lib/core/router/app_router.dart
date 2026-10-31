@@ -43,7 +43,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.orderComplete, builder: (_, __) => const OrderCompleteScreen()),
       GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationsScreen()),
-      GoRoute(path: AppRoutes.orderHistory, builder: (_, __) => const OrderHistoryScreen()),
       StatefulShellRoute.indexedStack(
         builder: (_, __, navigationShell) =>
             CourierShellScreen(navigationShell: navigationShell),
@@ -51,6 +50,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.orderHistory,
+                builder: (_, __) => const OrderHistoryScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(

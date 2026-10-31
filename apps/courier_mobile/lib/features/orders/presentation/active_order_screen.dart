@@ -12,15 +12,16 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format_sum.dart';
 import '../../../shared/models/courier_order_model.dart';
-import '../../../shared/widgets/active_stop_panel.dart';
+import '../../../shared/widgets/call_phone_button.dart';
+import '../../../shared/widgets/courier_avatar.dart';
 import '../../../shared/widgets/delivery_map.dart';
 import '../../../shared/widgets/food_app_button.dart';
-import '../../../shared/widgets/job_step_indicator.dart';
 import '../../../shared/widgets/order_line_items_card.dart';
-import '../../../shared/widgets/service_type_badge.dart';
 import '../../home/providers/courier_home_provider.dart';
 import '../data/courier_repository.dart';
+import 'order_complete_screen.dart';
 
 class ActiveOrderScreen extends ConsumerStatefulWidget {
   const ActiveOrderScreen({super.key, required this.orderId});
@@ -35,7 +36,7 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
   CourierOrderModel? _order;
   bool _loading = true;
   bool _acting = false;
-  bool _showItems = false;
+  bool _showItems = true;
   double? _courierLat;
   double? _courierLng;
 
@@ -113,6 +114,7 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
     final order = _order;
     if (order == null) {
       return Scaffold(
+        backgroundColor: AppColors.background,
         appBar: AppBar(),
         body: Center(
           child: Padding(
@@ -134,120 +136,216 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
       );
     }
 
-    final steps = JobWorkflow.stepsFor(order);
-    final phase = JobWorkflow.phaseLabel(order);
+    final toCustomer = order.status == 'PICKED_UP' || order.status == 'DELIVERING';
     final activeStop = _activeStop(order);
+    final stepLabel = toCustomer
+        ? '2 / 2 · ${AppStrings.navigateToCustomer}'
+        : '1 / 2 · ${AppStrings.navigateToRestaurant}';
+    final heading = toCustomer ? AppStrings.goingToCustomer : AppStrings.goingToRestaurant;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('#${order.orderNumber}', style: AppTypography.subtitle),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: ServiceTypeBadge(type: order.serviceType, compact: true),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(phase, style: AppTypography.title.copyWith(fontSize: 20)),
-                const SizedBox(height: 8),
-                JobStepIndicator(steps: steps),
-              ],
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 16, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.chevron_left, size: 28),
+                  ),
+                  Expanded(
+                    child: Text(heading, style: AppTypography.title.copyWith(fontSize: 18)),
+                  ),
+                  Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      stepLabel,
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: DeliveryMap(
-              expanded: true,
-              courierLat: _courierLat,
-              courierLng: _courierLng,
-              restaurantLat: order.restaurantLat,
-              restaurantLng: order.restaurantLng,
-              customerLat: order.customerLat,
-              customerLng: order.customerLng,
-              orderStatus: order.status,
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: AppColors.background,
-              border: Border(top: BorderSide(color: AppColors.border)),
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (activeStop != null)
-                  ActiveStopPanel(stop: activeStop, order: order),
-                if (order.items.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: () => setState(() => _showItems = !_showItems),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
+                children: [
+                  DeliveryMap(
+                    expanded: true,
+                    courierLat: _courierLat,
+                    courierLng: _courierLng,
+                    restaurantLat: order.restaurantLat,
+                    restaurantLng: order.restaurantLng,
+                    customerLat: order.customerLat,
+                    customerLng: order.customerLng,
+                    orderStatus: order.status,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: AppColors.border),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x14000000),
+                            blurRadius: 16,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            'Buyurtma tarkibi (${order.items.length})',
-                            style: AppTypography.bodySmall,
-                          ),
-                          const Spacer(),
-                          Icon(
-                            _showItems ? Icons.expand_less : Icons.expand_more,
-                            size: 20,
-                            color: AppColors.textMuted,
-                          ),
+                          if (toCustomer)
+                            _CustomerBlock(order: order, stop: activeStop)
+                          else
+                            _RestaurantBlock(order: order, stop: activeStop),
+                          if (!toCustomer && order.items.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            InkWell(
+                              onTap: () => setState(() => _showItems = !_showItems),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Buyurtma #${order.orderNumber}',
+                                      style: AppTypography.subtitle.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Icon(
+                                      _showItems ? Icons.expand_less : Icons.expand_more,
+                                      size: 20,
+                                      color: AppColors.textMuted,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            if (_showItems) OrderLineItemsCard(items: order.items),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceHighlight,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(AppStrings.pickupCode, style: AppTypography.bodySmall),
+                                  const Spacer(),
+                                  Text(
+                                    order.orderNumber,
+                                    style: AppTypography.title.copyWith(
+                                      fontSize: 22,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (toCustomer) ...[
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.cashSoft,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: const Color(0x73D68C00),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      AppStrings.cashFromCustomer,
+                                      style: AppTypography.caption.copyWith(
+                                        color: AppColors.warning,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    formatSum(order.collectFromCustomer),
+                                    style: AppTypography.subtitle.copyWith(
+                                      color: AppColors.warning,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                   ),
-                  if (_showItems) OrderLineItemsCard(items: order.items),
                 ],
-              ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
-              border: Border(top: BorderSide(color: AppColors.border)),
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                border: Border(top: BorderSide(color: AppColors.border)),
+              ),
+              child: SafeArea(
+                top: false,
+                child: _needsAcceptance
+                    ? Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: FoodAppButton(
+                              label: AppStrings.decline,
+                              variant: FoodAppButtonVariant.secondary,
+                              isLoading: _acting,
+                              onPressed: _acting ? null : _declineAssignment,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 3,
+                            child: FoodAppButton(
+                              label: AppStrings.accept,
+                              isLoading: _acting,
+                              onPressed: _acting ? null : _acceptAssignment,
+                            ),
+                          ),
+                        ],
+                      )
+                    : FoodAppButton(
+                        label: JobWorkflow.actionLabel(order),
+                        isLoading: _acting,
+                        onPressed: _acting ? null : _onAction,
+                      ),
+              ),
             ),
-            child: SafeArea(
-              top: false,
-              child: _needsAcceptance
-                  ? Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FoodAppButton(
-                          label: AppStrings.accept,
-                          isLoading: _acting,
-                          onPressed: _acting ? null : _acceptAssignment,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        FoodAppButton(
-                          label: AppStrings.decline,
-                          variant: FoodAppButtonVariant.secondary,
-                          isLoading: _acting,
-                          onPressed: _acting ? null : _declineAssignment,
-                        ),
-                      ],
-                    )
-                  : FoodAppButton(
-                      label: JobWorkflow.actionLabel(order),
-                      isLoading: _acting,
-                      onPressed: _acting ? null : _onAction,
-                    ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -318,6 +416,11 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
         ref.invalidate(courierEarningsProvider);
         ref.invalidate(shiftStatsProvider);
         ref.invalidate(courierProfileProvider);
+        ref.read(lastCompletedDeliveryProvider.notifier).state = CompletedDeliverySummary(
+          earnings: order.courierEarnings,
+          cashCollected: order.collectFromCustomer,
+          orderNumber: order.orderNumber,
+        );
         if (!mounted) return;
         context.go(AppRoutes.orderComplete);
       }
@@ -328,5 +431,100 @@ class _ActiveOrderScreenState extends ConsumerState<ActiveOrderScreen> {
     } finally {
       if (mounted) setState(() => _acting = false);
     }
+  }
+}
+
+class _RestaurantBlock extends StatelessWidget {
+  const _RestaurantBlock({required this.order, required this.stop});
+
+  final CourierOrderModel order;
+  final JobStop? stop;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceHighlight,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: const Icon(Icons.storefront_outlined, color: AppColors.textPrimary),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                stop?.title ?? order.restaurantName ?? '—',
+                style: AppTypography.subtitle.copyWith(fontSize: 17),
+              ),
+              if ((stop?.subtitle ?? '').trim().isNotEmpty ||
+                  (order.customerAddress ?? '').isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  stop?.subtitle?.trim().isNotEmpty == true
+                      ? stop!.subtitle!
+                      : (order.merchantTypeLabel.isNotEmpty
+                          ? order.merchantTypeLabel
+                          : ''),
+                  style: AppTypography.bodySmall,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CustomerBlock extends StatelessWidget {
+  const _CustomerBlock({required this.order, required this.stop});
+
+  final CourierOrderModel order;
+  final JobStop? stop;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = order.customerName ?? stop?.title ?? 'Mijoz';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            CourierAvatar(name: name, size: 48),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name, style: AppTypography.subtitle.copyWith(fontSize: 17)),
+                  const SizedBox(height: 2),
+                  Text(
+                    '4,9 · ${AppStrings.customer}',
+                    style: AppTypography.caption,
+                  ),
+                ],
+              ),
+            ),
+            if (stop?.phone != null || order.customerPhone != null)
+              CallPhoneButton(
+                phone: stop?.phone ?? order.customerPhone!,
+                compact: true,
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          order.customerAddress ?? stop?.subtitle ?? '—',
+          style: AppTypography.body,
+        ),
+      ],
+    );
   }
 }

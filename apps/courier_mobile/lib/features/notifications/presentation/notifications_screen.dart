@@ -21,77 +21,110 @@ class NotificationsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(AppStrings.notifications),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await ref.read(notificationsRepositoryProvider).markAllRead();
-              ref.invalidate(notificationsListProvider);
-              ref.invalidate(notificationsUnreadProvider);
-            },
-            child: const Text('O\'qildi'),
-          ),
-        ],
-      ),
       body: SafeArea(
-        child: notifications.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Text(
-                e.toString(),
-                style: AppTypography.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-          data: (items) {
-            if (items.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.notifications_none_outlined,
-                      size: 48,
-                      color: AppColors.textMuted.withValues(alpha: 0.7),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 12, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: const Icon(Icons.chevron_left, size: 28),
+                  ),
+                  Expanded(
+                    child: Text(
+                      AppStrings.notifications,
+                      style: AppTypography.title.copyWith(fontSize: 22),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      AppStrings.noNotifications,
-                      style: AppTypography.body.copyWith(color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.sm,
-                AppSpacing.lg,
-                AppSpacing.lg,
-              ),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return _NotificationTile(
-                  item: item,
-                  onTap: () async {
-                    if (!item.isRead) {
-                      await ref.read(notificationsRepositoryProvider).markRead(item.id);
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      await ref.read(notificationsRepositoryProvider).markAllRead();
                       ref.invalidate(notificationsListProvider);
                       ref.invalidate(notificationsUnreadProvider);
-                    }
-                  },
-                );
-              },
-            );
-          },
+                    },
+                    child: Text(
+                      "O'qildi",
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: notifications.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Text(
+                      e.toString(),
+                      style: AppTypography.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                data: (items) {
+                  if (items.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: const Icon(
+                              Icons.notifications_none_outlined,
+                              size: 32,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            AppStrings.noNotifications,
+                            style: AppTypography.body.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return _NotificationTile(
+                        item: item,
+                        onTap: () async {
+                          if (!item.isRead) {
+                            await ref
+                                .read(notificationsRepositoryProvider)
+                                .markRead(item.id);
+                            ref.invalidate(notificationsListProvider);
+                            ref.invalidate(notificationsUnreadProvider);
+                          }
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -112,19 +145,19 @@ class _NotificationTile extends StatelessWidget {
     final unread = !item.isRead;
 
     return Material(
-      color: unread ? AppColors.primarySoft : AppColors.surface,
-      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: unread ? AppColors.primary.withValues(alpha: 0.35) : AppColors.border,
             ),
           ),
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.all(16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -139,7 +172,7 @@ class _NotificationTile extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,18 +180,12 @@ class _NotificationTile extends StatelessWidget {
                     Text(
                       item.title,
                       style: AppTypography.subtitle.copyWith(
-                        color: AppColors.textPrimary,
                         fontWeight: unread ? FontWeight.w700 : FontWeight.w600,
                       ),
                     ),
                     if (item.body.trim().isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        item.body,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
+                      Text(item.body, style: AppTypography.bodySmall),
                     ],
                     if (item.createdAt.trim().isNotEmpty) ...[
                       const SizedBox(height: 6),

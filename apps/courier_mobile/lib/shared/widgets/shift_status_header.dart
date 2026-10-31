@@ -88,13 +88,13 @@ class _ShiftToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: isOnline ? AppColors.danger.withValues(alpha: 0.15) : AppColors.primary,
-      borderRadius: BorderRadius.circular(10),
+      color: isOnline ? AppColors.danger.withValues(alpha: 0.12) : AppColors.primary,
+      borderRadius: BorderRadius.circular(22),
       child: InkWell(
         onTap: isLoading ? null : onPressed,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(22),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
           child: isLoading
               ? SizedBox(
                   width: 16,
@@ -109,6 +109,7 @@ class _ShiftToggleButton extends StatelessWidget {
                   style: AppTypography.caption.copyWith(
                     color: isOnline ? AppColors.danger : AppColors.onPrimary,
                     fontWeight: FontWeight.w700,
+                    fontSize: 13,
                   ),
                 ),
         ),
