@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../l10n/app_strings.dart';
 import '../../features/auth/presentation/complete_profile_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
@@ -23,6 +24,7 @@ import '../../features/splash/presentation/splash_page.dart';
 import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/booking/presentation/booking_venue_screen.dart';
 import '../../features/stores/presentation/store_detail_screen.dart';
+import '../../features/stores/presentation/store_type_hub_screen.dart';
 import '../../features/stores/presentation/stores_screen.dart';
 import 'routes.dart';
 
@@ -100,8 +102,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.stores,
-        builder: (_, __) => const StoresScreen(),
+        builder: (_, state) => StoresScreen(
+          initialType: state.uri.queryParameters['type'],
+        ),
         routes: [
+          GoRoute(
+            path: 'flowers',
+            builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'flowers'),
+          ),
+          GoRoute(
+            path: 'cosmetics',
+            builder: (_, __) => const StoreTypeHubScreen(
+              typeSlug: 'perfume',
+              titleOverride: AppStrings.homeServiceCosmetics,
+            ),
+          ),
+          GoRoute(
+            path: 'perfume',
+            builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'perfume'),
+          ),
           GoRoute(
             path: ':slug',
             builder: (_, state) => StoreDetailScreen(

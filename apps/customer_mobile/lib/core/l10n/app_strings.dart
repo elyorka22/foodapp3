@@ -27,11 +27,39 @@ abstract final class AppStrings {
 
   static const searchRestaurants = 'Restoran qidirish';
   static const searchStores = "Do'kon qidirish";
+  static const searchInShops = "Do'konlardan qidirish";
   static const categories = 'Kategoriyalar';
   static const dishCategories = 'Taom kategoriyalari';
   static const allRestaurants = 'Barcha restoranlar';
+  static const restaurants = 'Restoranlar';
   static const popular = 'Mashhur';
   static const seeAll = 'Barchasi';
+  static const filters = 'Filtrlar';
+  static const filterFast = 'Tez';
+  static const filterPromos = 'Aksiyalar';
+  static const filterDeliveryDiscount = 'Yetkazishga chegirma';
+  static const filterFreeDelivery = "Yetkazish 0 so'm";
+  static const pickupLabel = 'Olib ketish';
+  static const freeBadge = 'Bepul';
+  static const allCategoryProducts = 'Barcha mahsulotlar';
+  static String fromPrice(String amount) => "$amount so'mdan";
+  static String orderFromAmount(String amount) => "Buyurtma $amount so'mdan";
+  static const scrollToTop = 'Yuqoriga';
+  static const storesComingSoon = "Tez orada do'konlar";
+  static const restaurantsComingSoon = 'Tez orada restoranlar';
+
+  static const homeServiceFlowers = 'Gullar';
+  static const homeServiceFlowersEta = '40 daq';
+  static const homeServiceCosmetics = 'Kosmetika';
+  static const homeServiceCosmeticsEta = '45 daq';
+  static const homeServicePharmacy = 'Dorixona';
+  static const homeServicePharmacyEta = '35 daq';
+  static const homeServiceRestaurants = 'Restoranlar';
+  static const homeServiceRestaurantsEta = '25 daq';
+  static const homeServiceProducts = 'Mahsulotlar';
+  static const homeServiceProductsEta = '30 daq';
+  static const homeServiceDeliveryBadge = 'Tez';
+  static const groceryStores = "Mahsulot do'konlari";
 
   static const cartEmpty = "Savat bo'sh";
   static const cartTitle = 'Savat';

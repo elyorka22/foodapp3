@@ -3,6 +3,8 @@ abstract final class AppRoutes {
   static const restaurants = '/restaurants';
   static const allRestaurants = '/restaurants/all';
   static const stores = '/stores';
+  static const storesFlowers = '/stores/flowers';
+  static const storesCosmetics = '/stores/cosmetics';
   static const cart = '/cart';
   static const profile = '/profile';
   static const profileHelp = '/profile/help';
@@ -17,4 +19,6 @@ abstract final class AppRoutes {
   static const networkHealth = '/network-health';
   static const categoryProductsBase = '/categories';
   static String categoryProducts(String slug) => '$categoryProductsBase/$slug';
+  static String storesWithType(String type) => '$stores?type=$type';
+  static String storeDetail(String slug) => '$stores/$slug';
 }

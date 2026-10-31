@@ -166,12 +166,14 @@ class ProductCategoryModel {
     required this.id,
     required this.name,
     required this.slug,
+    this.imageUrl,
     this.sortOrder,
   });
 
   final String id;
   final String name;
   final String slug;
+  final String? imageUrl;
   final int? sortOrder;
 
   factory ProductCategoryModel.fromJson(Map<String, dynamic> json) {
@@ -179,6 +181,7 @@ class ProductCategoryModel {
       id: json['id'] as String,
       name: json['name'] as String,
       slug: json['slug'] as String,
+      imageUrl: parseString(json['imageUrl']),
       sortOrder: parseIntOrNull(json['sortOrder']),
     );
   }

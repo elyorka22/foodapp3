@@ -38,9 +38,12 @@ final storeDetailProvider =
   return ref.watch(storesRepositoryProvider).fetchStoreDetail(slug);
 });
 
-/// Active stores for the home bottom-right banner slot.
+/// Grocery stores for the home shops carousel (matches web).
 final homeFeaturedStoresProvider =
     FutureProvider.autoDispose<List<BusinessModel>>((ref) {
   final citySlug = ref.watch(selectedCitySlugProvider);
-  return ref.watch(storesRepositoryProvider).fetchStores(citySlug: citySlug);
+  return ref.watch(storesRepositoryProvider).fetchStores(
+        citySlug: citySlug,
+        typeSlug: 'grocery',
+      );
 });

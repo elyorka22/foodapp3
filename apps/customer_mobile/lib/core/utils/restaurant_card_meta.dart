@@ -1,3 +1,4 @@
+import '../../shared/models/business_model.dart';
 import '../../shared/models/restaurant_model.dart';
 
 int restaurantPrepMinutes(RestaurantModel r) {
@@ -5,10 +6,21 @@ int restaurantPrepMinutes(RestaurantModel r) {
 }
 
 String restaurantDeliveryLabel(RestaurantModel r) {
-  final base = restaurantPrepMinutes(r);
+  return deliveryMinutesLabel(restaurantPrepMinutes(r));
+}
+
+String deliveryMinutesLabel(int base) {
   final low = (base - 5).clamp(15, 999);
   final high = base + 5;
   return '$low – $high daq';
+}
+
+int businessPrepMinutes(BusinessModel b) {
+  return b.deliveryMinutes ?? 30;
+}
+
+String businessDeliveryLabel(BusinessModel b) {
+  return deliveryMinutesLabel(businessPrepMinutes(b));
 }
 
 String restaurantCategoryLabel(RestaurantModel r) {
