@@ -45,13 +45,13 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
   const count = total ?? stores.length;
 
   return (
-    <section className="mt-6" aria-label={uz.shopsTitle}>
+    <section className="mt-6" aria-label={uz.groceryStores}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-[20px] font-extrabold tracking-tight text-zinc-900">
-          {uz.shopsTitle}
+          {uz.groceryStores}
         </h2>
         <Link
-          href="/stores"
+          href="/stores?type=grocery"
           className="flex shrink-0 items-center gap-0.5 text-[14px] font-medium text-zinc-400 transition active:opacity-70"
         >
           {uz.seeAll}

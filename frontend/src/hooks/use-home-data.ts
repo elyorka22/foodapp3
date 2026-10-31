@@ -77,19 +77,25 @@ export function useHomeRestaurants() {
   });
 }
 
-/** Active marketplace stores for home carousels (logo row + legacy slots). */
+/** Grocery stores only for the home «Do'konlar» row after promo banners. */
 export function useHomeFeaturedStores() {
   const { selectedCity, isLoading: cityLoading } = useSelectedCity();
   const citySlug = selectedCity?.slug ?? getSelectedCitySlug();
   return useQuery({
-    queryKey: ['shops-businesses', 'home-featured', citySlug],
+    queryKey: ['shops-businesses', 'home-grocery', citySlug],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: '20', vertical: 'store' });
+      const params = new URLSearchParams({
+        limit: '20',
+        vertical: 'store',
+        type: 'grocery',
+      });
       if (citySlug) params.set('city', citySlug);
       const res = await api<{ data: ShopBusiness[]; meta?: { total?: number } }>(
         `/businesses?${params.toString()}`,
       );
-      return filterStoreBusinesses(unwrapList(res));
+      return filterStoreBusinesses(unwrapList(res)).filter(
+        (s) => (s.businessType?.slug ?? '').toLowerCase() === 'grocery',
+      );
     },
     staleTime: 60_000,
     retry: 2,
