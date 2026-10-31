@@ -91,10 +91,9 @@ class _RestaurantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUrl = resolveImageUrl(restaurant.coverUrl ?? restaurant.logoUrl);
     final delivery = restaurantDeliveryLabel(restaurant);
-    final rating = restaurant.averageRating;
-    final ratingLabel = rating == null
-        ? null
-        : rating.toStringAsFixed(1).replaceAll('.', ',');
+    final ratingLabel = restaurant.averageRating
+        ?.toStringAsFixed(1)
+        .replaceAll('.', ',');
     final minOrder = restaurant.minOrderAmount;
     String? minLabel;
     if (minOrder != null && minOrder >= 0) {
