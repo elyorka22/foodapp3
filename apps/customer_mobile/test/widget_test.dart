@@ -3,6 +3,6 @@ import 'package:customer_mobile/core/theme/app_colors.dart';
 
 void main() {
   test('brand primary matches web design token', () {
-    expect(AppColors.primary.toARGB32(), 0xFFFF6B00);
+    expect(AppColors.primary.toARGB32(), 0xFF18181B);
   });
 }
