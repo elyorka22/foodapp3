@@ -110,6 +110,44 @@ textarea::placeholder {
   }
 }
 
+/* Short ring (~0.9s) then pause — 4s cycle, matches Flutter NotificationBell */
+@keyframes notification-bell-ring {
+  0%,
+  22%,
+  100% {
+    transform: rotate(0deg);
+  }
+  3% {
+    transform: rotate(14deg);
+  }
+  6% {
+    transform: rotate(-12deg);
+  }
+  9% {
+    transform: rotate(10deg);
+  }
+  12% {
+    transform: rotate(-8deg);
+  }
+  15% {
+    transform: rotate(5deg);
+  }
+  18% {
+    transform: rotate(-3deg);
+  }
+}
+
+.notification-bell-ring {
+  animation: notification-bell-ring 4s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-bell-ring {
+    animation: none;
+  }
+}
+
 @layer components {
   .radius-card {
     border-radius: 1rem;

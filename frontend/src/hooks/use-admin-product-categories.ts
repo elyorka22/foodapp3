@@ -8,6 +8,9 @@ export type StoreCategory = {
   id: string;
   name: string;
   slug: string;
+  description?: string | null;
+  icon?: string | null;
+  imageUrl?: string | null;
   sortOrder?: number;
   isActive?: boolean;
 };
@@ -16,6 +19,8 @@ export type StoreCategoryForm = {
   name: string;
   slug: string;
   description?: string;
+  icon?: string;
+  imageUrl?: string;
   sortOrder?: number;
   isActive?: boolean;
 };

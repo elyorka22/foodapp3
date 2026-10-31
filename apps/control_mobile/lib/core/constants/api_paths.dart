@@ -43,6 +43,10 @@ abstract final class ApiPaths {
   static const dishCategories = '/dish-categories';
   static String dishCategory(String id) => '/dish-categories/$id';
 
+  /// Per-store product categories (`OWN_CATEGORIES` merchants).
+  static const productCategories = '/categories';
+  static String productCategory(String id) => '/categories/$id';
+
   static const banners = '/banners';
   static const bannersAdmin = '/banners/admin';
   static const bannersReorder = '/banners/admin/reorder';

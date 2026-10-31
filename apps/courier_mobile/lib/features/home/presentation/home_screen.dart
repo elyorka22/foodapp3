@@ -16,6 +16,7 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/food_app_button.dart';
 import '../../../shared/widgets/job_offer_card.dart';
 import '../../../shared/widgets/new_job_alert_banner.dart';
+import '../../../shared/widgets/notification_bell.dart';
 import '../../../shared/widgets/soft_map_backdrop.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../home/providers/courier_home_provider.dart';
@@ -306,28 +307,11 @@ class _BellButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        IconButton(
-          onPressed: onTap,
-          icon: const Icon(Icons.notifications_none_rounded, size: 26),
-        ),
-        if (count > 0)
-          Positioned(
-            right: 10,
-            top: 10,
-            child: Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: AppColors.danger,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-            ),
-          ),
-      ],
+    return NotificationBell(
+      unreadCount: count,
+      onTap: onTap,
+      color: AppColors.textPrimary,
+      size: 26,
     );
   }
 }

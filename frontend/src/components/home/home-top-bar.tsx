@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
+import { NotificationBell } from '@/components/ui/notification-bell';
+import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
+import { isCustomerLoggedIn } from '@/lib/customer';
 import { uz } from '@/lib/uz';
 
 function HeaderIconButton({
@@ -25,6 +28,10 @@ function HeaderIconButton({
 }
 
 export function HomeTopBar() {
+  const loggedIn = isCustomerLoggedIn();
+  const { unread } = useCustomerNotifications();
+  const unreadCount = loggedIn ? unread.data?.count ?? 0 : 0;
+
   return (
     <header className="pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <div className="flex items-center justify-between gap-3">
@@ -39,9 +46,11 @@ export function HomeTopBar() {
           <HeaderIconButton href="/favorites" label={uz.favoritesAria}>
             <Heart size={20} strokeWidth={2} />
           </HeaderIconButton>
-          <HeaderIconButton href="/notifications" label={uz.notificationsAria}>
-            <Bell size={20} strokeWidth={2} />
-          </HeaderIconButton>
+          <NotificationBell
+            unreadCount={unreadCount}
+            size={20}
+            className="h-10 w-10 bg-white text-zinc-700 shadow-card"
+          />
         </div>
       </div>
     </header>

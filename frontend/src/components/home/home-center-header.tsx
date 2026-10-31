@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Bell, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { CitySelector } from '@/components/home/city-selector';
 import { HomeSideMenu } from '@/components/home/home-side-menu';
+import { NotificationBell } from '@/components/ui/notification-bell';
 import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
 import { isCustomerLoggedIn } from '@/lib/customer';
 import { uz } from '@/lib/uz';
@@ -32,16 +32,7 @@ export function HomeCenterHeader() {
             <CitySelector className="home-city-center max-w-full justify-center" />
           </div>
 
-          <Link
-            href="/notifications"
-            aria-label={uz.notificationsAria}
-            className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-900 transition active:scale-95 active:bg-zinc-100"
-          >
-            <Bell size={22} strokeWidth={2} />
-            {unreadCount > 0 ? (
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-white" />
-            ) : null}
-          </Link>
+          <NotificationBell unreadCount={unreadCount} size={22} />
         </div>
       </header>
 

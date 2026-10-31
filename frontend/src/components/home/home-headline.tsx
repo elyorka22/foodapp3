@@ -1,16 +1,20 @@
 'use client';
 
-import Link from 'next/link';
-import { Bell } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { NotificationBell } from '@/components/ui/notification-bell';
 import { PwaInstallButton } from '@/components/pwa/pwa-install-button';
+import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
 import { usePublicSettings } from '@/hooks/use-public-settings';
+import { isCustomerLoggedIn } from '@/lib/customer';
 import { uz } from '@/lib/uz';
 import { CitySelector } from '@/components/home/city-selector';
 
 export function HomeHeadline() {
   const settings = usePublicSettings();
   const subtitle = settings.data?.home_subtitle?.trim() || uz.citySubtitle;
+  const loggedIn = isCustomerLoggedIn();
+  const { unread } = useCustomerNotifications();
+  const unreadCount = loggedIn ? unread.data?.count ?? 0 : 0;
 
   return (
     <header className="animate-fade-in pt-[calc(env(safe-area-inset-top,0px)+12px)]">
@@ -25,13 +29,11 @@ export function HomeHeadline() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <PwaInstallButton />
-          <Link
-            href="/notifications"
-            aria-label={uz.notificationsAria}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-zinc-800 shadow-[0_4px_16px_rgba(15,23,42,0.08)] ring-1 ring-black/[0.04] transition active:scale-95"
-          >
-            <Bell size={22} strokeWidth={2} />
-          </Link>
+          <NotificationBell
+            unreadCount={unreadCount}
+            size={22}
+            className="bg-white shadow-[0_4px_16px_rgba(15,23,42,0.08)] ring-1 ring-black/[0.04]"
+          />
         </div>
       </div>
     </header>

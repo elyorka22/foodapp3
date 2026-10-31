@@ -55,6 +55,12 @@ abstract final class AppStrings {
   static const homeServiceBottom = 'Pastdan (px)';
   static const homeServiceRotate = 'Burilish (°)';
   static const categoriesSection = 'Taom kategoriyalari';
+  static const storeCategoriesSection = 'Do‘kon kategoriyalari';
+  static const storeCategoriesHint =
+      'Har bir do‘kon uchun ichki kategoriya + rasm. Mijoz doirasida chiqadi.';
+  static const storeCategoriesEmpty =
+      'Bu do‘konda kategoriya yo‘q. Qo‘shing va rasm yuklang.';
+  static const selectStore = 'Do‘konni tanlang';
   static const productsSection = 'Mahsulotlar';
   static const addCategory = 'Kategoriya + rasm';
   static const editCategory = 'Kategoriyani tahrirlash';

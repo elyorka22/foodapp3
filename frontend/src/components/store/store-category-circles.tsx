@@ -2,11 +2,13 @@
 
 import { LayoutGrid } from 'lucide-react';
 import { clsx } from 'clsx';
+import { resolveImageUrl } from '@/lib/image-url';
 import { uz } from '@/lib/uz';
 
 export type StoreCategory = {
   id: string;
   name: string;
+  imageUrl?: string | null;
 };
 
 type Props = {
@@ -40,6 +42,11 @@ export function StoreCategoryCircles({
     <div className="grid grid-cols-4 gap-x-2 gap-y-3">
       {items.map((cat, index) => {
         const active = activeId === cat.id;
+        const imageSrc =
+          !cat.all && cat.imageUrl
+            ? resolveImageUrl(cat.imageUrl) ?? cat.imageUrl
+            : null;
+
         return (
           <button
             key={cat.id === 'all' ? 'all-cats' : cat.id}
@@ -49,13 +56,20 @@ export function StoreCategoryCircles({
           >
             <span
               className={clsx(
-                'flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full transition',
-                cat.all ? 'bg-zinc-100' : CIRCLE_COLORS[index % CIRCLE_COLORS.length],
+                'relative flex h-[4.25rem] w-[4.25rem] items-center justify-center overflow-hidden rounded-full transition',
+                cat.all || !imageSrc
+                  ? cat.all
+                    ? 'bg-zinc-100'
+                    : CIRCLE_COLORS[index % CIRCLE_COLORS.length]
+                  : 'bg-zinc-100',
                 active && 'ring-2 ring-brand-600 ring-offset-2',
               )}
             >
               {cat.all ? (
                 <LayoutGrid size={22} className="text-zinc-700" strokeWidth={2} />
+              ) : imageSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={imageSrc} alt="" className="h-full w-full object-cover" />
               ) : (
                 <span className="text-[22px] font-black text-zinc-700/80">
                   {cat.name.trim().charAt(0).toUpperCase()}

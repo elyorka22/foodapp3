@@ -14,6 +14,7 @@ import '../../../shared/widgets/section_panel.dart';
 import '../data/delivery_pricing_model.dart';
 import '../data/settings_model.dart';
 import '../data/settings_repository.dart';
+import '../../catalog/presentation/store_categories_screen.dart';
 import 'home_service_cards_screen.dart';
 
 final settingsProvider = FutureProvider.autoDispose<AdminSettings>((ref) {
@@ -205,6 +206,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onPressed: () => context.go(AppRoutes.catalog),
                 icon: const Icon(Icons.category_outlined),
                 label: const Text(AppStrings.categoriesSection),
+              ),
+              const SizedBox(height: 8),
+              FilledButton.tonalIcon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const StoreCategoriesScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.store_mall_directory_outlined),
+                label: const Text(AppStrings.storeCategoriesSection),
               ),
               const SizedBox(height: 8),
               FilledButton.tonalIcon(

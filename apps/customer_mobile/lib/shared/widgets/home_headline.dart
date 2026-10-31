@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/router/routes.dart';
+import '../../core/theme/app_colors.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/cities/presentation/city_selector.dart';
-import '../../core/theme/app_colors.dart';
+import '../../features/notifications/providers/notifications_provider.dart';
+import 'notification_bell.dart';
 
 /// Matches web `home-center-header.tsx`: menu · centered city · notifications.
 class HomeHeadline extends ConsumerWidget {
@@ -45,17 +47,21 @@ class _BellButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).valueOrNull;
+    final unread = user == null
+        ? 0
+        : ref.watch(notificationsUnreadProvider).valueOrNull ?? 0;
 
-    return IconButton(
-      onPressed: () {
+    return NotificationBell(
+      unreadCount: unread,
+      color: AppColors.textPrimary,
+      size: 26,
+      onTap: () {
         if (user == null) {
           context.push('/profile/login');
           return;
         }
         context.push(AppRoutes.notifications);
       },
-      icon: const Icon(Icons.notifications_none_rounded, size: 24),
-      color: AppColors.textPrimary,
     );
   }
 }

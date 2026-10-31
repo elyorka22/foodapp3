@@ -5,6 +5,7 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/network/paginated_response.dart';
 import '../../../core/utils/json_parse.dart';
 import 'dish_category_model.dart';
+import 'product_category_model.dart';
 import 'product_model.dart';
 
 class CatalogRepository {
@@ -152,6 +153,67 @@ class CatalogRepository {
 
   Future<void> deleteDishCategory(String id) async {
     await _dio.delete<dynamic>(ApiPaths.dishCategory(id));
+  }
+
+  /// `GET /categories?restaurantId=&includeInactive=true`
+  Future<List<ControlProductCategory>> fetchProductCategories({
+    required String businessId,
+  }) async {
+    final res = await _dio.get<dynamic>(
+      ApiPaths.productCategories,
+      queryParameters: {
+        'restaurantId': businessId,
+        'includeInactive': 'true',
+      },
+    );
+    return parseObjectList(res.data)
+        .map(ControlProductCategory.fromJson)
+        .toList();
+  }
+
+  Future<ControlProductCategory> createProductCategory({
+    required String businessId,
+    required String name,
+    required String slug,
+    String? imageUrl,
+    int? sortOrder,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      ApiPaths.productCategories,
+      data: {
+        'restaurantId': businessId,
+        'name': name,
+        'slug': slug,
+        if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+        if (sortOrder != null) 'sortOrder': sortOrder,
+      },
+    );
+    return ControlProductCategory.fromJson(res.data ?? <String, dynamic>{});
+  }
+
+  Future<ControlProductCategory> updateProductCategory(
+    String id, {
+    String? name,
+    String? slug,
+    String? imageUrl,
+    int? sortOrder,
+    bool? isActive,
+  }) async {
+    final res = await _dio.patch<Map<String, dynamic>>(
+      ApiPaths.productCategory(id),
+      data: {
+        if (name != null) 'name': name,
+        if (slug != null) 'slug': slug,
+        if (imageUrl != null) 'imageUrl': imageUrl,
+        if (sortOrder != null) 'sortOrder': sortOrder,
+        if (isActive != null) 'isActive': isActive,
+      },
+    );
+    return ControlProductCategory.fromJson(res.data ?? <String, dynamic>{});
+  }
+
+  Future<void> deleteProductCategory(String id) async {
+    await _dio.delete<dynamic>(ApiPaths.productCategory(id));
   }
 }
 
