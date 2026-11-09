@@ -175,7 +175,7 @@ export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
                 <Button
                   type="button"
                   size="sm"
-                  variant="destructive"
+                  variant="danger"
                   disabled={remove.isPending}
                   onClick={() => {
                     if (!confirm('O‘chirishni tasdiqlaysizmi?')) return;
