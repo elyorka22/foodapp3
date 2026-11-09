@@ -31,20 +31,19 @@ export function useStoreTypeCategories(typeSlug: string | undefined) {
     retry: 1,
   });
 
-  const categories: StoreTypeCategory[] = (list.data ?? [])
-    .map((cat) => {
-      const name = cat.name?.trim();
-      if (!name) return null;
-      const slug = (cat.slug ?? cat.id).trim();
-      return {
-        id: cat.id,
-        key: slug.toLowerCase() || name.toLowerCase(),
-        name,
-        slug,
-        imageUrl: cat.imageUrl ?? null,
-      };
-    })
-    .filter((c): c is StoreTypeCategory => c != null);
+  const categories: StoreTypeCategory[] = [];
+  for (const cat of list.data ?? []) {
+    const name = cat.name?.trim();
+    if (!name) continue;
+    const slug = (cat.slug ?? cat.id).trim();
+    categories.push({
+      id: cat.id,
+      key: slug.toLowerCase() || name.toLowerCase(),
+      name,
+      slug,
+      imageUrl: cat.imageUrl ?? null,
+    });
+  }
 
   return {
     categories,
