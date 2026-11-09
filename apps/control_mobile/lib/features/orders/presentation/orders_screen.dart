@@ -326,7 +326,18 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                   ref.read(ordersPagedProvider.notifier).refresh(),
             ),
             data: (state) {
-              if (state.items.isEmpty) {
+              final items = scope.isScoped && !scope.isRestaurant
+                  ? state.items
+                      .where(
+                        (o) => scope.matchesBusinessType(
+                          businessTypeId: o.businessTypeId,
+                          businessTypeSlug: o.businessTypeSlug,
+                          businessTypeName: o.businessTypeName,
+                        ),
+                      )
+                      .toList()
+                  : state.items;
+              if (items.isEmpty) {
                 return RefreshIndicator(
                   onRefresh: () =>
                       ref.read(ordersPagedProvider.notifier).refresh(),
@@ -344,10 +355,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                     ref.read(ordersPagedProvider.notifier).refresh(),
                 child: ListView.separated(
                   padding: const EdgeInsets.all(AppSpacing.lg),
-                  itemCount: state.items.length + (state.hasMore ? 1 : 0),
+                  itemCount: items.length + (state.hasMore ? 1 : 0),
                   separatorBuilder: (_, __) => const SizedBox(height: 6),
                   itemBuilder: (context, index) {
-                    if (index >= state.items.length) {
+                    if (index >= items.length) {
                       return MutationButton(
                         label: AppStrings.loadMore,
                         loading: state.loadingMore,
@@ -367,7 +378,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                               },
                       );
                     }
-                    final o = state.items[index];
+                    final o = items[index];
                     return ControlListCard(
                       title: o.orderNumber.isNotEmpty ? o.orderNumber : o.id,
                       subtitle: [

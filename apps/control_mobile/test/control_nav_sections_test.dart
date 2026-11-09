@@ -53,6 +53,11 @@ void main() {
     final flowers = sections.firstWhere((s) => s.label == 'Gullar');
     expect(flowers.entries.length, 5);
     expect(flowers.entries.first.scope.slug, 'flowers');
+    expect(flowers.entries.first.scope.id, '2');
+    expect(
+      flowers.entries.first.scope.restaurantQuery(),
+      {'vertical': 'store'},
+    );
     expect(
       flowers.entries
           .where((e) => e.branchIndex == ControlBranches.catalog)

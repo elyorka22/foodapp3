@@ -107,7 +107,14 @@ class BusinessesScreen extends ConsumerWidget {
           child: AsyncPageBody<PaginatedResponse<ControlRestaurant>>(
             asyncValue: async,
             onRefresh: () => ref.refresh(businessesListProvider.future),
-            isEmpty: (p) => p.data.isEmpty,
+            isEmpty: (p) => p.data
+                .where(
+                  (r) => scope.matchesBusinessType(
+                    businessTypeId: r.businessTypeId,
+                    businessTypeName: r.businessTypeName,
+                  ),
+                )
+                .isEmpty,
             emptyMessage: AppStrings.emptyList,
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg,
@@ -116,13 +123,21 @@ class BusinessesScreen extends ConsumerWidget {
               AppSpacing.lg,
             ),
             dataBuilder: (page) {
+              final rows = page.data
+                  .where(
+                    (r) => scope.matchesBusinessType(
+                      businessTypeId: r.businessTypeId,
+                      businessTypeName: r.businessTypeName,
+                    ),
+                  )
+                  .toList();
               return ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: page.data.length,
+                itemCount: rows.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 6),
                 itemBuilder: (context, index) {
-                  final r = page.data[index];
+                  final r = rows[index];
                   return ControlListCard(
                     leading: _BizAvatar(logoUrl: r.logoUrl),
                     title: r.name,

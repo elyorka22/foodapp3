@@ -76,7 +76,14 @@ class StoreCategoriesScreen extends ConsumerWidget {
     final storesAsync = ref.watch(_storeBusinessesProvider);
     final selectedId = ref.watch(_selectedStoreIdProvider);
     final catsAsync = ref.watch(_storeCategoriesProvider);
-    final stores = storesAsync.valueOrNull ?? const <ControlRestaurant>[];
+    final stores = (storesAsync.valueOrNull ?? const <ControlRestaurant>[])
+        .where(
+          (s) => scope.matchesBusinessType(
+            businessTypeId: s.businessTypeId,
+            businessTypeName: s.businessTypeName,
+          ),
+        )
+        .toList();
     final selectedOk =
         stores.any((s) => s.id == selectedId) ? selectedId : null;
     final title = scope.isScoped && (scope.name?.isNotEmpty ?? false)
@@ -136,7 +143,15 @@ class StoreCategoriesScreen extends ConsumerWidget {
               style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
             ),
             data: (list) {
-              if (list.isEmpty) {
+              final filtered = list
+                  .where(
+                    (s) => scope.matchesBusinessType(
+                      businessTypeId: s.businessTypeId,
+                      businessTypeName: s.businessTypeName,
+                    ),
+                  )
+                  .toList();
+              if (filtered.isEmpty) {
                 return Text(
                   AppStrings.emptyList,
                   style: AppTypography.bodySmall,
@@ -148,7 +163,7 @@ class StoreCategoriesScreen extends ConsumerWidget {
                   labelText: AppStrings.selectStore,
                 ),
                 items: [
-                  for (final s in list)
+                  for (final s in filtered)
                     DropdownMenuItem(value: s.id, child: Text(s.name)),
                 ],
                 onChanged: (v) =>

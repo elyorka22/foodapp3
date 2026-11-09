@@ -11,6 +11,9 @@ class ControlOrder {
     this.deliveryFee = 0,
     this.customerPhone,
     this.businessName,
+    this.businessTypeId,
+    this.businessTypeSlug,
+    this.businessTypeName,
     this.courierName,
     this.courierId,
     this.cancelReason,
@@ -25,6 +28,9 @@ class ControlOrder {
   final num deliveryFee;
   final String? customerPhone;
   final String? businessName;
+  final String? businessTypeId;
+  final String? businessTypeSlug;
+  final String? businessTypeName;
   final String? courierName;
   final String? courierId;
   final String? cancelReason;
@@ -46,6 +52,8 @@ class ControlOrder {
     final guest = json['guestOrder'] as Map<String, dynamic>?;
     final restaurant = json['restaurant'] as Map<String, dynamic>?;
     final business = json['business'] as Map<String, dynamic>?;
+    final merchant = restaurant ?? business;
+    final businessType = merchant?['businessType'] as Map<String, dynamic>?;
     final courier = json['courier'] as Map<String, dynamic>?;
     final courierUser = courier?['user'] as Map<String, dynamic>?;
 
@@ -57,8 +65,11 @@ class ControlOrder {
       subtotal: parseNum(json['subtotal']),
       deliveryFee: parseNum(json['deliveryFee']),
       customerPhone: guest?['phone'] as String?,
-      businessName:
-          restaurant?['name'] as String? ?? business?['name'] as String?,
+      businessName: merchant?['name'] as String?,
+      businessTypeId: merchant?['businessTypeId'] as String? ??
+          businessType?['id'] as String?,
+      businessTypeSlug: businessType?['slug'] as String?,
+      businessTypeName: businessType?['name'] as String?,
       courierName: courierUser?['fullName'] as String? ??
           courier?['fullName'] as String?,
       courierId: courier?['id'] as String? ?? json['courierId'] as String?,
