@@ -187,7 +187,8 @@ model BusinessType {
   updatedAt   DateTime @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  businesses Business[]
+  businesses       Business[]
+  productCategories ProductCategory[]
 
   @@index([isActive, sortOrder])
   @@index([slug])
@@ -338,26 +339,32 @@ model CourierLocation {
   @@map("courier_locations")
 }
 
-/// Per-business product menu category (Fruits, Drinks, etc.). NOT a business vertical type.
+/// Store product menu category (Fruits, Drinks, etc.). NOT a business vertical type.
+/// Preferred scope: shared per BusinessType (`businessTypeId`, `businessId` null).
+/// Legacy rows keep `businessId` for old per-store catalogs.
 model ProductCategory {
-  id          String    @id @default(uuid()) @db.Uuid
-  businessId  String    @map("restaurant_id") @db.Uuid
-  name        String
-  slug        String
-  description String?
-  icon        String?
-  imageUrl    String?   @map("image_url")
-  sortOrder   Int       @default(0) @map("sort_order")
-  isActive    Boolean   @default(true) @map("is_active")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
+  id             String    @id @default(uuid()) @db.Uuid
+  businessId     String?   @map("restaurant_id") @db.Uuid
+  businessTypeId String?   @map("business_type_id") @db.Uuid
+  name           String
+  slug           String
+  description    String?
+  icon           String?
+  imageUrl       String?   @map("image_url")
+  sortOrder      Int       @default(0) @map("sort_order")
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
 
-  business Business  @relation(fields: [businessId], references: [id])
-  products Product[]
+  business     Business?     @relation(fields: [businessId], references: [id])
+  businessType BusinessType? @relation(fields: [businessTypeId], references: [id])
+  products     Product[]
 
   @@unique([businessId, slug])
+  @@unique([businessTypeId, slug])
   @@index([businessId, isActive])
+  @@index([businessTypeId, isActive])
   @@map("categories")
 }
 

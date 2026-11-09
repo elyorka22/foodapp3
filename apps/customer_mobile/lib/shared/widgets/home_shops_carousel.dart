@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/l10n/app_strings.dart';
+import '../../core/router/routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
@@ -53,7 +54,7 @@ class HomeShopsCarousel extends StatelessWidget {
         HomeSectionHeader(
           title: AppStrings.groceryStores,
           count: count,
-          onSeeAll: () => context.push('/stores?type=grocery'),
+          onSeeAll: () => context.push(AppRoutes.storesGrocery),
         ),
         const SizedBox(height: 12),
         SizedBox(

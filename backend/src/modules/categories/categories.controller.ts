@@ -23,8 +23,9 @@ import { CategoriesService } from './categories.service';
 import { DishCategoriesService } from '../dish-categories/dish-categories.service';
 
 /**
- * GET /categories — global dish categories (no businessId).
- * GET /categories?businessId= — dish categories for restaurants, store categories for shops.
+ * GET /categories — global dish categories (no filters).
+ * GET /categories?businessTypeId= | ?type= — shared store categories for a type.
+ * GET /categories?businessId= — dish cats for restaurants, type-scoped store cats for shops.
  */
 @ApiTags('product-categories')
 @Controller('categories')
@@ -38,13 +39,25 @@ export class CategoriesController {
   findAll(
     @Query('businessId') businessId?: string,
     @Query('restaurantId') restaurantId?: string,
+    @Query('businessTypeId') businessTypeId?: string,
+    @Query('type') type?: string,
     @Query('includeInactive') includeInactive?: string,
   ) {
+    const inactive = includeInactive === 'true';
+    const typeId = businessTypeId?.trim();
+    const typeSlug = type?.trim();
+    if (typeId || typeSlug) {
+      return this.productCategories.findByBusinessType(
+        { businessTypeId: typeId, typeSlug },
+        inactive,
+      );
+    }
+
     const bid = resolveBusinessId({ businessId, restaurantId });
     if (bid) {
-      return this.productCategories.findForBusinessMenu(bid, includeInactive === 'true');
+      return this.productCategories.findForBusinessMenu(bid, inactive);
     }
-    if (includeInactive === 'true') {
+    if (inactive) {
       return this.dishCategories.findAllAdmin();
     }
     return this.dishCategories.findAllPublic();
@@ -53,20 +66,26 @@ export class CategoriesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   create(@Body() body: CreateCategoryDto, @CurrentUser() user: JwtPayload) {
-    const bid = resolveBusinessId({
-      businessId: body.businessId,
-      restaurantId: body.restaurantId,
-    });
-    if (!bid) {
+    if (
+      !body.businessTypeId?.trim() &&
+      !body.type?.trim() &&
+      !resolveBusinessId({
+        businessId: body.businessId,
+        restaurantId: body.restaurantId,
+      })
+    ) {
       throw new BadRequestException(
-        'Global dish categories are managed at POST /dish-categories (admin only)',
+        'businessTypeId or type is required (or legacy businessId). Global dish categories: POST /dish-categories',
       );
     }
     return this.productCategories.create(
       {
-        businessId: bid,
+        businessTypeId: body.businessTypeId,
+        type: body.type,
+        businessId: body.businessId,
+        restaurantId: body.restaurantId,
         name: body.name,
         slug: body.slug,
         description: body.description,
@@ -81,7 +100,7 @@ export class CategoriesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   update(
     @Param('id') id: string,
     @Body() dto: UpdateCategoryDto,
@@ -93,7 +112,7 @@ export class CategoriesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.productCategories.softDelete(id, user);
   }

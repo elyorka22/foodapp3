@@ -221,10 +221,7 @@ export class ProductsService {
       await this.assertDishCategoryExists(dishCategoryId);
     }
     if (productCategoryId) {
-      const cat = await this.prisma.productCategory.findFirst({
-        where: { id: productCategoryId, businessId, deletedAt: null, isActive: true },
-      });
-      if (!cat) throw new NotFoundException('Store category not found');
+      await this.assertStoreProductCategory(productCategoryId, business);
     }
 
     const slug = await resolveSlugForCreate({
@@ -306,15 +303,7 @@ export class ProductsService {
       await this.assertDishCategoryExists(nextDishCategoryId);
     }
     if (nextProductCategoryId) {
-      const cat = await this.prisma.productCategory.findFirst({
-        where: {
-          id: nextProductCategoryId,
-          businessId: existing.businessId,
-          deletedAt: null,
-          isActive: true,
-        },
-      });
-      if (!cat) throw new NotFoundException('Store category not found');
+      await this.assertStoreProductCategory(nextProductCategoryId, business);
     }
 
     let nextSlug: string | undefined;
@@ -493,6 +482,7 @@ export class ProductsService {
   private assertCategoryFields(
     business: {
       kind: BusinessKind;
+      businessTypeId?: string | null;
       businessType?: {
         slug?: string | null;
         menuMode?: string | null;
@@ -526,5 +516,34 @@ export class ProductsService {
         );
       }
     }
+  }
+
+  /** Type-scoped category preferred; legacy same-business rows still allowed. */
+  private async assertStoreProductCategory(
+    productCategoryId: string,
+    business: {
+      id: string;
+      businessTypeId?: string | null;
+    },
+  ) {
+    const or: Array<{
+      businessTypeId?: string;
+      businessId?: string | null;
+    }> = [{ businessId: business.id }];
+    if (business.businessTypeId) {
+      or.unshift({
+        businessTypeId: business.businessTypeId,
+        businessId: null,
+      });
+    }
+    const cat = await this.prisma.productCategory.findFirst({
+      where: {
+        id: productCategoryId,
+        deletedAt: null,
+        isActive: true,
+        OR: or,
+      },
+    });
+    if (!cat) throw new NotFoundException('Store category not found');
   }
 }

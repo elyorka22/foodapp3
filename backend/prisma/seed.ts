@@ -192,6 +192,73 @@ async function main() {
     create: { userId: courierUser.id, isOnline: true },
   });
 
+  /** Shared product categories per marketplace type (OWN_CATEGORIES). */
+  const typeScopedCategories: Record<
+    string,
+    Array<{ name: string; slug: string; sortOrder: number }>
+  > = {
+    grocery: [
+      { name: 'Sut mahsulotlari', slug: 'dairy', sortOrder: 0 },
+      { name: "Go'sht", slug: 'meat', sortOrder: 1 },
+      { name: 'Meva-sabzavot', slug: 'produce', sortOrder: 2 },
+      { name: 'Non', slug: 'bread', sortOrder: 3 },
+      { name: 'Ichimliklar', slug: 'drinks', sortOrder: 4 },
+      { name: 'Bakaleya', slug: 'pantry', sortOrder: 5 },
+      { name: 'Muzlatilgan', slug: 'frozen', sortOrder: 6 },
+    ],
+    flowers: [
+      { name: 'Buketlar', slug: 'bouquets', sortOrder: 0 },
+      { name: 'Gul donalari', slug: 'stems', sortOrder: 1 },
+      { name: "Xona o'simliklari", slug: 'plants', sortOrder: 2 },
+    ],
+    perfume: [
+      { name: 'Atirlar', slug: 'fragrance', sortOrder: 0 },
+      { name: 'Parvarish', slug: 'skincare', sortOrder: 1 },
+      { name: 'Makiyaj', slug: 'makeup', sortOrder: 2 },
+    ],
+    pharmacy: [
+      { name: 'Dori-darmon', slug: 'medicine', sortOrder: 0 },
+      { name: 'Vitaminlar', slug: 'vitamins', sortOrder: 1 },
+      { name: 'Gigiyena', slug: 'hygiene', sortOrder: 2 },
+    ],
+  };
+
+  for (const [typeSlug, cats] of Object.entries(typeScopedCategories)) {
+    const typeId = typeMap[typeSlug];
+    if (!typeId) continue;
+    for (const cat of cats) {
+      const existing = await prisma.productCategory.findFirst({
+        where: {
+          businessTypeId: typeId,
+          slug: cat.slug,
+          businessId: null,
+        },
+      });
+      if (existing) {
+        await prisma.productCategory.update({
+          where: { id: existing.id },
+          data: {
+            name: cat.name,
+            sortOrder: cat.sortOrder,
+            isActive: true,
+            deletedAt: null,
+          },
+        });
+      } else {
+        await prisma.productCategory.create({
+          data: {
+            businessTypeId: typeId,
+            businessId: null,
+            name: cat.name,
+            slug: cat.slug,
+            sortOrder: cat.sortOrder,
+            isActive: true,
+          },
+        });
+      }
+    }
+  }
+
   const dishCategory = await prisma.dishCategory.upsert({
     where: { slug: 'pizza' },
     update: {},

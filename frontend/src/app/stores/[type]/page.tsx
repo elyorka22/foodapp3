@@ -8,6 +8,7 @@ const TYPE_ALIASES: Record<string, string> = {
 };
 
 const HUB_TYPES = new Set([
+  'grocery',
   'flowers',
   'perfume',
   'pharmacy',
@@ -25,7 +26,6 @@ export default async function StoreTypePage({ params }: Props) {
   const type = TYPE_ALIASES[segment] ?? segment;
 
   if (!type) redirect('/stores');
-  if (type === 'grocery') redirect('/stores?type=grocery');
   if (!HUB_TYPES.has(type)) redirect(`/stores?type=${encodeURIComponent(type)}`);
 
   return <StoreTypeHub type={type} />;

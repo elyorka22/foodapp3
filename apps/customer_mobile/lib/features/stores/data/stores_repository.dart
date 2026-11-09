@@ -66,4 +66,18 @@ class StoresRepository {
         .map((e) => ProductModel.fromJson(Map<String, dynamic>.from(e)))
         .toList();
   }
+
+  /// Shared store categories for a marketplace type slug.
+  Future<List<ProductCategoryModel>> fetchTypeCategories(String typeSlug) async {
+    final res = await _dio.get<List<dynamic>>(
+      ApiPaths.categories,
+      queryParameters: {'type': typeSlug},
+    );
+    return (res.data ?? [])
+        .whereType<Map>()
+        .map(
+          (e) => ProductCategoryModel.fromJson(Map<String, dynamic>.from(e)),
+        )
+        .toList();
+  }
 }

@@ -78,8 +78,17 @@ export function AdminProductsPage({ vertical, typeSlug, pageTitle }: Props) {
 
   const { data: publicDishCategories } = useDishCategories();
   const { list: adminDishCategories } = useAdminDishCategories();
+  const selectedMerchant = restaurants.find(
+    (r) => r.id === (form.restaurantId || restaurantId),
+  );
+  const storeTypeSlug =
+    typeSlug ||
+    (selectedMerchant?.businessType?.slug as string | undefined) ||
+    undefined;
   const { list: storeCategories } = useAdminProductCategories(
-    vertical === 'store' ? form.restaurantId || restaurantId : undefined,
+    vertical === 'store' && storeTypeSlug
+      ? { typeSlug: storeTypeSlug }
+      : undefined,
   );
   const dishCategoryOptions =
     adminDishCategories.data?.length

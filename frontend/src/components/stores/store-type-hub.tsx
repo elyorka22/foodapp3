@@ -13,7 +13,6 @@ import { useStoresList, storeTypeTitle } from '@/hooks/use-stores-list';
 import { useStoreTypeCategories } from '@/hooks/use-store-type-categories';
 import { categoryImageStyle } from '@/lib/category-image-style';
 import { resolveImageUrl } from '@/lib/image-url';
-import { shopPublicPath } from '@/lib/shop-url';
 import { uz } from '@/lib/uz';
 
 type Props = {
@@ -24,7 +23,7 @@ export function StoreTypeHub({ type }: Props) {
   const title = storeTypeTitle(type);
   const storesQuery = useStoresList(type);
   const stores = storesQuery.data?.data ?? [];
-  const { categories, isLoading: catsLoading } = useStoreTypeCategories(stores);
+  const { categories, isLoading: catsLoading } = useStoreTypeCategories(type);
 
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
@@ -144,7 +143,7 @@ export function StoreTypeHub({ type }: Props) {
             return (
               <Link
                 key={cat.key}
-                href={shopPublicPath({ id: cat.storeSlug, slug: cat.storeSlug })}
+                href={`${listHref}&category=${encodeURIComponent(cat.slug)}`}
                 className="relative aspect-[1/1.05] overflow-hidden rounded-[18px] bg-zinc-100 active:scale-[0.98]"
               >
                 <p className="relative z-10 line-clamp-3 p-2.5 pr-8 text-[13px] font-bold leading-snug text-zinc-900">

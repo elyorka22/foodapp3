@@ -11,6 +11,7 @@ const TYPE_TITLES: Record<string, string> = {
   perfume: 'Kosmetika',
   pharmacy: 'Dorixona',
   grocery: 'Mahsulotlar',
+  oziq: 'Mahsulotlar',
   gift: "Sovg'alar",
   electronics: 'Elektronika',
 };

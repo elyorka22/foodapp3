@@ -14,31 +14,17 @@ import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
-import '../../businesses/data/businesses_repository.dart';
-import '../../businesses/data/restaurant_model.dart';
 import '../../shell/control_vertical_scope.dart';
 import '../data/catalog_repository.dart';
 import '../data/product_category_model.dart';
 
-final _storeBusinessesProvider =
-    FutureProvider.autoDispose<List<ControlRestaurant>>((ref) async {
-  final scope = ref.watch(controlVerticalScopeProvider);
-  final page = await ref.watch(businessesRepositoryProvider).fetchRestaurants(
-        page: 1,
-        limit: 100,
-        query: scope.storeListQuery(),
-      );
-  return page.data;
-});
-
-final _selectedStoreIdProvider = StateProvider.autoDispose<String?>((ref) => null);
-
 final _storeCategoriesProvider =
     FutureProvider.autoDispose<List<ControlProductCategory>>((ref) async {
-  final businessId = ref.watch(_selectedStoreIdProvider);
-  if (businessId == null || businessId.isEmpty) return [];
+  final scope = ref.watch(controlVerticalScopeProvider);
+  if (!scope.isScoped || scope.isRestaurant) return [];
   return ref.watch(catalogRepositoryProvider).fetchProductCategories(
-        businessId: businessId,
+        businessTypeId: scope.id,
+        typeSlug: scope.slug,
       );
 });
 
@@ -73,19 +59,8 @@ class StoreCategoriesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scope = ref.watch(controlVerticalScopeProvider);
-    final storesAsync = ref.watch(_storeBusinessesProvider);
-    final selectedId = ref.watch(_selectedStoreIdProvider);
     final catsAsync = ref.watch(_storeCategoriesProvider);
-    final stores = (storesAsync.valueOrNull ?? const <ControlRestaurant>[])
-        .where(
-          (s) => scope.matchesBusinessType(
-            businessTypeId: s.businessTypeId,
-            businessTypeName: s.businessTypeName,
-          ),
-        )
-        .toList();
-    final selectedOk =
-        stores.any((s) => s.id == selectedId) ? selectedId : null;
+    final canManage = scope.isScoped && !scope.isRestaurant;
     final title = scope.isScoped && (scope.name?.isNotEmpty ?? false)
         ? '${scope.name} · ${AppStrings.storeCategoriesSection}'
         : AppStrings.storeCategoriesSection;
@@ -100,14 +75,15 @@ class StoreCategoriesScreen extends ConsumerWidget {
             children: [
               HeaderAction(
                 label: AppStrings.addCategory,
-                onPressed: selectedOk == null
+                onPressed: !canManage
                     ? null
                     : () => showDetailSheet(
                           context: context,
                           title: AppStrings.addCategory,
                           initialChildSize: 0.92,
                           builder: (_) => _StoreCategoryFormSheet(
-                            businessId: selectedOk,
+                            businessTypeId: scope.id,
+                            typeSlug: scope.slug,
                           ),
                         ),
               ),
@@ -128,54 +104,17 @@ class StoreCategoriesScreen extends ConsumerWidget {
             8,
           ),
           child: Text(
-            AppStrings.storeCategoriesHint,
+            canManage
+                ? AppStrings.storeCategoriesHint
+                : AppStrings.storeCategoriesNeedType,
             style: AppTypography.bodySmall.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: storesAsync.when(
-            loading: () => const LinearProgressIndicator(minHeight: 2),
-            error: (e, _) => Text(
-              e.toString(),
-              style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
-            ),
-            data: (list) {
-              final filtered = list
-                  .where(
-                    (s) => scope.matchesBusinessType(
-                      businessTypeId: s.businessTypeId,
-                      businessTypeName: s.businessTypeName,
-                    ),
-                  )
-                  .toList();
-              if (filtered.isEmpty) {
-                return Text(
-                  AppStrings.emptyList,
-                  style: AppTypography.bodySmall,
-                );
-              }
-              return DropdownButtonFormField<String>(
-                value: selectedOk,
-                decoration: const InputDecoration(
-                  labelText: AppStrings.selectStore,
-                ),
-                items: [
-                  for (final s in filtered)
-                    DropdownMenuItem(value: s.id, child: Text(s.name)),
-                ],
-                onChanged: (v) =>
-                    ref.read(_selectedStoreIdProvider.notifier).state = v,
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 8),
         Expanded(
-          child: selectedOk == null
-              ? const Center(child: Text(AppStrings.selectStore))
+          child: !canManage
+              ? const Center(child: Text(AppStrings.storeCategoriesNeedType))
               : AsyncPageBody<List<ControlProductCategory>>(
                   asyncValue: catsAsync,
                   onRefresh: () =>
@@ -211,7 +150,8 @@ class StoreCategoriesScreen extends ConsumerWidget {
                                 title: AppStrings.editCategory,
                                 initialChildSize: 0.92,
                                 builder: (_) => _StoreCategoryFormSheet(
-                                  businessId: selectedOk,
+                                  businessTypeId: scope.id,
+                                  typeSlug: scope.slug,
                                   category: c,
                                 ),
                               ),
@@ -267,11 +207,13 @@ class _Thumb extends StatelessWidget {
 
 class _StoreCategoryFormSheet extends ConsumerStatefulWidget {
   const _StoreCategoryFormSheet({
-    required this.businessId,
+    this.businessTypeId,
+    this.typeSlug,
     this.category,
   });
 
-  final String businessId;
+  final String? businessTypeId;
+  final String? typeSlug;
   final ControlProductCategory? category;
 
   @override
@@ -318,7 +260,8 @@ class _StoreCategoryFormSheetState
       final imageUrl = _imageUrl.text.trim();
       if (widget.category == null) {
         await repo.createProductCategory(
-          businessId: widget.businessId,
+          businessTypeId: widget.businessTypeId,
+          typeSlug: widget.typeSlug,
           name: name,
           slug: _slugFromName(name),
           imageUrl: imageUrl.isEmpty ? null : imageUrl,

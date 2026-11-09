@@ -155,14 +155,20 @@ class CatalogRepository {
     await _dio.delete<dynamic>(ApiPaths.dishCategory(id));
   }
 
-  /// `GET /categories?restaurantId=&includeInactive=true`
+  /// Shared catalog: `GET /categories?type=` or `?businessTypeId=` (legacy: businessId).
   Future<List<ControlProductCategory>> fetchProductCategories({
-    required String businessId,
+    String? businessTypeId,
+    String? typeSlug,
+    String? businessId,
   }) async {
     final res = await _dio.get<dynamic>(
       ApiPaths.productCategories,
       queryParameters: {
-        'restaurantId': businessId,
+        if (businessTypeId != null && businessTypeId.isNotEmpty)
+          'businessTypeId': businessTypeId,
+        if (typeSlug != null && typeSlug.isNotEmpty) 'type': typeSlug,
+        if (businessId != null && businessId.isNotEmpty)
+          'businessId': businessId,
         'includeInactive': 'true',
       },
     );
@@ -172,7 +178,8 @@ class CatalogRepository {
   }
 
   Future<ControlProductCategory> createProductCategory({
-    required String businessId,
+    String? businessTypeId,
+    String? typeSlug,
     required String name,
     required String slug,
     String? imageUrl,
@@ -181,7 +188,9 @@ class CatalogRepository {
     final res = await _dio.post<Map<String, dynamic>>(
       ApiPaths.productCategories,
       data: {
-        'restaurantId': businessId,
+        if (businessTypeId != null && businessTypeId.isNotEmpty)
+          'businessTypeId': businessTypeId,
+        if (typeSlug != null && typeSlug.isNotEmpty) 'type': typeSlug,
         'name': name,
         'slug': slug,
         if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,

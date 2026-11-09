@@ -115,12 +115,6 @@ export class RestaurantsService {
             orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
           },
           city: true,
-          productCategories: {
-            where: { isActive: true, deletedAt: null },
-            select: { id: true, name: true, slug: true },
-            orderBy: { sortOrder: 'asc' },
-            take: 6,
-          },
         },
       }),
       this.prisma.business.count({ where }),
@@ -128,6 +122,9 @@ export class RestaurantsService {
 
     const framingDefaults = await this.settings.getImageFramingDefaults();
     const availabilityMap = await this.schedule.getAvailabilityBatch(data.map((r) => r.id));
+    const typeCatMap = await this.loadTypeScopedCategoryPreviews(
+      data.map((r) => r.businessTypeId),
+    );
     const serialized = data.map((r) => {
       const branch = pickBranchForCity(
         r.branches as Array<{ cityId?: string; isPrimary?: boolean; address: string }>,
@@ -137,6 +134,7 @@ export class RestaurantsService {
         ...this.serializePublicListItem(
           { ...r, branches: branch ? [branch] : [] },
           framingDefaults,
+          typeCatMap.get(r.businessTypeId ?? '') ?? [],
         ),
         ...availabilityMap.get(r.id),
       };
@@ -163,9 +161,9 @@ export class RestaurantsService {
     averageRating: Prisma.Decimal | null;
     reviewCount: number;
     branches?: { address: string }[];
-    productCategories?: { id: string; name: string; slug: string }[];
   },
     framingDefaults: ImageFramingDefaults,
+    productCategories: { id: string; name: string; slug: string }[] = [],
   ) {
     const branch = r.branches?.[0];
     const cover = resolveRestaurantCoverFraming(r, framingDefaults);
@@ -188,7 +186,7 @@ export class RestaurantsService {
       averageRating: r.averageRating ? Number(r.averageRating) : null,
       reviewCount: r.reviewCount,
       address: branch?.address ?? null,
-      productCategories: r.productCategories ?? [],
+      productCategories: isRestaurantKind(r) ? [] : productCategories,
     };
   }
 
@@ -248,39 +246,65 @@ export class RestaurantsService {
         include: {
           businessType: true,
           branches: { where: { isActive: true }, take: 1 },
-          productCategories: {
-            where: { isActive: true, deletedAt: null },
-            select: { id: true, name: true, slug: true },
-            orderBy: { sortOrder: 'asc' },
-            take: 6,
-          },
         },
       }),
       this.prisma.business.count({ where }),
     ]);
 
-    const data = rows.map((r) => this.serializeBusiness(r));
+    const typeCatMap = await this.loadTypeScopedCategoryPreviews(
+      rows.map((r) => r.businessTypeId),
+    );
+    const data = rows.map((r) =>
+      this.serializeBusiness(r, typeCatMap.get(r.businessTypeId ?? '') ?? []),
+    );
     return paginatedResponse(data, total, query.page ?? 1, query.limit ?? 20);
   }
 
-  private serializeBusiness(r: {
-    id: string;
-    name: string;
-    slug: string;
-    kind?: BusinessKind;
-    description: string | null;
-    logoUrl: string | null;
-    coverUrl: string | null;
-    phone?: string | null;
-    commissionRate: Prisma.Decimal;
-    minOrderAmount: Prisma.Decimal | null;
-    avgPrepMinutes: number;
-    averageRating: Prisma.Decimal | null;
-    reviewCount: number;
-    businessType?: { id: string; name: string; slug: string; icon: string | null } | null;
-    branches?: { address?: string; latitude: Prisma.Decimal; longitude: Prisma.Decimal }[];
-    productCategories?: { id: string; name: string; slug: string }[];
-  }) {
+  private async loadTypeScopedCategoryPreviews(
+    businessTypeIds: Array<string | null | undefined>,
+  ) {
+    const ids = [...new Set(businessTypeIds.filter((id): id is string => !!id))];
+    const map = new Map<string, { id: string; name: string; slug: string }[]>();
+    if (ids.length === 0) return map;
+    const cats = await this.prisma.productCategory.findMany({
+      where: {
+        businessTypeId: { in: ids },
+        businessId: null,
+        isActive: true,
+        deletedAt: null,
+      },
+      select: { id: true, name: true, slug: true, businessTypeId: true },
+      orderBy: { sortOrder: 'asc' },
+    });
+    for (const c of cats) {
+      if (!c.businessTypeId) continue;
+      const list = map.get(c.businessTypeId) ?? [];
+      if (list.length < 6) list.push({ id: c.id, name: c.name, slug: c.slug });
+      map.set(c.businessTypeId, list);
+    }
+    return map;
+  }
+
+  private serializeBusiness(
+    r: {
+      id: string;
+      name: string;
+      slug: string;
+      kind?: BusinessKind;
+      description: string | null;
+      logoUrl: string | null;
+      coverUrl: string | null;
+      phone?: string | null;
+      commissionRate: Prisma.Decimal;
+      minOrderAmount: Prisma.Decimal | null;
+      avgPrepMinutes: number;
+      averageRating: Prisma.Decimal | null;
+      reviewCount: number;
+      businessType?: { id: string; name: string; slug: string; icon: string | null } | null;
+      branches?: { address?: string; latitude: Prisma.Decimal; longitude: Prisma.Decimal }[];
+    },
+    productCategories: { id: string; name: string; slug: string }[] = [],
+  ) {
     const branch = r.branches?.[0];
     const kind = resolveBusinessKind(r);
     return {
@@ -302,7 +326,7 @@ export class RestaurantsService {
       latitude: branch ? Number(branch.latitude) : null,
       longitude: branch ? Number(branch.longitude) : null,
       address: branch?.address ?? null,
-      productCategories: isRestaurantKind(r) ? [] : (r.productCategories ?? []),
+      productCategories: isRestaurantKind(r) ? [] : productCategories,
     };
   }
 
@@ -317,10 +341,6 @@ export class RestaurantsService {
       include: {
         businessType: true,
         branches: { where: { isActive: true } },
-        productCategories: {
-          where: { isActive: true, deletedAt: null },
-          orderBy: { sortOrder: 'asc' },
-        },
         products: {
           where: { isAvailable: true, deletedAt: null },
           include: {
@@ -347,6 +367,18 @@ export class RestaurantsService {
     );
 
     const menuCategories = buildMenuCategoriesFromProducts(products, restaurantMenu);
+    const typeScopedCategories =
+      !restaurantMenu && restaurant.businessTypeId
+        ? await this.prisma.productCategory.findMany({
+            where: {
+              businessTypeId: restaurant.businessTypeId,
+              businessId: null,
+              isActive: true,
+              deletedAt: null,
+            },
+            orderBy: { sortOrder: 'asc' },
+          })
+        : [];
 
     return {
       ...restaurant,
@@ -371,10 +403,12 @@ export class RestaurantsService {
       address: branch?.address ?? null,
       productCategories: restaurantMenu
         ? menuCategories
-        : restaurant.productCategories.map((c) => ({
+        : typeScopedCategories.map((c) => ({
             id: c.id,
             name: c.name,
             slug: c.slug,
+            imageUrl: c.imageUrl,
+            icon: c.icon,
             sortOrder: c.sortOrder,
           })),
     };

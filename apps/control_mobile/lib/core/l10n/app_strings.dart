@@ -67,9 +67,11 @@ abstract final class AppStrings {
   static const categoriesSection = 'Taom kategoriyalari';
   static const storeCategoriesSection = 'Do‘kon kategoriyalari';
   static const storeCategoriesHint =
-      'Har bir do‘kon uchun ichki kategoriya + rasm. Mijoz doirasida chiqadi.';
+      'Shu biznes turi uchun umumiy kategoriyalar. Barcha do‘konlar bir xil ro‘yxatdan foydalanadi.';
   static const storeCategoriesEmpty =
-      'Bu do‘konda kategoriya yo‘q. Qo‘shing va rasm yuklang.';
+      'Hali umumiy kategoriya yo‘q. Qo‘shing va rasm yuklang.';
+  static const storeCategoriesNeedType =
+      'Avval sidebar orqali do‘kon turini tanlang.';
   static const selectStore = 'Do‘konni tanlang';
   static const productsSection = 'Mahsulotlar';
   static const addCategory = 'Kategoriya + rasm';

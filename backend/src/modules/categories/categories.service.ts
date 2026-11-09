@@ -12,7 +12,7 @@ import { resolveBusinessId } from '../../domain/business/business-id.util';
 import { DishCategoriesService } from '../dish-categories/dish-categories.service';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
-/** Store product categories (Fruits, Drinks, …) scoped to a business. */
+/** Store product categories — preferred scope is shared per BusinessType. */
 @Injectable()
 export class CategoriesService {
   constructor(
@@ -32,12 +32,30 @@ export class CategoriesService {
     });
   }
 
+  /** Type-scoped shared catalog (businessTypeId set, businessId null). */
+  async findByBusinessType(
+    opts: { businessTypeId?: string; typeSlug?: string },
+    includeInactive = false,
+  ) {
+    const typeId = await this.resolveBusinessTypeId(opts);
+    return this.prisma.productCategory.findMany({
+      where: {
+        businessTypeId: typeId,
+        businessId: null,
+        deletedAt: null,
+        ...(!includeInactive && { isActive: true }),
+      },
+      orderBy: { sortOrder: 'asc' },
+      include: { _count: { select: { products: { where: { deletedAt: null } } } } },
+    });
+  }
+
   /** @deprecated use findByBusiness */
   findByRestaurant(restaurantId: string, includeInactive = false) {
     return this.findByBusiness(restaurantId, includeInactive);
   }
 
-  /** Restaurants → global dish categories; stores → per-business product categories. */
+  /** Restaurants → global dish categories; stores → type-scoped product categories. */
   async findForBusinessMenu(businessId: string, includeInactive = false) {
     const business = await this.prisma.business.findFirst({
       where: { id: businessId, deletedAt: null },
@@ -51,11 +69,20 @@ export class CategoriesService {
         : this.dishCategories.findAllPublic();
     }
 
-    return this.findByBusiness(businessId, includeInactive);
+    if (!business.businessTypeId) {
+      return [];
+    }
+
+    return this.findByBusinessType(
+      { businessTypeId: business.businessTypeId },
+      includeInactive,
+    );
   }
 
   async create(
     data: {
+      businessTypeId?: string;
+      type?: string;
       businessId?: string;
       restaurantId?: string;
       name: string;
@@ -67,16 +94,48 @@ export class CategoriesService {
     },
     user: JwtPayload,
   ) {
-    const businessId = resolveBusinessId({
-      businessId: data.businessId,
-      restaurantId: data.restaurantId,
-    });
-    if (!businessId) throw new NotFoundException('businessId is required');
-    await this.assertStoreBusiness(businessId);
-    this.assertAccess(businessId, user);
+    this.assertAdminOnly(user);
+
+    let businessTypeId =
+      data.businessTypeId?.trim() ||
+      (data.type?.trim()
+        ? await this.resolveBusinessTypeId({ typeSlug: data.type.trim() })
+        : null);
+
+    // Legacy: resolve type from a store when only businessId is sent.
+    if (!businessTypeId) {
+      const businessId = resolveBusinessId({
+        businessId: data.businessId,
+        restaurantId: data.restaurantId,
+      });
+      if (businessId) {
+        const business = await this.prisma.business.findFirst({
+          where: { id: businessId, deletedAt: null },
+          include: { businessType: true },
+        });
+        if (!business) throw new NotFoundException('Business not found');
+        if (isRestaurantKind(business)) {
+          throw new BadRequestException(
+            'Restaurants use global dish categories — select one when creating a menu item',
+          );
+        }
+        if (!business.businessTypeId) {
+          throw new BadRequestException('Business has no business type');
+        }
+        businessTypeId = business.businessTypeId;
+      }
+    }
+
+    if (!businessTypeId) {
+      throw new BadRequestException('businessTypeId or type is required');
+    }
+
+    await this.assertStoreBusinessType(businessTypeId);
+
     return this.prisma.productCategory.create({
       data: {
-        businessId,
+        businessTypeId,
+        businessId: null,
         name: data.name,
         slug: data.slug,
         description: data.description,
@@ -88,44 +147,66 @@ export class CategoriesService {
   }
 
   async update(id: string, dto: UpdateCategoryDto, user: JwtPayload) {
+    this.assertAdminOnly(user);
     const category = await this.prisma.productCategory.findFirst({
       where: { id, deletedAt: null },
     });
     if (!category) throw new NotFoundException('Product category not found');
-    this.assertAccess(category.businessId, user);
     return this.prisma.productCategory.update({ where: { id }, data: dto });
   }
 
   async softDelete(id: string, user: JwtPayload) {
+    this.assertAdminOnly(user);
     const category = await this.prisma.productCategory.findFirst({
       where: { id, deletedAt: null },
     });
     if (!category) throw new NotFoundException('Product category not found');
-    this.assertAccess(category.businessId, user);
     return this.prisma.productCategory.update({
       where: { id },
       data: { deletedAt: new Date(), isActive: false },
     });
   }
 
-  private async assertStoreBusiness(businessId: string) {
-    const business = await this.prisma.business.findFirst({
-      where: { id: businessId, deletedAt: null },
-      include: { businessType: true },
+  private async resolveBusinessTypeId(opts: {
+    businessTypeId?: string;
+    typeSlug?: string;
+  }): Promise<string> {
+    if (opts.businessTypeId?.trim()) {
+      const type = await this.prisma.businessType.findFirst({
+        where: { id: opts.businessTypeId.trim(), deletedAt: null },
+      });
+      if (!type) throw new NotFoundException('Business type not found');
+      return type.id;
+    }
+    const slug = opts.typeSlug?.trim();
+    if (!slug) {
+      throw new BadRequestException('businessTypeId or type is required');
+    }
+    const type = await this.prisma.businessType.findFirst({
+      where: { slug, deletedAt: null },
     });
-    if (!business) throw new NotFoundException('Business not found');
-    if (isRestaurantKind(business)) {
+    if (!type) throw new NotFoundException('Business type not found');
+    return type.id;
+  }
+
+  private async assertStoreBusinessType(businessTypeId: string) {
+    const type = await this.prisma.businessType.findFirst({
+      where: { id: businessTypeId, deletedAt: null },
+    });
+    if (!type) throw new NotFoundException('Business type not found');
+    if (type.menuMode === 'GLOBAL_DISH' || type.slug === 'restaurant') {
       throw new BadRequestException(
-        'Restaurants use global dish categories — select one when creating a menu item',
+        'Restaurants use global dish categories — POST /dish-categories',
       );
     }
   }
 
-  private assertAccess(businessId: string, user: JwtPayload) {
+  private assertAdminOnly(user: JwtPayload) {
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MANAGER) {
       return;
     }
-    const userBusinessId = user.businessId ?? user.restaurantId;
-    if (userBusinessId !== businessId) throw new ForbiddenException();
+    throw new ForbiddenException(
+      'Only admin can manage shared store categories',
+    );
   }
 }

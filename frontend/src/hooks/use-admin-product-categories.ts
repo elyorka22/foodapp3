@@ -13,6 +13,7 @@ export type StoreCategory = {
   imageUrl?: string | null;
   sortOrder?: number;
   isActive?: boolean;
+  businessTypeId?: string | null;
 };
 
 export type StoreCategoryForm = {
@@ -25,28 +26,60 @@ export type StoreCategoryForm = {
   isActive?: boolean;
 };
 
-export function useAdminProductCategories(businessId: string | undefined) {
+type Scope =
+  | { businessTypeId: string; typeSlug?: never; businessId?: never }
+  | { typeSlug: string; businessTypeId?: never; businessId?: never }
+  | { businessId: string; businessTypeId?: never; typeSlug?: never };
+
+function scopeQuery(scope: Scope): string {
+  if ('businessTypeId' in scope && scope.businessTypeId) {
+    return `businessTypeId=${encodeURIComponent(scope.businessTypeId)}`;
+  }
+  if ('typeSlug' in scope && scope.typeSlug) {
+    return `type=${encodeURIComponent(scope.typeSlug)}`;
+  }
+  return `businessId=${encodeURIComponent(scope.businessId!)}`;
+}
+
+function scopeKey(scope: Scope): string {
+  if ('businessTypeId' in scope && scope.businessTypeId) return `typeId:${scope.businessTypeId}`;
+  if ('typeSlug' in scope && scope.typeSlug) return `type:${scope.typeSlug}`;
+  return `biz:${scope.businessId}`;
+}
+
+/** Shared type-scoped store categories (preferred) or legacy business-scoped list. */
+export function useAdminProductCategories(scope: Scope | undefined) {
   const token = getToken();
   const qc = useQueryClient();
-  const queryKey = ['admin-product-categories', businessId] as const;
+  const enabled = !!token && !!scope;
+  const queryKey = ['admin-product-categories', scope ? scopeKey(scope) : 'none'] as const;
 
   const list = useQuery({
     queryKey,
     queryFn: () =>
       api<StoreCategory[]>(
-        `/categories?restaurantId=${businessId}&includeInactive=true`,
+        `/categories?${scopeQuery(scope!)}&includeInactive=true`,
         { token: token ?? undefined },
       ),
-    enabled: !!token && !!businessId,
+    enabled,
   });
 
   const create = useMutation({
-    mutationFn: (body: StoreCategoryForm) =>
-      api('/categories', {
+    mutationFn: (body: StoreCategoryForm) => {
+      const payload: Record<string, unknown> = { ...body };
+      if (scope && 'businessTypeId' in scope && scope.businessTypeId) {
+        payload.businessTypeId = scope.businessTypeId;
+      } else if (scope && 'typeSlug' in scope && scope.typeSlug) {
+        payload.type = scope.typeSlug;
+      } else if (scope && 'businessId' in scope && scope.businessId) {
+        payload.businessId = scope.businessId;
+      }
+      return api('/categories', {
         method: 'POST',
         token: token ?? undefined,
-        body: JSON.stringify({ ...body, restaurantId: businessId }),
-      }),
+        body: JSON.stringify(payload),
+      });
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey }),
   });
 

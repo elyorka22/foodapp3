@@ -130,6 +130,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ),
                 routes: [
                   GoRoute(
+                    path: 'grocery',
+                    builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'grocery'),
+                  ),
+                  GoRoute(
                     path: 'flowers',
                     builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'flowers'),
                   ),
@@ -143,6 +147,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'perfume',
                     builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'perfume'),
+                  ),
+                  GoRoute(
+                    path: 'pharmacy',
+                    builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'pharmacy'),
                   ),
                   GoRoute(
                     path: ':slug',

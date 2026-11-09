@@ -29,13 +29,11 @@ class _HubCategory {
   const _HubCategory({
     required this.key,
     required this.name,
-    required this.storeSlug,
     this.imageUrl,
   });
 
   final String key;
   final String name;
-  final String storeSlug;
   final String? imageUrl;
 }
 
@@ -72,14 +70,14 @@ class _StoreTypeHubScreenState extends ConsumerState<StoreTypeHubScreen> {
       _typeTitles[widget.typeSlug] ??
       widget.typeSlug;
 
-  void _ensureCategories(List<BusinessModel> stores) {
-    final key = stores.map((s) => s.id).join(',');
+  void _ensureCategories() {
+    final key = widget.typeSlug;
     if (_loadedForKey == key || _catsLoading) return;
     _catsLoading = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       setState(() {});
-      final cats = await _loadCategories(stores);
+      final cats = await _loadCategories(widget.typeSlug);
       if (!mounted) return;
       setState(() {
         _categories = cats;
@@ -105,7 +103,7 @@ class _StoreTypeHubScreenState extends ConsumerState<StoreTypeHubScreen> {
           },
           child: storesAsync.when(
             data: (stores) {
-              _ensureCategories(stores);
+              _ensureCategories();
               return _body(stores);
             },
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -247,7 +245,9 @@ class _StoreTypeHubScreenState extends ConsumerState<StoreTypeHubScreen> {
               _CategoryTile(
                 title: cat.name,
                 imageUrl: cat.imageUrl,
-                onTap: () => context.push(AppRoutes.storeDetail(cat.storeSlug)),
+                onTap: () => context.push(
+                  AppRoutes.storesWithType(widget.typeSlug),
+                ),
               ),
           ],
         ),
@@ -255,44 +255,27 @@ class _StoreTypeHubScreenState extends ConsumerState<StoreTypeHubScreen> {
     );
   }
 
-  Future<List<_HubCategory>> _loadCategories(List<BusinessModel> stores) async {
-    final sample = stores.take(8).toList();
-    final byKey = <String, _HubCategory>{};
-    final repo = ref.read(storesRepositoryProvider);
-
-    for (final store in sample) {
-      try {
-        final detail = await repo.fetchStoreDetail(store.slug);
-        final cats = detail.productCategories ?? const <ProductCategoryModel>[];
-        final products = detail.products ?? const <ProductModel>[];
-        for (final cat in cats) {
-          final name = cat.name.trim();
-          if (name.isEmpty) continue;
-          final key = (cat.slug.isNotEmpty ? cat.slug : cat.id).toLowerCase();
-          if (byKey.containsKey(key)) continue;
-          String? imageUrl = cat.imageUrl;
-          if (imageUrl == null || imageUrl.isEmpty) {
-            for (final p in products) {
-              // Best-effort: first product image for tile decoration.
-              final img = p.imageUrl;
-              if (img != null && img.isNotEmpty) {
-                imageUrl = img;
-                break;
-              }
-            }
-          }
-          byKey[key] = _HubCategory(
-            key: key,
-            name: name,
-            storeSlug: store.slug,
-            imageUrl: imageUrl,
-          );
-        }
-      } catch (_) {
-        // Skip failed store detail.
-      }
+  Future<List<_HubCategory>> _loadCategories(String typeSlug) async {
+    try {
+      final cats = await ref
+          .read(storesRepositoryProvider)
+          .fetchTypeCategories(typeSlug);
+      return cats
+          .map((cat) {
+            final name = cat.name.trim();
+            if (name.isEmpty) return null;
+            final key = (cat.slug.isNotEmpty ? cat.slug : cat.id).toLowerCase();
+            return _HubCategory(
+              key: key,
+              name: name,
+              imageUrl: cat.imageUrl,
+            );
+          })
+          .whereType<_HubCategory>()
+          .toList();
+    } catch (_) {
+      return const [];
     }
-    return byKey.values.toList();
   }
 }
 

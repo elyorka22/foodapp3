@@ -12,8 +12,8 @@ import { slugify } from '@/lib/slugify';
 import { uploadImage } from '@/lib/upload';
 
 type Props = {
-  businessId: string;
-  businessName: string;
+  typeSlug: string;
+  typeName: string;
 };
 
 const emptyForm: StoreCategoryForm = {
@@ -23,8 +23,8 @@ const emptyForm: StoreCategoryForm = {
   sortOrder: 0,
 };
 
-export function StoreCategoryPanel({ businessId, businessName }: Props) {
-  const { list, create, update, remove } = useAdminProductCategories(businessId);
+export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
+  const { list, create, update, remove } = useAdminProductCategories({ typeSlug });
   const [form, setForm] = useState<StoreCategoryForm>(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -81,8 +81,8 @@ export function StoreCategoryPanel({ businessId, businessName }: Props) {
   return (
     <div className="space-y-4 rounded-xl border bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        <strong>{businessName}</strong> — mahsulot kategoriyalari faqat shu do‘kon uchun.
-        Ichki sahifada doira sifatida chiqadi.
+        <strong>{typeName}</strong> — umumiy mahsulot kategoriyalari. Shu turdagi barcha
+        do‘konlar bir xil ro‘yxatdan foydalanadi. Faqat admin tahrirlaydi.
       </p>
 
       <div className="space-y-3 rounded-lg border border-dashed border-zinc-200 p-3 dark:border-white/10">
@@ -119,83 +119,77 @@ export function StoreCategoryPanel({ businessId, businessName }: Props) {
           </Button>
           {editId ? (
             <Button type="button" variant="secondary" onClick={resetForm}>
-              Bekor qilish
-            </Button>
-          ) : null}
-          {form.imageUrl ? (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setForm((f) => ({ ...f, imageUrl: '' }))}
-            >
-              Rasmni olib tashlash
+              Bekor
             </Button>
           ) : null}
         </div>
       </div>
 
-      {!rows.length ? (
-        <EmptyState title="Kategoriyalar yo‘q" description="Birinchi kategoriyani yarating." />
+      {rows.length === 0 ? (
+        <EmptyState
+          title="Kategoriya yo‘q"
+          description="Yuqoridan umumiy kategoriya qo‘shing — barcha do‘konlar ko‘radi."
+        />
       ) : (
-        <ul className="space-y-2">
-          {rows.map((c) => {
-            const src = c.imageUrl ? resolveImageUrl(c.imageUrl) ?? c.imageUrl : null;
-            return (
-              <li
-                key={c.id}
-                className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm dark:border-white/10"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  {src ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={src} alt="" className="h-11 w-11 rounded-full object-cover" />
-                  ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-500">
-                      {c.name.trim().charAt(0).toUpperCase() || '—'}
-                    </div>
-                  )}
-                  <span className="truncate">
-                    {c.name}
-                    {c.isActive === false ? ' (o‘chirilgan)' : ''}
-                  </span>
-                </div>
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="!px-2 !py-1 text-xs"
-                    onClick={() => {
-                      setEditId(c.id);
-                      setForm({
-                        name: c.name,
-                        slug: c.slug,
-                        imageUrl: c.imageUrl ?? '',
-                        sortOrder: c.sortOrder ?? 0,
-                      });
-                    }}
-                  >
-                    Tahrirlash
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    className="!px-2 !py-1 text-xs"
-                    onClick={async () => {
-                      try {
-                        await remove.mutateAsync(c.id);
-                        if (editId === c.id) resetForm();
-                        toast.success('O‘chirildi');
-                      } catch (e) {
-                        toast.error(e instanceof Error ? e.message : 'Xatolik');
-                      }
-                    }}
-                  >
-                    O‘chirish
-                  </Button>
-                </div>
-              </li>
-            );
-          })}
+        <ul className="divide-y rounded-lg border dark:divide-white/10 dark:border-white/10">
+          {rows.map((c) => (
+            <li
+              key={c.id}
+              className="flex flex-wrap items-center gap-3 px-3 py-2.5"
+            >
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                {c.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={resolveImageUrl(c.imageUrl) ?? c.imageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-zinc-400">
+                    {c.name.slice(0, 1)}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{c.name}</p>
+                <p className="truncate text-xs text-zinc-500">{c.slug}</p>
+              </div>
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setEditId(c.id);
+                    setForm({
+                      name: c.name,
+                      slug: c.slug,
+                      imageUrl: c.imageUrl ?? '',
+                      sortOrder: c.sortOrder ?? 0,
+                    });
+                  }}
+                >
+                  Tahrir
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="destructive"
+                  disabled={remove.isPending}
+                  onClick={() => {
+                    if (!confirm('O‘chirishni tasdiqlaysizmi?')) return;
+                    void remove.mutateAsync(c.id).then(
+                      () => toast.success('O‘chirildi'),
+                      (e) => toast.error(e instanceof Error ? e.message : 'Xatolik'),
+                    );
+                  }}
+                >
+                  O‘chirish
+                </Button>
+              </div>
+            </li>
+          ))}
         </ul>
       )}
     </div>

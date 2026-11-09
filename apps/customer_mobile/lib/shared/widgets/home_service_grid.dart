@@ -54,7 +54,7 @@ class HomeServiceGrid extends ConsumerWidget {
       keyName: HomeServiceCardKey.pharmacy,
       title: AppStrings.homeServicePharmacy,
       eta: AppStrings.homeServicePharmacyEta,
-      route: '/stores?type=pharmacy',
+      route: '/stores/pharmacy',
       icon: Icons.medical_services_outlined,
     ),
   ];
@@ -72,7 +72,7 @@ class HomeServiceGrid extends ConsumerWidget {
     keyName: HomeServiceCardKey.products,
     title: AppStrings.homeServiceProducts,
     eta: AppStrings.homeServiceProductsEta,
-    route: '/stores?type=grocery',
+    route: AppRoutes.storesGrocery,
     icon: Icons.shopping_bag_outlined,
   );
 

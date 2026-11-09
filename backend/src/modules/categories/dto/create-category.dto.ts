@@ -2,7 +2,24 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsInt, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
 export class CreateCategoryDto {
-  @ApiPropertyOptional({ description: 'Preferred. Merchant/business UUID.' })
+  @ApiPropertyOptional({
+    description: 'Preferred. Shared catalog for this business type UUID.',
+  })
+  @IsOptional()
+  @IsUUID()
+  businessTypeId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Business type slug (flowers, grocery, …). Alternative to businessTypeId.',
+  })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiPropertyOptional({
+    deprecated: true,
+    description: 'Legacy per-store scope. Prefer businessTypeId / type.',
+  })
   @IsOptional()
   @IsUUID()
   businessId?: string;

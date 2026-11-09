@@ -51,7 +51,7 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
           {uz.groceryStores}
         </h2>
         <Link
-          href="/stores?type=grocery"
+          href="/stores/grocery"
           className="flex shrink-0 items-center gap-0.5 text-[14px] font-medium text-zinc-400 transition active:opacity-70"
         >
           {uz.seeAll}

@@ -6,57 +6,22 @@ import { CategoryPanel } from '@/components/admin/category-panel';
 import { StoreCategoryPanel } from '@/components/admin/store-category-panel';
 import { EmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
-import { getToken } from '@/lib/auth';
+import { useAdminBusinessTypes } from '@/hooks/use-admin-business-types';
 
 type Props = {
   title: string;
   vertical: 'restaurant' | 'store';
   listHref: string;
-  /** Filter store merchants by business type slug */
+  /** Required for store vertical — shared catalog for this type slug */
   typeSlug?: string;
 };
 
 export function MerchantCategoriesPage({ title, vertical, listHref, typeSlug }: Props) {
-  const token = getToken();
   const permission = vertical === 'store' ? 'store.categories' : 'restaurant.categories';
   const { ready, authorized } = useAdminAccess({ permission });
-  const [merchants, setMerchants] = useState<{ id: string; name: string }[]>([]);
-  const [merchantId, setMerchantId] = useState('');
-
-  useEffect(() => {
-    if (vertical === 'restaurant' || !token) return;
-
-    const fromUrl =
-      typeof window !== 'undefined'
-        ? new URLSearchParams(window.location.search).get('businessId') ??
-          new URLSearchParams(window.location.search).get('restaurantId')
-        : null;
-
-    const qs = new URLSearchParams({ limit: '100', vertical });
-    if (typeSlug) qs.set('type', typeSlug);
-
-    api<{ data: { id: string; name: string }[] }>(`/restaurants/admin?${qs.toString()}`, {
-      token,
-    })
-      .then((res) => {
-        setMerchants(res.data);
-        if (fromUrl && res.data.some((r) => r.id === fromUrl)) {
-          setMerchantId(fromUrl);
-        } else if (res.data[0]?.id) {
-          setMerchantId(res.data[0].id);
-        } else {
-          setMerchantId('');
-        }
-      })
-      .catch((err) =>
-        toast.error(err instanceof Error ? err.message : 'Yuklashda xatolik'),
-      );
-  }, [token, vertical, typeSlug]);
-
-  const selected = merchants.find((r) => r.id === merchantId);
+  const types = useAdminBusinessTypes();
+  const type = (types.list.data ?? []).find((t) => t.slug === typeSlug);
+  const typeName = type?.name ?? typeSlug ?? '';
 
   if (!ready) return null;
   if (!authorized) return null;
@@ -83,13 +48,23 @@ export function MerchantCategoriesPage({ title, vertical, listHref, typeSlug }: 
     );
   }
 
+  if (!typeSlug) {
+    return (
+      <EmptyState
+        title="Tur tanlang"
+        description="Do‘kon kategoriyalari biznes turi bo‘yicha umumiy. Sidebar orqali tur sahifasiga o‘ting."
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold">{title}</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Do&apos;kon mahsulot kategoriyalari — har bir do&apos;kon o&apos;z ro&apos;yxatini yuritadi.
+            Shu turdagi barcha do&apos;konlar uchun umumiy kategoriyalar. Faqat admin
+            tahrirlaydi; do&apos;kon egasi faqat mahsulotda tanlaydi.
           </p>
         </div>
         <Link href={listHref}>
@@ -99,29 +74,7 @@ export function MerchantCategoriesPage({ title, vertical, listHref, typeSlug }: 
         </Link>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="text-sm font-medium" htmlFor="merchant-select">
-          Do&apos;kon
-        </label>
-        <select
-          id="merchant-select"
-          className="min-w-[220px] rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
-          value={merchantId}
-          onChange={(e) => setMerchantId(e.target.value)}
-        >
-          {merchants.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {!merchantId ? (
-        <EmptyState title="Tanlang" description="Kategoriyalarni ko'rish uchun do'konni tanlang." />
-      ) : selected ? (
-        <StoreCategoryPanel businessId={merchantId} businessName={selected.name} />
-      ) : null}
+      <StoreCategoryPanel typeSlug={typeSlug} typeName={typeName} />
     </div>
   );
 }

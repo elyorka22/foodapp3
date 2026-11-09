@@ -57,7 +57,7 @@ const TOP_ROW: ServiceCard[] = [
   },
   {
     key: 'pharmacy',
-    href: '/stores?type=pharmacy',
+    href: '/stores/pharmacy',
     title: uz.homeServicePharmacy,
     eta: uz.homeServicePharmacyEta,
     icon: Pill,
@@ -82,7 +82,7 @@ const BOTTOM_LARGE: ServiceCard = {
 
 const BOTTOM_SMALL: ServiceCard = {
   key: 'products',
-  href: '/stores?type=grocery',
+  href: '/stores/grocery',
   title: uz.homeServiceProducts,
   eta: uz.homeServiceProductsEta,
   icon: ShoppingBag,
