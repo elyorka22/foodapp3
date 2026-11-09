@@ -12,6 +12,7 @@ import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
+import '../../shell/control_vertical_scope.dart';
 import '../data/order_model.dart';
 import '../data/orders_repository.dart';
 import 'order_detail_sheet.dart';
@@ -75,8 +76,12 @@ class OrdersPagedNotifier
     extends AutoDisposeAsyncNotifier<OrdersPagedState> {
   static const _limit = 20;
 
-  Map<String, dynamic> _queryFrom(OrdersFilter f) {
+  Map<String, dynamic> _queryFrom(
+    OrdersFilter f,
+    ControlVerticalScope scope,
+  ) {
     return {
+      ...scope.ordersQuery(),
       if (f.status != null && f.status!.isNotEmpty) 'status': f.status,
       if (f.dateFrom != null)
         'dateFrom': DateTime(
@@ -101,10 +106,11 @@ class OrdersPagedNotifier
   @override
   Future<OrdersPagedState> build() async {
     final filter = ref.watch(ordersFilterProvider);
+    final scope = ref.watch(controlVerticalScopeProvider);
     final page = await ref.read(ordersRepositoryProvider).fetchOrders(
           page: 1,
           limit: _limit,
-          query: _queryFrom(filter),
+          query: _queryFrom(filter, scope),
         );
     return OrdersPagedState(
       items: page.data,
@@ -128,11 +134,12 @@ class OrdersPagedNotifier
 
     try {
       final filter = ref.read(ordersFilterProvider);
+      final scope = ref.read(controlVerticalScopeProvider);
       final nextPage = current.page + 1;
       final page = await ref.read(ordersRepositoryProvider).fetchOrders(
             page: nextPage,
             limit: _limit,
-            query: _queryFrom(filter),
+            query: _queryFrom(filter, scope),
           );
       state = AsyncData(
         OrdersPagedState(
@@ -208,16 +215,20 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   Widget build(BuildContext context) {
     final filter = ref.watch(ordersFilterProvider);
     final async = ref.watch(ordersPagedProvider);
+    final scope = ref.watch(controlVerticalScopeProvider);
     final hasFilters = filter.status != null ||
         filter.dateFrom != null ||
         filter.dateTo != null ||
         filter.search.isNotEmpty;
+    final title = scope.isScoped && (scope.name?.isNotEmpty ?? false)
+        ? '${scope.name} · ${AppStrings.ordersTitle}'
+        : AppStrings.ordersTitle;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PageHeader(
-          title: AppStrings.ordersTitle,
+          title: title,
           trailing: hasFilters
               ? TextButton(
                   onPressed: () {

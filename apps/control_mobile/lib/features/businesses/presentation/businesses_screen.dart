@@ -12,6 +12,7 @@ import '../../../shared/widgets/header_action.dart';
 import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../cities/data/cities_repository.dart';
+import '../../shell/control_vertical_scope.dart';
 import '../data/businesses_repository.dart';
 import '../data/restaurant_model.dart';
 import 'business_create_sheet.dart';
@@ -23,10 +24,12 @@ final _businessCityFilterProvider =
 final businessesListProvider =
     FutureProvider.autoDispose<PaginatedResponse<ControlRestaurant>>((ref) {
   final cityId = ref.watch(_businessCityFilterProvider);
+  final scope = ref.watch(controlVerticalScopeProvider);
   return ref.watch(businessesRepositoryProvider).fetchRestaurants(
         page: 1,
         limit: 40,
         query: {
+          ...scope.restaurantQuery(),
           if (cityId != null && cityId.isNotEmpty) 'cityId': cityId,
         },
       );
@@ -45,12 +48,16 @@ class BusinessesScreen extends ConsumerWidget {
     final async = ref.watch(businessesListProvider);
     final citiesAsync = ref.watch(_citiesForFilterProvider);
     final selectedCityId = ref.watch(_businessCityFilterProvider);
+    final scope = ref.watch(controlVerticalScopeProvider);
+    final title = scope.isScoped && (scope.name?.isNotEmpty ?? false)
+        ? scope.name!
+        : AppStrings.businessesTitle;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PageHeader(
-          title: AppStrings.businessesTitle,
+          title: title,
           trailing: HeaderAction(
             label: AppStrings.create,
             onPressed: () => showDetailSheet(

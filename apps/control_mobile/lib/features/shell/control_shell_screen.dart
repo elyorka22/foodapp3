@@ -7,7 +7,14 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../auth/providers/auth_provider.dart';
+import '../business_types/data/business_types_repository.dart';
 import 'control_nav_items.dart';
+import 'control_vertical_scope.dart';
+
+final _navBusinessTypesProvider =
+    FutureProvider.autoDispose<List<ControlBusinessType>>((ref) {
+  return ref.watch(businessTypesRepositoryProvider).fetchTypes();
+});
 
 class ControlShellScreen extends ConsumerWidget {
   const ControlShellScreen({super.key, required this.navigationShell});
@@ -21,6 +28,33 @@ class ControlShellScreen extends ConsumerWidget {
     );
   }
 
+  void _selectEntry(WidgetRef ref, ControlNavEntry entry) {
+    ref.read(controlVerticalScopeProvider.notifier).state = entry.scope;
+    ref.read(controlNavEntryIdProvider.notifier).state = entry.id;
+    if (entry.catalogIntent != null) {
+      ref.read(catalogNavIntentProvider.notifier).state = entry.catalogIntent!;
+    }
+    _goBranch(entry.branchIndex);
+  }
+
+  String _currentLabel(WidgetRef ref, List<ControlNavSection> sections) {
+    final entryId = ref.watch(controlNavEntryIdProvider);
+    if (entryId != null) {
+      for (final section in sections) {
+        for (final entry in section.entries) {
+          if (entry.id == entryId) return entry.label;
+        }
+      }
+    }
+    final branch = navigationShell.currentIndex;
+    for (final section in sections) {
+      for (final entry in section.entries) {
+        if (entry.branchIndex == branch) return entry.label;
+      }
+    }
+    return AppStrings.appShortName;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).valueOrNull;
@@ -28,19 +62,18 @@ class ControlShellScreen extends ConsumerWidget {
         ? user!.fullName
         : (user?.email ?? 'SUPER_ADMIN');
     final compact = Breakpoints.isCompact(context);
-    final mobileItems = controlNavItems
-        .asMap()
-        .entries
-        .where((e) => e.value.mobile)
-        .toList();
+    final typesAsync = ref.watch(_navBusinessTypesProvider);
+    final sections = buildControlNavSections(
+      typesAsync.valueOrNull ?? const <ControlBusinessType>[],
+    );
+    final selectedEntryId = ref.watch(controlNavEntryIdProvider);
 
     void logout() => ref.read(authStateProvider.notifier).logout();
 
     if (compact) {
-      final currentRoute = controlNavItems[navigationShell.currentIndex].route;
-      final currentLabel = controlNavItems[navigationShell.currentIndex].label;
-      var bottomIndex =
-          mobileItems.indexWhere((e) => e.value.route == currentRoute);
+      var bottomIndex = controlMobileNavEntries.indexWhere(
+        (e) => e.branchIndex == navigationShell.currentIndex,
+      );
       if (bottomIndex < 0) bottomIndex = 0;
 
       return Scaffold(
@@ -66,7 +99,7 @@ class ControlShellScreen extends ConsumerWidget {
                 ),
               ),
               Text(
-                currentLabel,
+                _currentLabel(ref, sections),
                 style: AppTypography.subtitle.copyWith(fontSize: 15),
               ),
             ],
@@ -85,11 +118,13 @@ class ControlShellScreen extends ConsumerWidget {
           ),
         ),
         drawer: _ControlDrawer(
-          selectedIndex: navigationShell.currentIndex,
+          sections: sections,
+          selectedEntryId: selectedEntryId,
+          selectedBranch: navigationShell.currentIndex,
           userName: userName,
-          onSelect: (index) {
+          onSelect: (entry) {
             Navigator.of(context).pop();
-            _goBranch(index);
+            _selectEntry(ref, entry);
           },
           onLogout: () {
             Navigator.of(context).pop();
@@ -102,14 +137,19 @@ class ControlShellScreen extends ConsumerWidget {
           children: [
             const Divider(height: 1),
             NavigationBar(
-              selectedIndex: bottomIndex.clamp(0, mobileItems.length - 1),
-              onDestinationSelected: (i) => _goBranch(mobileItems[i].key),
+              selectedIndex: bottomIndex.clamp(
+                0,
+                controlMobileNavEntries.length - 1,
+              ),
+              onDestinationSelected: (i) {
+                _selectEntry(ref, controlMobileNavEntries[i]);
+              },
               destinations: [
-                for (final item in mobileItems)
+                for (final item in controlMobileNavEntries)
                   NavigationDestination(
-                    icon: Icon(item.value.icon),
-                    selectedIcon: Icon(item.value.icon),
-                    label: item.value.label,
+                    icon: Icon(item.icon),
+                    selectedIcon: Icon(item.icon),
+                    label: item.label,
                   ),
               ],
             ),
@@ -123,9 +163,11 @@ class ControlShellScreen extends ConsumerWidget {
       body: Row(
         children: [
           _ControlSidebar(
-            selectedIndex: navigationShell.currentIndex,
+            sections: sections,
+            selectedEntryId: selectedEntryId,
+            selectedBranch: navigationShell.currentIndex,
             userName: userName,
-            onSelect: _goBranch,
+            onSelect: (entry) => _selectEntry(ref, entry),
             onLogout: logout,
           ),
           const VerticalDivider(width: 1, color: AppColors.borderLight),
@@ -138,22 +180,28 @@ class ControlShellScreen extends ConsumerWidget {
 
 class _ControlDrawer extends StatelessWidget {
   const _ControlDrawer({
-    required this.selectedIndex,
+    required this.sections,
+    required this.selectedEntryId,
+    required this.selectedBranch,
     required this.userName,
     required this.onSelect,
     required this.onLogout,
   });
 
-  final int selectedIndex;
+  final List<ControlNavSection> sections;
+  final String? selectedEntryId;
+  final int selectedBranch;
   final String userName;
-  final ValueChanged<int> onSelect;
+  final ValueChanged<ControlNavEntry> onSelect;
   final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: _NavPanel(
-        selectedIndex: selectedIndex,
+        sections: sections,
+        selectedEntryId: selectedEntryId,
+        selectedBranch: selectedBranch,
         userName: userName,
         onSelect: onSelect,
         onLogout: onLogout,
@@ -165,15 +213,19 @@ class _ControlDrawer extends StatelessWidget {
 
 class _ControlSidebar extends StatelessWidget {
   const _ControlSidebar({
-    required this.selectedIndex,
+    required this.sections,
+    required this.selectedEntryId,
+    required this.selectedBranch,
     required this.userName,
     required this.onSelect,
     required this.onLogout,
   });
 
-  final int selectedIndex;
+  final List<ControlNavSection> sections;
+  final String? selectedEntryId;
+  final int selectedBranch;
   final String userName;
-  final ValueChanged<int> onSelect;
+  final ValueChanged<ControlNavEntry> onSelect;
   final VoidCallback onLogout;
 
   @override
@@ -181,7 +233,9 @@ class _ControlSidebar extends StatelessWidget {
     return SizedBox(
       width: AppSpacing.sidebarWidth,
       child: _NavPanel(
-        selectedIndex: selectedIndex,
+        sections: sections,
+        selectedEntryId: selectedEntryId,
+        selectedBranch: selectedBranch,
         userName: userName,
         onSelect: onSelect,
         onLogout: onLogout,
@@ -193,18 +247,27 @@ class _ControlSidebar extends StatelessWidget {
 
 class _NavPanel extends StatelessWidget {
   const _NavPanel({
-    required this.selectedIndex,
+    required this.sections,
+    required this.selectedEntryId,
+    required this.selectedBranch,
     required this.userName,
     required this.onSelect,
     required this.onLogout,
     required this.showBrandMark,
   });
 
-  final int selectedIndex;
+  final List<ControlNavSection> sections;
+  final String? selectedEntryId;
+  final int selectedBranch;
   final String userName;
-  final ValueChanged<int> onSelect;
+  final ValueChanged<ControlNavEntry> onSelect;
   final VoidCallback onLogout;
   final bool showBrandMark;
+
+  bool _isSelected(ControlNavEntry entry) {
+    if (selectedEntryId != null) return entry.id == selectedEntryId;
+    return entry.branchIndex == selectedBranch;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +329,7 @@ class _NavPanel extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
                 children: [
-                  for (final group in controlNavGroups) ...[
+                  for (final group in sections) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(8, 12, 8, 6),
                       child: Text(
@@ -274,11 +337,11 @@ class _NavPanel extends StatelessWidget {
                         style: AppTypography.overline,
                       ),
                     ),
-                    for (final index in group.indices)
+                    for (final entry in group.entries)
                       _NavTile(
-                        item: controlNavItems[index],
-                        selected: index == selectedIndex,
-                        onTap: () => onSelect(index),
+                        item: entry,
+                        selected: _isSelected(entry),
+                        onTap: () => onSelect(entry),
                       ),
                   ],
                 ],
@@ -339,7 +402,7 @@ class _NavTile extends StatelessWidget {
     required this.onTap,
   });
 
-  final ControlNavItem item;
+  final ControlNavEntry item;
   final bool selected;
   final VoidCallback onTap;
 

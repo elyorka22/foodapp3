@@ -16,15 +16,17 @@ import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../businesses/data/businesses_repository.dart';
 import '../../businesses/data/restaurant_model.dart';
+import '../../shell/control_vertical_scope.dart';
 import '../data/catalog_repository.dart';
 import '../data/product_category_model.dart';
 
 final _storeBusinessesProvider =
     FutureProvider.autoDispose<List<ControlRestaurant>>((ref) async {
+  final scope = ref.watch(controlVerticalScopeProvider);
   final page = await ref.watch(businessesRepositoryProvider).fetchRestaurants(
         page: 1,
         limit: 100,
-        query: {'vertical': 'store'},
+        query: scope.storeListQuery(),
       );
   return page.data;
 });
@@ -63,148 +65,156 @@ String _slugFromName(String name) {
 }
 
 class StoreCategoriesScreen extends ConsumerWidget {
-  const StoreCategoriesScreen({super.key});
+  const StoreCategoriesScreen({super.key, this.embedded = false});
+
+  /// When true, omit Scaffold (used inside the control shell).
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scope = ref.watch(controlVerticalScopeProvider);
     final storesAsync = ref.watch(_storeBusinessesProvider);
     final selectedId = ref.watch(_selectedStoreIdProvider);
     final catsAsync = ref.watch(_storeCategoriesProvider);
     final stores = storesAsync.valueOrNull ?? const <ControlRestaurant>[];
     final selectedOk =
         stores.any((s) => s.id == selectedId) ? selectedId : null;
+    final title = scope.isScoped && (scope.name?.isNotEmpty ?? false)
+        ? '${scope.name} · ${AppStrings.storeCategoriesSection}'
+        : AppStrings.storeCategoriesSection;
+
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PageHeader(
+          title: title,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HeaderAction(
+                label: AppStrings.addCategory,
+                onPressed: selectedOk == null
+                    ? null
+                    : () => showDetailSheet(
+                          context: context,
+                          title: AppStrings.addCategory,
+                          initialChildSize: 0.92,
+                          builder: (_) => _StoreCategoryFormSheet(
+                            businessId: selectedOk,
+                          ),
+                        ),
+              ),
+              if (!embedded)
+                IconButton(
+                  tooltip: AppStrings.cancel,
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.close),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            0,
+            AppSpacing.lg,
+            8,
+          ),
+          child: Text(
+            AppStrings.storeCategoriesHint,
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: storesAsync.when(
+            loading: () => const LinearProgressIndicator(minHeight: 2),
+            error: (e, _) => Text(
+              e.toString(),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
+            ),
+            data: (list) {
+              if (list.isEmpty) {
+                return Text(
+                  AppStrings.emptyList,
+                  style: AppTypography.bodySmall,
+                );
+              }
+              return DropdownButtonFormField<String>(
+                value: selectedOk,
+                decoration: const InputDecoration(
+                  labelText: AppStrings.selectStore,
+                ),
+                items: [
+                  for (final s in list)
+                    DropdownMenuItem(value: s.id, child: Text(s.name)),
+                ],
+                onChanged: (v) =>
+                    ref.read(_selectedStoreIdProvider.notifier).state = v,
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: selectedOk == null
+              ? const Center(child: Text(AppStrings.selectStore))
+              : AsyncPageBody<List<ControlProductCategory>>(
+                  asyncValue: catsAsync,
+                  onRefresh: () =>
+                      ref.refresh(_storeCategoriesProvider.future),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  dataBuilder: (categories) {
+                    final rows = [...categories]
+                      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+                    if (rows.isEmpty) {
+                      return Text(
+                        AppStrings.storeCategoriesEmpty,
+                        style: AppTypography.bodySmall,
+                      );
+                    }
+                    return Column(
+                      children: [
+                        for (final c in rows)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: ControlListCard(
+                              leading: _Thumb(url: c.imageUrl),
+                              title: c.name,
+                              subtitle: c.slug.isNotEmpty ? c.slug : null,
+                              trailing: StatusChip(
+                                status:
+                                    c.isActive ? 'DELIVERED' : 'CANCELLED',
+                                label: c.isActive
+                                    ? AppStrings.active
+                                    : AppStrings.inactive,
+                              ),
+                              onTap: () => showDetailSheet(
+                                context: context,
+                                title: AppStrings.editCategory,
+                                initialChildSize: 0.92,
+                                builder: (_) => _StoreCategoryFormSheet(
+                                  businessId: selectedOk,
+                                  category: c,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+
+    if (embedded) return body;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            PageHeader(
-              title: AppStrings.storeCategoriesSection,
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HeaderAction(
-                    label: AppStrings.addCategory,
-                    onPressed: selectedOk == null
-                        ? null
-                        : () => showDetailSheet(
-                              context: context,
-                              title: AppStrings.addCategory,
-                              initialChildSize: 0.92,
-                              builder: (_) => _StoreCategoryFormSheet(
-                                businessId: selectedOk,
-                              ),
-                            ),
-                  ),
-                  IconButton(
-                    tooltip: AppStrings.cancel,
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                0,
-                AppSpacing.lg,
-                8,
-              ),
-              child: Text(
-                AppStrings.storeCategoriesHint,
-                style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: storesAsync.when(
-                loading: () => const LinearProgressIndicator(minHeight: 2),
-                error: (e, _) => Text(
-                  e.toString(),
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.danger),
-                ),
-                data: (list) {
-                  if (list.isEmpty) {
-                    return Text(
-                      AppStrings.emptyList,
-                      style: AppTypography.bodySmall,
-                    );
-                  }
-                  return DropdownButtonFormField<String>(
-                    value: selectedOk,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.selectStore,
-                    ),
-                    items: [
-                      for (final s in list)
-                        DropdownMenuItem(value: s.id, child: Text(s.name)),
-                    ],
-                    onChanged: (v) =>
-                        ref.read(_selectedStoreIdProvider.notifier).state = v,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: selectedOk == null
-                  ? const Center(child: Text(AppStrings.selectStore))
-                  : AsyncPageBody<List<ControlProductCategory>>(
-                      asyncValue: catsAsync,
-                      onRefresh: () =>
-                          ref.refresh(_storeCategoriesProvider.future),
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      dataBuilder: (categories) {
-                        final rows = [...categories]
-                          ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-                        if (rows.isEmpty) {
-                          return Text(
-                            AppStrings.storeCategoriesEmpty,
-                            style: AppTypography.bodySmall,
-                          );
-                        }
-                        return Column(
-                          children: [
-                            for (final c in rows)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: ControlListCard(
-                                  leading: _Thumb(url: c.imageUrl),
-                                  title: c.name,
-                                  subtitle:
-                                      c.slug.isNotEmpty ? c.slug : null,
-                                  trailing: StatusChip(
-                                    status: c.isActive
-                                        ? 'DELIVERED'
-                                        : 'CANCELLED',
-                                    label: c.isActive
-                                        ? AppStrings.active
-                                        : AppStrings.inactive,
-                                  ),
-                                  onTap: () => showDetailSheet(
-                                    context: context,
-                                    title: AppStrings.editCategory,
-                                    initialChildSize: 0.92,
-                                    builder: (_) => _StoreCategoryFormSheet(
-                                      businessId: selectedOk,
-                                      category: c,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
+      body: SafeArea(child: body),
     );
   }
 }

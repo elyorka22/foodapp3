@@ -42,7 +42,9 @@ final _productBusinessesProvider =
 });
 
 class CatalogScreen extends StatefulWidget {
-  const CatalogScreen({super.key});
+  const CatalogScreen({super.key, this.initialTab = 0});
+
+  final int initialTab;
 
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
@@ -55,10 +57,22 @@ class _CatalogScreenState extends State<CatalogScreen>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 2, vsync: this);
+    final tab = widget.initialTab.clamp(0, 1);
+    _tabs = TabController(length: 2, vsync: this, initialIndex: tab);
     _tabs.addListener(() {
       if (!_tabs.indexIsChanging) setState(() {});
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant CatalogScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTab != widget.initialTab) {
+      final tab = widget.initialTab.clamp(0, 1);
+      if (_tabs.index != tab) {
+        _tabs.animateTo(tab);
+      }
+    }
   }
 
   @override

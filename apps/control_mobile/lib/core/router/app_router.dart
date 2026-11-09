@@ -7,7 +7,7 @@ import '../../features/audit/presentation/audit_screen.dart';
 import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/business_types/presentation/business_types_screen.dart';
 import '../../features/businesses/presentation/businesses_screen.dart';
-import '../../features/catalog/presentation/catalog_screen.dart';
+import '../../features/catalog/presentation/catalog_hub_screen.dart';
 import '../../features/cities/presentation/cities_screen.dart';
 import '../../features/couriers/presentation/couriers_screen.dart';
 import '../../features/customers/presentation/customers_screen.dart';
@@ -104,7 +104,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [_branch(AppRoutes.orders, const OrdersScreen())],
           ),
           StatefulShellBranch(
-            routes: [_branch(AppRoutes.catalog, const CatalogScreen())],
+            routes: [_branch(AppRoutes.catalog, const CatalogHubScreen())],
           ),
           StatefulShellBranch(
             routes: [_branch(AppRoutes.promotions, const PromotionsScreen())],

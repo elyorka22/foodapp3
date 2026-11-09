@@ -4,10 +4,20 @@ abstract final class AppStrings {
   static const appShortName = 'Control';
   static const menuOpen = 'Bo‘limlar';
   static const navGroupMain = 'Asosiy';
+  static const navGroupManagement = 'Boshqaruv';
+  static const navGroupRestaurants = 'Restoranlar';
+  static const navGroupOpsOrders = 'Buyurtmalar (operatsiya)';
   static const navGroupOps = 'Operatsiyalar';
   static const navGroupGrowth = 'Marketing';
   static const navGroupPlatform = 'Platforma';
   static const navGroupSystem = 'Tizim';
+  static const navList = 'Ro‘yxat';
+  static const navDishCategories = 'Taom kategoriyalari';
+  static const navRestaurantMenu = 'Menyu mahsulotlari';
+  static const navStoreCategories = 'Mahsulot kategoriyalari';
+  static const navStoreProducts = 'Mahsulotlar';
+  static const navBanners = 'Bannerlar';
+  static const navAllOrders = 'Barcha buyurtmalar';
 
   static const loginTitle = 'Super admin kirishi';
   static const loginSubtitle = 'Faqat SUPER_ADMIN hisoblari uchun';
