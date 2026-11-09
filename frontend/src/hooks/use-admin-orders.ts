@@ -11,6 +11,7 @@ export type AdminOrdersQuery = {
   status?: string;
   statusGroup?: 'active' | 'cancelled';
   vertical?: 'restaurant' | 'store';
+  businessType?: string;
   dateFrom?: string;
   dateTo?: string;
   restaurantId?: string;
@@ -27,6 +28,7 @@ export function useAdminOrders(query: AdminOrdersQuery) {
   if (query.status) params.set('status', query.status);
   if (query.statusGroup) params.set('statusGroup', query.statusGroup);
   if (query.vertical) params.set('vertical', query.vertical);
+  if (query.businessType) params.set('businessType', query.businessType);
   if (query.restaurantId) params.set('restaurantId', query.restaurantId);
   if (query.dateFrom) params.set('dateFrom', new Date(`${query.dateFrom}T00:00:00.000Z`).toISOString());
   if (query.dateTo) params.set('dateTo', new Date(`${query.dateTo}T23:59:59.999Z`).toISOString());

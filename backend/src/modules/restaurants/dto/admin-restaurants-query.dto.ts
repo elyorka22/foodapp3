@@ -9,6 +9,11 @@ export class AdminRestaurantsQueryDto extends PaginationDto {
   @IsIn(['restaurant', 'store'])
   vertical?: 'restaurant' | 'store';
 
+  @ApiPropertyOptional({ description: 'Filter by business type slug (grocery, flowers, ...)' })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
   @ApiPropertyOptional({ description: 'Filter by city slug' })
   @IsOptional()
   @IsString()

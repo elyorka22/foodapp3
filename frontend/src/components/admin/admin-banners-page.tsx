@@ -70,6 +70,8 @@ type Props = {
   title: string;
   hint?: string;
   vertical?: 'restaurant' | 'store';
+  /** Filter merchants by business type slug */
+  typeSlug?: string;
   /** Homepage global banners only (no restaurant/store link) */
   homepageOnly?: boolean;
   /** Lock list and create form to one placement */
@@ -80,6 +82,7 @@ export function AdminBannersPage({
   title,
   hint,
   vertical,
+  typeSlug,
   homepageOnly = false,
   placementMode,
 }: Props) {
@@ -110,12 +113,20 @@ export function AdminBannersPage({
 
   useEffect(() => {
     if (!token || !vertical) return;
-    api<{ data: { id: string }[] }>(`/restaurants/admin?limit=200&vertical=${vertical}`, {
+    const qs = new URLSearchParams({ limit: '200', vertical });
+    if (typeSlug) qs.set('type', typeSlug);
+    api<{ data: RestaurantOption[] }>(`/restaurants/admin?${qs.toString()}`, {
       token,
     })
-      .then((res) => setMerchantIds(new Set(res.data.map((m) => m.id))))
-      .catch(() => setMerchantIds(new Set()));
-  }, [token, vertical]);
+      .then((res) => {
+        setMerchantIds(new Set(res.data.map((m) => m.id)));
+        setRestaurants(res.data);
+      })
+      .catch(() => {
+        setMerchantIds(new Set());
+        setRestaurants([]);
+      });
+  }, [token, vertical, typeSlug]);
 
   const filtered = useMemo(() => {
     const raw = (list.data ?? []) as BannerRow[];

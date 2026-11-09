@@ -438,9 +438,13 @@ export class RestaurantsService {
       cityId: query.cityId,
       citySlug: query.city,
     });
+    const typeSlug = query.type?.trim();
     const where: Prisma.BusinessWhereInput = {
       deletedAt: null,
       ...(query.isActive !== undefined && { isActive: query.isActive }),
+      ...(typeSlug
+        ? { businessType: { slug: typeSlug, isActive: true, deletedAt: null } }
+        : {}),
       AND: [
         ...(verticalFilter ? [verticalFilter] : []),
         ...(cityFilter ? [cityFilter] : []),

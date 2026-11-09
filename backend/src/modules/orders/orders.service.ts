@@ -418,6 +418,14 @@ export class OrdersService {
     if (query.dateTo) and.push({ createdAt: { lte: new Date(query.dateTo) } });
     const verticalFilter = orderWhereForVertical(query.vertical);
     if (verticalFilter) and.push(verticalFilter);
+    const businessTypeSlug = query.businessType?.trim();
+    if (businessTypeSlug) {
+      and.push({
+        business: {
+          businessType: { slug: businessTypeSlug, isActive: true, deletedAt: null },
+        },
+      });
+    }
     if (and.length) where.AND = and;
 
     if (query.search?.trim()) {

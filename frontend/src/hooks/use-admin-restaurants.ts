@@ -10,6 +10,8 @@ export type AdminRestaurantsQuery = {
   search?: string;
   isActive?: boolean;
   vertical?: 'restaurant' | 'store';
+  /** Business type slug: grocery, flowers, perfume, … */
+  type?: string;
   cityId?: string;
 };
 
@@ -45,6 +47,7 @@ export function useAdminRestaurants(query: AdminRestaurantsQuery) {
   if (query.search) params.set('search', query.search);
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive));
   if (query.vertical) params.set('vertical', query.vertical);
+  if (query.type) params.set('type', query.type);
   if (query.cityId) params.set('cityId', query.cityId);
 
   const list = useQuery({

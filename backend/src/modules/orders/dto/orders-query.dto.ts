@@ -64,6 +64,11 @@ export class OrdersQueryDto {
   @IsIn(['restaurant', 'store'])
   vertical?: 'restaurant' | 'store';
 
+  @ApiPropertyOptional({ description: 'Filter by business type slug (grocery, flowers, ...)' })
+  @IsOptional()
+  @IsString()
+  businessType?: string;
+
   /** active = in-progress; cancelled = CANCELLED; pending = PENDING; history = non-PENDING; open = awaiting courier call; closed = courier called or finished */
   @ApiPropertyOptional({ enum: ['active', 'cancelled', 'pending', 'history', 'open', 'closed'] })
   @IsOptional()

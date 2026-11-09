@@ -16,6 +16,7 @@ import { adminI18n as t } from '@/lib/admin-i18n';
 type Props = {
   title: string;
   vertical?: 'restaurant' | 'store';
+  businessType?: string;
   statusGroup?: 'active' | 'cancelled';
   lockStatus?: boolean;
   merchantColumnLabel?: string;
@@ -24,6 +25,7 @@ type Props = {
 export function AdminOrdersView({
   title,
   vertical,
+  businessType,
   statusGroup,
   lockStatus = false,
   merchantColumnLabel,
@@ -57,6 +59,7 @@ export function AdminOrdersView({
     status: lockStatus ? undefined : status || undefined,
     statusGroup,
     vertical,
+    businessType,
     dateFrom: from || undefined,
     dateTo: to || undefined,
   });

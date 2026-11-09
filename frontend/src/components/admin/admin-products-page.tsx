@@ -42,9 +42,12 @@ const emptyProduct: ProductForm = {
 
 type Props = {
   vertical?: 'restaurant' | 'store';
+  /** Filter merchants by business type slug (stores) */
+  typeSlug?: string;
+  pageTitle?: string;
 };
 
-export function AdminProductsPage({ vertical }: Props) {
+export function AdminProductsPage({ vertical, typeSlug, pageTitle }: Props) {
   const token = getToken();
   const menuPermission = vertical === 'store' ? 'store.products' : 'restaurant.menu';
   const { ready, authorized } = useAdminAccess({ permission: menuPermission });
@@ -87,13 +90,18 @@ export function AdminProductsPage({ vertical }: Props) {
 
   useEffect(() => {
     if (!token) return;
-    api<{ data: any[] }>(
-      `/restaurants/admin?limit=100${vertical ? `&vertical=${vertical}` : ''}`,
-      { token },
-    )
-      .then((res) => setRestaurants(res.data))
+    const qs = new URLSearchParams({ limit: '100' });
+    if (vertical) qs.set('vertical', vertical);
+    if (typeSlug) qs.set('type', typeSlug);
+    api<{ data: any[] }>(`/restaurants/admin?${qs.toString()}`, { token })
+      .then((res) => {
+        setRestaurants(res.data);
+        setRestaurantId((prev) =>
+          prev && res.data.some((r) => r.id === prev) ? prev : res.data[0]?.id ?? '',
+        );
+      })
       .catch(() => undefined);
-  }, [token, vertical]);
+  }, [token, vertical, typeSlug]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -484,11 +492,12 @@ export function AdminProductsPage({ vertical }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-lg font-semibold">
-          {vertical === 'store'
-            ? adminI18n.products.storeProducts
-            : vertical === 'restaurant'
-              ? adminI18n.products.restaurantProducts
-              : adminI18n.products.title}
+          {pageTitle ??
+            (vertical === 'store'
+              ? adminI18n.products.storeProducts
+              : vertical === 'restaurant'
+                ? adminI18n.products.restaurantProducts
+                : adminI18n.products.title)}
         </h1>
         <div className="flex gap-2">
           <Link href="/admin/dish-categories">

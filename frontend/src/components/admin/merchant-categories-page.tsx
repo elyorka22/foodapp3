@@ -15,9 +15,11 @@ type Props = {
   title: string;
   vertical: 'restaurant' | 'store';
   listHref: string;
+  /** Filter store merchants by business type slug */
+  typeSlug?: string;
 };
 
-export function MerchantCategoriesPage({ title, vertical, listHref }: Props) {
+export function MerchantCategoriesPage({ title, vertical, listHref, typeSlug }: Props) {
   const token = getToken();
   const permission = vertical === 'store' ? 'store.categories' : 'restaurant.categories';
   const { ready, authorized } = useAdminAccess({ permission });
@@ -33,22 +35,26 @@ export function MerchantCategoriesPage({ title, vertical, listHref }: Props) {
           new URLSearchParams(window.location.search).get('restaurantId')
         : null;
 
-    api<{ data: { id: string; name: string }[] }>(
-      `/restaurants/admin?limit=100&vertical=${vertical}`,
-      { token },
-    )
+    const qs = new URLSearchParams({ limit: '100', vertical });
+    if (typeSlug) qs.set('type', typeSlug);
+
+    api<{ data: { id: string; name: string }[] }>(`/restaurants/admin?${qs.toString()}`, {
+      token,
+    })
       .then((res) => {
         setMerchants(res.data);
         if (fromUrl && res.data.some((r) => r.id === fromUrl)) {
           setMerchantId(fromUrl);
         } else if (res.data[0]?.id) {
           setMerchantId(res.data[0].id);
+        } else {
+          setMerchantId('');
         }
       })
       .catch((err) =>
         toast.error(err instanceof Error ? err.message : 'Yuklashda xatolik'),
       );
-  }, [token, vertical]);
+  }, [token, vertical, typeSlug]);
 
   const selected = merchants.find((r) => r.id === merchantId);
 
