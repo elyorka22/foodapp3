@@ -11,6 +11,9 @@ export type StoreCategory = {
   description?: string | null;
   icon?: string | null;
   imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
   sortOrder?: number;
   isActive?: boolean;
   businessTypeId?: string | null;
@@ -22,6 +25,9 @@ export type StoreCategoryForm = {
   description?: string;
   icon?: string;
   imageUrl?: string;
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
   sortOrder?: number;
   isActive?: boolean;
 };

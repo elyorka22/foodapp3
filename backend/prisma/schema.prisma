@@ -349,13 +349,16 @@ model ProductCategory {
   name           String
   slug           String
   description    String?
-  icon           String?
-  imageUrl       String?   @map("image_url")
-  sortOrder      Int       @default(0) @map("sort_order")
-  isActive       Boolean   @default(true) @map("is_active")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
-  deletedAt      DateTime? @map("deleted_at")
+  icon             String?
+  imageUrl         String?   @map("image_url")
+  imageScale       Int       @default(100) @map("image_scale")
+  imagePositionX   Int       @default(50) @map("image_position_x")
+  imagePositionY   Int       @default(50) @map("image_position_y")
+  sortOrder        Int       @default(0) @map("sort_order")
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
 
   business     Business?     @relation(fields: [businessId], references: [id])
   businessType BusinessType? @relation(fields: [businessTypeId], references: [id])

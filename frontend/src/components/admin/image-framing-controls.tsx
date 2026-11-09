@@ -14,6 +14,8 @@ type Props = {
   /** Tailwind aspect class, e.g. aspect-[2/1] */
   previewAspectClass?: string;
   previewMaxWidthClass?: string;
+  /** e.g. rounded-full for store category circles */
+  previewRoundedClass?: string;
   className?: string;
 };
 
@@ -24,6 +26,7 @@ export function ImageFramingControls({
   label,
   previewAspectClass = 'aspect-[2/1]',
   previewMaxWidthClass = 'max-w-full',
+  previewRoundedClass = 'rounded-xl',
   className,
 }: Props) {
   const scale = Math.max(100, values.imageScale ?? 100);
@@ -50,13 +53,14 @@ export function ImageFramingControls({
       <p className="text-xs font-semibold">{label}</p>
       <div
         className={clsx(
-          'relative mx-auto w-full overflow-hidden rounded-xl bg-zinc-200',
+          'relative mx-auto w-full overflow-hidden bg-zinc-200',
+          previewRoundedClass,
           previewAspectClass,
           previewMaxWidthClass,
         )}
       >
         {previewSrc ? (
-          <div className="absolute inset-0 overflow-hidden rounded-xl">
+          <div className={clsx('absolute inset-0 overflow-hidden', previewRoundedClass)}>
             <div className="absolute inset-0" style={{ transform, transformOrigin }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

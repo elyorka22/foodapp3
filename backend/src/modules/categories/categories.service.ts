@@ -90,6 +90,9 @@ export class CategoriesService {
       description?: string;
       icon?: string;
       imageUrl?: string;
+      imageScale?: number;
+      imagePositionX?: number;
+      imagePositionY?: number;
       sortOrder?: number;
     },
     user: JwtPayload,
@@ -141,6 +144,9 @@ export class CategoriesService {
         description: data.description,
         icon: data.icon,
         imageUrl: data.imageUrl,
+        imageScale: data.imageScale ?? 100,
+        imagePositionX: data.imagePositionX ?? 50,
+        imagePositionY: data.imagePositionY ?? 50,
         sortOrder: data.sortOrder ?? 0,
       },
     });

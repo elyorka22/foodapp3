@@ -10,6 +10,7 @@ import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/header_action.dart';
+import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
@@ -226,6 +227,7 @@ class _StoreCategoryFormSheetState
   late final TextEditingController _name;
   late final TextEditingController _imageUrl;
   late final TextEditingController _sortOrder;
+  late ImageFramingValues _framing;
   bool _isActive = true;
   bool _busy = false;
 
@@ -236,6 +238,11 @@ class _StoreCategoryFormSheetState
     _name = TextEditingController(text: c?.name ?? '');
     _imageUrl = TextEditingController(text: c?.imageUrl ?? '');
     _sortOrder = TextEditingController(text: '${c?.sortOrder ?? 0}');
+    _framing = ImageFramingValues(
+      imageScale: c?.imageScale ?? 100,
+      imagePositionX: c?.imagePositionX ?? 50,
+      imagePositionY: c?.imagePositionY ?? 50,
+    );
     _isActive = c?.isActive ?? true;
   }
 
@@ -265,6 +272,9 @@ class _StoreCategoryFormSheetState
           name: name,
           slug: _slugFromName(name),
           imageUrl: imageUrl.isEmpty ? null : imageUrl,
+          imageScale: _framing.imageScale,
+          imagePositionX: _framing.imagePositionX,
+          imagePositionY: _framing.imagePositionY,
           sortOrder: sortOrder,
         );
       } else {
@@ -272,6 +282,9 @@ class _StoreCategoryFormSheetState
           widget.category!.id,
           name: name,
           imageUrl: imageUrl,
+          imageScale: _framing.imageScale,
+          imagePositionX: _framing.imagePositionX,
+          imagePositionY: _framing.imagePositionY,
           sortOrder: sortOrder,
           isActive: _isActive,
         );
@@ -326,6 +339,9 @@ class _StoreCategoryFormSheetState
           imageUrlController: _imageUrl,
           enabled: !_busy,
           refererPath: '/admin/stores/categories',
+          enableFraming: true,
+          framing: _framing,
+          onFramingChanged: (v) => setState(() => _framing = v),
         ),
         const SizedBox(height: 8),
         TextField(

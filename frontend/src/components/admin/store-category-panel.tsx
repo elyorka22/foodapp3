@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAdminProductCategories, type StoreCategoryForm } from '@/hooks/use-admin-product-categories';
 import { BusinessImageUpload } from '@/components/admin/business-image-upload';
+import { ImageFramingControls } from '@/components/admin/image-framing-controls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/admin/ui';
+import { categoryImageStyle } from '@/lib/category-image-style';
 import { resolveImageUrl } from '@/lib/image-url';
 import { slugify } from '@/lib/slugify';
 import { uploadImage } from '@/lib/upload';
@@ -20,6 +22,9 @@ const emptyForm: StoreCategoryForm = {
   name: '',
   slug: '',
   imageUrl: '',
+  imageScale: 100,
+  imagePositionX: 50,
+  imagePositionY: 50,
   sortOrder: 0,
 };
 
@@ -58,6 +63,9 @@ export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
       name: form.name.trim(),
       slug: form.slug.trim() || slugify(form.name),
       imageUrl: form.imageUrl?.trim() || undefined,
+      imageScale: form.imageScale ?? 100,
+      imagePositionX: form.imagePositionX ?? 50,
+      imagePositionY: form.imagePositionY ?? 50,
       sortOrder: form.sortOrder ?? 0,
     };
     try {
@@ -109,6 +117,28 @@ export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
           disabled={uploading}
           onFile={(file) => void uploadCategoryImage(file)}
         />
+        {form.imageUrl ? (
+          <ImageFramingControls
+            label="Doira ichida joylashuv (zoom / position)"
+            imageUrl={form.imageUrl}
+            values={{
+              imageScale: form.imageScale ?? 100,
+              imagePositionX: form.imagePositionX ?? 50,
+              imagePositionY: form.imagePositionY ?? 50,
+            }}
+            onChange={(next) =>
+              setForm((f) => ({
+                ...f,
+                imageScale: next.imageScale ?? 100,
+                imagePositionX: next.imagePositionX ?? 50,
+                imagePositionY: next.imagePositionY ?? 50,
+              }))
+            }
+            previewAspectClass="aspect-square"
+            previewMaxWidthClass="max-w-[160px]"
+            previewRoundedClass="rounded-full"
+          />
+        ) : null}
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
@@ -132,64 +162,79 @@ export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
         />
       ) : (
         <ul className="divide-y rounded-lg border dark:divide-white/10 dark:border-white/10">
-          {rows.map((c) => (
-            <li
-              key={c.id}
-              className="flex flex-wrap items-center gap-3 px-3 py-2.5"
-            >
-              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                {c.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={resolveImageUrl(c.imageUrl) ?? c.imageUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-zinc-400">
-                    {c.name.slice(0, 1)}
-                  </div>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{c.name}</p>
-                <p className="truncate text-xs text-zinc-500">{c.slug}</p>
-              </div>
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    setEditId(c.id);
-                    setForm({
-                      name: c.name,
-                      slug: c.slug,
-                      imageUrl: c.imageUrl ?? '',
-                      sortOrder: c.sortOrder ?? 0,
-                    });
-                  }}
-                >
-                  Tahrir
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="danger"
-                  disabled={remove.isPending}
-                  onClick={() => {
-                    if (!confirm('O‘chirishni tasdiqlaysizmi?')) return;
-                    void remove.mutateAsync(c.id).then(
-                      () => toast.success('O‘chirildi'),
-                      (e) => toast.error(e instanceof Error ? e.message : 'Xatolik'),
-                    );
-                  }}
-                >
-                  O‘chirish
-                </Button>
-              </div>
-            </li>
-          ))}
+          {rows.map((c) => {
+            const thumbSrc = c.imageUrl
+              ? resolveImageUrl(c.imageUrl) ?? c.imageUrl
+              : null;
+            const framing = categoryImageStyle({
+              imageScale: c.imageScale,
+              imagePositionX: c.imagePositionX,
+              imagePositionY: c.imagePositionY,
+            });
+            return (
+              <li
+                key={c.id}
+                className="flex flex-wrap items-center gap-3 px-3 py-2.5"
+              >
+                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                  {thumbSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={thumbSrc}
+                      alt=""
+                      className="h-full w-full"
+                      style={framing}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-zinc-400">
+                      {c.name.slice(0, 1)}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{c.name}</p>
+                  <p className="truncate text-xs text-zinc-500">{c.slug}</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      setEditId(c.id);
+                      setForm({
+                        name: c.name,
+                        slug: c.slug,
+                        imageUrl: c.imageUrl ?? '',
+                        imageScale: c.imageScale ?? 100,
+                        imagePositionX: c.imagePositionX ?? 50,
+                        imagePositionY: c.imagePositionY ?? 50,
+                        sortOrder: c.sortOrder ?? 0,
+                      });
+                    }}
+                  >
+                    Tahrir
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="danger"
+                    disabled={remove.isPending}
+                    onClick={() => {
+                      if (!confirm('O‘chirishni tasdiqlaysizmi?')) return;
+                      void remove.mutateAsync(c.id).then(
+                        () => toast.success('O‘chirildi'),
+                        (e) =>
+                          toast.error(e instanceof Error ? e.message : 'Xatolik'),
+                      );
+                    }}
+                  >
+                    O‘chirish
+                  </Button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -57,5 +57,20 @@ export class CreateCategoryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
+  imageScale?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  imagePositionX?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  imagePositionY?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
   sortOrder?: number;
 }

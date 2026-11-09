@@ -183,6 +183,9 @@ class CatalogRepository {
     required String name,
     required String slug,
     String? imageUrl,
+    int? imageScale,
+    int? imagePositionX,
+    int? imagePositionY,
     int? sortOrder,
   }) async {
     final res = await _dio.post<Map<String, dynamic>>(
@@ -194,6 +197,9 @@ class CatalogRepository {
         'name': name,
         'slug': slug,
         if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+        if (imageScale != null) 'imageScale': imageScale,
+        if (imagePositionX != null) 'imagePositionX': imagePositionX,
+        if (imagePositionY != null) 'imagePositionY': imagePositionY,
         if (sortOrder != null) 'sortOrder': sortOrder,
       },
     );
@@ -205,6 +211,9 @@ class CatalogRepository {
     String? name,
     String? slug,
     String? imageUrl,
+    int? imageScale,
+    int? imagePositionX,
+    int? imagePositionY,
     int? sortOrder,
     bool? isActive,
   }) async {
@@ -214,6 +223,9 @@ class CatalogRepository {
         if (name != null) 'name': name,
         if (slug != null) 'slug': slug,
         if (imageUrl != null) 'imageUrl': imageUrl,
+        if (imageScale != null) 'imageScale': imageScale,
+        if (imagePositionX != null) 'imagePositionX': imagePositionX,
+        if (imagePositionY != null) 'imagePositionY': imagePositionY,
         if (sortOrder != null) 'sortOrder': sortOrder,
         if (isActive != null) 'isActive': isActive,
       },

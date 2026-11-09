@@ -37,4 +37,19 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  imageScale?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  imagePositionX?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  imagePositionY?: number;
 }

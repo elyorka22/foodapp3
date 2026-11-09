@@ -139,7 +139,11 @@ export function StoreTypeHub({ type }: Props) {
         {!catsLoading &&
           filteredCategories.map((cat) => {
             const img = resolveImageUrl(cat.imageUrl);
-            const framing = categoryImageStyle({ imageScale: 110 });
+            const framing = categoryImageStyle({
+              imageScale: cat.imageScale ?? 110,
+              imagePositionX: cat.imagePositionX,
+              imagePositionY: cat.imagePositionY,
+            });
             return (
               <Link
                 key={cat.key}
@@ -159,7 +163,8 @@ export function StoreTypeHub({ type }: Props) {
                         src={img}
                         alt=""
                         fill
-                        className="object-contain object-bottom"
+                        className="object-contain"
+                        style={{ objectPosition: framing.objectPosition }}
                         sizes="120px"
                       />
                     </div>

@@ -8,6 +8,9 @@ export type StoreTypeCategory = {
   name: string;
   slug: string;
   imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
   id: string;
 };
 
@@ -16,6 +19,9 @@ type CategoryPayload = {
   name: string;
   slug?: string | null;
   imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
 };
 
 /** Shared product categories for one marketplace type (flowers, grocery, …). */
@@ -42,6 +48,9 @@ export function useStoreTypeCategories(typeSlug: string | undefined) {
       name,
       slug,
       imageUrl: cat.imageUrl ?? null,
+      imageScale: cat.imageScale ?? null,
+      imagePositionX: cat.imagePositionX ?? null,
+      imagePositionY: cat.imagePositionY ?? null,
     });
   }
 

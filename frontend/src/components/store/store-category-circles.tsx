@@ -2,6 +2,7 @@
 
 import { LayoutGrid } from 'lucide-react';
 import { clsx } from 'clsx';
+import { categoryImageStyle } from '@/lib/category-image-style';
 import { resolveImageUrl } from '@/lib/image-url';
 import { uz } from '@/lib/uz';
 
@@ -9,6 +10,9 @@ export type StoreCategory = {
   id: string;
   name: string;
   imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
 };
 
 type Props = {
@@ -46,6 +50,11 @@ export function StoreCategoryCircles({
           !cat.all && cat.imageUrl
             ? resolveImageUrl(cat.imageUrl) ?? cat.imageUrl
             : null;
+        const framing = categoryImageStyle({
+          imageScale: cat.imageScale,
+          imagePositionX: cat.imagePositionX,
+          imagePositionY: cat.imagePositionY,
+        });
 
         return (
           <button
@@ -69,7 +78,12 @@ export function StoreCategoryCircles({
                 <LayoutGrid size={22} className="text-zinc-700" strokeWidth={2} />
               ) : imageSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={imageSrc} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={imageSrc}
+                  alt=""
+                  className="h-full w-full"
+                  style={framing}
+                />
               ) : (
                 <span className="text-[22px] font-black text-zinc-700/80">
                   {cat.name.trim().charAt(0).toUpperCase()}
