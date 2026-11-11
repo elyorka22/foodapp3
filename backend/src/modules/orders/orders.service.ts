@@ -110,7 +110,7 @@ export class OrdersService {
     const productIds = dto.items.map((i) => i.productId);
     const branch = await this.resolveBranch(dto.restaurantId, dto.branchId);
 
-    const products = await this.prisma.product.findMany({
+    const ownedProducts = await this.prisma.product.findMany({
       where: {
         id: { in: productIds },
         businessId: dto.restaurantId,
@@ -119,40 +119,101 @@ export class OrdersService {
         OR: [{ branchId: null }, { branchId: branch.id }],
       },
     });
-    if (products.length !== productIds.length) {
+
+    const offerRows = await this.prisma.businessProductOffer.findMany({
+      where: {
+        businessId: dto.restaurantId,
+        productId: { in: productIds },
+        deletedAt: null,
+        isListed: true,
+        isAvailable: true,
+        price: { not: null },
+        product: {
+          deletedAt: null,
+          businessId: null,
+        },
+      },
+      include: { product: true },
+    });
+
+    type PricedProduct = {
+      id: string;
+      name: string;
+      description: string | null;
+      price: number;
+    };
+    const pricedById = new Map<string, PricedProduct>();
+    for (const p of ownedProducts) {
+      pricedById.set(p.id, {
+        id: p.id,
+        name: p.name,
+        description: p.description ?? null,
+        price: Number(p.price),
+      });
+    }
+    for (const offer of offerRows) {
+      if (pricedById.has(offer.productId)) continue;
+      pricedById.set(offer.productId, {
+        id: offer.product.id,
+        name: offer.product.name,
+        description: offer.product.description ?? null,
+        price: Number(offer.price),
+      });
+    }
+    if (pricedById.size !== productIds.length) {
       throw new BadRequestException('Some products are unavailable');
     }
 
-    const quote = await this.deliveryPricing.quote({
-      restaurant: {
-        latitude: Number(branch.latitude),
-        longitude: Number(branch.longitude),
-      },
-      customer: { latitude: dto.latitude, longitude: dto.longitude },
-      cityId: branch.cityId,
-      businessId: dto.restaurantId,
-      branchId: branch.id,
-    });
-    const dist = quote.distanceKm;
-    const deliveryFee = quote.deliveryFee;
-    const restaurantLat = quote.restaurantLatitude;
-    const restaurantLng = quote.restaurantLongitude;
-    const customerLat = quote.customerLatitude;
-    const customerLng = quote.customerLongitude;
+    const isPickup = dto.fulfillment === 'pickup';
+    const branchLat = Number(branch.latitude);
+    const branchLng = Number(branch.longitude);
+
+    let dist: number;
+    let deliveryFee: number;
+    let restaurantLat: number;
+    let restaurantLng: number;
+    let customerLat: number;
+    let customerLng: number;
+
+    if (isPickup) {
+      dist = 0;
+      deliveryFee = 0;
+      restaurantLat = branchLat;
+      restaurantLng = branchLng;
+      customerLat = branchLat;
+      customerLng = branchLng;
+    } else {
+      const quote = await this.deliveryPricing.quote({
+        restaurant: {
+          latitude: branchLat,
+          longitude: branchLng,
+        },
+        customer: { latitude: dto.latitude, longitude: dto.longitude },
+        cityId: branch.cityId,
+        businessId: dto.restaurantId,
+        branchId: branch.id,
+      });
+      dist = quote.distanceKm;
+      deliveryFee = quote.deliveryFee;
+      restaurantLat = quote.restaurantLatitude;
+      restaurantLng = quote.restaurantLongitude;
+      customerLat = quote.customerLatitude;
+      customerLng = quote.customerLongitude;
+    }
 
     let subtotal = 0;
     const orderItems: Prisma.OrderItemCreateWithoutOrderInput[] = [];
 
     for (const item of dto.items) {
-      const product = products.find((p) => p.id === item.productId)!;
-      const price = Number(product.price);
+      const product = pricedById.get(item.productId)!;
+      const price = product.price;
       const lineSubtotal = price * item.quantity;
       subtotal += lineSubtotal;
       orderItems.push({
         product: { connect: { id: product.id } },
         name: product.name,
         description: product.description ?? null,
-        price: product.price,
+        price,
         quantity: item.quantity,
         subtotal: lineSubtotal,
       });
@@ -175,9 +236,10 @@ export class OrdersService {
 
     const orderNumber = generateOrderNumber();
     const trackingToken = generateTrackingToken();
-    const deliveryAddress =
-      dto.deliveryAddress?.trim() ||
-      `GPS: ${dto.latitude}, ${dto.longitude}`;
+    const deliveryAddress = isPickup
+      ? dto.deliveryAddress?.trim() || 'Olib ketish'
+      : dto.deliveryAddress?.trim() ||
+        `GPS: ${dto.latitude}, ${dto.longitude}`;
 
     const order = await this.prisma.$transaction(async (tx) => {
       let discountAmount = 0;
@@ -189,9 +251,12 @@ export class OrdersService {
           customerId,
           deviceId: dto.deviceId?.trim() || null,
           deliveryAddress,
-          latitude: dto.latitude,
-          longitude: dto.longitude,
-          comment: dto.comment,
+          latitude: customerLat,
+          longitude: customerLng,
+          comment: isPickup
+            ? [dto.comment?.trim(), 'Fulfillment: pickup'].filter(Boolean).join(' · ') ||
+              'Fulfillment: pickup'
+            : dto.comment,
         },
       });
 

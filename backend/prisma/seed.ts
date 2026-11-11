@@ -68,13 +68,13 @@ async function main() {
     slug: string;
     icon: string;
     sortOrder: number;
-    menuMode: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
+    menuMode: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
   }> = [
-    { name: "Oziq-ovqat", slug: 'grocery', icon: '🥬', sortOrder: 1, menuMode: 'OWN_CATEGORIES' },
+    { name: "Oziq-ovqat", slug: 'grocery', icon: '🥬', sortOrder: 1, menuMode: 'SHARED_CATALOG' },
     { name: "Gul do'konlari", slug: 'flowers', icon: '💐', sortOrder: 2, menuMode: 'OWN_CATEGORIES' },
-    { name: 'Parfyumeriya', slug: 'perfume', icon: '🧴', sortOrder: 3, menuMode: 'OWN_CATEGORIES' },
+    { name: 'Parfyumeriya', slug: 'perfume', icon: '🧴', sortOrder: 3, menuMode: 'SHARED_CATALOG' },
     { name: "Sovg'alar", slug: 'gift', icon: '🎁', sortOrder: 4, menuMode: 'OWN_CATEGORIES' },
-    { name: 'Dorixona', slug: 'pharmacy', icon: '💊', sortOrder: 5, menuMode: 'OWN_CATEGORIES' },
+    { name: 'Dorixona', slug: 'pharmacy', icon: '💊', sortOrder: 5, menuMode: 'SHARED_CATALOG' },
     { name: 'Elektronika', slug: 'electronics', icon: '💻', sortOrder: 6, menuMode: 'OWN_CATEGORIES' },
     { name: 'Restoran', slug: 'restaurant', icon: '🍽', sortOrder: 0, menuMode: 'GLOBAL_DISH' },
   ];

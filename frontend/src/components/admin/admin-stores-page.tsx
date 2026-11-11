@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { useAdminAccess } from '@/hooks/use-admin-access';
 import { adminI18n as t } from '@/lib/admin-i18n';
@@ -75,6 +76,7 @@ export function AdminStoresPage({ typeSlug, typeName }: Props) {
     () => (typeSlug ? marketplaceTypes.find((t) => t.slug === typeSlug) : undefined),
     [marketplaceTypes, typeSlug],
   );
+  const sharedCatalogType = lockedType?.menuMode === 'SHARED_CATALOG';
 
   const { list, create, update, remove, updateApproval } = useAdminRestaurants({
     page,
@@ -100,7 +102,7 @@ export function AdminStoresPage({ typeSlug, typeName }: Props) {
   const submitCreate = async () => {
     const businessTypeId = lockedType?.id || form.businessTypeId;
     if (!form.name.trim() || !businessTypeId) {
-      toast.error('Nom va kategoriya tanlang');
+      toast.error("Nom va biznes turini tanlang (dorixona, oziq-ovqat, gullar, …)");
       return;
     }
     if (!form.cityId?.trim()) {
@@ -205,20 +207,30 @@ export function AdminStoresPage({ typeSlug, typeName }: Props) {
       />
       {lockedType ? (
         <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm dark:border-white/10 dark:bg-zinc-900/50">
-          Tur: <strong>{lockedType.name}</strong>
+          Biznes turi: <strong>{lockedType.icon ? `${lockedType.icon} ` : ''}{lockedType.name}</strong>
+          <span className="ml-2 text-xs opacity-60">
+            {lockedType.menuMode === 'SHARED_CATALOG'
+              ? '· umumiy katalog'
+              : '· individual katalog'}
+          </span>
         </p>
       ) : (
         <label className="block text-xs font-medium opacity-70">
-          Kategoriya *
+          Biznes turi * (dorixona, oziq-ovqat, gullar, …)
           <select
             className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
             value={form.businessTypeId ?? ''}
             onChange={(e) => setForm({ ...form, businessTypeId: e.target.value })}
+            required
           >
             <option value="">Tanlang…</option>
             {marketplaceTypes.map((t) => (
               <option key={t.id} value={t.id}>
+                {t.icon ? `${t.icon} ` : ''}
                 {t.name}
+                {t.menuMode === 'SHARED_CATALOG'
+                  ? ' — umumiy katalog'
+                  : ' — individual katalog'}
               </option>
             ))}
           </select>
@@ -294,7 +306,7 @@ export function AdminStoresPage({ typeSlug, typeName }: Props) {
           onClick={() => {
             setForm({
               ...emptyForm,
-              businessTypeId: lockedType?.id ?? marketplaceTypes[0]?.id ?? '',
+              businessTypeId: lockedType?.id ?? '',
             });
             setCreateOpen(true);
           }}
@@ -374,6 +386,15 @@ export function AdminStoresPage({ typeSlug, typeName }: Props) {
                             Tasdiqlash
                           </Button>
                         )}
+                        {typeSlug && sharedCatalogType ? (
+                          <Link
+                            href={`/admin/stores/type/${encodeURIComponent(typeSlug)}/offers?businessId=${encodeURIComponent(String(r.id))}`}
+                          >
+                            <Button type="button" size="sm" variant="secondary">
+                              Katalog
+                            </Button>
+                          </Link>
+                        ) : null}
                         <Button type="button" size="sm" variant="secondary" onClick={() => openEdit(r)}>
                           Tahrirlash
                         </Button>

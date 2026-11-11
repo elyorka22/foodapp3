@@ -30,13 +30,12 @@ export class CreateRestaurantDto {
   @IsString()
   slug?: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description:
-      'Marketplace category (business type) UUID. Locked after create — cannot be changed via PATCH.',
+      'Required business type UUID (pharmacy, grocery, flowers, …). Locked after create — cannot be changed via PATCH.',
   })
-  @IsOptional()
   @IsUUID()
-  businessTypeId?: string;
+  businessTypeId: string;
 
   @ApiProperty({ description: 'Service city UUID (HQ). Branches may use other cities.' })
   @IsUUID()

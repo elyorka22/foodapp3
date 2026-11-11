@@ -49,6 +49,13 @@ void main() {
       slug: 'restaurant',
       menuMode: 'GLOBAL_DISH',
     )), isFalse);
+    expect(isMarketplaceBusinessType(const ControlBusinessType(
+      id: '4',
+      name: 'Oziq-ovqat',
+      isActive: true,
+      slug: 'grocery',
+      menuMode: 'SHARED_CATALOG',
+    )), isTrue);
 
     final flowers = sections.firstWhere((s) => s.label == 'Gullar');
     expect(flowers.entries.length, 5);

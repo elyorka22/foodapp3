@@ -248,6 +248,17 @@ abstract final class AppStrings {
   static const courierMinFee = 'Kuryer min.';
   static const addCity = 'Shahar qo‘shish';
   static const addBusinessType = 'Tur qo‘shish';
+  static const catalogKindLabel = 'Katalog turi';
+  static const catalogKindRequired = 'Katalog turini tanlang';
+  static const catalogKindShared = 'Umumiy katalog';
+  static const catalogKindSharedHint =
+      'Bitta mahsulot ro‘yxati. Do‘kon narx va mavjudlikni qo‘yadi.';
+  static const catalogKindOwn = 'Individual katalog';
+  static const catalogKindOwnHint =
+      'Har do‘kon o‘z mahsulotlarini yaratadi.';
+  static const catalogKindRestaurant = 'Restoran menyusi';
+  static const catalogKindRestaurantHint =
+      'Umumiy taom kategoriyalari. Faqat restoranlar.';
   static const addCourier = 'Kuryer qo‘shish';
   static const vehicleType = 'Transport';
   static const online = 'Onlayn';

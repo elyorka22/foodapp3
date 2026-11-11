@@ -27,7 +27,7 @@ export type BusinessPublic = {
     slug: string;
     icon?: string | null;
     catalogMode?: 'CATALOG';
-    menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
+    menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
   } | null;
   category?: string | null;
   cityId?: string | null;
@@ -49,7 +49,7 @@ export type BusinessType = {
   imagePositionX?: number;
   imagePositionY?: number;
   catalogMode?: 'CATALOG';
-  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
+  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
   sortOrder: number;
 };
 

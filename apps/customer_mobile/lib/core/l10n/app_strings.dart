@@ -28,6 +28,8 @@ abstract final class AppStrings {
   static const searchRestaurants = 'Restoran qidirish';
   static const searchStores = "Do'kon qidirish";
   static const searchInShops = "Do'konlardan qidirish";
+  static String searchInMenu(String name) => '$name ichidan qidirish';
+  static const searchNoResults = 'Hech narsa topilmadi';
   static const categories = 'Kategoriyalar';
   static const dishCategories = 'Taom kategoriyalari';
   static const allRestaurants = 'Barcha restoranlar';
@@ -85,6 +87,12 @@ abstract final class AppStrings {
   static const placingOrder = 'Buyurtma yuborilmoqda...';
   static const deliveryFee = 'yetkazish';
   static const deliveryLabel = 'Yetkazish';
+  static const fulfillmentTitle = 'Qanday olishni xohlaysiz?';
+  static const fulfillmentDeliveryHint = 'Manzilingizga yetkazib beramiz';
+  static const fulfillmentPickupHint =
+      "Buyurtmani o'zingiz olib ketasiz — yetkazish bepul";
+  static const pickupReady = 'Olib ketishga tayyor';
+  static const placePickupOrder = 'Olib ketish buyurtmasini berish';
   static const productsSubtotal = 'Mahsulotlar';
   static const orderTotal = 'Jami';
   static const locationRequiredShort = 'Joylashuv kerak';

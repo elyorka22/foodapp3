@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/async_page_body.dart';
 import '../../../shared/widgets/control_list_card.dart';
@@ -58,7 +60,7 @@ class BusinessTypesScreen extends ConsumerWidget {
                 final t = list[i];
                 return ControlListCard(
                   title: t.name,
-                  subtitle: t.catalogMode,
+                  subtitle: t.verticalHint,
                   trailing: StatusChip(
                     status: t.isActive ? 'DELIVERED' : 'CANCELLED',
                     label: t.isActive ? AppStrings.active : AppStrings.inactive,
@@ -90,12 +92,36 @@ class _TypeFormState extends ConsumerState<_TypeForm> {
   late final TextEditingController _name;
   bool _isActive = true;
   bool _busy = false;
+  String? _menuMode;
+
+  static const _options = <({
+    String value,
+    String title,
+    String hint,
+  })>[
+    (
+      value: 'SHARED_CATALOG',
+      title: AppStrings.catalogKindShared,
+      hint: AppStrings.catalogKindSharedHint,
+    ),
+    (
+      value: 'OWN_CATEGORIES',
+      title: AppStrings.catalogKindOwn,
+      hint: AppStrings.catalogKindOwnHint,
+    ),
+    (
+      value: 'GLOBAL_DISH',
+      title: AppStrings.catalogKindRestaurant,
+      hint: AppStrings.catalogKindRestaurantHint,
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
     _name = TextEditingController(text: widget.type?.name ?? '');
     _isActive = widget.type?.isActive ?? true;
+    _menuMode = widget.type?.menuMode;
   }
 
   @override
@@ -107,13 +133,31 @@ class _TypeFormState extends ConsumerState<_TypeForm> {
   Future<void> _save() async {
     final name = _name.text.trim();
     if (name.isEmpty) return;
+    final menuMode = _menuMode;
+    if (menuMode == null || menuMode.isEmpty) {
+      showActionSnackBar(
+        context,
+        AppStrings.catalogKindRequired,
+        error: true,
+      );
+      return;
+    }
     setState(() => _busy = true);
     try {
       final repo = ref.read(businessTypesRepositoryProvider);
       if (widget.type == null) {
-        await repo.createType(name: name, isActive: _isActive);
+        await repo.createType(
+          name: name,
+          isActive: _isActive,
+          menuMode: menuMode,
+        );
       } else {
-        await repo.updateType(widget.type!.id, name: name, isActive: _isActive);
+        await repo.updateType(
+          widget.type!.id,
+          name: name,
+          isActive: _isActive,
+          menuMode: menuMode,
+        );
       }
       ref.invalidate(businessTypesListProvider);
       if (!mounted) return;
@@ -135,6 +179,79 @@ class _TypeFormState extends ConsumerState<_TypeForm> {
           controller: _name,
           decoration: const InputDecoration(labelText: AppStrings.nameLabel),
         ),
+        const SizedBox(height: 12),
+        Text(
+          AppStrings.catalogKindLabel,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        for (final opt in _options) ...[
+          Material(
+            color: _menuMode == opt.value
+                ? AppColors.primary.withOpacity(0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _busy
+                  ? null
+                  : () => setState(() => _menuMode = opt.value),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _menuMode == opt.value
+                        ? AppColors.primary
+                        : AppColors.border,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      _menuMode == opt.value
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
+                      size: 20,
+                      color: _menuMode == opt.value
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            opt.title,
+                            style: AppTypography.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            opt.hint,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text(AppStrings.active),

@@ -20,6 +20,10 @@ type Props = {
   reviewCount?: number | null;
   deliveryMinutes?: number | null;
   minOrderAmount?: number | null;
+  searchOpen?: boolean;
+  searchValue?: string;
+  onSearchToggle?: () => void;
+  onSearchChange?: (value: string) => void;
 };
 
 export function RestaurantMenuHeader({
@@ -34,6 +38,10 @@ export function RestaurantMenuHeader({
   reviewCount,
   deliveryMinutes,
   minOrderAmount,
+  searchOpen = false,
+  searchValue = '',
+  onSearchToggle,
+  onSearchChange,
 }: Props) {
   const cover = resolveImageUrl(coverUrl ?? logoUrl);
   const logo = resolveImageUrl(logoUrl);
@@ -72,8 +80,10 @@ export function RestaurantMenuHeader({
         <div className="absolute right-3 top-[calc(env(safe-area-inset-top,0px)+10px)] z-20 flex gap-2">
           <button
             type="button"
+            onClick={onSearchToggle}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-zinc-800 shadow-sm backdrop-blur-sm active:scale-95"
             aria-label={uz.searchAria}
+            aria-pressed={searchOpen}
           >
             <Search size={20} strokeWidth={2} />
           </button>
@@ -86,6 +96,31 @@ export function RestaurantMenuHeader({
           </Link>
         </div>
       </div>
+
+      {searchOpen ? (
+        <div className="relative z-20 px-3 pt-3">
+          <label className="flex h-11 items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <Search size={18} className="shrink-0 text-zinc-400" aria-hidden />
+            <input
+              autoFocus
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              placeholder={uz.searchInStore(title)}
+              className="min-w-0 flex-1 bg-transparent text-[15px] text-zinc-900 outline-none placeholder:text-zinc-400"
+            />
+            {searchValue ? (
+              <button
+                type="button"
+                onClick={() => onSearchChange?.('')}
+                className="text-zinc-400"
+                aria-label={uz.clear}
+              >
+                <X size={16} strokeWidth={2.25} />
+              </button>
+            ) : null}
+          </label>
+        </div>
+      ) : null}
 
       <div className="relative z-10 -mt-8 px-3">
         <div className="rounded-[22px] bg-white px-4 py-3.5 shadow-[0_8px_28px_rgba(15,23,42,0.08)] ring-1 ring-black/[0.04]">

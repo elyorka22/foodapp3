@@ -1,5 +1,5 @@
 export type BusinessKind = 'RESTAURANT' | 'STORE';
-export type BusinessMenuMode = 'GLOBAL_DISH' | 'OWN_CATEGORIES';
+export type BusinessMenuMode = 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
 
 export function isRestaurantKind(
   kind?: string | null,
@@ -8,7 +8,7 @@ export function isRestaurantKind(
   menuMode?: string | null,
 ): boolean {
   if (menuMode === 'GLOBAL_DISH') return true;
-  if (menuMode === 'OWN_CATEGORIES') return false;
+  if (menuMode === 'OWN_CATEGORIES' || menuMode === 'SHARED_CATALOG') return false;
   if (typeSlug === 'restaurant') return true;
   if (businessTypeId == null && typeSlug == null) return true;
   return kind === 'RESTAURANT';

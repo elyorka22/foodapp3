@@ -51,7 +51,7 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
   }
 }
 
-class _RestaurantDetailBody extends ConsumerWidget {
+class _RestaurantDetailBody extends ConsumerStatefulWidget {
   const _RestaurantDetailBody({
     required this.restaurant,
     required this.activeCategoryId,
@@ -62,44 +62,77 @@ class _RestaurantDetailBody extends ConsumerWidget {
   final String activeCategoryId;
   final ValueChanged<String> onCategoryChanged;
 
-  List<ProductModel> _filterProducts(List<ProductModel> products) {
-    if (activeCategoryId == 'all') return products;
-    return products.where((p) => p.categoryId == activeCategoryId).toList();
+  @override
+  ConsumerState<_RestaurantDetailBody> createState() =>
+      _RestaurantDetailBodyState();
+}
+
+class _RestaurantDetailBodyState extends ConsumerState<_RestaurantDetailBody> {
+  final _searchController = TextEditingController();
+  bool _searchOpen = false;
+  String _search = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
-  List<({RestaurantCategoryModel category, List<ProductModel> products})> _menuSections(
+  List<ProductModel> _applySearch(List<ProductModel> products) {
+    final q = _search.trim().toLowerCase();
+    if (q.isEmpty) return products;
+    return products.where((p) => p.name.toLowerCase().contains(q)).toList();
+  }
+
+  List<ProductModel> _filterProducts(List<ProductModel> products) {
+    final searched = _applySearch(products);
+    if (widget.activeCategoryId == 'all') return searched;
+    return searched
+        .where((p) => p.categoryId == widget.activeCategoryId)
+        .toList();
+  }
+
+  List<({RestaurantCategoryModel category, List<ProductModel> products})>
+      _menuSections(
     List<ProductModel> products,
     List<RestaurantCategoryModel> categories,
   ) {
+    final searched = _applySearch(products);
     return [
       for (final category in categories)
         (
           category: category,
-          products: products.where((p) => p.categoryId == category.id).toList(),
+          products:
+              searched.where((p) => p.categoryId == category.id).toList(),
         ),
     ].where((section) => section.products.isNotEmpty).toList();
   }
 
   List<BannerModel> _restaurantBanners(List<BannerModel> all) {
     return all
-        .where((b) => b.restaurantId == restaurant.id)
+        .where((b) => b.restaurantId == widget.restaurant.id)
         .where((b) => resolveImageUrl(b.imageUrl) != null)
         .toList()
       ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final restaurant = widget.restaurant;
     final productsAsync = ref.watch(restaurantProductsProvider(restaurant.id));
     final bannersAsync = ref.watch(bannersProvider);
     final allProducts = restaurant.products ?? productsAsync.value ?? [];
     final categories = restaurant.categories ?? [];
     final products = _filterProducts(allProducts);
-    final menuSections =
-        activeCategoryId == 'all' ? _menuSections(allProducts, categories) : null;
+    final menuSections = widget.activeCategoryId == 'all'
+        ? _menuSections(allProducts, categories)
+        : null;
     final closed = restaurant.isOpen == false;
-    final restaurantBanners = _restaurantBanners(bannersAsync.valueOrNull ?? const []);
+    final restaurantBanners =
+        _restaurantBanners(bannersAsync.valueOrNull ?? const []);
     final logoUrl = resolveImageUrl(restaurant.logoUrl);
+    final emptyLabel =
+        _search.trim().isNotEmpty ? AppStrings.searchNoResults : AppStrings.menuEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
@@ -134,7 +167,16 @@ class _RestaurantDetailBody extends ConsumerWidget {
                             closingSoon: restaurant.closingSoon ?? false,
                           ),
                         ),
-                        CircleIconButton(icon: Icons.search_rounded, onTap: () {}),
+                        CircleIconButton(
+                          icon: Icons.search_rounded,
+                          onTap: () => setState(() {
+                            _searchOpen = !_searchOpen;
+                            if (!_searchOpen) {
+                              _search = '';
+                              _searchController.clear();
+                            }
+                          }),
+                        ),
                         const SizedBox(width: AppSpacing.sm),
                         CircleIconButton(
                           icon: Icons.favorite_border_rounded,
@@ -142,6 +184,30 @@ class _RestaurantDetailBody extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    if (_searchOpen) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: AppStrings.searchInMenu(restaurant.name),
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE4E4E7)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE4E4E7)),
+                          ),
+                        ),
+                        onChanged: (v) => setState(() => _search = v),
+                      ),
+                    ],
                     if (restaurantBanners.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.lg),
                       SizedBox(
@@ -156,8 +222,8 @@ class _RestaurantDetailBody extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.lg),
                       RestaurantCategoryTabs(
                         categories: categories,
-                        activeId: activeCategoryId,
-                        onChanged: onCategoryChanged,
+                        activeId: widget.activeCategoryId,
+                        onChanged: widget.onCategoryChanged,
                       ),
                     ],
                     const SizedBox(height: AppSpacing.lg),
@@ -170,7 +236,7 @@ class _RestaurantDetailBody extends ConsumerWidget {
                 hasScrollBody: false,
                 child: Center(
                   child: Text(
-                    AppStrings.menuEmpty,
+                    emptyLabel,
                     style: AppTypography.bodySmall,
                   ),
                 ),
@@ -285,8 +351,8 @@ class _RestaurantDetailBody extends ConsumerWidget {
           productId: p.id,
           name: p.name,
           price: p.price,
-          businessId: restaurant.id,
-          businessName: restaurant.name,
+          businessId: widget.restaurant.id,
+          businessName: widget.restaurant.name,
         );
   }
 }

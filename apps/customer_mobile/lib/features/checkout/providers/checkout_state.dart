@@ -1,9 +1,12 @@
+enum FulfillmentMethod { delivery, pickup }
+
 class CheckoutState {
   const CheckoutState({
     this.phone = '',
     this.promoCode = '',
     this.promoDiscount = 0,
     this.promoMessage = '',
+    this.fulfillment = FulfillmentMethod.delivery,
     this.lat,
     this.lng,
     this.deliveryFee,
@@ -20,6 +23,7 @@ class CheckoutState {
   final String promoCode;
   final num promoDiscount;
   final String promoMessage;
+  final FulfillmentMethod fulfillment;
   final double? lat;
   final double? lng;
   final num? deliveryFee;
@@ -31,16 +35,21 @@ class CheckoutState {
   final bool deliveryLoading;
   final bool placingOrder;
 
-  bool get deliveryCalculating => sendingLocation || deliveryLoading;
+  bool get isPickup => fulfillment == FulfillmentMethod.pickup;
 
-  bool get deliveryQuoted =>
-      deliveryFee != null && !deliveryCalculating && deliveryError == null;
+  bool get deliveryCalculating =>
+      !isPickup && (sendingLocation || deliveryLoading);
+
+  bool get deliveryQuoted => isPickup
+      ? true
+      : deliveryFee != null && !deliveryCalculating && deliveryError == null;
 
   CheckoutState copyWith({
     String? phone,
     String? promoCode,
     num? promoDiscount,
     String? promoMessage,
+    FulfillmentMethod? fulfillment,
     double? lat,
     double? lng,
     num? deliveryFee,
@@ -59,6 +68,7 @@ class CheckoutState {
       promoCode: promoCode ?? this.promoCode,
       promoDiscount: promoDiscount ?? this.promoDiscount,
       promoMessage: promoMessage ?? this.promoMessage,
+      fulfillment: fulfillment ?? this.fulfillment,
       lat: clearDelivery ? null : (lat ?? this.lat),
       lng: clearDelivery ? null : (lng ?? this.lng),
       deliveryFee: clearDelivery ? null : (deliveryFee ?? this.deliveryFee),

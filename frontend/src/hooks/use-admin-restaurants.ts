@@ -18,6 +18,7 @@ export type AdminRestaurantsQuery = {
 export type RestaurantForm = {
   name: string;
   slug: string;
+  /** Required on create — business type UUID */
   businessTypeId?: string;
   cityId?: string;
   description?: string;

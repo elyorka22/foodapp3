@@ -48,7 +48,7 @@ class _StoreDetailScreenState extends ConsumerState<StoreDetailScreen> {
   }
 }
 
-class _StoreMenuBody extends ConsumerWidget {
+class _StoreMenuBody extends ConsumerStatefulWidget {
   const _StoreMenuBody({
     required this.business,
     required this.activeCategoryId,
@@ -59,18 +59,41 @@ class _StoreMenuBody extends ConsumerWidget {
   final String activeCategoryId;
   final ValueChanged<String> onCategoryChanged;
 
+  @override
+  ConsumerState<_StoreMenuBody> createState() => _StoreMenuBodyState();
+}
+
+class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
+  final _searchController = TextEditingController();
+  bool _searchOpen = false;
+  String _search = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   List<ProductModel> _filterProducts(List<ProductModel> products) {
-    if (activeCategoryId == 'all') return products;
-    return products.where((p) => p.categoryId == activeCategoryId).toList();
+    var list = products;
+    final q = _search.trim().toLowerCase();
+    if (q.isNotEmpty) {
+      list = list.where((p) => p.name.toLowerCase().contains(q)).toList();
+    }
+    if (widget.activeCategoryId == 'all') return list;
+    return list.where((p) => p.categoryId == widget.activeCategoryId).toList();
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final business = widget.business;
     final productsAsync = ref.watch(restaurantProductsProvider(business.id));
     final allProducts = business.products ?? productsAsync.value ?? [];
     final products = _filterProducts(allProducts);
     final categories = business.categories ?? [];
     final closed = business.isOpen == false;
+    final emptyLabel =
+        _search.trim().isNotEmpty ? AppStrings.searchNoResults : AppStrings.menuEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -94,6 +117,17 @@ class _StoreMenuBody extends ConsumerWidget {
                           icon: Icons.arrow_back_rounded,
                           onTap: () => context.pop(),
                         ),
+                        const Spacer(),
+                        CircleIconButton(
+                          icon: Icons.search_rounded,
+                          onTap: () => setState(() {
+                            _searchOpen = !_searchOpen;
+                            if (!_searchOpen) {
+                              _search = '';
+                              _searchController.clear();
+                            }
+                          }),
+                        ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -115,11 +149,35 @@ class _StoreMenuBody extends ConsumerWidget {
                           ),
                       ],
                     ),
+                    if (_searchOpen) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: AppStrings.searchInMenu(business.name),
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE4E4E7)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE4E4E7)),
+                          ),
+                        ),
+                        onChanged: (v) => setState(() => _search = v),
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.lg),
                     RestaurantCategoryTabs(
                       categories: categories,
-                      activeId: activeCategoryId,
-                      onChanged: onCategoryChanged,
+                      activeId: widget.activeCategoryId,
+                      onChanged: widget.onCategoryChanged,
                     ),
                   ],
                 ),
@@ -129,7 +187,7 @@ class _StoreMenuBody extends ConsumerWidget {
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Center(
-                  child: Text(AppStrings.menuEmpty, style: AppTypography.bodySmall),
+                  child: Text(emptyLabel, style: AppTypography.bodySmall),
                 ),
               )
             else
@@ -162,7 +220,8 @@ class _StoreMenuBody extends ConsumerWidget {
                         quantity: qty,
                         disabled: closed,
                         onAdd: () => _add(ref, p),
-                        onRemove: () => ref.read(cartProvider.notifier).decrement(p.id),
+                        onRemove: () =>
+                            ref.read(cartProvider.notifier).decrement(p.id),
                       );
                     },
                     childCount: products.length,
@@ -180,9 +239,8 @@ class _StoreMenuBody extends ConsumerWidget {
           productId: p.id,
           name: p.name,
           price: p.price,
-          businessId: business.id,
-          businessName: business.name,
+          businessId: widget.business.id,
+          businessName: widget.business.name,
         );
   }
 }
-

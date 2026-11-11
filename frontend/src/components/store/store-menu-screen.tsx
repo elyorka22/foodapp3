@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Package, Search, ShoppingCart, X } from 'lucide-react';
-import { clsx } from 'clsx';
 import { api } from '@/lib/api';
 import { resolveImageUrl } from '@/lib/image-url';
 import { useCartStore } from '@/store/cart';
@@ -75,7 +74,6 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
   const router = useRouter();
   const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const [activeCategoryId, setActiveCategoryId] = useState('all');
-  const [fulfillment, setFulfillment] = useState<'delivery' | 'pickup'>('delivery');
   const [query, setQuery] = useState('');
 
   const { data: business, isLoading, isError, refetch } = useQuery({
@@ -204,33 +202,6 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
             className="min-w-0 flex-1 bg-transparent text-[15px] text-zinc-900 outline-none placeholder:text-zinc-400"
           />
         </label>
-
-        <div className="mt-3 flex rounded-full border border-zinc-200 bg-white p-1 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-          <button
-            type="button"
-            onClick={() => setFulfillment('delivery')}
-            className={clsx(
-              'flex-1 rounded-full py-2 text-[13px] font-bold transition',
-              fulfillment === 'delivery'
-                ? 'bg-zinc-900 text-white'
-                : 'text-zinc-600',
-            )}
-          >
-            {uz.deliveryLabel}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFulfillment('pickup')}
-            className={clsx(
-              'flex-1 rounded-full py-2 text-[13px] font-bold transition',
-              fulfillment === 'pickup'
-                ? 'bg-zinc-900 text-white'
-                : 'text-zinc-600',
-            )}
-          >
-            {uz.pickupLabel}
-          </button>
-        </div>
 
         {closed ? (
           <p className="mt-2 text-[13px] font-semibold text-red-500">

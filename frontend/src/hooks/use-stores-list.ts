@@ -21,17 +21,19 @@ export function storeTypeTitle(type: string | null | undefined): string {
   return TYPE_TITLES[type] ?? type;
 }
 
-export function useStoresList(type?: string | null) {
+export function useStoresList(type?: string | null, search?: string | null) {
   const { selectedCity, isLoading: cityLoading } = useSelectedCity();
   const citySlug = selectedCity?.slug ?? getSelectedCitySlug();
   const normalized = type?.trim() || undefined;
+  const q = search?.trim() || undefined;
 
   return useQuery({
-    queryKey: ['stores', 'list', citySlug, normalized ?? 'all'],
+    queryKey: ['stores', 'list', citySlug, normalized ?? 'all', q ?? ''],
     queryFn: () => {
       const params = new URLSearchParams({ limit: '50', vertical: 'store' });
       if (citySlug) params.set('city', citySlug);
       if (normalized) params.set('type', normalized);
+      if (q) params.set('search', q);
       return api<{ data: ShopBusiness[]; meta?: { total: number } }>(
         `/businesses?${params.toString()}`,
       );

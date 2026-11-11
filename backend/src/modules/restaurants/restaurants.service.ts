@@ -18,6 +18,7 @@ import {
   kindFromMenuMode,
   resolveBusinessKind,
   resolveMenuMode,
+  usesSharedCatalog,
 } from '../../common/utils/business-kind.util';
 import {
   businessWhereForCity,
@@ -357,14 +358,56 @@ export class RestaurantsService {
     const kind = resolveBusinessKind(restaurant);
     const branch = restaurant.branches?.[0];
     const restaurantMenu = isRestaurantKind(restaurant);
-    const products = sortMenuProducts(
-      restaurant.products.map((p) => ({
-        ...p,
-        price: Number(p.price),
-        comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
-      })),
-      restaurantMenu,
-    );
+    const sharedMenu = usesSharedCatalog(restaurant);
+
+    let productRows = restaurant.products.map((p) => ({
+      ...p,
+      price: Number(p.price),
+      comparePrice: p.comparePrice != null ? Number(p.comparePrice) : null,
+      isSharedCatalog: false as boolean,
+    }));
+
+    if (sharedMenu) {
+      const offers = await this.prisma.businessProductOffer.findMany({
+        where: {
+          businessId: restaurant.id,
+          deletedAt: null,
+          isListed: true,
+          isAvailable: true,
+          price: { not: null },
+          product: {
+            deletedAt: null,
+            isAvailable: true,
+            businessId: null,
+          },
+        },
+        include: {
+          product: {
+            include: {
+              images: { orderBy: { sortOrder: 'asc' } },
+              dishCategory: true,
+              productCategory: true,
+            },
+          },
+        },
+      });
+      const fromOffers = offers.map((offer) => ({
+        ...offer.product,
+        price: Number(offer.price),
+        comparePrice:
+          offer.comparePrice != null
+            ? Number(offer.comparePrice)
+            : offer.product.comparePrice != null
+              ? Number(offer.product.comparePrice)
+              : null,
+        isAvailable: true,
+        isSharedCatalog: true,
+        offerId: offer.id,
+      }));
+      productRows = [...fromOffers, ...productRows];
+    }
+
+    const products = sortMenuProducts(productRows, restaurantMenu);
 
     const menuCategories = buildMenuCategoriesFromProducts(products, restaurantMenu);
     const typeScopedCategories =
@@ -655,41 +698,18 @@ export class RestaurantsService {
       throw new BadRequestException('ownerLogin is required when ownerPassword is set');
     }
 
-    // kind is always derived from BusinessType.menuMode.
-    let kind: BusinessKind = BusinessKind.RESTAURANT;
-    let businessTypeId = dto.businessTypeId;
-    if (dto.businessTypeId) {
-      const type = await this.prisma.businessType.findUnique({
-        where: { id: dto.businessTypeId, deletedAt: null },
-      });
-      if (!type) throw new NotFoundException('Business type not found');
-      kind = kindFromMenuMode(resolveMenuMode({ businessType: type }));
-    } else if (dto.kind === 'STORE') {
-      const storeType = await this.prisma.businessType.findFirst({
-        where: {
-          isActive: true,
-          deletedAt: null,
-          menuMode: 'OWN_CATEGORIES',
-        },
-        orderBy: { sortOrder: 'asc' },
-      });
-      businessTypeId = storeType?.id;
-      if (storeType) {
-        kind = kindFromMenuMode(resolveMenuMode({ businessType: storeType }));
-      }
-    } else {
-      const restaurantType = await this.prisma.businessType.findFirst({
-        where: {
-          deletedAt: null,
-          menuMode: 'GLOBAL_DISH',
-        },
-        orderBy: { sortOrder: 'asc' },
-      });
-      businessTypeId = restaurantType?.id;
-      if (restaurantType) {
-        kind = kindFromMenuMode(resolveMenuMode({ businessType: restaurantType }));
-      }
+    // kind is always derived from BusinessType.menuMode — type is required.
+    if (!dto.businessTypeId) {
+      throw new BadRequestException(
+        'businessTypeId is required (pick pharmacy, grocery, flowers, restaurant, …)',
+      );
     }
+    const type = await this.prisma.businessType.findFirst({
+      where: { id: dto.businessTypeId, deletedAt: null },
+    });
+    if (!type) throw new NotFoundException('Business type not found');
+    const businessTypeId = type.id;
+    const kind = kindFromMenuMode(resolveMenuMode({ businessType: type }));
 
     let resolvedCityId: string | undefined = dto.cityId;
     if (resolvedCityId) {

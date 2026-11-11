@@ -58,6 +58,8 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
   const router = useRouter();
   const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const [activeCategoryId, setActiveCategoryId] = useState('all');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
 
   const { data: business, isLoading, isError, refetch } = useQuery({
     queryKey: ['business-menu', slug],
@@ -96,24 +98,30 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
     return embedded.length > 0 ? embedded : (fallbackProducts ?? []);
   }, [business?.products, fallbackProducts]);
 
+  const searchedProducts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return allProducts;
+    return allProducts.filter((p) => p.name.toLowerCase().includes(q));
+  }, [allProducts, query]);
+
   const filteredProducts = useMemo(() => {
-    if (activeCategoryId === 'all') return allProducts;
-    return allProducts.filter(
+    if (activeCategoryId === 'all') return searchedProducts;
+    return searchedProducts.filter(
       (p) => productMenuCategoryId(p, restaurant) === activeCategoryId,
     );
-  }, [allProducts, activeCategoryId, restaurant]);
+  }, [searchedProducts, activeCategoryId, restaurant]);
 
   const menuSections = useMemo(() => {
     if (activeCategoryId !== 'all') return null;
     return categories
       .map((category) => ({
         category,
-        products: allProducts.filter(
+        products: searchedProducts.filter(
           (product) => productMenuCategoryId(product, restaurant) === category.id,
         ),
       }))
       .filter((section) => section.products.length > 0);
-  }, [activeCategoryId, allProducts, categories, restaurant]);
+  }, [activeCategoryId, searchedProducts, categories, restaurant]);
 
   if (isLoading) {
     return (
@@ -162,6 +170,15 @@ export function BusinessMenuScreen({ slug, backHref = '/' }: Props) {
         reviewCount={business.reviewCount}
         deliveryMinutes={business.deliveryMinutes}
         minOrderAmount={business.minOrderAmount}
+        searchOpen={searchOpen}
+        searchValue={query}
+        onSearchToggle={() =>
+          setSearchOpen((v) => {
+            if (v) setQuery('');
+            return !v;
+          })
+        }
+        onSearchChange={setQuery}
       />
 
       <div className="px-3 pt-3">

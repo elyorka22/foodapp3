@@ -14,12 +14,42 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { resolveFormSlug } from '@/lib/slugify';
 
+type CatalogKind = 'SHARED_CATALOG' | 'OWN_CATEGORIES' | 'GLOBAL_DISH';
+
+const CATALOG_OPTIONS: Array<{
+  value: CatalogKind;
+  title: string;
+  hint: string;
+}> = [
+  {
+    value: 'SHARED_CATALOG',
+    title: 'Umumiy katalog',
+    hint: 'Bitta mahsulot ro‘yxati (nom/foto). Har do‘kon o‘z narxi va mavjudligini qo‘yadi. Masalan: oziq-ovqat, dorixona, parfyumeriya.',
+  },
+  {
+    value: 'OWN_CATEGORIES',
+    title: 'Individual katalog',
+    hint: 'Har do‘kon o‘z mahsulotlarini yaratadi. Kategoriyalar tur bo‘yicha umumiy bo‘lishi mumkin. Masalan: gullar, sovg‘alar, zoomağaz.',
+  },
+  {
+    value: 'GLOBAL_DISH',
+    title: 'Restoran menyusi',
+    hint: 'Umumiy taom kategoriyalari. Faqat restoranlar uchun.',
+  },
+];
+
+function catalogLabel(mode?: string | null) {
+  if (mode === 'SHARED_CATALOG') return 'Umumiy katalog';
+  if (mode === 'GLOBAL_DISH') return 'Restoran menyusi';
+  return 'Individual katalog';
+}
+
 const emptyForm: BusinessTypeForm = {
   name: '',
   slug: '',
   description: '',
   icon: '',
-  menuMode: 'OWN_CATEGORIES',
+  menuMode: undefined,
   sortOrder: 0,
 };
 
@@ -39,10 +69,15 @@ export function AdminBusinessTypesPage() {
       toast.error('Tur nomini kiriting');
       return;
     }
+    if (!form.menuMode) {
+      toast.error('Katalog turini tanlang (umumiy / individual / restoran)');
+      return;
+    }
     const body: BusinessTypeForm = {
       ...form,
       slug: resolveFormSlug(form.name, editId ? form.slug : undefined),
       catalogMode: 'CATALOG',
+      menuMode: form.menuMode,
     };
     try {
       if (editId) {
@@ -96,10 +131,8 @@ export function AdminBusinessTypesPage() {
       <div>
         <h1 className="text-xl font-bold">Biznes turlari</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Vertikallar (restoran, dorixona, …). Menyuni{' '}
-          <strong>GLOBAL_DISH</strong> (umumiy taom kategoriyalari) yoki{' '}
-          <strong>OWN_CATEGORIES</strong> (har bir biznes o‘z kategoriyalari) bilan
-          belgilang — slug ga bog‘lanmaydi.
+          Yangi tur (masalan zoomağaz) yaratganda <strong>katalog rejimini</strong> majburiy
+          tanlang: umumiy katalog yoki individual menyu.
         </p>
       </div>
 
@@ -109,7 +142,7 @@ export function AdminBusinessTypesPage() {
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Input
-            placeholder="Nom"
+            placeholder="Nom *"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           />
@@ -123,22 +156,6 @@ export function AdminBusinessTypesPage() {
             value={form.icon ?? ''}
             onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
           />
-          <label className="block text-xs font-medium opacity-70 sm:col-span-2">
-            Menyusi
-            <select
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
-              value={form.menuMode ?? 'OWN_CATEGORIES'}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  menuMode: e.target.value as 'GLOBAL_DISH' | 'OWN_CATEGORIES',
-                }))
-              }
-            >
-              <option value="OWN_CATEGORIES">OWN_CATEGORIES — o‘z kategoriyalari</option>
-              <option value="GLOBAL_DISH">GLOBAL_DISH — umumiy taom kategoriyalari</option>
-            </select>
-          </label>
           <Input
             type="number"
             placeholder="Tartib"
@@ -153,9 +170,42 @@ export function AdminBusinessTypesPage() {
             onChange={(e) =>
               setForm((f) => ({ ...f, description: e.target.value }))
             }
-            className="sm:col-span-2 lg:col-span-3"
+            className="sm:col-span-2"
           />
         </div>
+
+        <fieldset className="mt-4 space-y-2">
+          <legend className="text-xs font-medium opacity-70">
+            Katalog turi * (majburiy)
+          </legend>
+          <div className="grid gap-2 md:grid-cols-3">
+            {CATALOG_OPTIONS.map((opt) => {
+              const selected = form.menuMode === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, menuMode: opt.value }))}
+                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                    selected
+                      ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900'
+                      : 'border-zinc-200 hover:border-zinc-400 dark:border-white/15'
+                  }`}
+                >
+                  <p className="text-sm font-semibold">{opt.title}</p>
+                  <p
+                    className={`mt-1 text-xs leading-snug ${
+                      selected ? 'opacity-80' : 'opacity-60'
+                    }`}
+                  >
+                    {opt.hint}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
         <div className="mt-3 flex gap-2">
           <Button onClick={submit} disabled={create.isPending || update.isPending}>
             {editId ? 'Saqlash' : "Qo'shish"}
@@ -183,7 +233,7 @@ export function AdminBusinessTypesPage() {
               <tr>
                 <th className="px-4 py-3">Nom</th>
                 <th className="px-4 py-3">Slug</th>
-                <th className="px-4 py-3">Menyu</th>
+                <th className="px-4 py-3">Katalog</th>
                 <th className="px-4 py-3">Holat</th>
                 <th className="px-4 py-3 text-right">Amallar</th>
               </tr>
@@ -197,7 +247,7 @@ export function AdminBusinessTypesPage() {
                   </td>
                   <td className="px-4 py-3 font-mono text-xs">{row.slug}</td>
                   <td className="px-4 py-3 text-xs">
-                    {row.menuMode === 'GLOBAL_DISH' ? 'GLOBAL_DISH' : 'OWN_CATEGORIES'}
+                    {catalogLabel(row.menuMode)}
                   </td>
                   <td className="px-4 py-3">
                     <ActiveBadge active={row.isActive} />
@@ -214,12 +264,8 @@ export function AdminBusinessTypesPage() {
                       >
                         {row.isActive ? 'Nofaol' : 'Faol'}
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => setDeleteId(row.id)}
-                      >
-                        O‘chirish
+                      <Button size="sm" variant="danger" onClick={() => setDeleteId(row.id)}>
+                        O&apos;chirish
                       </Button>
                     </div>
                   </td>
@@ -232,12 +278,11 @@ export function AdminBusinessTypesPage() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Turni o‘chirish"
-        description="Tur soft-delete qilinadi, slug bo‘shatiladi."
-        confirmText="O‘chirish"
+        title="Turni o'chirish?"
+        description="Bu tur yumshoq o'chiriladi."
         danger
-        onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
+        onConfirm={confirmDelete}
       />
     </div>
   );

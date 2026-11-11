@@ -26,10 +26,12 @@ import {
 import { adminI18n as t } from '@/lib/admin-i18n';
 import { resolveFormSlug } from '@/lib/slugify';
 import { useAdminCities } from '@/hooks/use-admin-cities';
+import { useAdminBusinessTypes } from '@/hooks/use-admin-business-types';
 
 const emptyForm: RestaurantForm = {
   name: '',
   slug: '',
+  businessTypeId: '',
   cityId: '',
   description: '',
   logoUrl: '',
@@ -146,6 +148,11 @@ export default function AdminRestaurantsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [form, setForm] = useState<RestaurantForm>(emptyForm);
   const citiesQuery = useAdminCities();
+  const typesQuery = useAdminBusinessTypes();
+  const restaurantTypeId =
+    (typesQuery.list.data ?? []).find(
+      (t) => t.menuMode === 'GLOBAL_DISH' || t.slug === 'restaurant',
+    )?.id ?? '';
 
   const isActiveFilter = status === '' ? undefined : status === 'active';
 
@@ -201,8 +208,13 @@ export default function AdminRestaurantsPage() {
         toast.error('Shaharni tanlang');
         return;
       }
+      if (!restaurantTypeId) {
+        toast.error('Restoran turi topilmadi (Biznes turlari → Restoran / GLOBAL_DISH)');
+        return;
+      }
       const payload: RestaurantForm = {
         ...form,
+        businessTypeId: restaurantTypeId,
         slug: resolveFormSlug(form.name),
       };
       if (isSuperAdmin && payload.ownerLogin?.trim() && !payload.ownerPassword?.trim()) {

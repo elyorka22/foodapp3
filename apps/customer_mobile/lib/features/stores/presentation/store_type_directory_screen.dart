@@ -23,7 +23,7 @@ const _typeTitles = <String, String>{
   'electronics': 'Elektronika',
 };
 
-enum _Chip { all, bought, freeDelivery, fast }
+enum _Chip { all, freeDelivery, fast }
 
 /// Vertical shop directory for one store type (flowers, grocery, …).
 /// Shop tap opens [StoreDetailScreen] catalog. Hub grid kept in store_type_hub_screen.
@@ -47,7 +47,6 @@ class _StoreTypeDirectoryScreenState
   final _searchController = TextEditingController();
   bool _searchOpen = false;
   String _search = '';
-  bool _delivery = true;
   _Chip _chip = _Chip.all;
 
   @override
@@ -63,10 +62,6 @@ class _StoreTypeDirectoryScreenState
 
   List<BusinessModel> _filter(List<BusinessModel> source) {
     var list = List<BusinessModel>.from(source);
-    final q = _search.trim().toLowerCase();
-    if (q.isNotEmpty) {
-      list = list.where((s) => s.name.toLowerCase().contains(q)).toList();
-    }
     if (_chip == _Chip.fast) {
       list.sort((a, b) => businessPrepMinutes(a) - businessPrepMinutes(b));
     }
@@ -82,8 +77,14 @@ class _StoreTypeDirectoryScreenState
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(selectedCityProvider);
+    final search = _search.trim();
     final stores = ref.watch(
-      storesListProvider(StoresQuery(typeSlug: widget.typeSlug)),
+      storesListProvider(
+        StoresQuery(
+          typeSlug: widget.typeSlug,
+          search: search.isEmpty ? null : search,
+        ),
+      ),
     );
 
     return Scaffold(
@@ -127,8 +128,7 @@ class _StoreTypeDirectoryScreenState
                     ),
                   ),
                 ),
-              SliverToBoxAdapter(child: _fulfillmentToggle()),
-              SliverToBoxAdapter(child: _discountAndChips()),
+              SliverToBoxAdapter(child: _filterChips()),
               stores.when(
                 data: (list) {
                   final filtered = _filter(list);
@@ -243,97 +243,7 @@ class _StoreTypeDirectoryScreenState
     );
   }
 
-  Widget _fulfillmentToggle() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        0,
-        AppSpacing.lg,
-        AppSpacing.md,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: const Color(0xFFE4E4E7)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _toggleBtn(
-                label: AppStrings.deliveryLabel,
-                active: _delivery,
-                onTap: () => setState(() => _delivery = true),
-              ),
-            ),
-            Expanded(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  _toggleBtn(
-                    label: AppStrings.pickupLabel,
-                    active: !_delivery,
-                    onTap: () => setState(() => _delivery = false),
-                  ),
-                  Positioned(
-                    right: 8,
-                    top: -6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        AppStrings.freeBadge.toUpperCase(),
-                        style: AppTypography.caption.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 9,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _toggleBtn({
-    required String label,
-    required bool active,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: active ? AppColors.textPrimary : Colors.transparent,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w800,
-              color: active ? Colors.white : AppColors.textSecondary,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _discountAndChips() {
+  Widget _filterChips() {
     Widget chip(String label, _Chip value, {IconData? icon}) {
       final active = _chip == value;
       return Padding(
@@ -365,7 +275,8 @@ class _StoreTypeDirectoryScreenState
       );
     }
 
-    return Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
         0,
@@ -373,55 +284,9 @@ class _StoreTypeDirectoryScreenState
         AppSpacing.sm,
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 68,
-            child: Column(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF22C55E),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    '20%',
-                    style: AppTypography.caption.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  AppStrings.discountsShort,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  chip(AppStrings.filterBoughtBefore, _Chip.bought),
-                  chip(AppStrings.filterFreeDelivery, _Chip.freeDelivery),
-                  chip(AppStrings.filterFast, _Chip.fast, icon: Icons.bolt),
-                ],
-              ),
-            ),
-          ),
+          chip(AppStrings.filterFreeDelivery, _Chip.freeDelivery),
+          chip(AppStrings.filterFast, _Chip.fast, icon: Icons.bolt),
         ],
       ),
     );

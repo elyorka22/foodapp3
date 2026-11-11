@@ -58,14 +58,16 @@ export function useHomeBanners() {
   });
 }
 
-export function useHomeRestaurants() {
+export function useHomeRestaurants(search?: string | null) {
   const { selectedCity, isLoading: cityLoading } = useSelectedCity();
   const citySlug = selectedCity?.slug ?? getSelectedCitySlug();
+  const q = search?.trim() || undefined;
   return useQuery({
-    queryKey: ['restaurants', 'home', citySlug],
+    queryKey: ['restaurants', 'home', citySlug, q ?? ''],
     queryFn: () => {
       const params = new URLSearchParams({ limit: '50', vertical: 'restaurant' });
       if (citySlug) params.set('city', citySlug);
+      if (q) params.set('search', q);
       return api<{ data: HomeRestaurant[]; meta?: { total: number } }>(
         `/businesses?${params.toString()}`,
       );

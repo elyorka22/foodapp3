@@ -30,7 +30,6 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
   late String? _selectedType = widget.initialType;
   bool _searchOpen = false;
   String _search = '';
-  bool _delivery = true;
   _StoreChip _chip = _StoreChip.all;
 
   @override
@@ -49,10 +48,6 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
 
   List<BusinessModel> _filter(List<BusinessModel> source) {
     var list = List<BusinessModel>.from(source);
-    final q = _search.trim().toLowerCase();
-    if (q.isNotEmpty) {
-      list = list.where((s) => s.name.toLowerCase().contains(q)).toList();
-    }
     if (_chip == _StoreChip.fast) {
       list.sort((a, b) => businessPrepMinutes(a) - businessPrepMinutes(b));
     }
@@ -113,7 +108,6 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
                     ),
                   ),
                 ),
-              SliverToBoxAdapter(child: _fulfillmentToggle()),
               SliverToBoxAdapter(
                 child: types.when(
                   data: (list) => _typeCircles(
@@ -234,95 +228,6 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
             icon: const Icon(Icons.search, size: 24),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _fulfillmentToggle() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        0,
-        AppSpacing.lg,
-        AppSpacing.md,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF4F4F5),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _toggleBtn(
-                label: AppStrings.deliveryLabel,
-                active: _delivery,
-                onTap: () => setState(() => _delivery = true),
-              ),
-            ),
-            Expanded(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  _toggleBtn(
-                    label: AppStrings.pickupLabel,
-                    active: !_delivery,
-                    onTap: () => setState(() => _delivery = false),
-                  ),
-                  Positioned(
-                    right: 8,
-                    top: -6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        AppStrings.freeBadge.toUpperCase(),
-                        style: AppTypography.caption.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 9,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _toggleBtn({
-    required String label,
-    required bool active,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: active ? AppColors.textPrimary : Colors.transparent,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w800,
-              color: active ? Colors.white : AppColors.textSecondary,
-            ),
-          ),
-        ),
       ),
     );
   }

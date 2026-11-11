@@ -31,12 +31,15 @@ export function useCheckoutFlow() {
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
 
   const subtotal = total();
-  const deliveryCalculating = gettingGps || deliveryLoading;
-  const deliveryQuoted =
-    checkout.deliveryFee != null && !deliveryCalculating && deliveryError == null;
+  const isPickup = checkout.fulfillment === 'pickup';
+  const deliveryCalculating = !isPickup && (gettingGps || deliveryLoading);
+  const deliveryQuoted = isPickup
+    ? true
+    : checkout.deliveryFee != null && !deliveryCalculating && deliveryError == null;
 
-  const grandTotal =
-    checkout.deliveryFee != null
+  const grandTotal = isPickup
+    ? Math.max(0, subtotal - checkout.promoDiscount)
+    : checkout.deliveryFee != null
       ? Math.max(0, subtotal - checkout.promoDiscount) + checkout.deliveryFee
       : null;
 
@@ -134,14 +137,16 @@ export function useCheckoutFlow() {
   const submitOrder = async () => {
     if (!restaurantId || !items.length) return;
 
-    const locationError = validateDeliveryLocation(checkout.deliveryLocation);
-    if (locationError) {
-      setError(locationError);
-      return;
-    }
-    if (checkout.deliveryFee == null || deliveryCalculating || deliveryError) {
-      setError(uz.deliveryPriceRequired);
-      return;
+    if (!isPickup) {
+      const locationError = validateDeliveryLocation(checkout.deliveryLocation);
+      if (locationError) {
+        setError(locationError);
+        return;
+      }
+      if (checkout.deliveryFee == null || deliveryCalculating || deliveryError) {
+        setError(uz.deliveryPriceRequired);
+        return;
+      }
     }
 
     setLoading(true);
@@ -154,9 +159,17 @@ export function useCheckoutFlow() {
         router.replace('/complete-profile');
         return;
       }
-      const address =
-        checkout.deliveryLocation.address.trim() ||
-        `GPS: ${checkout.deliveryLocation.lat}, ${checkout.deliveryLocation.lng}`;
+      const address = isPickup
+        ? uz.pickupLabel
+        : checkout.deliveryLocation.address.trim() ||
+          `GPS: ${checkout.deliveryLocation.lat}, ${checkout.deliveryLocation.lng}`;
+      // Pickup still needs coords for DTO; branch coords applied on server.
+      const latitude = isPickup
+        ? (checkout.deliveryLocation.lat ?? 41.311081)
+        : checkout.deliveryLocation.lat;
+      const longitude = isPickup
+        ? (checkout.deliveryLocation.lng ?? 69.240562)
+        : checkout.deliveryLocation.lng;
       const res = await api<{ order: { trackingToken: string; orderNumber?: string } }>(
         '/orders/guest',
         {
@@ -167,8 +180,9 @@ export function useCheckoutFlow() {
             phone: loggedIn?.phone ?? normalizePhone(checkout.phone),
             customerId: loggedIn?.id,
             deliveryAddress: address,
-            latitude: checkout.deliveryLocation.lat,
-            longitude: checkout.deliveryLocation.lng,
+            latitude,
+            longitude,
+            fulfillment: checkout.fulfillment,
             promoCode: checkout.promoCode.trim() || undefined,
             items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
           }),

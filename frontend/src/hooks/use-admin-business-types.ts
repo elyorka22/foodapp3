@@ -17,7 +17,7 @@ export type AdminBusinessType = {
   imagePositionX?: number;
   imagePositionY?: number;
   catalogMode?: 'CATALOG';
-  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
+  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
   sortOrder: number;
   isActive: boolean;
 };
@@ -32,7 +32,8 @@ export type BusinessTypeForm = {
   imagePositionX?: number;
   imagePositionY?: number;
   catalogMode?: 'CATALOG';
-  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES';
+  /** Required on create: SHARED_CATALOG | OWN_CATEGORIES | GLOBAL_DISH */
+  menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
   sortOrder?: number;
   isActive?: boolean;
 };

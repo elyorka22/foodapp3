@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -24,7 +24,6 @@ import { resolveImageUrl } from '@/lib/image-url';
 import { restaurantPrepMinutes } from '@/lib/restaurant-card-meta';
 import { uz } from '@/lib/uz';
 
-type Fulfillment = 'delivery' | 'pickup';
 type FilterChip = 'all' | 'deliveryDiscount' | 'freeDelivery' | 'fast';
 
 function StoresPageInner() {
@@ -35,25 +34,21 @@ function StoresPageInner() {
   const typesQuery = useStoreBusinessTypes();
 
   const [activeType, setActiveType] = useState<string | null>(typeFromUrl);
-  const [fulfillment, setFulfillment] = useState<Fulfillment>('delivery');
   const [chip, setChip] = useState<FilterChip>('all');
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const deferredSearch = useDeferredValue(query.trim());
 
   useEffect(() => {
     setActiveType(typeFromUrl);
   }, [typeFromUrl]);
 
-  const storesQuery = useStoresList(activeType);
+  const storesQuery = useStoresList(activeType, deferredSearch || null);
   const stores = storesQuery.data?.data ?? [];
   const storeTypes = typesQuery.data ?? [];
 
   const filtered = useMemo(() => {
     let list = stores.slice();
-    const q = query.trim().toLowerCase();
-    if (q) {
-      list = list.filter((s) => s.name.toLowerCase().includes(q));
-    }
     if (chip === 'fast') {
       list = list
         .slice()
@@ -66,7 +61,7 @@ function StoresPageInner() {
       });
     }
     return list;
-  }, [stores, query, chip]);
+  }, [stores, chip]);
 
   const selectType = (slug: string | null) => {
     const next = activeType === slug ? null : slug;
@@ -124,36 +119,6 @@ function StoresPageInner() {
           </label>
         ) : null}
 
-        {/* Delivery / Pickup */}
-        <div className="relative mt-3 flex rounded-full bg-zinc-100 p-1">
-          <button
-            type="button"
-            onClick={() => setFulfillment('delivery')}
-            className={clsx(
-              'flex-1 rounded-full py-2 text-center text-[13px] font-bold transition',
-              fulfillment === 'delivery'
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-600',
-            )}
-          >
-            {uz.deliveryLabel}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFulfillment('pickup')}
-            className={clsx(
-              'relative flex-1 rounded-full py-2 text-center text-[13px] font-bold transition',
-              fulfillment === 'pickup'
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-600',
-            )}
-          >
-            {uz.pickupLabel}
-            <span className="absolute -top-2 right-2 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white">
-              {uz.freeBadge}
-            </span>
-          </button>
-        </div>
       </header>
 
       {/* Store type circles */}

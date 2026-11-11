@@ -23,6 +23,9 @@ export function resolveMenuMode(
   if (mode === BusinessMenuMode.OWN_CATEGORIES || mode === 'OWN_CATEGORIES') {
     return BusinessMenuMode.OWN_CATEGORIES;
   }
+  if (mode === BusinessMenuMode.SHARED_CATALOG || mode === 'SHARED_CATALOG') {
+    return BusinessMenuMode.SHARED_CATALOG;
+  }
   // Legacy rows without menuMode
   if (row.businessTypeId == null && !row.businessType) {
     return BusinessMenuMode.GLOBAL_DISH;
@@ -52,7 +55,15 @@ export function usesGlobalDishMenu(row: BusinessLike): boolean {
 }
 
 export function usesOwnProductCategories(row: BusinessLike): boolean {
-  return resolveMenuMode(row) === BusinessMenuMode.OWN_CATEGORIES;
+  const mode = resolveMenuMode(row);
+  return (
+    mode === BusinessMenuMode.OWN_CATEGORIES ||
+    mode === BusinessMenuMode.SHARED_CATALOG
+  );
+}
+
+export function usesSharedCatalog(row: BusinessLike): boolean {
+  return resolveMenuMode(row) === BusinessMenuMode.SHARED_CATALOG;
 }
 
 export function kindFromMenuMode(menuMode: BusinessMenuMode): BusinessKind {

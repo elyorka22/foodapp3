@@ -42,10 +42,6 @@ class _AllRestaurantsScreenState extends ConsumerState<AllRestaurantsScreen> {
 
   List<RestaurantModel> _filter(List<RestaurantModel> source) {
     var list = List<RestaurantModel>.from(source);
-    final q = _query.trim().toLowerCase();
-    if (q.isNotEmpty) {
-      list = list.where((r) => r.name.toLowerCase().contains(q)).toList();
-    }
     if (_activeCategory != null) {
       final anyHasCats = source.any((r) => (r.categories ?? []).isNotEmpty);
       if (anyHasCats) {
@@ -66,7 +62,10 @@ class _AllRestaurantsScreenState extends ConsumerState<AllRestaurantsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final restaurants = ref.watch(restaurantsListProvider(null));
+    final search = _query.trim();
+    final restaurants = ref.watch(
+      restaurantsListProvider(search.isEmpty ? null : search),
+    );
     final categories = ref.watch(dishCategoriesProvider);
     final city = ref.watch(selectedCityProvider);
 

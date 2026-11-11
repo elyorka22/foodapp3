@@ -34,6 +34,14 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
     state = state.copyWith(promoCode: value);
   }
 
+  void setFulfillment(FulfillmentMethod value) {
+    state = state.copyWith(
+      fulfillment: value,
+      clearDelivery: true,
+      clearError: true,
+    );
+  }
+
   void setError(String? message) {
     state = state.copyWith(error: message, clearError: message == null);
   }
@@ -153,20 +161,28 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
     final businessId = ref.read(cartProvider.notifier).businessId;
     if (businessId == null || items.isEmpty) return null;
 
-    final locationError = validateDeliveryLocation(lat: state.lat, lng: state.lng);
-    if (locationError != null) {
-      state = state.copyWith(error: locationError);
-      return null;
-    }
-    if (state.deliveryFee == null || state.deliveryCalculating || state.deliveryError != null) {
-      state = state.copyWith(error: AppStrings.deliveryPriceRequired);
-      return null;
+    final pickup = state.isPickup;
+    if (!pickup) {
+      final locationError = validateDeliveryLocation(lat: state.lat, lng: state.lng);
+      if (locationError != null) {
+        state = state.copyWith(error: locationError);
+        return null;
+      }
+      if (state.deliveryFee == null ||
+          state.deliveryCalculating ||
+          state.deliveryError != null) {
+        state = state.copyWith(error: AppStrings.deliveryPriceRequired);
+        return null;
+      }
     }
 
     state = state.copyWith(placingOrder: true, clearError: true);
 
     try {
-      final deliveryAddress = 'GPS: ${state.lat!}, ${state.lng!}';
+      final deliveryAddress =
+          pickup ? AppStrings.pickupLabel : 'GPS: ${state.lat}, ${state.lng}';
+      final latitude = pickup ? (state.lat ?? 41.311081) : state.lat!;
+      final longitude = pickup ? (state.lng ?? 69.240562) : state.lng!;
       final phone = normalizePhone(state.phone);
       final customerId = ref.read(authStateProvider).valueOrNull?.id;
       final deviceId = await ref.read(deviceRegistrationServiceProvider).getDeviceId();
@@ -177,8 +193,9 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
               restaurantId: businessId,
               phone: phone,
               deliveryAddress: deliveryAddress,
-              latitude: state.lat!,
-              longitude: state.lng!,
+              latitude: latitude,
+              longitude: longitude,
+              fulfillment: pickup ? 'pickup' : 'delivery',
               customerId: customerId,
               deviceId: deviceId,
               promoCode: state.promoCode.trim().isEmpty ? null : state.promoCode.trim(),

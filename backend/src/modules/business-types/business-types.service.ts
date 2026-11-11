@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBusinessTypeDto } from './dto/create-business-type.dto';
@@ -52,9 +52,12 @@ export class BusinessTypesService {
     });
     const catalogMode =
       dto.catalogMode === 'CONTACT' ? 'CATALOG' : (dto.catalogMode ?? 'CATALOG');
-    const menuMode =
-      dto.menuMode ??
-      (slug === 'restaurant' ? 'GLOBAL_DISH' : 'OWN_CATEGORIES');
+    if (!dto.menuMode) {
+      throw new BadRequestException(
+        'menuMode is required: SHARED_CATALOG, OWN_CATEGORIES, or GLOBAL_DISH',
+      );
+    }
+    const menuMode = dto.menuMode;
     return this.prisma.businessType.create({
       data: {
         name: dto.name.trim(),

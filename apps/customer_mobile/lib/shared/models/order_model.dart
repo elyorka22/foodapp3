@@ -25,6 +25,7 @@ class CreateGuestOrderModel {
     this.customerId,
     this.promoCode,
     this.deviceId,
+    this.fulfillment,
   });
 
   final String restaurantId;
@@ -37,6 +38,8 @@ class CreateGuestOrderModel {
   final String? customerId;
   final String? promoCode;
   final String? deviceId;
+  /// `delivery` or `pickup`
+  final String? fulfillment;
 
   Map<String, dynamic> toJson() => {
         'restaurantId': restaurantId,
@@ -49,6 +52,7 @@ class CreateGuestOrderModel {
         if (customerId != null) 'customerId': customerId,
         if (promoCode != null) 'promoCode': promoCode,
         if (deviceId != null && deviceId!.isNotEmpty) 'deviceId': deviceId,
+        if (fulfillment != null) 'fulfillment': fulfillment,
       };
 }
 

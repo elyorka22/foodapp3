@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
   IsArray,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -80,6 +81,14 @@ export class CreateGuestOrderDto {
   @IsString()
   @MaxLength(128)
   deviceId?: string;
+
+  @ApiPropertyOptional({
+    enum: ['delivery', 'pickup'],
+    description: 'delivery (default) or pickup at the venue',
+  })
+  @IsOptional()
+  @IsIn(['delivery', 'pickup'])
+  fulfillment?: 'delivery' | 'pickup';
 
   @ApiProperty({ type: [OrderItemDto] })
   @IsArray()

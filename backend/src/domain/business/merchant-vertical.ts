@@ -22,7 +22,11 @@ export function businessWhereForVertical(
   }
 
   return {
-    businessType: { menuMode: BusinessMenuMode.OWN_CATEGORIES },
+    businessType: {
+      menuMode: {
+        in: [BusinessMenuMode.OWN_CATEGORIES, BusinessMenuMode.SHARED_CATALOG],
+      },
+    },
   };
 }
 

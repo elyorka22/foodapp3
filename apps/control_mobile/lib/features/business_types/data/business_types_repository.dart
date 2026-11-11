@@ -22,14 +22,25 @@ class ControlBusinessType {
   final String? slug;
   final String? description;
   final String? catalogMode;
-  /// `GLOBAL_DISH` = restaurant, `OWN_CATEGORIES` = store.
+  /// `GLOBAL_DISH` | `OWN_CATEGORIES` | `SHARED_CATALOG`
   final String? menuMode;
   final int sortOrder;
 
-  bool get isStoreVertical => menuMode == 'OWN_CATEGORIES';
+  bool get isStoreVertical =>
+      menuMode == 'OWN_CATEGORIES' || menuMode == 'SHARED_CATALOG';
 
-  String get verticalHint =>
-      isStoreVertical ? "Do'kon" : 'Restoran';
+  String get verticalHint {
+    switch (menuMode) {
+      case 'SHARED_CATALOG':
+        return 'Umumiy katalog';
+      case 'OWN_CATEGORIES':
+        return 'Individual katalog';
+      case 'GLOBAL_DISH':
+        return 'Restoran';
+      default:
+        return isStoreVertical ? "Do'kon" : 'Restoran';
+    }
+  }
 
   factory ControlBusinessType.fromJson(Map<String, dynamic> json) {
     return ControlBusinessType(
@@ -58,6 +69,7 @@ class BusinessTypesRepository {
 
   Future<ControlBusinessType> createType({
     required String name,
+    required String menuMode,
     bool isActive = true,
     String catalogMode = 'CATALOG',
   }) async {
@@ -67,6 +79,7 @@ class BusinessTypesRepository {
         'name': name,
         'isActive': isActive,
         'catalogMode': catalogMode,
+        'menuMode': menuMode,
       },
     );
     return ControlBusinessType.fromJson(res.data ?? <String, dynamic>{});
@@ -76,12 +89,14 @@ class BusinessTypesRepository {
     String id, {
     String? name,
     bool? isActive,
+    String? menuMode,
   }) async {
     final res = await _dio.patch<Map<String, dynamic>>(
       ApiPaths.businessType(id),
       data: {
         if (name != null) 'name': name,
         if (isActive != null) 'isActive': isActive,
+        if (menuMode != null) 'menuMode': menuMode,
       },
     );
     return ControlBusinessType.fromJson(res.data ?? <String, dynamic>{});

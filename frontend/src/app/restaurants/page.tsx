@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -28,7 +28,6 @@ import { uz } from '@/lib/uz';
 type FilterChip = 'all' | 'fast' | 'pickup' | 'promos';
 
 export default function RestaurantsPage() {
-  const restaurantsQuery = useHomeRestaurants();
   const categoriesQuery = useDishCategories();
   const bannersQuery = useHomeBanners();
   const { selectedCity } = useSelectedCity();
@@ -37,7 +36,9 @@ export default function RestaurantsPage() {
   const [chip, setChip] = useState<FilterChip>('all');
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const deferredSearch = useDeferredValue(query.trim());
 
+  const restaurantsQuery = useHomeRestaurants(deferredSearch || null);
   const restaurants = restaurantsQuery.data?.data ?? [];
   const categories = (categoriesQuery.data ?? []).filter((c) => c.isActive !== false);
 
@@ -57,10 +58,6 @@ export default function RestaurantsPage() {
 
   const filtered = useMemo(() => {
     let list = restaurants.slice();
-    const q = query.trim().toLowerCase();
-    if (q) {
-      list = list.filter((r) => r.name.toLowerCase().includes(q));
-    }
     if (activeCategory) {
       list = list.filter((r) =>
         (r.categories ?? r.productCategories ?? []).some(
@@ -79,7 +76,7 @@ export default function RestaurantsPage() {
         .sort((a, b) => restaurantPrepMinutes(a) - restaurantPrepMinutes(b));
     }
     return list;
-  }, [restaurants, query, activeCategory, chip]);
+  }, [restaurants, activeCategory, chip]);
 
   const scrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

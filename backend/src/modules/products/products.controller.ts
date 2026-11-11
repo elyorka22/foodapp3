@@ -4,6 +4,8 @@ import { UserRole } from '@prisma/client';
 import { BadRequestException } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { CreateSharedProductDto, UpdateOfferDto } from './dto/create-shared-product.dto';
+import { EnrollCatalogDto } from './dto/enroll-catalog.dto';
 import { AdminProductsQueryDto } from './dto/admin-products-query.dto';
 import { BulkProductsDto } from './dto/bulk-products.dto';
 import { ProductImageDto } from './dto/product-image.dto';
@@ -23,6 +25,92 @@ export class ProductsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
   findAllAdmin(@Query() query: AdminProductsQueryDto, @CurrentUser() user: JwtPayload) {
     return this.products.findAllAdmin(query, user);
+  }
+
+  @Get('shared')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  listShared(
+    @Query('type') type: string | undefined,
+    @Query('businessTypeId') businessTypeId: string | undefined,
+    @Query('page') page: string | undefined,
+    @Query('limit') limit: string | undefined,
+    @Query('search') search: string | undefined,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.products.listShared(
+      {
+        type,
+        businessTypeId,
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+        search,
+      },
+      user,
+    );
+  }
+
+  @Post('shared')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  createShared(@Body() dto: CreateSharedProductDto, @CurrentUser() user: JwtPayload) {
+    return this.products.createShared(dto, user);
+  }
+
+  @Patch('shared/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  updateShared(
+    @Param('id') id: string,
+    @Body() dto: Partial<CreateSharedProductDto>,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.products.updateShared(id, dto, user);
+  }
+
+  @Delete('shared/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER)
+  removeShared(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.products.softDeleteShared(id, user);
+  }
+
+  @Post('enroll-catalog')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  enrollCatalog(@Body() dto: EnrollCatalogDto, @CurrentUser() user: JwtPayload) {
+    return this.products.enrollCatalog(dto, user);
+  }
+
+  @Get('offers')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  listOffers(
+    @Query('businessId') businessId: string | undefined,
+    @Query('restaurantId') restaurantId: string | undefined,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const id = businessId || restaurantId;
+    if (!id) throw new BadRequestException('businessId is required');
+    return this.products.listOffers(id, user);
+  }
+
+  @Patch('offers/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.BUSINESS)
+  updateOffer(
+    @Param('id') id: string,
+    @Body() dto: UpdateOfferDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.products.updateOffer(id, dto, user);
   }
 
   @Post('bulk')

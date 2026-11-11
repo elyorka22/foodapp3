@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsIn, IsOptional, IsUUID } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 export class AdminProductsQueryDto extends PaginationDto {
@@ -13,6 +13,28 @@ export class AdminProductsQueryDto extends PaginationDto {
   @IsOptional()
   @IsUUID()
   restaurantId?: string;
+
+  @ApiPropertyOptional({ description: 'Shared catalog: filter by business type UUID' })
+  @IsOptional()
+  @IsUUID()
+  businessTypeId?: string;
+
+  @ApiPropertyOptional({ description: 'Shared catalog: filter by business type slug' })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiPropertyOptional({
+    description: 'When true, only shared catalog rows (businessId null, businessTypeId set)',
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true) return true;
+    if (value === 'false' || value === false) return false;
+    return undefined;
+  })
+  @IsBoolean()
+  sharedOnly?: boolean;
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -64,14 +64,13 @@ export class CreateBusinessTypeDto {
   @IsEnum(BusinessCatalogMode)
   catalogMode?: BusinessCatalogMode;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     enum: BusinessMenuMode,
-    default: BusinessMenuMode.OWN_CATEGORIES,
-    description: 'GLOBAL_DISH = food restaurants; OWN_CATEGORIES = stores',
+    description:
+      'Required. SHARED_CATALOG = shared products + per-store price; OWN_CATEGORIES = each store owns products; GLOBAL_DISH = restaurants',
   })
-  @IsOptional()
   @IsEnum(BusinessMenuMode)
-  menuMode?: BusinessMenuMode;
+  menuMode: BusinessMenuMode;
 
   @ApiPropertyOptional()
   @IsOptional()
