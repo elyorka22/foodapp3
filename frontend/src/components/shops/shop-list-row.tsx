@@ -30,11 +30,19 @@ function minOrderLabel(amount: string | number | null | undefined): string | nul
 type Props = {
   store: ShopBusiness;
   index?: number;
+  fromType?: string | null;
+  /** Hide type label when list is already scoped to one type. */
+  hideTypeLabel?: boolean;
 };
 
-export function ShopListRow({ store, index = 0 }: Props) {
+export function ShopListRow({
+  store,
+  index = 0,
+  fromType,
+  hideTypeLabel = false,
+}: Props) {
   const imageUrl = resolveImageUrl(store.logoUrl ?? store.coverUrl);
-  const href = shopPublicPath(store);
+  const href = shopPublicPath(store, { fromType });
   const delivery = restaurantDeliveryLabel(store);
   const rating =
     store.averageRating != null && !Number.isNaN(Number(store.averageRating))
@@ -87,7 +95,7 @@ export function ShopListRow({ store, index = 0 }: Props) {
           </span>
         </p>
 
-        {store.businessType?.name ? (
+        {!hideTypeLabel && store.businessType?.name ? (
           <p className="mt-1.5 truncate text-[12px] font-semibold text-emerald-700">
             {store.businessType.name}
           </p>

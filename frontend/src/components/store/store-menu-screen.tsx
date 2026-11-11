@@ -195,7 +195,7 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
           </Link>
         </div>
 
-        <label className="mt-3 flex h-11 items-center gap-2 rounded-2xl bg-zinc-100 px-3">
+        <label className="mt-3 flex h-11 items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <Search size={18} className="shrink-0 text-zinc-400" aria-hidden />
           <input
             value={query}
@@ -205,7 +205,7 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
           />
         </label>
 
-        <div className="mt-3 flex rounded-full bg-zinc-100 p-1">
+        <div className="mt-3 flex rounded-full border border-zinc-200 bg-white p-1 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <button
             type="button"
             onClick={() => setFulfillment('delivery')}
@@ -239,13 +239,15 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
         ) : null}
       </header>
 
-      <div className="px-4 pt-1">
+      <div className="px-4 pt-3">
         {categories.length > 0 ? (
-          <StoreCategoryCircles
-            categories={categories}
-            activeId={activeCategoryId}
-            onChange={setActiveCategoryId}
-          />
+          <div className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <StoreCategoryCircles
+              categories={categories}
+              activeId={activeCategoryId}
+              onChange={setActiveCategoryId}
+            />
+          </div>
         ) : null}
       </div>
 

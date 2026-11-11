@@ -35,11 +35,12 @@ function availabilityLabel(store: ShopBusiness): string {
 type Props = {
   store: ShopBusiness;
   index?: number;
+  fromType?: string | null;
 };
 
-export function StoreHubShopCard({ store, index = 0 }: Props) {
+export function StoreHubShopCard({ store, index = 0, fromType }: Props) {
   const logo = resolveImageUrl(store.logoUrl ?? store.coverUrl);
-  const href = shopPublicPath(store);
+  const href = shopPublicPath(store, { fromType });
 
   return (
     <Link href={href} className="w-[4.75rem] shrink-0 active:scale-[0.97]">

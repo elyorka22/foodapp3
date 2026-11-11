@@ -65,13 +65,15 @@ export function StoreCategoryCircles({
           >
             <span
               className={clsx(
-                'relative flex h-[4.25rem] w-[4.25rem] items-center justify-center overflow-hidden rounded-full transition',
+                'relative flex h-[4.25rem] w-[4.25rem] items-center justify-center overflow-hidden rounded-full border border-zinc-200 transition',
                 cat.all || !imageSrc
                   ? cat.all
-                    ? 'bg-zinc-100'
+                    ? 'bg-zinc-50'
                     : CIRCLE_COLORS[index % CIRCLE_COLORS.length]
-                  : 'bg-zinc-100',
-                active && 'ring-2 ring-brand-600 ring-offset-2',
+                  : 'bg-zinc-50',
+                active
+                  ? 'border-brand-600 ring-2 ring-brand-600 ring-offset-2'
+                  : null,
               )}
             >
               {cat.all ? (

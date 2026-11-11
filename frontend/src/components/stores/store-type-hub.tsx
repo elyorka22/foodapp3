@@ -99,7 +99,12 @@ export function StoreTypeHub({ type }: Props) {
         ) : (
           <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-hide">
             {filteredStores.map((store, i) => (
-              <StoreHubShopCard key={store.id} store={store} index={i} />
+              <StoreHubShopCard
+                key={store.id}
+                store={store}
+                index={i}
+                fromType={type}
+              />
             ))}
           </div>
         )}

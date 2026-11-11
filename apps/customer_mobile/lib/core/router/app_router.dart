@@ -24,7 +24,7 @@ import '../../features/splash/presentation/splash_page.dart';
 import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/booking/presentation/booking_venue_screen.dart';
 import '../../features/stores/presentation/store_detail_screen.dart';
-import '../../features/stores/presentation/store_type_hub_screen.dart';
+import '../../features/stores/presentation/store_type_directory_screen.dart';
 import '../../features/stores/presentation/stores_screen.dart';
 import 'routes.dart';
 
@@ -131,26 +131,41 @@ final routerProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'grocery',
-                    builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'grocery'),
+                    builder: (_, __) =>
+                        const StoreTypeDirectoryScreen(typeSlug: 'grocery'),
                   ),
                   GoRoute(
                     path: 'flowers',
-                    builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'flowers'),
+                    builder: (_, __) =>
+                        const StoreTypeDirectoryScreen(typeSlug: 'flowers'),
                   ),
                   GoRoute(
                     path: 'cosmetics',
-                    builder: (_, __) => const StoreTypeHubScreen(
+                    builder: (_, __) => const StoreTypeDirectoryScreen(
                       typeSlug: 'perfume',
                       titleOverride: AppStrings.homeServiceCosmetics,
                     ),
                   ),
                   GoRoute(
                     path: 'perfume',
-                    builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'perfume'),
+                    builder: (_, __) =>
+                        const StoreTypeDirectoryScreen(typeSlug: 'perfume'),
                   ),
                   GoRoute(
                     path: 'pharmacy',
-                    builder: (_, __) => const StoreTypeHubScreen(typeSlug: 'pharmacy'),
+                    builder: (_, __) =>
+                        const StoreTypeDirectoryScreen(typeSlug: 'pharmacy'),
+                  ),
+                  GoRoute(
+                    path: 'gift',
+                    builder: (_, __) =>
+                        const StoreTypeDirectoryScreen(typeSlug: 'gift'),
+                  ),
+                  GoRoute(
+                    path: 'electronics',
+                    builder: (_, __) => const StoreTypeDirectoryScreen(
+                      typeSlug: 'electronics',
+                    ),
                   ),
                   GoRoute(
                     path: ':slug',

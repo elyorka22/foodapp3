@@ -39,6 +39,8 @@ abstract final class AppStrings {
   static const filterPromos = 'Aksiyalar';
   static const filterDeliveryDiscount = 'Yetkazishga chegirma';
   static const filterFreeDelivery = "Yetkazish 0 so'm";
+  static const filterBoughtBefore = 'Oldin xarid qilgan';
+  static const discountsShort = 'Chegirmalar';
   static const pickupLabel = 'Olib ketish';
   static const freeBadge = 'Bepul';
   static const allCategoryProducts = 'Barcha mahsulotlar';
@@ -59,7 +61,7 @@ abstract final class AppStrings {
   static const homeServiceProducts = 'Mahsulotlar';
   static const homeServiceProductsEta = '30 daq';
   static const homeServiceDeliveryBadge = 'Tez';
-  static const groceryStores = "Mahsulot do'konlari";
+  static const groceryStores = 'Oziq-ovqat mahsulotlari';
 
   static const cartEmpty = "Savat bo'sh";
   static const cartTitle = 'Savat';
