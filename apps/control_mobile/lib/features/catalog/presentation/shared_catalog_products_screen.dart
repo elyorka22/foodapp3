@@ -149,7 +149,7 @@ class SharedCatalogProductsScreen extends ConsumerWidget {
                           if (p.categoryName != null &&
                               p.categoryName!.isNotEmpty)
                             p.categoryName!,
-                          '${_formatPrice(price)} UZS',
+                          '${_formatPrice(price)} UZS / ${p.saleUnit}',
                         ].join(' · '),
                         trailing: StatusChip(
                           status: p.isAvailable ? 'DELIVERED' : 'CANCELLED',
@@ -237,11 +237,14 @@ class _SharedProductFormSheet extends ConsumerStatefulWidget {
 
 class _SharedProductFormSheetState
     extends ConsumerState<_SharedProductFormSheet> {
+  static const _saleUnits = ['dona', 'gr', 'kg', 'karobka'];
+
   late final TextEditingController _name;
   late final TextEditingController _description;
   late final TextEditingController _defaultPrice;
   late final TextEditingController _imageUrl;
   String? _categoryId;
+  String _saleUnit = 'dona';
   bool _isAvailable = true;
   bool _busy = false;
 
@@ -257,6 +260,7 @@ class _SharedProductFormSheetState
     );
     _imageUrl = TextEditingController(text: p?.imageUrl ?? '');
     _categoryId = p?.productCategoryId;
+    _saleUnit = _saleUnits.contains(p?.saleUnit) ? p!.saleUnit : 'dona';
     _isAvailable = p?.isAvailable ?? true;
   }
 
@@ -293,6 +297,7 @@ class _SharedProductFormSheetState
           description: _description.text.trim(),
           defaultPrice: price,
           price: price,
+          saleUnit: _saleUnit,
           isAvailable: _isAvailable,
         );
       } else {
@@ -303,6 +308,7 @@ class _SharedProductFormSheetState
           productCategoryId: _categoryId,
           defaultPrice: price,
           price: price,
+          saleUnit: _saleUnit,
           isAvailable: _isAvailable,
         );
       }
@@ -374,6 +380,23 @@ class _SharedProductFormSheetState
           decoration: const InputDecoration(
             labelText: AppStrings.defaultPriceLabel,
           ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _saleUnit,
+          decoration: const InputDecoration(
+            labelText: AppStrings.saleUnitLabel,
+          ),
+          items: [
+            for (final unit in _saleUnits)
+              DropdownMenuItem(value: unit, child: Text(unit)),
+          ],
+          onChanged: _busy
+              ? null
+              : (v) {
+                  if (v == null) return;
+                  setState(() => _saleUnit = v);
+                },
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(

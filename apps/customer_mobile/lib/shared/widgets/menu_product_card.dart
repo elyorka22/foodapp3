@@ -101,8 +101,20 @@ class MenuProductCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          formatSum(product.price),
+        Text.rich(
+          TextSpan(
+            text: formatSum(product.price),
+            children: [
+              if (product.saleUnit != null && product.saleUnit!.isNotEmpty)
+                TextSpan(
+                  text: ' / ${product.saleUnit}',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
           style: AppTypography.subtitle.copyWith(
             color: AppColors.primary,
             fontSize: 17,

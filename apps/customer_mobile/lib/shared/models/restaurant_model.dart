@@ -124,6 +124,7 @@ class ProductModel {
     required this.name,
     required this.price,
     this.comparePrice,
+    this.saleUnit,
     this.description,
     this.imageUrl,
     this.categoryId,
@@ -134,6 +135,7 @@ class ProductModel {
   final String name;
   final num price;
   final num? comparePrice;
+  final String? saleUnit;
   final String? description;
   final String? imageUrl;
   final String? categoryId;
@@ -153,6 +155,7 @@ class ProductModel {
       name: json['name'] as String,
       price: parseNum(json['price']),
       comparePrice: json['comparePrice'] != null ? parseNum(json['comparePrice']) : null,
+      saleUnit: parseString(json['saleUnit']) ?? 'dona',
       description: parseString(json['description']),
       imageUrl: imageUrl,
       categoryId: parseString(json['dishCategoryId'] ?? json['productCategoryId'] ?? json['categoryId']),

@@ -437,7 +437,7 @@ class _ProductsTab extends ConsumerWidget {
                   subtitle: [
                     if (p.businessName != null) p.businessName!,
                     if (p.categoryName != null) p.categoryName!,
-                    formatMoney(p.price),
+                    '${formatMoney(p.price)} / ${p.saleUnit}',
                   ].join(' · '),
                   trailing: StatusChip(
                     status: p.isAvailable ? 'DELIVERED' : 'CANCELLED',
@@ -469,12 +469,15 @@ class _ProductFormSheet extends ConsumerStatefulWidget {
 }
 
 class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
+  static const _saleUnits = ['dona', 'gr', 'kg', 'karobka'];
+
   late final TextEditingController _name;
   late final TextEditingController _price;
   late final TextEditingController _description;
   late final TextEditingController _imageUrl;
   String? _businessId;
   String? _dishCategoryId;
+  String _saleUnit = 'dona';
   bool _isAvailable = true;
   bool _busy = false;
 
@@ -490,6 +493,7 @@ class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
     _imageUrl = TextEditingController(text: p?.imageUrl ?? '');
     _businessId = p?.businessId;
     _dishCategoryId = p?.dishCategoryId;
+    _saleUnit = _saleUnits.contains(p?.saleUnit) ? p!.saleUnit : 'dona';
     _isAvailable = p?.isAvailable ?? true;
   }
 
@@ -537,6 +541,7 @@ class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
           price: price,
           dishCategoryId: dishCategoryId,
           description: desc.isEmpty ? null : desc,
+          saleUnit: _saleUnit,
           isAvailable: _isAvailable,
         );
       } else {
@@ -547,6 +552,7 @@ class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
           description: desc,
           dishCategoryId: dishCategoryId,
           businessId: businessId,
+          saleUnit: _saleUnit,
           isAvailable: _isAvailable,
         );
       }
@@ -637,6 +643,23 @@ class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
           enabled: !_busy,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(labelText: AppStrings.productPrice),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _saleUnit,
+          decoration: const InputDecoration(
+            labelText: AppStrings.saleUnitLabel,
+          ),
+          items: [
+            for (final unit in _saleUnits)
+              DropdownMenuItem(value: unit, child: Text(unit)),
+          ],
+          onChanged: _busy
+              ? null
+              : (v) {
+                  if (v == null) return;
+                  setState(() => _saleUnit = v);
+                },
         ),
         const SizedBox(height: 8),
         TextField(

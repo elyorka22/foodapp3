@@ -39,6 +39,7 @@ class CatalogRepository {
     required num price,
     required String dishCategoryId,
     String? description,
+    String saleUnit = 'dona',
     bool isAvailable = true,
   }) async {
     final res = await _dio.post<Map<String, dynamic>>(
@@ -48,6 +49,7 @@ class CatalogRepository {
         'name': name,
         'price': price,
         'dishCategoryId': dishCategoryId,
+        'saleUnit': saleUnit,
         'isAvailable': isAvailable,
         if (description != null && description.isNotEmpty)
           'description': description,
@@ -64,6 +66,7 @@ class CatalogRepository {
     String? description,
     String? dishCategoryId,
     String? businessId,
+    String? saleUnit,
   }) async {
     final res = await _dio.patch<Map<String, dynamic>>(
       ApiPaths.product(id),
@@ -74,6 +77,7 @@ class CatalogRepository {
         if (description != null) 'description': description,
         if (dishCategoryId != null) 'dishCategoryId': dishCategoryId,
         if (businessId != null) 'businessId': businessId,
+        if (saleUnit != null) 'saleUnit': saleUnit,
       },
     );
     return ControlProduct.fromJson(res.data ?? <String, dynamic>{});
@@ -123,6 +127,7 @@ class CatalogRepository {
     String? description,
     num? defaultPrice,
     num? price,
+    String saleUnit = 'dona',
     bool isAvailable = true,
     int? sortOrder,
   }) async {
@@ -139,6 +144,7 @@ class CatalogRepository {
           'description': description,
         if (defaultPrice != null) 'defaultPrice': defaultPrice,
         if (price != null) 'price': price,
+        'saleUnit': saleUnit,
         'isAvailable': isAvailable,
         if (sortOrder != null) 'sortOrder': sortOrder,
       },
@@ -153,6 +159,7 @@ class CatalogRepository {
     String? productCategoryId,
     num? defaultPrice,
     num? price,
+    String? saleUnit,
     bool? isAvailable,
     int? sortOrder,
   }) async {
@@ -164,6 +171,7 @@ class CatalogRepository {
         if (productCategoryId != null) 'productCategoryId': productCategoryId,
         if (defaultPrice != null) 'defaultPrice': defaultPrice,
         if (price != null) 'price': price,
+        if (saleUnit != null) 'saleUnit': saleUnit,
         if (isAvailable != null) 'isAvailable': isAvailable,
         if (sortOrder != null) 'sortOrder': sortOrder,
       },

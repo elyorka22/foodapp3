@@ -29,6 +29,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { resolveFormSlug } from '@/lib/slugify';
 import { resolveImageUrl } from '@/lib/image-url';
+import {
+  PRODUCT_SALE_UNITS,
+  normalizeSaleUnit,
+} from '@/lib/product-sale-unit';
 
 const emptyProduct: ProductForm = {
   restaurantId: '',
@@ -37,6 +41,7 @@ const emptyProduct: ProductForm = {
   slug: '',
   description: '',
   price: 0,
+  saleUnit: 'dona',
   isAvailable: true,
 };
 
@@ -191,7 +196,8 @@ export function AdminProductsPage({ vertical, typeSlug, pageTitle }: Props) {
       {
         id: 'price',
         header: 'Price',
-        cell: ({ row }) => `${Number(row.original.price).toLocaleString()} UZS`,
+        cell: ({ row }) =>
+          `${Number(row.original.price).toLocaleString()} UZS / ${normalizeSaleUnit(row.original.saleUnit)}`,
       },
       {
         id: 'available',
@@ -244,6 +250,7 @@ export function AdminProductsPage({ vertical, typeSlug, pageTitle }: Props) {
       slug: row.slug,
       description: row.description ?? '',
       price: Number(row.price),
+      saleUnit: normalizeSaleUnit(row.saleUnit),
       isAvailable: row.isAvailable,
     });
   };
@@ -262,6 +269,7 @@ export function AdminProductsPage({ vertical, typeSlug, pageTitle }: Props) {
       slug: resolveFormSlug(form.name.trim(), existingSlug),
       description: form.description?.trim() || undefined,
       price: form.price,
+      saleUnit: form.saleUnit ?? 'dona',
       isAvailable: form.isAvailable ?? true,
     };
     if (vertical === 'store') {
@@ -330,6 +338,7 @@ export function AdminProductsPage({ vertical, typeSlug, pageTitle }: Props) {
         ...(nextSlug !== editRow.slug ? { slug: nextSlug } : {}),
         description: form.description?.trim() || undefined,
         price: form.price,
+        saleUnit: form.saleUnit ?? 'dona',
         isAvailable: form.isAvailable,
       };
       const body =
@@ -464,6 +473,19 @@ export function AdminProductsPage({ vertical, typeSlug, pageTitle }: Props) {
         value={form.price}
         onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
       />
+      <select
+        className="w-full rounded-lg border px-3 py-3 text-sm dark:border-white/20 dark:bg-zinc-900"
+        value={form.saleUnit ?? 'dona'}
+        onChange={(e) =>
+          setForm({ ...form, saleUnit: normalizeSaleUnit(e.target.value) })
+        }
+      >
+        {PRODUCT_SALE_UNITS.map((unit) => (
+          <option key={unit} value={unit}>
+            {unit}
+          </option>
+        ))}
+      </select>
       <label className="text-xs opacity-70">
         Product image
         <input

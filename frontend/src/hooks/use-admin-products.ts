@@ -14,6 +14,8 @@ export type AdminProductsQuery = {
   vertical?: 'restaurant' | 'store';
 };
 
+export type ProductSaleUnit = 'dona' | 'gr' | 'kg' | 'karobka';
+
 export type ProductForm = {
   restaurantId: string;
   categoryId?: string;
@@ -21,6 +23,7 @@ export type ProductForm = {
   slug: string;
   description?: string;
   price: number;
+  saleUnit?: ProductSaleUnit;
   isAvailable?: boolean;
 };
 

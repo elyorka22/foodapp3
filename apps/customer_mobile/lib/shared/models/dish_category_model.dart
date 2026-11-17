@@ -44,6 +44,7 @@ class CategoryProductModel {
     required this.id,
     required this.name,
     required this.price,
+    this.saleUnit,
     this.description,
     this.imageUrl,
     this.restaurantName,
@@ -53,6 +54,7 @@ class CategoryProductModel {
   final String id;
   final String name;
   final num price;
+  final String? saleUnit;
   final String? description;
   final String? imageUrl;
   final String? restaurantName;
@@ -70,6 +72,7 @@ class CategoryProductModel {
       id: json['id'] as String,
       name: json['name'] as String,
       price: parseNum(json['price']),
+      saleUnit: parseString(json['saleUnit']) ?? 'dona',
       description: parseString(json['description']),
       imageUrl: imageUrl != null ? resolveImageUrl(imageUrl) : null,
       restaurantName: business is Map ? parseString(business['name']) : null,

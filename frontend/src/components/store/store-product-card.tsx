@@ -92,6 +92,11 @@ export function StoreProductCard({
       <div className="mt-2 flex min-h-0 flex-1 flex-col">
         <p className="text-[15px] font-extrabold leading-tight text-zinc-900">
           {formatSum(price)}
+          {product.saleUnit ? (
+            <span className="ml-1 text-[11px] font-medium text-zinc-500">
+              / {product.saleUnit}
+            </span>
+          ) : null}
         </p>
         {hasDiscount ? (
           <p className="mt-0.5 text-[12px] text-zinc-400 line-through">

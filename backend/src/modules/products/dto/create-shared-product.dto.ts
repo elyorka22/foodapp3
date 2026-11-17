@@ -1,5 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
+import {
+  PRODUCT_SALE_UNITS,
+  type ProductSaleUnitValue,
+} from './create-product.dto';
 
 /** Admin: shared catalog product for a business type (SHARED_CATALOG). */
 export class CreateSharedProductDto {
@@ -52,6 +64,15 @@ export class CreateSharedProductDto {
   @IsOptional()
   @IsNumber()
   comparePrice?: number;
+
+  @ApiPropertyOptional({
+    enum: PRODUCT_SALE_UNITS,
+    description: 'Sale unit: dona / gr / kg / karobka',
+    default: 'dona',
+  })
+  @IsOptional()
+  @IsIn(PRODUCT_SALE_UNITS)
+  saleUnit?: ProductSaleUnitValue;
 
   @ApiPropertyOptional()
   @IsOptional()

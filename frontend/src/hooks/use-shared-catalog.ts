@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 
+export type ProductSaleUnit = 'dona' | 'gr' | 'kg' | 'karobka';
+
 export type SharedProductForm = {
   type?: string;
   businessTypeId?: string;
@@ -14,6 +16,7 @@ export type SharedProductForm = {
   defaultPrice?: number;
   price?: number;
   comparePrice?: number;
+  saleUnit?: ProductSaleUnit;
   isAvailable?: boolean;
   sortOrder?: number;
 };

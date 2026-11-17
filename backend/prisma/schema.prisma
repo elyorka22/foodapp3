@@ -103,6 +103,14 @@ enum BusinessMenuMode {
   SHARED_CATALOG
 }
 
+/// How the product is sold (piece / weight / box).
+enum ProductSaleUnit {
+  dona
+  gr
+  kg
+  karobka
+}
+
 /// Restaurant (global dish menu) vs store (own product categories).
 /// Prefer deriving from BusinessType.menuMode; kept for queries/compat.
 enum BusinessKind {
@@ -417,6 +425,8 @@ model Product {
   /// Suggested offer price when enrolling a store into a shared catalog (optional).
   defaultPrice      Decimal?  @map("default_price") @db.Decimal(10, 2)
   comparePrice      Decimal?  @map("compare_price") @db.Decimal(10, 2)
+  /// Sale unit: dona / gr / kg / karobka.
+  saleUnit          ProductSaleUnit @default(dona) @map("sale_unit")
   isAvailable       Boolean   @default(true) @map("is_available")
   sortOrder         Int       @default(0) @map("sort_order")
   createdAt         DateTime  @default(now()) @map("created_at")

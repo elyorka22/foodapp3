@@ -1,5 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
+
+export const PRODUCT_SALE_UNITS = ['dona', 'gr', 'kg', 'karobka'] as const;
+export type ProductSaleUnitValue = (typeof PRODUCT_SALE_UNITS)[number];
 
 export class CreateProductDto {
   @ApiPropertyOptional({ description: 'Preferred merchant UUID' })
@@ -60,6 +71,15 @@ export class CreateProductDto {
   @IsOptional()
   @IsNumber()
   comparePrice?: number;
+
+  @ApiPropertyOptional({
+    enum: PRODUCT_SALE_UNITS,
+    description: 'Sale unit: dona / gr / kg / karobka',
+    default: 'dona',
+  })
+  @IsOptional()
+  @IsIn(PRODUCT_SALE_UNITS)
+  saleUnit?: ProductSaleUnitValue;
 
   @ApiPropertyOptional()
   @IsOptional()

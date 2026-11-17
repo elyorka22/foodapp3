@@ -15,6 +15,11 @@ import { Modal } from '@/components/admin/modal';
 import { EmptyState, LoadingState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  PRODUCT_SALE_UNITS,
+  normalizeSaleUnit,
+  type ProductSaleUnit,
+} from '@/lib/product-sale-unit';
 
 type Props = {
   typeSlug: string;
@@ -27,6 +32,7 @@ type FormState = {
   description: string;
   productCategoryId: string;
   defaultPrice: number;
+  saleUnit: ProductSaleUnit;
   isAvailable: boolean;
 };
 
@@ -36,6 +42,7 @@ const emptyForm: FormState = {
   description: '',
   productCategoryId: '',
   defaultPrice: 0,
+  saleUnit: 'dona',
   isAvailable: true,
 };
 
@@ -70,6 +77,7 @@ export function SharedCatalogProductsPage({ typeSlug, pageTitle }: Props) {
       description: row.description ?? '',
       productCategoryId: row.productCategoryId ?? '',
       defaultPrice: Number(row.defaultPrice ?? row.price ?? 0),
+      saleUnit: normalizeSaleUnit(row.saleUnit),
       isAvailable: row.isAvailable ?? true,
     });
   };
@@ -93,6 +101,7 @@ export function SharedCatalogProductsPage({ typeSlug, pageTitle }: Props) {
         productCategoryId: form.productCategoryId || undefined,
         defaultPrice: form.defaultPrice,
         price: form.defaultPrice,
+        saleUnit: form.saleUnit,
         isAvailable: form.isAvailable,
       });
       if (imageFile && created?.id) await saveImage(created.id);
@@ -115,6 +124,7 @@ export function SharedCatalogProductsPage({ typeSlug, pageTitle }: Props) {
           productCategoryId: form.productCategoryId || undefined,
           defaultPrice: form.defaultPrice,
           price: form.defaultPrice,
+          saleUnit: form.saleUnit,
           isAvailable: form.isAvailable,
         },
       });
@@ -161,6 +171,22 @@ export function SharedCatalogProductsPage({ typeSlug, pageTitle }: Props) {
           setForm((f) => ({ ...f, defaultPrice: Number(e.target.value) || 0 }))
         }
       />
+      <select
+        className="w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
+        value={form.saleUnit}
+        onChange={(e) =>
+          setForm((f) => ({
+            ...f,
+            saleUnit: normalizeSaleUnit(e.target.value),
+          }))
+        }
+      >
+        {PRODUCT_SALE_UNITS.map((unit) => (
+          <option key={unit} value={unit}>
+            {unit}
+          </option>
+        ))}
+      </select>
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
@@ -214,6 +240,7 @@ export function SharedCatalogProductsPage({ typeSlug, pageTitle }: Props) {
                 <th className="px-4 py-3">Mahsulot</th>
                 <th className="px-4 py-3">Kategoriya</th>
                 <th className="px-4 py-3">Standart narx</th>
+                <th className="px-4 py-3">Birlik</th>
                 <th className="px-4 py-3">Holat</th>
                 <th className="px-4 py-3 text-right">Amallar</th>
               </tr>
@@ -240,6 +267,7 @@ export function SharedCatalogProductsPage({ typeSlug, pageTitle }: Props) {
                     <td className="px-4 py-3">
                       {Number(row.defaultPrice ?? row.price ?? 0).toLocaleString()} UZS
                     </td>
+                    <td className="px-4 py-3">{normalizeSaleUnit(row.saleUnit)}</td>
                     <td className="px-4 py-3">
                       <ActiveBadge active={!!row.isAvailable} />
                     </td>

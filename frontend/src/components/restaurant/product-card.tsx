@@ -13,6 +13,7 @@ export type MenuProduct = {
   name: string;
   price: string | number;
   comparePrice?: string | number | null;
+  saleUnit?: string | null;
   description?: string | null;
   dishCategoryId?: string | null;
   productCategoryId?: string | null;
@@ -157,6 +158,11 @@ export function ProductCard({ product, restaurantId, restaurantName, disabled }:
       <div className="mt-2 px-0.5">
         <p className="text-[16px] font-extrabold leading-tight text-zinc-900">
           {formatSum(price)}
+          {product.saleUnit ? (
+            <span className="ml-1 text-[12px] font-medium text-zinc-500">
+              / {product.saleUnit}
+            </span>
+          ) : null}
         </p>
         {hasDiscount && (
           <p className="mt-0.5 text-sm text-zinc-400 line-through">

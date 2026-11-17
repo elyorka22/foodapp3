@@ -187,6 +187,7 @@ abstract final class AppStrings {
       'Katalog bo‘sh. Birinchi umumiy mahsulotni qo‘shing.';
   static const addSharedProduct = 'Katalog mahsuloti';
   static const defaultPriceLabel = 'Standart narx';
+  static const saleUnitLabel = 'Sotuv birligi';
   static const enrollCatalog = 'Katalogni ulash';
   static const enrollCatalogDone = 'Katalog ulandi';
   static const editProduct = 'Mahsulotni tahrirlash';

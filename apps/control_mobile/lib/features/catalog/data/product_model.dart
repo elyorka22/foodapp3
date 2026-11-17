@@ -10,6 +10,7 @@ class ControlProduct {
     this.description,
     this.comparePrice,
     this.defaultPrice,
+    this.saleUnit = 'dona',
     this.imageUrl,
     this.businessId,
     this.businessName,
@@ -28,6 +29,7 @@ class ControlProduct {
   final String? description;
   final num? comparePrice;
   final num? defaultPrice;
+  final String saleUnit;
   final String? imageUrl;
   final String? businessId;
   final String? businessName;
@@ -64,6 +66,9 @@ class ControlProduct {
       defaultPrice: json['defaultPrice'] != null
           ? parseNum(json['defaultPrice'])
           : null,
+      saleUnit: (json['saleUnit'] as String?)?.trim().isNotEmpty == true
+          ? json['saleUnit'] as String
+          : 'dona',
       imageUrl: firstImage ?? json['imageUrl'] as String?,
       businessId: json['businessId'] as String? ??
           json['restaurantId'] as String? ??
