@@ -111,6 +111,7 @@ List<ControlNavEntry> _verticalEntries({
   required String prefix,
   required ControlVerticalScope scope,
   required bool restaurant,
+  bool sharedCatalog = false,
 }) {
   return [
     _entry(
@@ -136,7 +137,9 @@ List<ControlNavEntry> _verticalEntries({
       id: '$prefix-products',
       label: restaurant
           ? AppStrings.navRestaurantMenu
-          : AppStrings.navStoreProducts,
+          : sharedCatalog
+              ? AppStrings.sharedCatalogTitle
+              : AppStrings.navStoreProducts,
       icon: Icons.inventory_2_outlined,
       branch: ControlBranches.catalog,
       scope: scope,
@@ -198,6 +201,7 @@ List<ControlNavSection> buildControlNavSections(
           prefix: 'type-${type.slug ?? type.id}',
           scope: ControlVerticalScope.marketplace(type),
           restaurant: false,
+          sharedCatalog: type.menuMode == 'SHARED_CATALOG',
         ),
       ),
     ControlNavSection(

@@ -9,6 +9,7 @@ import '../../../shared/widgets/action_feedback.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/status_chip.dart';
+import '../../catalog/data/catalog_repository.dart';
 import '../data/businesses_repository.dart';
 import '../data/restaurant_model.dart';
 import 'businesses_screen.dart';
@@ -128,11 +129,35 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
             cityName: _restaurant.cityName,
             businessTypeId: _restaurant.businessTypeId,
             businessTypeName: _restaurant.businessTypeName,
+            businessTypeMenuMode: _restaurant.businessTypeMenuMode,
             createdAt: _restaurant.createdAt,
           );
         });
       }
     });
+  }
+
+  Future<void> _enrollCatalog() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final result = await ref
+          .read(catalogRepositoryProvider)
+          .enrollCatalog(businessId: _restaurant.id);
+      final created = result['created'];
+      final skipped = result['skipped'];
+      if (mounted) {
+        showActionSnackBar(
+          context,
+          '${AppStrings.enrollCatalogDone}: +$created'
+          '${skipped != null ? ' (skip: $skipped)' : ''}',
+        );
+      }
+    } catch (e) {
+      if (mounted) showActionError(context, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _createOwner() async {
@@ -213,6 +238,21 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
             color: AppColors.textSecondary,
           ),
         ),
+        if (_restaurant.usesSharedCatalog) ...[
+          const SizedBox(height: 12),
+          MutationButton(
+            label: AppStrings.enrollCatalog,
+            loading: _busy,
+            onPressed: _enrollCatalog,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            AppStrings.sharedCatalogHint,
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         Text(AppStrings.approvalStatus, style: AppTypography.subtitle),
         const SizedBox(height: 8),

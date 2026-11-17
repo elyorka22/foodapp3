@@ -8,6 +8,7 @@ class ControlVerticalScope {
     this.slug,
     this.name,
     this.isRestaurant = false,
+    this.menuMode,
   });
 
   /// Business type id (for client-side filtering).
@@ -18,12 +19,18 @@ class ControlVerticalScope {
   final String? name;
   final bool isRestaurant;
 
+  /// `SHARED_CATALOG` | `OWN_CATEGORIES` | `GLOBAL_DISH`
+  final String? menuMode;
+
+  bool get usesSharedCatalog => menuMode == 'SHARED_CATALOG';
+
   static const all = ControlVerticalScope();
 
   static const restaurant = ControlVerticalScope(
     slug: 'restaurant',
     name: 'Restoranlar',
     isRestaurant: true,
+    menuMode: 'GLOBAL_DISH',
   );
 
   factory ControlVerticalScope.marketplace(ControlBusinessType type) {
@@ -32,6 +39,7 @@ class ControlVerticalScope {
       slug: type.slug ?? type.id,
       name: type.name,
       isRestaurant: false,
+      menuMode: type.menuMode,
     );
   }
 

@@ -21,6 +21,7 @@ class ControlRestaurant {
     this.cityName,
     this.businessTypeId,
     this.businessTypeName,
+    this.businessTypeMenuMode,
     this.latitude,
     this.longitude,
     this.createdAt,
@@ -44,9 +45,12 @@ class ControlRestaurant {
   final String? cityName;
   final String? businessTypeId;
   final String? businessTypeName;
+  final String? businessTypeMenuMode;
   final double? latitude;
   final double? longitude;
   final DateTime? createdAt;
+
+  bool get usesSharedCatalog => businessTypeMenuMode == 'SHARED_CATALOG';
 
   factory ControlRestaurant.fromJson(Map<String, dynamic> json) {
     final city = json['city'] as Map<String, dynamic>?;
@@ -71,6 +75,7 @@ class ControlRestaurant {
       businessTypeId:
           json['businessTypeId'] as String? ?? businessType?['id'] as String?,
       businessTypeName: businessType?['name'] as String?,
+      businessTypeMenuMode: businessType?['menuMode'] as String?,
       latitude: parseDouble(json['latitude']),
       longitude: parseDouble(json['longitude']),
       createdAt: parseDateTime(json['createdAt']),

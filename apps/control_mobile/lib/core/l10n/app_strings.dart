@@ -178,6 +178,17 @@ abstract final class AppStrings {
   static const softDeleteProduct = 'Mahsulotni o‘chirish';
   static const confirmDeleteProduct = 'Mahsulotni o‘chirishni tasdiqlaysizmi?';
   static const addProduct = 'Mahsulot qo‘shish';
+  static const sharedCatalogTitle = 'Umumiy katalog';
+  static const sharedCatalogHint =
+      'Nom, rasm, tavsif — umumiy. Narx do‘konda sozlanadi.';
+  static const sharedCatalogNeedType =
+      'Chap menyudan SHARED_CATALOG turini tanlang (oziq-ovqat, dorixona, …).';
+  static const sharedCatalogEmpty =
+      'Katalog bo‘sh. Birinchi umumiy mahsulotni qo‘shing.';
+  static const addSharedProduct = 'Katalog mahsuloti';
+  static const defaultPriceLabel = 'Standart narx';
+  static const enrollCatalog = 'Katalogni ulash';
+  static const enrollCatalogDone = 'Katalog ulandi';
   static const editProduct = 'Mahsulotni tahrirlash';
   static const productName = 'Mahsulot nomi';
   static const productPrice = 'Narx (so‘m)';

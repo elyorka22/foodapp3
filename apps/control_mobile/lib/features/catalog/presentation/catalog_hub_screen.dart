@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shell/control_vertical_scope.dart';
 import 'catalog_screen.dart';
+import 'shared_catalog_products_screen.dart';
 import 'store_categories_screen.dart';
 
-/// Shared shell branch for dish catalog, store categories, or products.
+/// Shared shell branch for dish catalog, store categories, shared/own products.
 class CatalogHubScreen extends ConsumerWidget {
   const CatalogHubScreen({super.key});
 
@@ -18,6 +19,13 @@ class CatalogHubScreen extends ConsumerWidget {
             !scope.isRestaurant &&
             intent == CatalogNavIntent.dishCategories)) {
       return const StoreCategoriesScreen(embedded: true);
+    }
+
+    if (intent == CatalogNavIntent.products &&
+        scope.isScoped &&
+        !scope.isRestaurant &&
+        scope.usesSharedCatalog) {
+      return const SharedCatalogProductsScreen(embedded: true);
     }
 
     final initialTab = intent == CatalogNavIntent.products ? 1 : 0;

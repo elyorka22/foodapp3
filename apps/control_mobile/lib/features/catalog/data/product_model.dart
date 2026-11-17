@@ -9,10 +9,13 @@ class ControlProduct {
     required this.isAvailable,
     this.description,
     this.comparePrice,
+    this.defaultPrice,
     this.imageUrl,
     this.businessId,
     this.businessName,
+    this.businessTypeId,
     this.dishCategoryId,
+    this.productCategoryId,
     this.categoryName,
     this.createdAt,
   });
@@ -24,10 +27,13 @@ class ControlProduct {
   final bool isAvailable;
   final String? description;
   final num? comparePrice;
+  final num? defaultPrice;
   final String? imageUrl;
   final String? businessId;
   final String? businessName;
+  final String? businessTypeId;
   final String? dishCategoryId;
+  final String? productCategoryId;
   final String? categoryName;
   final DateTime? createdAt;
 
@@ -55,14 +61,20 @@ class ControlProduct {
       comparePrice: json['comparePrice'] != null
           ? parseNum(json['comparePrice'])
           : null,
+      defaultPrice: json['defaultPrice'] != null
+          ? parseNum(json['defaultPrice'])
+          : null,
       imageUrl: firstImage ?? json['imageUrl'] as String?,
       businessId: json['businessId'] as String? ??
           json['restaurantId'] as String? ??
           business?['id'] as String?,
       businessName: business?['name'] as String?,
+      businessTypeId: json['businessTypeId'] as String?,
       dishCategoryId: json['dishCategoryId'] as String? ??
           json['categoryId'] as String? ??
           dishCategory?['id'] as String?,
+      productCategoryId: json['productCategoryId'] as String? ??
+          productCategory?['id'] as String?,
       categoryName: category?['name'] as String? ??
           dishCategory?['name'] as String? ??
           productCategory?['name'] as String?,

@@ -90,6 +90,101 @@ class CatalogRepository {
     await _dio.delete<dynamic>(ApiPaths.product(id));
   }
 
+  /// Shared catalog products for a business type (`GET /products/shared`).
+  Future<PaginatedResponse<ControlProduct>> fetchSharedProducts({
+    String? typeSlug,
+    String? businessTypeId,
+    int page = 1,
+    int limit = 100,
+    String? search,
+  }) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      ApiPaths.productsShared,
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        if (typeSlug != null && typeSlug.isNotEmpty) 'type': typeSlug,
+        if (businessTypeId != null && businessTypeId.isNotEmpty)
+          'businessTypeId': businessTypeId,
+        if (search != null && search.isNotEmpty) 'search': search,
+      },
+    );
+    return PaginatedResponse.fromJson(
+      res.data ?? <String, dynamic>{},
+      ControlProduct.fromJson,
+    );
+  }
+
+  Future<ControlProduct> createSharedProduct({
+    String? typeSlug,
+    String? businessTypeId,
+    String? productCategoryId,
+    required String name,
+    String? description,
+    num? defaultPrice,
+    num? price,
+    bool isAvailable = true,
+    int? sortOrder,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      ApiPaths.productsShared,
+      data: {
+        if (typeSlug != null && typeSlug.isNotEmpty) 'type': typeSlug,
+        if (businessTypeId != null && businessTypeId.isNotEmpty)
+          'businessTypeId': businessTypeId,
+        if (productCategoryId != null && productCategoryId.isNotEmpty)
+          'productCategoryId': productCategoryId,
+        'name': name,
+        if (description != null && description.isNotEmpty)
+          'description': description,
+        if (defaultPrice != null) 'defaultPrice': defaultPrice,
+        if (price != null) 'price': price,
+        'isAvailable': isAvailable,
+        if (sortOrder != null) 'sortOrder': sortOrder,
+      },
+    );
+    return ControlProduct.fromJson(res.data ?? <String, dynamic>{});
+  }
+
+  Future<ControlProduct> updateSharedProduct(
+    String id, {
+    String? name,
+    String? description,
+    String? productCategoryId,
+    num? defaultPrice,
+    num? price,
+    bool? isAvailable,
+    int? sortOrder,
+  }) async {
+    final res = await _dio.patch<Map<String, dynamic>>(
+      ApiPaths.productShared(id),
+      data: {
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (productCategoryId != null) 'productCategoryId': productCategoryId,
+        if (defaultPrice != null) 'defaultPrice': defaultPrice,
+        if (price != null) 'price': price,
+        if (isAvailable != null) 'isAvailable': isAvailable,
+        if (sortOrder != null) 'sortOrder': sortOrder,
+      },
+    );
+    return ControlProduct.fromJson(res.data ?? <String, dynamic>{});
+  }
+
+  Future<void> deleteSharedProduct(String id) async {
+    await _dio.delete<dynamic>(ApiPaths.productShared(id));
+  }
+
+  Future<Map<String, dynamic>> enrollCatalog({
+    required String businessId,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      ApiPaths.productsEnrollCatalog,
+      data: {'businessId': businessId},
+    );
+    return res.data ?? <String, dynamic>{};
+  }
+
   Future<List<ControlDishCategory>> fetchDishCategoriesAdmin() async {
     final res = await _dio.get<dynamic>(ApiPaths.dishCategoriesAdmin);
     return parseObjectList(res.data)

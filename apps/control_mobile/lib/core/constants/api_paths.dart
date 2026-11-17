@@ -39,6 +39,13 @@ abstract final class ApiPaths {
   static String productImage(String id) => '/products/$id/image';
   static const productsBulk = '/products/bulk';
 
+  /// Type-scoped shared catalog (SHARED_CATALOG verticals).
+  static const productsShared = '/products/shared';
+  static String productShared(String id) => '/products/shared/$id';
+  static const productsEnrollCatalog = '/products/enroll-catalog';
+  static const productOffers = '/products/offers';
+  static String productOffer(String id) => '/products/offers/$id';
+
   static const dishCategoriesAdmin = '/dish-categories/admin';
   static const dishCategories = '/dish-categories';
   static String dishCategory(String id) => '/dish-categories/$id';
