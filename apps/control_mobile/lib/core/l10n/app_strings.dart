@@ -261,6 +261,11 @@ abstract final class AppStrings {
   static const addCity = 'Shahar qo‘shish';
   static const addBusinessType = 'Tur qo‘shish';
   static const catalogKindLabel = 'Katalog turi';
+  static const homeGridRowLabel = 'Bosh sahifa qatori';
+  static const homeGridRow1 = '1-qator (yuqori karusel)';
+  static const homeGridRow2 = '2-qator (pastki, mahsulot o‘lchami)';
+  static const homeGridRowHint =
+      'Faol turlar bosh sahifada kartochka sifatida ko‘rinadi. Nofaol — yashiriladi.';
   static const catalogKindRequired = 'Katalog turini tanlang';
   static const catalogKindShared = 'Umumiy katalog';
   static const catalogKindSharedHint =

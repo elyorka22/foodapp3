@@ -71,6 +71,7 @@ export class BusinessTypesService {
         catalogMode,
         menuMode,
         sortOrder: dto.sortOrder ?? 0,
+        homeGridRow: dto.homeGridRow === 2 ? 2 : 1,
         isActive: dto.isActive ?? true,
       },
     });
@@ -97,6 +98,9 @@ export class BusinessTypesService {
     }
     if (dto.menuMode !== undefined) data.menuMode = dto.menuMode;
     if (dto.sortOrder !== undefined) data.sortOrder = dto.sortOrder;
+    if (dto.homeGridRow !== undefined) {
+      data.homeGridRow = dto.homeGridRow === 2 ? 2 : 1;
+    }
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
     const updated = await this.prisma.businessType.update({ where: { id }, data });
     // Keep denormalized Business.kind in sync with menuMode (source of truth).

@@ -131,3 +131,43 @@ Map<HomeServiceCardKey, Map<String, dynamic>>? parseHomeServiceCardsJson(
   }
   return out.isEmpty ? null : out;
 }
+
+HomeServiceCardKey? homeServiceKeyForSlug(String slug) {
+  switch (slug.toLowerCase()) {
+    case 'flowers':
+      return HomeServiceCardKey.flowers;
+    case 'perfume':
+    case 'cosmetics':
+      return HomeServiceCardKey.cosmetics;
+    case 'pharmacy':
+      return HomeServiceCardKey.pharmacy;
+    case 'restaurant':
+    case 'restaurants':
+      return HomeServiceCardKey.restaurants;
+    case 'grocery':
+    case 'products':
+      return HomeServiceCardKey.products;
+    default:
+      return null;
+  }
+}
+
+HomeServiceCardLayout layoutForBusinessTypeSlug({
+  required String slug,
+  String? imageUrl,
+  Map<HomeServiceCardKey, Map<String, dynamic>>? overrides,
+}) {
+  final key = homeServiceKeyForSlug(slug) ?? HomeServiceCardKey.products;
+  final base = mergeHomeServiceCard(key, overrides?[key]);
+  final custom = imageUrl?.trim();
+  if (custom != null && custom.isNotEmpty) {
+    return HomeServiceCardLayout(
+      imageUrl: resolveImageUrl(custom) ?? custom,
+      widthPercent: base.widthPercent,
+      right: base.right,
+      bottom: base.bottom,
+      rotate: base.rotate,
+    );
+  }
+  return base;
+}

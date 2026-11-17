@@ -7,117 +7,69 @@ import {
   Pill,
   ShoppingBag,
   Sparkles,
+  Store,
   UtensilsCrossed,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { uz } from '@/lib/uz';
 import type { LucideIcon } from 'lucide-react';
 import { usePublicSettings } from '@/hooks/use-public-settings';
+import { useBusinessTypes } from '@/hooks/use-business-types';
+import type { BusinessType } from '@/lib/api/business';
 import {
-  mergeHomeServiceCard,
   resolveHomeServiceImageUrl,
-  type HomeServiceCardKey,
   type HomeServiceCardLayout,
 } from '@/lib/home-service-cards';
-
-type ServiceCard = {
-  key: HomeServiceCardKey;
-  href: string;
-  title: string;
-  eta: string;
-  badge?: { label: string; className: string };
-  icon: LucideIcon;
-  /** Gray-scale tile wash — mono foundation. */
-  tile: string;
-  accent: string;
-  iconClass: string;
-};
-
-/** Row 1 — specialty stores (white/gray tiles). */
-const TOP_ROW: ServiceCard[] = [
-  {
-    key: 'flowers',
-    href: '/stores/flowers',
-    title: uz.homeServiceFlowers,
-    eta: uz.homeServiceFlowersEta,
-    icon: Flower2,
-    tile: 'bg-white',
-    accent: 'from-[#E4E4E7] to-[#F4F4F5]',
-    iconClass: 'text-zinc-800',
-  },
-  {
-    key: 'cosmetics',
-    href: '/stores/cosmetics',
-    title: uz.homeServiceCosmetics,
-    eta: uz.homeServiceCosmeticsEta,
-    icon: Sparkles,
-    tile: 'bg-white',
-    accent: 'from-[#E4E4E7] to-[#F4F4F5]',
-    iconClass: 'text-zinc-800',
-  },
-  {
-    key: 'pharmacy',
-    href: '/stores/pharmacy',
-    title: uz.homeServicePharmacy,
-    eta: uz.homeServicePharmacyEta,
-    icon: Pill,
-    tile: 'bg-white',
-    accent: 'from-[#E4E4E7] to-[#F4F4F5]',
-    iconClass: 'text-zinc-800',
-  },
-];
-
-/** Row 2 — restaurants + grocery. */
-const BOTTOM_LARGE: ServiceCard = {
-  key: 'restaurants',
-  href: '/restaurants',
-  title: uz.homeServiceRestaurants,
-  eta: uz.homeServiceRestaurantsEta,
-  badge: { label: uz.homeServiceDeliveryBadge, className: 'bg-zinc-900 text-white' },
-  icon: UtensilsCrossed,
-  tile: 'bg-white',
-  accent: 'from-[#E4E4E7] to-[#F4F4F5]',
-  iconClass: 'text-zinc-800',
-};
-
-const BOTTOM_SMALL: ServiceCard = {
-  key: 'products',
-  href: '/stores/grocery',
-  title: uz.homeServiceProducts,
-  eta: uz.homeServiceProductsEta,
-  icon: ShoppingBag,
-  tile: 'bg-white',
-  accent: 'from-[#E4E4E7] to-[#F4F4F5]',
-  iconClass: 'text-zinc-800',
-};
+import {
+  homeHrefForType,
+  isRestaurantHomeType,
+  layoutForBusinessType,
+  splitHomeGridTypes,
+} from '@/lib/home-service-type';
 
 /** Shared tile height — top carousel and bottom row must match. */
 const TILE_HEIGHT_CLASS = 'h-[120px]';
 
+function iconForType(type: BusinessType): LucideIcon {
+  const slug = (type.slug ?? '').toLowerCase();
+  if (isRestaurantHomeType(type)) return UtensilsCrossed;
+  if (slug === 'flowers') return Flower2;
+  if (slug === 'perfume' || slug === 'cosmetics') return Sparkles;
+  if (slug === 'pharmacy') return Pill;
+  if (slug === 'grocery' || slug === 'products') return ShoppingBag;
+  return Store;
+}
+
 function ServiceTile({
-  card,
+  type,
   layout,
   className,
   iconSize = 44,
   compact,
+  wide,
 }: {
-  card: ServiceCard;
+  type: BusinessType;
   layout: HomeServiceCardLayout;
   className?: string;
   iconSize?: number;
   compact?: boolean;
+  wide?: boolean;
 }) {
-  const Icon = card.icon;
+  const Icon = iconForType(type);
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = Boolean(layout.imageUrl) && !imageFailed;
+  const eta = type.description?.trim() || uz.homeServiceProductsEta;
+  const badge =
+    isRestaurantHomeType(type) && wide
+      ? { label: uz.homeServiceDeliveryBadge, className: 'bg-zinc-900 text-white' }
+      : null;
 
   return (
     <Link
-      href={card.href}
+      href={homeHrefForType(type)}
       className={clsx(
-        'relative block overflow-hidden rounded-[26px] ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
+        'relative block overflow-hidden rounded-[26px] bg-white ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
         TILE_HEIGHT_CLASS,
-        card.tile,
         className,
       )}
     >
@@ -138,21 +90,18 @@ function ServiceTile({
               right: layout.right,
               bottom: layout.bottom,
               transform:
-                layout.rotate !== 0
-                  ? `rotate(${layout.rotate}deg)`
-                  : undefined,
+                layout.rotate !== 0 ? `rotate(${layout.rotate}deg)` : undefined,
             }}
             onError={() => setImageFailed(true)}
           />
         ) : (
           <div
             className={clsx(
-              'absolute bottom-1 right-1 flex items-center justify-center rounded-full bg-gradient-to-br',
+              'absolute bottom-1 right-1 flex items-center justify-center rounded-full bg-gradient-to-br from-[#E4E4E7] to-[#F4F4F5]',
               compact ? 'h-[56px] w-[56px]' : 'h-[72px] w-[72px]',
-              card.accent,
             )}
           >
-            <Icon size={iconSize} strokeWidth={1.6} className={card.iconClass} />
+            <Icon size={iconSize} strokeWidth={1.6} className="text-zinc-800" />
           </div>
         )}
       </div>
@@ -175,21 +124,21 @@ function ServiceTile({
               compact ? 'text-[12px] sm:text-[13px]' : 'text-[13px] sm:text-[15px]',
             )}
           >
-            {card.title}
+            {type.name}
           </p>
           <p className="mt-0.5 text-[11px] font-medium text-zinc-400 sm:text-[12px]">
-            {card.eta}
+            {eta}
           </p>
         </div>
 
-        {card.badge ? (
+        {badge ? (
           <span
             className={clsx(
               'mt-auto inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-bold',
-              card.badge.className,
+              badge.className,
             )}
           >
-            {card.badge.label}
+            {badge.label}
           </span>
         ) : (
           <span className="mt-auto" />
@@ -201,43 +150,58 @@ function ServiceTile({
 
 export function HomeServiceGrid() {
   const { data: settings } = usePublicSettings();
+  const { data: types = [], isLoading } = useBusinessTypes();
   const cards = settings?.home_service_cards;
+  const { row1, restaurant, row2Others } = splitHomeGridTypes(types);
 
-  const layoutFor = (key: HomeServiceCardKey) =>
-    mergeHomeServiceCard(key, cards?.[key]);
+  if (!isLoading && types.length === 0) return null;
 
   return (
     <section className="mt-5 space-y-3" aria-label={uz.categories}>
-      {/*
-        Top carousel: same left edge as the bottom grid (page px-4).
-        Only bleed right (-mr-4 pr-4) so scroll can peek the next tile —
-        bilateral -mx-4 made the first tile stick to the screen edge.
-      */}
-      <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-1 snap-x snap-mandatory scrollbar-hide">
-        {TOP_ROW.map((card) => (
-          <ServiceTile
-            key={card.key}
-            card={card}
-            layout={layoutFor(card.key)}
-            compact
-            iconSize={30}
-            className="w-[44%] min-w-[10.25rem] shrink-0 snap-start"
-          />
-        ))}
-      </div>
+      {row1.length > 0 ? (
+        <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-1 snap-x snap-mandatory scrollbar-hide">
+          {row1.map((type) => (
+            <ServiceTile
+              key={type.id}
+              type={type}
+              layout={layoutForBusinessType(type, cards)}
+              compact
+              iconSize={30}
+              className="w-[44%] min-w-[10.25rem] shrink-0 snap-start"
+            />
+          ))}
+        </div>
+      ) : null}
 
-      <div className="grid grid-cols-[1.65fr_1fr] gap-3">
-        <ServiceTile
-          card={BOTTOM_LARGE}
-          layout={layoutFor('restaurants')}
-          iconSize={52}
-        />
-        <ServiceTile
-          card={BOTTOM_SMALL}
-          layout={layoutFor('products')}
-          iconSize={40}
-        />
-      </div>
+      {restaurant || row2Others.length > 0 ? (
+        <div
+          className="grid gap-3"
+          style={{
+            gridTemplateColumns: restaurant
+              ? row2Others.length > 0
+                ? ['1.65fr', ...row2Others.map(() => 'minmax(0,1fr)')].join(' ')
+                : '1fr'
+              : row2Others.map(() => 'minmax(0,1fr)').join(' ') || '1fr',
+          }}
+        >
+          {restaurant ? (
+            <ServiceTile
+              type={restaurant}
+              layout={layoutForBusinessType(restaurant, cards)}
+              iconSize={52}
+              wide
+            />
+          ) : null}
+          {row2Others.map((type) => (
+            <ServiceTile
+              key={type.id}
+              type={type}
+              layout={layoutForBusinessType(type, cards)}
+              iconSize={40}
+            />
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

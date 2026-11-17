@@ -78,6 +78,18 @@ export class CreateBusinessTypeDto {
   @Min(0)
   sortOrder?: number;
 
+  @ApiPropertyOptional({
+    description:
+      'Home grid row: 1 = top carousel (compact), 2 = bottom row (products-sized; GLOBAL_DISH stays large)',
+    enum: [1, 2],
+    default: 1,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(2)
+  homeGridRow?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()

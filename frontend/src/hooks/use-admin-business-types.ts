@@ -18,6 +18,7 @@ export type AdminBusinessType = {
   imagePositionY?: number;
   catalogMode?: 'CATALOG';
   menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
+  homeGridRow?: number;
   sortOrder: number;
   isActive: boolean;
 };
@@ -34,6 +35,8 @@ export type BusinessTypeForm = {
   catalogMode?: 'CATALOG';
   /** Required on create: SHARED_CATALOG | OWN_CATEGORIES | GLOBAL_DISH */
   menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
+  /** 1 = top home carousel, 2 = bottom home row */
+  homeGridRow?: 1 | 2;
   sortOrder?: number;
   isActive?: boolean;
 };

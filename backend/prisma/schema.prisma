@@ -192,6 +192,8 @@ model BusinessType {
   catalogMode      BusinessCatalogMode @default(CATALOG) @map("catalog_mode")
   menuMode         BusinessMenuMode    @default(OWN_CATEGORIES) @map("menu_mode")
   isActive         Boolean  @default(true) @map("is_active")
+  /// Home service grid row: 1 = top carousel, 2 = bottom row (products-sized; restaurant stays large).
+  homeGridRow      Int      @default(1) @map("home_grid_row")
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -202,6 +204,7 @@ model BusinessType {
   products          Product[]
 
   @@index([isActive, sortOrder])
+  @@index([isActive, homeGridRow, sortOrder])
   @@index([slug])
   @@map("business_types")
 }

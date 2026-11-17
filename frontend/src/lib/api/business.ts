@@ -50,6 +50,8 @@ export type BusinessType = {
   imagePositionY?: number;
   catalogMode?: 'CATALOG';
   menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
+  /** 1 = top home carousel, 2 = bottom home row */
+  homeGridRow?: number;
   sortOrder: number;
 };
 

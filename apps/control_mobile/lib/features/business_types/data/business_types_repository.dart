@@ -13,6 +13,7 @@ class ControlBusinessType {
     this.description,
     this.catalogMode,
     this.menuMode,
+    this.homeGridRow = 1,
     this.sortOrder = 0,
   });
 
@@ -24,25 +25,29 @@ class ControlBusinessType {
   final String? catalogMode;
   /// `GLOBAL_DISH` | `OWN_CATEGORIES` | `SHARED_CATALOG`
   final String? menuMode;
+  /// 1 = top home carousel, 2 = bottom home row
+  final int homeGridRow;
   final int sortOrder;
 
   bool get isStoreVertical =>
       menuMode == 'OWN_CATEGORIES' || menuMode == 'SHARED_CATALOG';
 
   String get verticalHint {
+    final row = homeGridRow == 2 ? '2-qator' : '1-qator';
     switch (menuMode) {
       case 'SHARED_CATALOG':
-        return 'Umumiy katalog';
+        return 'Umumiy katalog · $row';
       case 'OWN_CATEGORIES':
-        return 'Individual katalog';
+        return 'Individual katalog · $row';
       case 'GLOBAL_DISH':
-        return 'Restoran';
+        return 'Restoran · $row';
       default:
-        return isStoreVertical ? "Do'kon" : 'Restoran';
+        return '${isStoreVertical ? "Do'kon" : 'Restoran'} · $row';
     }
   }
 
   factory ControlBusinessType.fromJson(Map<String, dynamic> json) {
+    final row = (json['homeGridRow'] as num?)?.toInt() ?? 1;
     return ControlBusinessType(
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
@@ -51,6 +56,7 @@ class ControlBusinessType {
       description: json['description'] as String?,
       catalogMode: json['catalogMode'] as String?,
       menuMode: json['menuMode'] as String?,
+      homeGridRow: row == 2 ? 2 : 1,
       sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
     );
   }
@@ -71,6 +77,7 @@ class BusinessTypesRepository {
     required String name,
     required String menuMode,
     bool isActive = true,
+    int homeGridRow = 1,
     String catalogMode = 'CATALOG',
   }) async {
     final res = await _dio.post<Map<String, dynamic>>(
@@ -80,6 +87,7 @@ class BusinessTypesRepository {
         'isActive': isActive,
         'catalogMode': catalogMode,
         'menuMode': menuMode,
+        'homeGridRow': homeGridRow == 2 ? 2 : 1,
       },
     );
     return ControlBusinessType.fromJson(res.data ?? <String, dynamic>{});
@@ -90,6 +98,7 @@ class BusinessTypesRepository {
     String? name,
     bool? isActive,
     String? menuMode,
+    int? homeGridRow,
   }) async {
     final res = await _dio.patch<Map<String, dynamic>>(
       ApiPaths.businessType(id),
@@ -97,6 +106,7 @@ class BusinessTypesRepository {
         if (name != null) 'name': name,
         if (isActive != null) 'isActive': isActive,
         if (menuMode != null) 'menuMode': menuMode,
+        if (homeGridRow != null) 'homeGridRow': homeGridRow == 2 ? 2 : 1,
       },
     );
     return ControlBusinessType.fromJson(res.data ?? <String, dynamic>{});

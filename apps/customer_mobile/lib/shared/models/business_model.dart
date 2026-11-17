@@ -10,6 +10,8 @@ class BusinessTypeModel {
     this.icon,
     this.imageUrl,
     this.catalogMode,
+    this.menuMode,
+    this.homeGridRow = 1,
     this.sortOrder,
   });
 
@@ -20,9 +22,15 @@ class BusinessTypeModel {
   final String? icon;
   final String? imageUrl;
   final String? catalogMode;
+  final String? menuMode;
+  final int homeGridRow;
   final int? sortOrder;
 
+  bool get isRestaurantType =>
+      menuMode == 'GLOBAL_DISH' || slug.toLowerCase() == 'restaurant';
+
   factory BusinessTypeModel.fromJson(Map<String, dynamic> json) {
+    final row = parseIntOrNull(json['homeGridRow']) ?? 1;
     return BusinessTypeModel(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -31,6 +39,8 @@ class BusinessTypeModel {
       icon: json['icon'] as String?,
       imageUrl: json['imageUrl'] as String?,
       catalogMode: json['catalogMode'] as String?,
+      menuMode: json['menuMode'] as String?,
+      homeGridRow: row == 2 ? 2 : 1,
       sortOrder: parseIntOrNull(json['sortOrder']),
     );
   }
