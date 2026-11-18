@@ -10,11 +10,10 @@ type TabIconProps = {
   active: boolean;
 };
 
-/** New brand wing mark for home tab — rebrand logo. */
-const ACTIVE = '#18181B';
+/** Brand purple — matches wing logo; active nav tabs use this. */
+const BRAND = '#4A05CA';
 const IDLE = '#A1A1AA';
-const ICON = 26;
-const HOME_ICON = 28;
+const ICON = 28;
 
 function HomeIcon({ active }: TabIconProps) {
   return (
@@ -22,8 +21,8 @@ function HomeIcon({ active }: TabIconProps) {
     <img
       src="/brand-wing.png"
       alt=""
-      width={HOME_ICON}
-      height={HOME_ICON}
+      width={ICON}
+      height={ICON}
       draggable={false}
       className={clsx(
         'select-none object-contain transition',
@@ -38,7 +37,7 @@ function CartIcon({ active }: TabIconProps) {
     return (
       <svg width={ICON} height={ICON} viewBox="0 0 24 24" aria-hidden>
         <path
-          fill={ACTIVE}
+          fill={BRAND}
           d="M7.2 6h13.1c.7 0 1.2.7 1 1.3l-1.5 5.2a2 2 0 0 1-1.9 1.4H9.1a2 2 0 0 1-1.9-1.4L5.2 4.8H3.2a1 1 0 1 1 0-2h2.6c.4 0 .8.3.9.7L7.2 6Zm1.3 13.2a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Zm9.2 0a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Z"
         />
       </svg>
@@ -63,9 +62,9 @@ function ProfileIcon({ active }: TabIconProps) {
   if (active) {
     return (
       <svg width={ICON} height={ICON} viewBox="0 0 24 24" aria-hidden>
-        <circle cx="12" cy="8" r="4" fill={ACTIVE} />
+        <circle cx="12" cy="8" r="4" fill={BRAND} />
         <path
-          fill={ACTIVE}
+          fill={BRAND}
           d="M4.4 19.6C5.7 16.9 8.5 15 12 15s6.3 1.9 7.6 4.6c.2.4-.1.9-.5.9H4.9c-.4 0-.7-.5-.5-.9Z"
         />
       </svg>
@@ -154,7 +153,10 @@ export function BottomNav() {
                 <span className="relative flex h-12 w-12 items-center justify-center">
                   <Icon active={active} />
                   {showBadge && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+                    <span
+                      className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+                      style={{ backgroundColor: BRAND }}
+                    >
                       {cartCount > 99 ? '99+' : cartCount}
                     </span>
                   )}
@@ -162,8 +164,9 @@ export function BottomNav() {
                 <span
                   className={clsx(
                     'text-[11px] leading-none tracking-tight',
-                    active ? 'font-semibold text-primary' : 'font-medium text-zinc-400',
+                    active ? 'font-semibold' : 'font-medium text-zinc-400',
                   )}
+                  style={active ? { color: BRAND } : undefined}
                 >
                   {label}
                 </span>

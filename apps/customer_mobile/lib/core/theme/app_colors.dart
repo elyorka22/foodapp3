@@ -7,6 +7,10 @@ abstract final class AppColors {
   static const Color primaryDark = Color(0xFF09090B);
   static const Color primarySoft = Color(0xFFF4F4F5);
 
+  /// Rebrand accent (wing logo) — used for active nav tabs.
+  static const Color brand = Color(0xFF4A05CA);
+  static const Color brandSoft = Color(0xFFF1E6FD);
+
   static const Color surface = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFF5F5F7);
   static const Color pageBackground = Color(0xFFF5F5F7);

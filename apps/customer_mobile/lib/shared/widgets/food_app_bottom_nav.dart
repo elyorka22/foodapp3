@@ -61,14 +61,14 @@ class FoodAppBottomNav extends StatelessWidget {
                           width: _bgSize,
                           height: _bgSize,
                           decoration: BoxDecoration(
-                            color: active ? AppColors.primarySoft : Colors.transparent,
+                            color: active ? AppColors.brandSoft : Colors.transparent,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           alignment: Alignment.center,
                           child: _navIcon(
                             index: index,
                             active: active,
-                            color: active ? AppColors.primary : AppColors.textMuted,
+                            color: active ? AppColors.brand : AppColors.textMuted,
                           ),
                         ),
                         if (index == 1 && cartCount > 0)
@@ -76,12 +76,18 @@ class FoodAppBottomNav extends StatelessWidget {
                             right: 2,
                             top: 2,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary,
+                                color: AppColors.brand,
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
                               child: Text(
                                 cartCount > 99 ? '99+' : '$cartCount',
                                 textAlign: TextAlign.center,
@@ -112,11 +118,23 @@ class FoodAppBottomNav extends StatelessWidget {
   }) {
     switch (index) {
       case 0:
-        return LucideHomeNavIcon(size: 30, color: color, active: active);
+        return LucideHomeNavIcon(
+          size: _iconSize,
+          color: color,
+          active: active,
+        );
       case 1:
-        return LucideShoppingBasketNavIcon(size: _iconSize, color: color, active: active);
+        return LucideShoppingBasketNavIcon(
+          size: _iconSize,
+          color: color,
+          active: active,
+        );
       default:
-        return LucideUserNavIcon(size: _iconSize, color: color, active: active);
+        return LucideUserNavIcon(
+          size: _iconSize,
+          color: color,
+          active: active,
+        );
     }
   }
 }
