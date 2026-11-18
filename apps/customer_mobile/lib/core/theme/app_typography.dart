@@ -59,7 +59,7 @@ abstract final class AppTypography {
 
   static TextStyle get sectionTitle => const TextStyle(
         fontFamily: fontFamily,
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: FontWeight.w800,
         color: AppColors.textPrimary,
         letterSpacing: -0.3,

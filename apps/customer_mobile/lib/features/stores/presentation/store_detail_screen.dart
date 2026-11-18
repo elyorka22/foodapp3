@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/restaurant_model.dart';
-import '../../../shared/widgets/business_availability_badge.dart';
-import '../../../shared/widgets/circle_icon_button.dart';
-import '../../../shared/widgets/menu_product_card.dart';
 import '../../../shared/widgets/store_all_categories_page.dart';
 import '../../../shared/widgets/store_category_grid.dart';
+import '../../../shared/widgets/store_product_card.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../../restaurants/providers/restaurants_provider.dart';
 
-/// Store menu — same layout as restaurant (catalog only).
+/// Store menu — matches web `store-menu-screen.tsx`.
 class StoreDetailScreen extends ConsumerStatefulWidget {
   const StoreDetailScreen({super.key, required this.slug});
 
@@ -66,7 +65,6 @@ class _StoreMenuBody extends ConsumerStatefulWidget {
 
 class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
   final _searchController = TextEditingController();
-  bool _searchOpen = false;
   String _search = '';
 
   @override
@@ -75,14 +73,10 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
     super.dispose();
   }
 
-  List<ProductModel> _filterProducts(List<ProductModel> products) {
-    var list = products;
+  List<ProductModel> _searched(List<ProductModel> products) {
     final q = _search.trim().toLowerCase();
-    if (q.isNotEmpty) {
-      list = list.where((p) => p.name.toLowerCase().contains(q)).toList();
-    }
-    if (widget.activeCategoryId == 'all') return list;
-    return list.where((p) => p.categoryId == widget.activeCategoryId).toList();
+    if (q.isEmpty) return products;
+    return products.where((p) => p.name.toLowerCase().contains(q)).toList();
   }
 
   @override
@@ -90,164 +84,268 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
     final business = widget.business;
     final productsAsync = ref.watch(restaurantProductsProvider(business.id));
     final allProducts = business.products ?? productsAsync.value ?? [];
-    final products = _filterProducts(allProducts);
+    final searched = _searched(allProducts);
     final categories = business.categories ?? [];
     final closed = business.isOpen == false;
-    final emptyLabel =
-        _search.trim().isNotEmpty ? AppStrings.searchNoResults : AppStrings.menuEmpty;
+    final cartCount = ref.watch(
+      cartProvider.select((c) => c.fold(0, (s, i) => s + i.quantity)),
+    );
+
+    final discounted = searched
+        .where(
+          (p) =>
+              p.comparePrice != null &&
+              p.comparePrice!.toDouble() > p.price.toDouble(),
+        )
+        .toList();
+
+    final sections = <({RestaurantCategoryModel category, List<ProductModel> products})>[];
+    if (widget.activeCategoryId == 'all') {
+      for (final cat in categories) {
+        final items =
+            searched.where((p) => p.categoryId == cat.id).toList();
+        if (items.isNotEmpty) {
+          sections.add((category: cat, products: items));
+        }
+      }
+      final uncategorized =
+          searched.where((p) => p.categoryId == null || p.categoryId!.isEmpty).toList();
+      if (uncategorized.isNotEmpty && categories.isEmpty) {
+        // fall through to single row below
+      }
+    } else {
+      final cat = categories.where((c) => c.id == widget.activeCategoryId);
+      final items =
+          searched.where((p) => p.categoryId == widget.activeCategoryId).toList();
+      if (cat.isNotEmpty && items.isNotEmpty) {
+        sections.add((category: cat.first, products: items));
+      } else if (items.isNotEmpty) {
+        sections.add((
+          category: RestaurantCategoryModel(
+            id: widget.activeCategoryId,
+            name: AppStrings.shopsTitle,
+            slug: widget.activeCategoryId,
+          ),
+          products: items,
+        ));
+      }
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.sm,
-                  AppSpacing.lg,
-                  0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleIconButton(
-                          icon: Icons.arrow_back_rounded,
-                          onTap: () => context.pop(),
-                        ),
-                        const Spacer(),
-                        CircleIconButton(
-                          icon: Icons.search_rounded,
-                          onTap: () => setState(() {
-                            _searchOpen = !_searchOpen;
-                            if (!_searchOpen) {
-                              _search = '';
-                              _searchController.clear();
-                            }
-                          }),
-                        ),
-                      ],
+      body: Stack(
+        children: [
+          SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.sm,
+                      AppSpacing.lg,
+                      0,
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          business.name,
-                          style: AppTypography.title.copyWith(fontSize: 26),
-                        ),
-                        if (business.isOpen != null)
-                          BusinessAvailabilityBadge(
-                            isOpen: business.isOpen,
-                            closesAt: business.closesAt,
-                            closingSoon: business.closingSoon ?? false,
-                            compact: true,
-                          ),
-                      ],
-                    ),
-                    if (_searchOpen) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      TextField(
-                        controller: _searchController,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          hintText: AppStrings.searchInMenu(business.name),
-                          prefixIcon: const Icon(Icons.search),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide:
-                                const BorderSide(color: Color(0xFFE4E4E7)),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide:
-                                const BorderSide(color: Color(0xFFE4E4E7)),
-                          ),
-                        ),
-                        onChanged: (v) => setState(() => _search = v),
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.lg),
-                    if (categories.isNotEmpty)
-                      StoreCategoryGrid(
-                        categories: categories,
-                        limit: 5,
-                        activeId: widget.activeCategoryId,
-                        onSelectCategory: widget.onCategoryChanged,
-                        onOpenAll: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => StoreAllCategoriesPage(
-                                categories: categories,
-                                onSelect: widget.onCategoryChanged,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                business.name,
+                                style: AppTypography.title.copyWith(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
-                          );
-                        },
+                            Material(
+                              color: const Color(0xFFF4F4F5),
+                              shape: const CircleBorder(),
+                              child: InkWell(
+                                customBorder: const CircleBorder(),
+                                onTap: () => context.pop(),
+                                child: const SizedBox(
+                                  width: 36,
+                                  height: 36,
+                                  child: Icon(Icons.close_rounded, size: 18),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: AppStrings.searchInMenu(business.name),
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              size: 18,
+                              color: AppColors.textMuted,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE4E4E7)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE4E4E7)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFD4D4D8)),
+                            ),
+                          ),
+                          style: const TextStyle(fontSize: 15),
+                          onChanged: (v) => setState(() => _search = v),
+                        ),
+                        if (closed)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              AppStrings.deliveryTimeEnded,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.danger,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                        if (categories.isNotEmpty)
+                          StoreCategoryGrid(
+                            categories: categories,
+                            limit: 5,
+                            activeId: widget.activeCategoryId,
+                            onSelectCategory: widget.onCategoryChanged,
+                            onOpenAll: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => StoreAllCategoriesPage(
+                                    categories: categories,
+                                    onSelect: widget.onCategoryChanged,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (searched.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        _search.trim().isNotEmpty
+                            ? AppStrings.searchNoResults
+                            : AppStrings.menuEmpty,
+                        style: AppTypography.bodySmall,
                       ),
-                  ],
+                    ),
+                  )
+                else ...[
+                  if (widget.activeCategoryId == 'all' &&
+                      discounted.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: _ProductRow(
+                        title: AppStrings.storeDiscountsForYou,
+                        products: discounted,
+                        closed: closed,
+                        onAdd: (p) => _add(p),
+                        onRemove: (id) =>
+                            ref.read(cartProvider.notifier).decrement(id),
+                      ),
+                    ),
+                  for (final section in sections)
+                    SliverToBoxAdapter(
+                      child: _ProductRow(
+                        title: section.category.name,
+                        products: section.products,
+                        closed: closed,
+                        onAdd: (p) => _add(p),
+                        onRemove: (id) =>
+                            ref.read(cartProvider.notifier).decrement(id),
+                      ),
+                    ),
+                  if (sections.isEmpty &&
+                      !(widget.activeCategoryId == 'all' &&
+                          discounted.isNotEmpty))
+                    SliverToBoxAdapter(
+                      child: _ProductRow(
+                        title: AppStrings.shopsTitle,
+                        products: searched,
+                        closed: closed,
+                        onAdd: (p) => _add(p),
+                        onRemove: (id) =>
+                            ref.read(cartProvider.notifier).decrement(id),
+                      ),
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              ],
+            ),
+          ),
+          if (cartCount > 0)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 24 + MediaQuery.paddingOf(context).bottom,
+              child: Center(
+                child: Material(
+                  color: const Color(0xFF27272A),
+                  borderRadius: BorderRadius.circular(999),
+                  elevation: 8,
+                  shadowColor: Colors.black38,
+                  child: InkWell(
+                    onTap: () => context.go(AppRoutes.cart),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            AppStrings.cartFab(cartCount),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-            if (products.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: Text(emptyLabel, style: AppTypography.bodySmall),
-                ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  0,
-                  AppSpacing.lg,
-                  96,
-                ),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 20,
-                    mainAxisExtent: 300,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final p = products[index];
-                      final qty = ref.watch(
-                        cartProvider.select(
-                          (items) => items
-                              .where((i) => i.productId == p.id)
-                              .fold(0, (s, i) => s + i.quantity),
-                        ),
-                      );
-                      return MenuProductCard(
-                        product: p,
-                        quantity: qty,
-                        disabled: closed,
-                        onAdd: () => _add(ref, p),
-                        onRemove: () =>
-                            ref.read(cartProvider.notifier).decrement(p.id),
-                      );
-                    },
-                    childCount: products.length,
-                  ),
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
-  void _add(WidgetRef ref, ProductModel p) {
+  void _add(ProductModel p) {
     ref.read(cartProvider.notifier).addItem(
           productId: p.id,
           name: p.name,
@@ -255,5 +353,67 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
           businessId: widget.business.id,
           businessName: widget.business.name,
         );
+  }
+}
+
+class _ProductRow extends ConsumerWidget {
+  const _ProductRow({
+    required this.title,
+    required this.products,
+    required this.closed,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  final String title;
+  final List<ProductModel> products;
+  final bool closed;
+  final ValueChanged<ProductModel> onAdd;
+  final ValueChanged<String> onRemove;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Text(
+              title,
+              style: AppTypography.sectionTitle,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 260,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              itemCount: products.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final p = products[index];
+                final qty = ref.watch(
+                  cartProvider.select(
+                    (items) => items
+                        .where((i) => i.productId == p.id)
+                        .fold(0, (s, i) => s + i.quantity),
+                  ),
+                );
+                return StoreProductCard(
+                  product: p,
+                  quantity: qty,
+                  disabled: closed,
+                  onAdd: () => onAdd(p),
+                  onRemove: () => onRemove(p.id),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

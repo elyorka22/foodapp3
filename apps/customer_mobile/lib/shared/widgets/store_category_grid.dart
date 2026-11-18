@@ -48,6 +48,16 @@ class StoreCategoryTile extends StatelessWidget {
             border: active
                 ? Border.all(color: AppColors.textPrimary, width: 2)
                 : null,
+            boxShadow: active
+                ? const [
+                    BoxShadow(
+                      color: Color(0x3318181B),
+                      blurRadius: 0,
+                      spreadRadius: 2,
+                      offset: Offset(0, 0),
+                    ),
+                  ]
+                : null,
           ),
           child: Stack(
             fit: StackFit.expand,

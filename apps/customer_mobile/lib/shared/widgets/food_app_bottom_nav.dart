@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shadows.dart';
-import '../../core/theme/app_spacing.dart';
 import 'lucide_nav_icons.dart';
 
-/// Bottom bar: home, cart, profile — icons only (matches web).
+/// Bottom bar matching web `bottom-nav.tsx`: icons + labels, brand purple active.
 class FoodAppBottomNav extends StatelessWidget {
   const FoodAppBottomNav({
     super.key,
@@ -19,10 +17,7 @@ class FoodAppBottomNav extends StatelessWidget {
   final int cartCount;
 
   static const _homeIconSize = 28.0;
-  /// Stroke icons read smaller than the wing mark — bump for visual parity.
   static const _iconSize = 31.0;
-  static const _tapSize = 52.0;
-  static const _bgSize = 48.0;
 
   static const _labels = [
     AppStrings.navHome,
@@ -33,75 +28,89 @@ class FoodAppBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border.withValues(alpha: 0.9))),
-        boxShadow: AppShadows.nav,
+        border: Border(
+          top: BorderSide(color: Color(0xFFF4F4F5)),
+        ),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(3, (index) {
               final active = index == currentIndex;
-              return Semantics(
-                label: _labels[index],
-                button: true,
-                child: InkWell(
-                  onTap: () => onTap(index),
-                  borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                  child: SizedBox(
-                    width: _tapSize,
-                    height: _tapSize,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: _bgSize,
-                          height: _bgSize,
-                          decoration: BoxDecoration(
-                            color: active ? AppColors.brandSoft : Colors.transparent,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          alignment: Alignment.center,
-                          child: _navIcon(
-                            index: index,
-                            active: active,
-                            color: active ? AppColors.brand : AppColors.textMuted,
-                          ),
-                        ),
-                        if (index == 1 && cartCount > 0)
-                          Positioned(
-                            right: 2,
-                            top: 2,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.brand,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              constraints: const BoxConstraints(
-                                minWidth: 18,
-                                minHeight: 18,
-                              ),
-                              child: Text(
-                                cartCount > 99 ? '99+' : '$cartCount',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+              return Expanded(
+                child: Semantics(
+                  label: _labels[index],
+                  button: true,
+                  selected: active,
+                  child: InkWell(
+                    onTap: () => onTap(index),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            height: 48,
+                            width: 48,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              alignment: Alignment.center,
+                              children: [
+                                _navIcon(index: index, active: active),
+                                if (index == 1 && cartCount > 0)
+                                  Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.brand,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 18,
+                                        minHeight: 18,
+                                      ),
+                                      child: Text(
+                                        cartCount > 99 ? '99+' : '$cartCount',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            _labels[index],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              height: 1,
+                              letterSpacing: -0.2,
+                              fontWeight:
+                                  active ? FontWeight.w600 : FontWeight.w500,
+                              color: active
+                                  ? AppColors.brand
+                                  : AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -113,11 +122,8 @@ class FoodAppBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _navIcon({
-    required int index,
-    required bool active,
-    required Color color,
-  }) {
+  Widget _navIcon({required int index, required bool active}) {
+    final color = active ? AppColors.brand : AppColors.textMuted;
     switch (index) {
       case 0:
         return LucideHomeNavIcon(

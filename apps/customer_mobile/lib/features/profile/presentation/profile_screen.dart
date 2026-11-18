@@ -13,6 +13,25 @@ import '../../notifications/providers/notifications_provider.dart';
 import '../data/account_deletion_repository.dart';
 import 'profile_social_section.dart';
 
+void _openSimplePage(BuildContext context, String title, String emptyText) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: Text(title),
+          backgroundColor: AppColors.background,
+          foregroundColor: AppColors.textPrimary,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Text(emptyText, style: AppTypography.bodySmall),
+        ),
+      ),
+    ),
+  );
+}
+
 Future<void> _confirmDeleteAccount(
   BuildContext context,
   WidgetRef ref,
@@ -128,6 +147,30 @@ class ProfileScreen extends ConsumerWidget {
                     _MenuCard(
                       children: [
                         _MenuRow(
+                          icon: Icons.shopping_bag_outlined,
+                          label: AppStrings.ordersTitle,
+                          onTap: () => _openSimplePage(
+                            context,
+                            AppStrings.ordersTitle,
+                            AppStrings.noOrders,
+                          ),
+                        ),
+                        _MenuRow(
+                          icon: Icons.favorite_border_rounded,
+                          label: AppStrings.favoritesTitle,
+                          onTap: () => _openSimplePage(
+                            context,
+                            AppStrings.favoritesTitle,
+                            AppStrings.noFavorites,
+                          ),
+                          showDivider: false,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _MenuCard(
+                      children: [
+                        _MenuRow(
                           icon: Icons.percent_rounded,
                           label: AppStrings.promotionsTitle,
                           onTap: () => context.push(AppRoutes.promotions),
@@ -158,6 +201,18 @@ class ProfileScreen extends ConsumerWidget {
                           icon: Icons.headset_mic_outlined,
                           label: AppStrings.profileContact,
                           onTap: () => context.push(AppRoutes.profileHelp),
+                        ),
+                        _MenuRow(
+                          icon: Icons.language_rounded,
+                          label: AppStrings.changeLanguage,
+                          hint: AppStrings.profileLanguageSubtitle,
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(AppStrings.profileLanguageSubtitle),
+                              ),
+                            );
+                          },
                         ),
                         _AppVersionRow(),
                       ],

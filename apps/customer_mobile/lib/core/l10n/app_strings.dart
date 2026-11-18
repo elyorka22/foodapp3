@@ -5,8 +5,10 @@ abstract final class AppStrings {
   static const navHome = 'Bosh sahifa';
   static const navRestaurants = 'Restoranlar';
   static const navStores = "Do'konlar";
+  static const shopsTitle = "Do'konlar";
   static const storesSubtitle = "Shahardagi barcha do'konlar va xizmatlar";
   static const storesEmpty = "Do'konlar topilmadi";
+  static const deliveryTimeEnded = 'Yetkazish vaqti tugagan';
   static const navCart = 'Savat';
   static const navProfile = 'Profil';
   static const profileAccount = 'Hisob';
@@ -29,6 +31,11 @@ abstract final class AppStrings {
   static const profileLanguageSubtitle = "o'zbek / русский";
   static const ordersTitle = 'Buyurtmalarim';
   static const favoritesTitle = 'Sevimlilar';
+  static const storeDiscountsForYou = 'Siz uchun chegirmalar';
+  static const changeLanguage = "Tilni o'zgartirish";
+  static String cartFab(int count) => 'Savat ($count)';
+  static const noOrders = "Hali buyurtmalar yo'q";
+  static const noFavorites = "Hali sevimlilar yo'q";
 
   static const searchRestaurants = 'Restoran qidirish';
   static const searchStores = "Do'kon qidirish";

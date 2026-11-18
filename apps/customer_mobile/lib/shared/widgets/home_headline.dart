@@ -44,7 +44,7 @@ class _BellButton extends ConsumerWidget {
     return NotificationBell(
       unreadCount: unread,
       color: AppColors.textPrimary,
-      size: 26,
+      size: 22,
       onTap: () {
         if (user == null) {
           context.push('/profile/login');

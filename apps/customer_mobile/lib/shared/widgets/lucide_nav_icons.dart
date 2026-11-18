@@ -96,18 +96,15 @@ class LucideShoppingBasketNavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Same cart glyph as web `bottom-nav.tsx` CartIcon.
     return _LucideStrokeIcon(
       size: size,
       color: color,
-      strokeWidth: active ? 2.15 : 1.75,
+      strokeWidth: active ? 2.15 : 1.85,
       paths: '''
-<path d="m15 11-1 9"/>
-<path d="m19 11-4-7"/>
-<path d="M2 11h20"/>
-<path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/>
-<path d="M4.5 15.5h15"/>
-<path d="m5 11 4-7"/>
-<path d="m9 11 1 9"/>
+<path d="M3 4h2.2l1.5 8.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.5L21 7H7"/>
+<circle cx="9.5" cy="19" r="1.4"/>
+<circle cx="17.5" cy="19" r="1.4"/>
 ''',
     );
   }
@@ -130,9 +127,10 @@ class LucideUserNavIcon extends StatelessWidget {
     return _LucideStrokeIcon(
       size: size,
       color: color,
-      strokeWidth: active ? 2.15 : 1.75,
-      extra: '<circle cx="12" cy="7" r="4" fill="none"/>',
-      paths: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>',
+      strokeWidth: active ? 2.15 : 1.85,
+      extra: '<circle cx="12" cy="8" r="3.4" fill="none"/>',
+      paths:
+          '<path d="M5.2 19.2c1.2-2.6 3.8-4.2 6.8-4.2s5.6 1.6 6.8 4.2"/>',
     );
   }
 }
