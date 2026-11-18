@@ -108,7 +108,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                             ),
                           ),
                           const SizedBox(width: 10),
-                          Expanded(
+                          const Expanded(
                             child: _MetricTile(
                               label: AppStrings.workHours,
                               value: '—',

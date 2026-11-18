@@ -100,32 +100,44 @@ class DeliveryMap extends StatelessWidget {
                 label: AppStrings.openInYandexMaps,
                 icon: Icons.map_outlined,
                 filled: true,
-                onPressed: canNav
-                    ? () async {
-                        final ok = await openYandexNavigation(lat!, lng!);
+                onPressed: !canNav
+                    ? null
+                    : () async {
+                        final destLat = lat;
+                        final destLng = lng;
+                        if (destLat == null || destLng == null) return;
+                        final ok =
+                            await openYandexNavigation(destLat, destLng);
                         if (!ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text(AppStrings.mapLaunchFailed)),
+                            const SnackBar(
+                              content: Text(AppStrings.mapLaunchFailed),
+                            ),
                           );
                         }
-                      }
-                    : null,
+                      },
               ),
               const SizedBox(height: 10),
               _MapAppButton(
                 label: AppStrings.openInGoogleMaps,
                 icon: Icons.public,
                 filled: false,
-                onPressed: canNav
-                    ? () async {
-                        final ok = await openGoogleNavigation(lat!, lng!);
+                onPressed: !canNav
+                    ? null
+                    : () async {
+                        final destLat = lat;
+                        final destLng = lng;
+                        if (destLat == null || destLng == null) return;
+                        final ok =
+                            await openGoogleNavigation(destLat, destLng);
                         if (!ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text(AppStrings.mapLaunchFailed)),
+                            const SnackBar(
+                              content: Text(AppStrings.mapLaunchFailed),
+                            ),
                           );
                         }
-                      }
-                    : null,
+                      },
               ),
               if (!canNav) ...[
                 const SizedBox(height: 10),

@@ -417,7 +417,7 @@ class _TodayStatsRow extends StatelessWidget {
             ),
           ),
           Container(width: 1, height: 42, color: AppColors.border),
-          Expanded(
+          const Expanded(
             child: _StatCell(
               label: AppStrings.todayWorkTime,
               value: '—',
@@ -574,7 +574,7 @@ class _JobsInbox extends StatelessWidget {
               const SizedBox(height: 14),
             ],
             if (orders.isEmpty)
-              EmptyState(
+              const EmptyState(
                 icon: Icons.inbox_outlined,
                 title: AppStrings.noAvailableOrders,
                 subtitle: "Yangi buyurtmalar shu yerda paydo bo'ladi",

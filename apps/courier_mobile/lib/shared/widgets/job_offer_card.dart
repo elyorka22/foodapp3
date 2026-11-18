@@ -103,7 +103,7 @@ class JobOfferCard extends StatelessWidget {
               Row(
                 children: [
                   _Chip(
-                    label: '$merchant',
+                    label: merchant,
                     filled: false,
                   ),
                   const SizedBox(width: 8),
