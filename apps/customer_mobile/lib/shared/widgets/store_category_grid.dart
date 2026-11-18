@@ -73,15 +73,15 @@ class StoreCategoryTile extends StatelessWidget {
                   ),
                 ),
               if (hasImage)
+                // Match Control preview: cover + scale/position so framing crops.
                 applyImageFraming(
                   imageScale: imageScale,
                   imagePositionX: imagePositionX,
                   imagePositionY: imagePositionY,
-                  fit: BoxFit.contain,
-                  letterboxColor: Colors.white,
+                  fit: BoxFit.cover,
                   child: CachedNetworkImage(
                     imageUrl: resolved,
-                    fit: BoxFit.contain,
+                    fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
                     alignment: Alignment(x, y),

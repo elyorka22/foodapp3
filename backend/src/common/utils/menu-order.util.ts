@@ -3,6 +3,11 @@ type MenuCategoryLike = {
   name: string;
   slug: string;
   sortOrder?: number | null;
+  imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
+  icon?: string | null;
 };
 
 type MenuProductLike = {
@@ -36,8 +41,31 @@ export function sortMenuProducts<T extends MenuProductLike>(
 export function buildMenuCategoriesFromProducts(
   products: MenuProductLike[],
   restaurantMenu: boolean,
-): Array<{ id: string; name: string; slug: string; sortOrder: number }> {
-  const map = new Map<string, { id: string; name: string; slug: string; sortOrder: number }>();
+): Array<{
+  id: string;
+  name: string;
+  slug: string;
+  sortOrder: number;
+  imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
+  icon?: string | null;
+}> {
+  const map = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      slug: string;
+      sortOrder: number;
+      imageUrl?: string | null;
+      imageScale?: number | null;
+      imagePositionX?: number | null;
+      imagePositionY?: number | null;
+      icon?: string | null;
+    }
+  >();
 
   for (const product of products) {
     const category = restaurantMenu ? product.dishCategory : product.productCategory;
@@ -48,6 +76,11 @@ export function buildMenuCategoriesFromProducts(
         name: category.name,
         slug: category.slug,
         sortOrder: category.sortOrder ?? 0,
+        imageUrl: category.imageUrl ?? null,
+        imageScale: category.imageScale ?? 100,
+        imagePositionX: category.imagePositionX ?? 50,
+        imagePositionY: category.imagePositionY ?? 50,
+        icon: category.icon ?? null,
       });
     }
   }

@@ -34,13 +34,14 @@ export function StoreCategoryTile({
   active?: boolean;
 }) {
   const img = resolveImageUrl(imageUrl);
+  // Match Control preview: cover + scale/position so framing actually crops.
   const framing = categoryImageStyle(
     {
       imageScale: imageScale ?? 100,
       imagePositionX,
       imagePositionY,
     },
-    { fit: 'contain' },
+    { fit: 'cover' },
   );
 
   return (
@@ -56,7 +57,7 @@ export function StoreCategoryTile({
         <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200" />
       ) : img ? (
         <div
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-0 overflow-hidden"
           style={{
             transform: framing.transform,
             transformOrigin: framing.transformOrigin,
@@ -66,7 +67,7 @@ export function StoreCategoryTile({
           <img
             src={img}
             alt=""
-            className="h-full w-full object-contain"
+            className="h-full w-full object-cover"
             style={{ objectPosition: framing.objectPosition }}
           />
         </div>
