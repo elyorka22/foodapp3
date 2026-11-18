@@ -229,7 +229,7 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
         {categories.length > 0 ? (
           <StoreCategoryGrid
             categories={categories}
-            limit={7}
+            limit={5}
             activeId={activeCategoryId}
             onSelectCategory={setActiveCategoryId}
             onOpenAll={() => setShowAllCategories(true)}

@@ -178,7 +178,7 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                     if (categories.isNotEmpty)
                       StoreCategoryGrid(
                         categories: categories,
-                        limit: 7,
+                        limit: 5,
                         activeId: widget.activeCategoryId,
                         onSelectCategory: widget.onCategoryChanged,
                         onOpenAll: () {
