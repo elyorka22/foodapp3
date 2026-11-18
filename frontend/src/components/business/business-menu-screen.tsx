@@ -17,7 +17,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { uz } from '@/lib/uz';
 
-type MenuCategory = { id: string; name: string; slug?: string };
+type MenuCategory = {
+  id: string;
+  name: string;
+  slug?: string;
+  imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
+};
 
 export type BusinessMenuDetail = {
   id: string;
@@ -35,6 +43,15 @@ export type BusinessMenuDetail = {
   reviewCount?: number | null;
   deliveryMinutes?: number | null;
   minOrderAmount?: number | null;
+  businessType?: {
+    id?: string;
+    name?: string;
+    slug?: string;
+    allCategoriesImageUrl?: string | null;
+    allCategoriesImageScale?: number | null;
+    allCategoriesImagePositionX?: number | null;
+    allCategoriesImagePositionY?: number | null;
+  } | null;
   productCategories?: MenuCategory[];
   products: MenuProduct[];
 };
