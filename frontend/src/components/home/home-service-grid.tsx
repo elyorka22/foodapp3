@@ -157,7 +157,7 @@ export function HomeServiceGrid() {
   if (!isLoading && types.length === 0) return null;
 
   return (
-    <section className="mt-4 space-y-3" aria-label={uz.categories}>
+    <section className="mt-5 space-y-3" aria-label={uz.categories}>
       {row1.length > 0 ? (
         <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-1 snap-x snap-mandatory scrollbar-hide">
           {row1.map((type) => (
