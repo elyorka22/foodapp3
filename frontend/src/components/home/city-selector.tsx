@@ -9,12 +9,15 @@ import type { City } from '@/hooks/use-cities';
 
 type CitySelectorProps = {
   className?: string;
+  /** `hero` = light type for brand atmosphere header. */
+  tone?: 'default' | 'hero';
 };
 
-export function CitySelector({ className }: CitySelectorProps) {
+export function CitySelector({ className, tone = 'default' }: CitySelectorProps) {
   const { cities, selectedCity, selectCity, isLoading } = useSelectedCity();
   const [open, setOpen] = useState(false);
   const centered = Boolean(className?.includes('home-city-center'));
+  const onHero = tone === 'hero';
 
   const label = selectedCity?.name ?? uz.cityName;
   const canPick = cities.length > 1;
@@ -23,7 +26,8 @@ export function CitySelector({ className }: CitySelectorProps) {
     return (
       <span
         className={clsx(
-          'truncate font-extrabold leading-tight tracking-tight text-zinc-900',
+          'truncate font-extrabold leading-tight tracking-tight',
+          onHero ? 'text-white' : 'text-zinc-900',
           centered ? 'text-[22px]' : 'text-[26px]',
           isLoading && 'opacity-70',
           className,
@@ -48,7 +52,8 @@ export function CitySelector({ className }: CitySelectorProps) {
       >
         <span
           className={clsx(
-            'truncate font-extrabold leading-tight tracking-tight text-zinc-900',
+            'truncate font-extrabold leading-tight tracking-tight',
+            onHero ? 'text-white' : 'text-zinc-900',
             centered ? 'text-[22px]' : 'text-[26px]',
           )}
         >
@@ -58,7 +63,8 @@ export function CitySelector({ className }: CitySelectorProps) {
           size={centered ? 18 : 22}
           strokeWidth={2.5}
           className={clsx(
-            'shrink-0 text-zinc-700 transition-transform duration-200',
+            'shrink-0 transition-transform duration-200',
+            onHero ? 'text-white/90' : 'text-zinc-700',
             centered ? 'mt-0.5' : 'mt-1',
             open && 'rotate-180',
           )}
