@@ -10,79 +10,26 @@ type TabIconProps = {
   active: boolean;
 };
 
-/** Brand mark (cloche + speed lines) for home — matches FoodApp app icon. */
+/** New brand wing mark for home tab — rebrand logo. */
 const ACTIVE = '#18181B';
 const IDLE = '#A1A1AA';
 const ICON = 26;
+const HOME_ICON = 28;
 
 function HomeIcon({ active }: TabIconProps) {
-  const color = active ? ACTIVE : IDLE;
-  if (active) {
-    return (
-      <svg width={ICON} height={ICON} viewBox="0 0 24 24" aria-hidden>
-        {/* speed lines */}
-        <rect x="1.5" y="8.2" width="4.2" height="1.55" rx="0.75" fill={color} />
-        <rect x="1.5" y="11.2" width="5.4" height="1.55" rx="0.75" fill={color} />
-        <rect x="1.5" y="14.2" width="3.4" height="1.55" rx="0.75" fill={color} />
-        {/* handle */}
-        <rect x="13.1" y="3.2" width="4.2" height="1.7" rx="0.85" fill={color} />
-        {/* dome */}
-        <path
-          fill={color}
-          d="M9.2 9.4c0-3.1 2.5-5.6 5.6-5.6s5.6 2.5 5.6 5.6v7.1H9.2V9.4Z"
-        />
-        {/* plate */}
-        <rect x="8.2" y="16.6" width="11.6" height="2.2" rx="1.1" fill={color} />
-        {/* highlight */}
-        <path
-          d="M11.2 10.2c.6-1.6 1.9-2.6 3.4-2.9"
-          stroke="#F5F5F7"
-          strokeWidth="1.35"
-          strokeLinecap="round"
-          fill="none"
-        />
-      </svg>
-    );
-  }
   return (
-    <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M1.8 9h3.6M1.8 12h4.8M1.8 15h2.8"
-        stroke={color}
-        strokeWidth="1.85"
-        strokeLinecap="round"
-      />
-      <rect
-        x="13.2"
-        y="3.4"
-        width="3.8"
-        height="1.5"
-        rx="0.75"
-        stroke={color}
-        strokeWidth="1.7"
-      />
-      <path
-        d="M9.4 9.2a5.4 5.4 0 0 1 10.8 0V16H9.4V9.2Z"
-        stroke={color}
-        strokeWidth="1.85"
-        strokeLinejoin="round"
-      />
-      <rect
-        x="8.4"
-        y="16.4"
-        width="11.2"
-        height="2"
-        rx="1"
-        stroke={color}
-        strokeWidth="1.7"
-      />
-      <path
-        d="M11.4 10c.55-1.4 1.7-2.3 3-2.55"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/brand-wing.png"
+      alt=""
+      width={HOME_ICON}
+      height={HOME_ICON}
+      draggable={false}
+      className={clsx(
+        'select-none object-contain transition',
+        active ? 'opacity-100' : 'opacity-50 grayscale',
+      )}
+    />
   );
 }
 
