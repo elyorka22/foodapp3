@@ -1,7 +1,10 @@
 'use client';
 
 import { clsx } from 'clsx';
-import { categoryImageStyle, type CategoryImageFraming } from '@/lib/category-image-style';
+import {
+  categoryImagePanStyle,
+  type CategoryImageFraming,
+} from '@/lib/category-image-style';
 import { resolveImageUrl } from '@/lib/image-url';
 
 export type ImageFramingValues = CategoryImageFraming;
@@ -33,12 +36,12 @@ export function ImageFramingControls({
   const x = values.imagePositionX ?? 50;
   const y = values.imagePositionY ?? 50;
   const previewSrc = imageUrl ? resolveImageUrl(imageUrl) ?? imageUrl : null;
-  const framing = categoryImageStyle({
+  // left/top pan so vertical slider works on square tiles too
+  const pan = categoryImagePanStyle({
     imageScale: scale,
     imagePositionX: x,
     imagePositionY: y,
   });
-  const { transform, transformOrigin, objectPosition, objectFit } = framing;
 
   const set = (patch: Partial<ImageFramingValues>) =>
     onChange({ imageScale: scale, imagePositionX: x, imagePositionY: y, ...patch });
@@ -61,15 +64,8 @@ export function ImageFramingControls({
       >
         {previewSrc ? (
           <div className={clsx('absolute inset-0 overflow-hidden', previewRoundedClass)}>
-            <div className="absolute inset-0" style={{ transform, transformOrigin }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={previewSrc}
-                alt="Preview"
-                className="h-full w-full"
-                style={{ objectFit, objectPosition }}
-              />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewSrc} alt="Preview" style={pan} />
           </div>
         ) : (
           <div className="flex h-full min-h-[80px] items-center justify-center text-xs text-zinc-400">

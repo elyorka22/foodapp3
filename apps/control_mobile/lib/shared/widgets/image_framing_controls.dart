@@ -140,33 +140,39 @@ class ImageFramingControls extends StatelessWidget {
                     ],
                   ),
                   clipBehavior: Clip.antiAlias,
+                  // Free pan: left/top move the image so part can leave the
+                  // frame (clipped). Scale is only from the Masshtab slider.
                   child: hasImage
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(radius),
-                          child: Transform.scale(
-                            scale: scale / 100,
-                            alignment: Alignment(
-                              (x / 50) - 1,
-                              (y / 50) - 1,
-                            ),
-                            child: SizedBox(
-                              width: previewWidth,
-                              height: previewHeight,
-                              child: Image.network(
-                                url,
-                                fit: BoxFit.cover,
-                                width: previewWidth,
-                                height: previewHeight,
-                                alignment: Alignment(
-                                  (x / 50) - 1,
-                                  (y / 50) - 1,
+                      ? LayoutBuilder(
+                          builder: (context, box) {
+                            final bw = box.maxWidth;
+                            final bh = box.maxHeight;
+                            final s = scale / 100.0;
+                            final w = bw * s;
+                            final h = bh * s;
+                            final left = bw * x / 100 - w / 2;
+                            final top = bh * y / 100 - h / 2;
+                            return Stack(
+                              clipBehavior: Clip.hardEdge,
+                              children: [
+                                Positioned(
+                                  left: left,
+                                  top: top,
+                                  width: w,
+                                  height: h,
+                                  child: Image.network(
+                                    url!,
+                                    fit: BoxFit.cover,
+                                    width: w,
+                                    height: h,
+                                    errorBuilder: (_, __, ___) => const Center(
+                                      child: Icon(Icons.broken_image_outlined),
+                                    ),
+                                  ),
                                 ),
-                                errorBuilder: (_, __, ___) => const Center(
-                                  child: Icon(Icons.broken_image_outlined),
-                                ),
-                              ),
-                            ),
-                          ),
+                              ],
+                            );
+                          },
                         )
                       : Center(
                           child: Padding(

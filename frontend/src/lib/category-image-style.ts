@@ -47,3 +47,29 @@ export function categoryImageStyle(
     transformOrigin: `${x}% ${y}%`,
   };
 }
+
+/**
+ * Pan + zoom for square-ish tiles (store categories).
+ *
+ * The image is clipped by the tile: left/top move it so part can sit outside
+ * the rounded frame (only the visible slice remains). Scale is independent —
+ * only the Masshtab slider changes zoom.
+ */
+export function categoryImagePanStyle(
+  framing: CategoryImageFraming,
+): CSSProperties {
+  const scale = clamp(framing.imageScale ?? 100, 100, 200) / 100;
+  const x = clamp(framing.imagePositionX ?? 50, 0, 100);
+  const y = clamp(framing.imagePositionY ?? 50, 0, 100);
+  return {
+    position: 'absolute',
+    left: `${x}%`,
+    top: `${y}%`,
+    transform: `translate(-50%, -50%) scale(${scale})`,
+    transformOrigin: 'center center',
+    width: '100%',
+    height: '100%',
+    maxWidth: 'none',
+    objectFit: 'cover',
+  };
+}

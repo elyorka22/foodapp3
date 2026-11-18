@@ -8,7 +8,7 @@ import { ImageFramingControls } from '@/components/admin/image-framing-controls'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/admin/ui';
-import { categoryImageStyle } from '@/lib/category-image-style';
+import { categoryImagePanStyle } from '@/lib/category-image-style';
 import { resolveImageUrl } from '@/lib/image-url';
 import { slugify } from '@/lib/slugify';
 import { uploadImage } from '@/lib/upload';
@@ -166,7 +166,7 @@ export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
             const thumbSrc = c.imageUrl
               ? resolveImageUrl(c.imageUrl) ?? c.imageUrl
               : null;
-            const framing = categoryImageStyle({
+            const pan = categoryImagePanStyle({
               imageScale: c.imageScale,
               imagePositionX: c.imagePositionX,
               imagePositionY: c.imagePositionY,
@@ -176,15 +176,10 @@ export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
                 key={c.id}
                 className="flex flex-wrap items-center gap-3 px-3 py-2.5"
               >
-                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                   {thumbSrc ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={thumbSrc}
-                      alt=""
-                      className="h-full w-full"
-                      style={framing}
-                    />
+                    <img src={thumbSrc} alt="" style={pan} />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-zinc-400">
                       {c.name.slice(0, 1)}

@@ -1,7 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
-import { categoryImageStyle } from '@/lib/category-image-style';
+import { categoryImagePanStyle } from '@/lib/category-image-style';
 import { resolveImageUrl } from '@/lib/image-url';
 import { uz } from '@/lib/uz';
 
@@ -34,15 +34,12 @@ export function StoreCategoryTile({
   active?: boolean;
 }) {
   const img = resolveImageUrl(imageUrl);
-  // Match Control preview: cover + scale/position so framing actually crops.
-  const framing = categoryImageStyle(
-    {
-      imageScale: imageScale ?? 100,
-      imagePositionX,
-      imagePositionY,
-    },
-    { fit: 'cover' },
-  );
+  // Pan via left/top so vertical shift works even on square tiles.
+  const pan = categoryImagePanStyle({
+    imageScale: imageScale ?? 100,
+    imagePositionX,
+    imagePositionY,
+  });
 
   return (
     <button
@@ -56,20 +53,9 @@ export function StoreCategoryTile({
       {gradient ? (
         <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200" />
       ) : img ? (
-        <div
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-          style={{
-            transform: framing.transform,
-            transformOrigin: framing.transformOrigin,
-          }}
-        >
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={img}
-            alt=""
-            className="h-full w-full object-cover"
-            style={{ objectPosition: framing.objectPosition }}
-          />
+          <img src={img} alt="" style={pan} />
         </div>
       ) : (
         <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-zinc-50 text-3xl font-black text-zinc-300">

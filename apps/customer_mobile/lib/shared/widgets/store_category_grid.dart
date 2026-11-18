@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
-import '../../core/utils/image_framing.dart';
 import '../../core/utils/image_url.dart';
 import '../models/restaurant_model.dart';
 
@@ -33,8 +32,9 @@ class StoreCategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final resolved = resolveImageUrl(imageUrl);
     final hasImage = !gradient && resolved != null && resolved.isNotEmpty;
-    final x = ((imagePositionX ?? 50) / 50) - 1;
-    final y = ((imagePositionY ?? 50) / 50) - 1;
+    final scale = ((imageScale ?? 100).clamp(100, 200)) / 100.0;
+    final x = (imagePositionX ?? 50).clamp(0, 100);
+    final y = (imagePositionY ?? 50).clamp(0, 100);
 
     return Material(
       color: Colors.white,
@@ -73,20 +73,33 @@ class StoreCategoryTile extends StatelessWidget {
                   ),
                 ),
               if (hasImage)
-                // Match Control preview: cover + scale/position so framing crops.
-                applyImageFraming(
-                  imageScale: imageScale,
-                  imagePositionX: imagePositionX,
-                  imagePositionY: imagePositionY,
-                  fit: BoxFit.cover,
-                  child: CachedNetworkImage(
-                    imageUrl: resolved,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    alignment: Alignment(x, y),
-                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                  ),
+                // Pan via left/top so vertical shift works on square tiles.
+                LayoutBuilder(
+                  builder: (context, box) {
+                    final w = box.maxWidth * scale;
+                    final h = box.maxHeight * scale;
+                    final left = box.maxWidth * x / 100 - w / 2;
+                    final top = box.maxHeight * y / 100 - h / 2;
+                    return Stack(
+                      clipBehavior: Clip.hardEdge,
+                      children: [
+                        Positioned(
+                          left: left,
+                          top: top,
+                          width: w,
+                          height: h,
+                          child: CachedNetworkImage(
+                            imageUrl: resolved,
+                            fit: BoxFit.cover,
+                            width: w,
+                            height: h,
+                            errorWidget: (_, __, ___) =>
+                                const SizedBox.shrink(),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 )
               else if (!gradient)
                 Center(
