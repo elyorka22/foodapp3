@@ -189,6 +189,11 @@ model BusinessType {
   imageScale       Int      @default(100) @map("image_scale")
   imagePositionX   Int      @default(50) @map("image_position_x")
   imagePositionY   Int      @default(50) @map("image_position_y")
+  /// Store menu tile «Barcha kategoriyalar» (all categories).
+  allCategoriesImageUrl       String? @map("all_categories_image_url")
+  allCategoriesImageScale     Int     @default(100) @map("all_categories_image_scale")
+  allCategoriesImagePositionX Int     @default(50) @map("all_categories_image_position_x")
+  allCategoriesImagePositionY Int     @default(50) @map("all_categories_image_position_y")
   catalogMode      BusinessCatalogMode @default(CATALOG) @map("catalog_mode")
   menuMode         BusinessMenuMode    @default(OWN_CATEGORIES) @map("menu_mode")
   isActive         Boolean  @default(true) @map("is_active")

@@ -68,6 +68,10 @@ export class BusinessTypesService {
         imageScale: dto.imageScale ?? 100,
         imagePositionX: dto.imagePositionX ?? 50,
         imagePositionY: dto.imagePositionY ?? 50,
+        allCategoriesImageUrl: dto.allCategoriesImageUrl?.trim() || null,
+        allCategoriesImageScale: dto.allCategoriesImageScale ?? 100,
+        allCategoriesImagePositionX: dto.allCategoriesImagePositionX ?? 50,
+        allCategoriesImagePositionY: dto.allCategoriesImagePositionY ?? 50,
         catalogMode,
         menuMode,
         sortOrder: dto.sortOrder ?? 0,
@@ -93,6 +97,18 @@ export class BusinessTypesService {
     if (dto.imageScale !== undefined) data.imageScale = dto.imageScale;
     if (dto.imagePositionX !== undefined) data.imagePositionX = dto.imagePositionX;
     if (dto.imagePositionY !== undefined) data.imagePositionY = dto.imagePositionY;
+    if (dto.allCategoriesImageUrl !== undefined) {
+      data.allCategoriesImageUrl = dto.allCategoriesImageUrl.trim() || null;
+    }
+    if (dto.allCategoriesImageScale !== undefined) {
+      data.allCategoriesImageScale = dto.allCategoriesImageScale;
+    }
+    if (dto.allCategoriesImagePositionX !== undefined) {
+      data.allCategoriesImagePositionX = dto.allCategoriesImagePositionX;
+    }
+    if (dto.allCategoriesImagePositionY !== undefined) {
+      data.allCategoriesImagePositionY = dto.allCategoriesImagePositionY;
+    }
     if (dto.catalogMode !== undefined) {
       data.catalogMode = dto.catalogMode === 'CONTACT' ? 'CATALOG' : dto.catalogMode;
     }

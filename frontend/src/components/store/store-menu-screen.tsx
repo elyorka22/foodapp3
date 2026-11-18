@@ -233,6 +233,12 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
             activeId={activeCategoryId}
             onSelectCategory={setActiveCategoryId}
             onOpenAll={() => setShowAllCategories(true)}
+            allCategoriesTile={{
+              imageUrl: business?.businessType?.allCategoriesImageUrl,
+              imageScale: business?.businessType?.allCategoriesImageScale,
+              imagePositionX: business?.businessType?.allCategoriesImagePositionX,
+              imagePositionY: business?.businessType?.allCategoriesImagePositionY,
+            }}
           />
         ) : null}
       </div>

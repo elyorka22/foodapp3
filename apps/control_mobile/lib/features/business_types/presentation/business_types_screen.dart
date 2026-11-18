@@ -14,11 +14,6 @@ import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../data/business_types_repository.dart';
 
-final businessTypesListProvider =
-    FutureProvider.autoDispose<List<ControlBusinessType>>((ref) {
-  return ref.watch(businessTypesRepositoryProvider).fetchTypes();
-});
-
 class BusinessTypesScreen extends ConsumerWidget {
   const BusinessTypesScreen({super.key});
 

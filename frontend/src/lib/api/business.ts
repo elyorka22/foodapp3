@@ -28,6 +28,10 @@ export type BusinessPublic = {
     icon?: string | null;
     catalogMode?: 'CATALOG';
     menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
+    allCategoriesImageUrl?: string | null;
+    allCategoriesImageScale?: number | null;
+    allCategoriesImagePositionX?: number | null;
+    allCategoriesImagePositionY?: number | null;
   } | null;
   category?: string | null;
   cityId?: string | null;
@@ -48,6 +52,10 @@ export type BusinessType = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
+  allCategoriesImageUrl?: string | null;
+  allCategoriesImageScale?: number | null;
+  allCategoriesImagePositionX?: number | null;
+  allCategoriesImagePositionY?: number | null;
   catalogMode?: 'CATALOG';
   menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
   /** 1 = top home carousel, 2 = bottom home row */

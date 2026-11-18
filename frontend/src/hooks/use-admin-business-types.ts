@@ -16,6 +16,10 @@ export type AdminBusinessType = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
+  allCategoriesImageUrl?: string | null;
+  allCategoriesImageScale?: number | null;
+  allCategoriesImagePositionX?: number | null;
+  allCategoriesImagePositionY?: number | null;
   catalogMode?: 'CATALOG';
   menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';
   homeGridRow?: number;
@@ -32,6 +36,10 @@ export type BusinessTypeForm = {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
+  allCategoriesImageUrl?: string | null;
+  allCategoriesImageScale?: number;
+  allCategoriesImagePositionX?: number;
+  allCategoriesImagePositionY?: number;
   catalogMode?: 'CATALOG';
   /** Required on create: SHARED_CATALOG | OWN_CATEGORIES | GLOBAL_DISH */
   menuMode?: 'GLOBAL_DISH' | 'OWN_CATEGORIES' | 'SHARED_CATALOG';

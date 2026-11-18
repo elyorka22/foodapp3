@@ -34,40 +34,48 @@ function HomeIcon({ active }: TabIconProps) {
   );
 }
 
+/** Shared Lucide stroke — cart + profile must match weight/style. */
+const STROKE = 2;
+
 function CartIcon({ active }: TabIconProps) {
   const color = active ? BRAND : IDLE;
+  // Lucide `shopping-cart` — same family as ProfileIcon.
   return (
-    <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M3 4h2.2l1.5 8.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.5L21 7H7"
-        stroke={color}
-        strokeWidth={active ? 2.15 : 1.85}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="9.5" cy="19" r="1.4" stroke={color} strokeWidth={active ? 2.15 : 1.85} />
-      <circle cx="17.5" cy="19" r="1.4" stroke={color} strokeWidth={active ? 2.15 : 1.85} />
+    <svg
+      width={ICON}
+      height={ICON}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={STROKE}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="8" cy="21" r="1" />
+      <circle cx="19" cy="21" r="1" />
+      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
     </svg>
   );
 }
 
 function ProfileIcon({ active }: TabIconProps) {
   const color = active ? BRAND : IDLE;
+  // Lucide `user` — same stroke as CartIcon.
   return (
-    <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle
-        cx="12"
-        cy="8"
-        r="3.4"
-        stroke={color}
-        strokeWidth={active ? 2.15 : 1.85}
-      />
-      <path
-        d="M5.2 19.2c1.2-2.6 3.8-4.2 6.8-4.2s5.6 1.6 6.8 4.2"
-        stroke={color}
-        strokeWidth={active ? 2.15 : 1.85}
-        strokeLinecap="round"
-      />
+    <svg
+      width={ICON}
+      height={ICON}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={STROKE}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
     </svg>
   );
 }

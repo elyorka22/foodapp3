@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// Lucide nav icons — same set as web `bottom-nav.tsx` (Home, ShoppingBasket, User).
+/// Lucide nav icons — same set as web `bottom-nav.tsx` (Home, shopping-cart, user).
 class _LucideStrokeIcon extends StatelessWidget {
   const _LucideStrokeIcon({
     required this.paths,
     this.size = 28,
     this.color,
-    this.strokeWidth = 1.75,
-    this.extra,
+    this.strokeWidth = 2,
   });
 
   final String paths;
-  final String? extra;
   final double size;
   final Color? color;
   final double strokeWidth;
@@ -22,7 +20,7 @@ class _LucideStrokeIcon extends StatelessWidget {
     final c = color ?? Theme.of(context).colorScheme.onSurface;
     final svg = '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="$strokeWidth" stroke-linecap="round" stroke-linejoin="round">
-  $paths${extra ?? ''}
+  $paths
 </svg>
 ''';
     return SvgPicture.string(
@@ -81,56 +79,53 @@ class LucideHomeNavIcon extends StatelessWidget {
   }
 }
 
-/// Web uses `ShoppingBasket`, not shopping bag / cart.
+/// Lucide `shopping-cart` — same stroke family as [LucideUserNavIcon].
 class LucideShoppingBasketNavIcon extends StatelessWidget {
   const LucideShoppingBasketNavIcon({
     super.key,
     this.size = 28,
     this.color,
-    this.active = false,
   });
 
   final double size;
   final Color? color;
-  final bool active;
 
   @override
   Widget build(BuildContext context) {
-    // Same cart glyph as web `bottom-nav.tsx` CartIcon.
     return _LucideStrokeIcon(
       size: size,
       color: color,
-      strokeWidth: active ? 2.15 : 1.85,
+      strokeWidth: 2,
       paths: '''
-<path d="M3 4h2.2l1.5 8.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.5L21 7H7"/>
-<circle cx="9.5" cy="19" r="1.4"/>
-<circle cx="17.5" cy="19" r="1.4"/>
+<circle cx="8" cy="21" r="1"/>
+<circle cx="19" cy="21" r="1"/>
+<path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
 ''',
     );
   }
 }
 
+/// Lucide `user` — same stroke as cart.
 class LucideUserNavIcon extends StatelessWidget {
   const LucideUserNavIcon({
     super.key,
     this.size = 28,
     this.color,
-    this.active = false,
   });
 
   final double size;
   final Color? color;
-  final bool active;
 
   @override
   Widget build(BuildContext context) {
     return _LucideStrokeIcon(
       size: size,
       color: color,
-      strokeWidth: active ? 2.15 : 1.85,
-      extra: '<circle cx="12" cy="8" r="3.4" fill="none"/>',
-      paths:
-          '<path d="M5.2 19.2c1.2-2.6 3.8-4.2 6.8-4.2s5.6 1.6 6.8 4.2"/>',
+      strokeWidth: 2,
+      paths: '''
+<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+<circle cx="12" cy="7" r="4"/>
+''',
     );
   }
 }

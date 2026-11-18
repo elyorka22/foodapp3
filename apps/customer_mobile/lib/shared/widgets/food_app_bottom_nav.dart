@@ -135,13 +135,11 @@ class FoodAppBottomNav extends StatelessWidget {
         return LucideShoppingBasketNavIcon(
           size: _iconSize,
           color: color,
-          active: active,
         );
       default:
         return LucideUserNavIcon(
           size: _iconSize,
           color: color,
-          active: active,
         );
     }
   }

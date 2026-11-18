@@ -69,6 +69,13 @@ export function StoreCategoryTile({
   );
 }
 
+type AllCategoriesTileImage = {
+  imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
+};
+
 type GridProps = {
   categories: StoreCategory[];
   /** Preview on store menu: show at most this many category tiles. */
@@ -77,6 +84,8 @@ type GridProps = {
   onSelectCategory: (id: string) => void;
   /** When set, shows “all categories” tile that opens the full list. */
   onOpenAll?: () => void;
+  /** Image for «Barcha kategoriyalar» tile (from business type). */
+  allCategoriesTile?: AllCategoriesTileImage | null;
   /** Full-page mode: “all products” tile selecting id `all`. */
   showAllProductsTile?: boolean;
 };
@@ -87,10 +96,12 @@ export function StoreCategoryGrid({
   activeId,
   onSelectCategory,
   onOpenAll,
+  allCategoriesTile,
   showAllProductsTile,
 }: GridProps) {
   const visible =
     typeof limit === 'number' ? categories.slice(0, limit) : categories;
+  const allTileImg = allCategoriesTile?.imageUrl?.trim();
 
   return (
     <div className="grid grid-cols-3 gap-2.5">
@@ -117,7 +128,11 @@ export function StoreCategoryGrid({
       {onOpenAll ? (
         <StoreCategoryTile
           title={uz.storeAllCategories}
-          gradient
+          imageUrl={allTileImg || undefined}
+          imageScale={allCategoriesTile?.imageScale}
+          imagePositionX={allCategoriesTile?.imagePositionX}
+          imagePositionY={allCategoriesTile?.imagePositionY}
+          gradient={!allTileImg}
           onClick={onOpenAll}
         />
       ) : null}

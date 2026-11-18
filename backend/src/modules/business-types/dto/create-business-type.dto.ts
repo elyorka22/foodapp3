@@ -56,6 +56,34 @@ export class CreateBusinessTypeDto {
   imagePositionY?: number;
 
   @ApiPropertyOptional({
+    description: 'Image for store menu «Barcha kategoriyalar» tile',
+  })
+  @IsOptional()
+  @IsString()
+  allCategoriesImageUrl?: string;
+
+  @ApiPropertyOptional({ description: 'All-categories tile zoom 50–200%', default: 100 })
+  @IsOptional()
+  @IsInt()
+  @Min(50)
+  @Max(200)
+  allCategoriesImageScale?: number;
+
+  @ApiPropertyOptional({ description: 'All-categories tile focal X 0–100', default: 50 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  allCategoriesImagePositionX?: number;
+
+  @ApiPropertyOptional({ description: 'All-categories tile focal Y 0–100', default: 50 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  allCategoriesImagePositionY?: number;
+
+  @ApiPropertyOptional({
     enum: BusinessCatalogMode,
     default: BusinessCatalogMode.CATALOG,
     description: 'Deprecated: CONTACT is ignored and stored as CATALOG',

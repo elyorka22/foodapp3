@@ -144,6 +144,10 @@ class StoreCategoryGrid extends StatelessWidget {
     this.limit,
     this.activeId,
     this.onOpenAll,
+    this.allCategoriesImageUrl,
+    this.allCategoriesImageScale,
+    this.allCategoriesImagePositionX,
+    this.allCategoriesImagePositionY,
     this.showAllProductsTile = false,
   });
 
@@ -152,12 +156,18 @@ class StoreCategoryGrid extends StatelessWidget {
   final int? limit;
   final String? activeId;
   final VoidCallback? onOpenAll;
+  final String? allCategoriesImageUrl;
+  final int? allCategoriesImageScale;
+  final int? allCategoriesImagePositionX;
+  final int? allCategoriesImagePositionY;
   final bool showAllProductsTile;
 
   @override
   Widget build(BuildContext context) {
     final visible =
         limit == null ? categories : categories.take(limit!).toList();
+    final allTileImg = allCategoriesImageUrl?.trim();
+    final hasAllTileImg = allTileImg != null && allTileImg.isNotEmpty;
     final tiles = <Widget>[
       if (showAllProductsTile)
         StoreCategoryTile(
@@ -179,7 +189,11 @@ class StoreCategoryGrid extends StatelessWidget {
       if (onOpenAll != null)
         StoreCategoryTile(
           title: AppStrings.storeAllCategories,
-          gradient: true,
+          imageUrl: hasAllTileImg ? allTileImg : null,
+          imageScale: allCategoriesImageScale,
+          imagePositionX: allCategoriesImagePositionX,
+          imagePositionY: allCategoriesImagePositionY,
+          gradient: !hasAllTileImg,
           onTap: onOpenAll!,
         ),
     ];

@@ -13,6 +13,10 @@ class BusinessTypeModel {
     this.menuMode,
     this.homeGridRow = 1,
     this.sortOrder,
+    this.allCategoriesImageUrl,
+    this.allCategoriesImageScale,
+    this.allCategoriesImagePositionX,
+    this.allCategoriesImagePositionY,
   });
 
   final String id;
@@ -25,6 +29,10 @@ class BusinessTypeModel {
   final String? menuMode;
   final int homeGridRow;
   final int? sortOrder;
+  final String? allCategoriesImageUrl;
+  final int? allCategoriesImageScale;
+  final int? allCategoriesImagePositionX;
+  final int? allCategoriesImagePositionY;
 
   bool get isRestaurantType =>
       menuMode == 'GLOBAL_DISH' || slug.toLowerCase() == 'restaurant';
@@ -42,6 +50,13 @@ class BusinessTypeModel {
       menuMode: json['menuMode'] as String?,
       homeGridRow: row == 2 ? 2 : 1,
       sortOrder: parseIntOrNull(json['sortOrder']),
+      allCategoriesImageUrl: json['allCategoriesImageUrl'] as String?,
+      allCategoriesImageScale:
+          parseIntOrNull(json['allCategoriesImageScale']),
+      allCategoriesImagePositionX:
+          parseIntOrNull(json['allCategoriesImagePositionX']),
+      allCategoriesImagePositionY:
+          parseIntOrNull(json['allCategoriesImagePositionY']),
     );
   }
 }

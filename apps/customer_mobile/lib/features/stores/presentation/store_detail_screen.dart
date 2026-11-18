@@ -228,6 +228,14 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                             limit: 5,
                             activeId: widget.activeCategoryId,
                             onSelectCategory: widget.onCategoryChanged,
+                            allCategoriesImageUrl:
+                                business.allCategoriesImageUrl,
+                            allCategoriesImageScale:
+                                business.allCategoriesImageScale,
+                            allCategoriesImagePositionX:
+                                business.allCategoriesImagePositionX,
+                            allCategoriesImagePositionY:
+                                business.allCategoriesImagePositionY,
                             onOpenAll: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute<void>(

@@ -15,6 +15,10 @@ class ControlBusinessType {
     this.menuMode,
     this.homeGridRow = 1,
     this.sortOrder = 0,
+    this.allCategoriesImageUrl,
+    this.allCategoriesImageScale = 100,
+    this.allCategoriesImagePositionX = 50,
+    this.allCategoriesImagePositionY = 50,
   });
 
   final String id;
@@ -28,6 +32,11 @@ class ControlBusinessType {
   /// 1 = top home carousel, 2 = bottom home row
   final int homeGridRow;
   final int sortOrder;
+  /// Store menu «Barcha kategoriyalar» tile.
+  final String? allCategoriesImageUrl;
+  final int allCategoriesImageScale;
+  final int allCategoriesImagePositionX;
+  final int allCategoriesImagePositionY;
 
   bool get isStoreVertical =>
       menuMode == 'OWN_CATEGORIES' || menuMode == 'SHARED_CATALOG';
@@ -58,6 +67,13 @@ class ControlBusinessType {
       menuMode: json['menuMode'] as String?,
       homeGridRow: row == 2 ? 2 : 1,
       sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+      allCategoriesImageUrl: json['allCategoriesImageUrl'] as String?,
+      allCategoriesImageScale:
+          (json['allCategoriesImageScale'] as num?)?.toInt() ?? 100,
+      allCategoriesImagePositionX:
+          (json['allCategoriesImagePositionX'] as num?)?.toInt() ?? 50,
+      allCategoriesImagePositionY:
+          (json['allCategoriesImagePositionY'] as num?)?.toInt() ?? 50,
     );
   }
 }
@@ -99,6 +115,10 @@ class BusinessTypesRepository {
     bool? isActive,
     String? menuMode,
     int? homeGridRow,
+    String? allCategoriesImageUrl,
+    int? allCategoriesImageScale,
+    int? allCategoriesImagePositionX,
+    int? allCategoriesImagePositionY,
   }) async {
     final res = await _dio.patch<Map<String, dynamic>>(
       ApiPaths.businessType(id),
@@ -107,6 +127,14 @@ class BusinessTypesRepository {
         if (isActive != null) 'isActive': isActive,
         if (menuMode != null) 'menuMode': menuMode,
         if (homeGridRow != null) 'homeGridRow': homeGridRow == 2 ? 2 : 1,
+        if (allCategoriesImageUrl != null)
+          'allCategoriesImageUrl': allCategoriesImageUrl,
+        if (allCategoriesImageScale != null)
+          'allCategoriesImageScale': allCategoriesImageScale,
+        if (allCategoriesImagePositionX != null)
+          'allCategoriesImagePositionX': allCategoriesImagePositionX,
+        if (allCategoriesImagePositionY != null)
+          'allCategoriesImagePositionY': allCategoriesImagePositionY,
       },
     );
     return ControlBusinessType.fromJson(res.data ?? <String, dynamic>{});
@@ -120,4 +148,9 @@ class BusinessTypesRepository {
 final businessTypesRepositoryProvider =
     Provider<BusinessTypesRepository>((ref) {
   return BusinessTypesRepository(ref.watch(dioProvider));
+});
+
+final businessTypesListProvider =
+    FutureProvider.autoDispose<List<ControlBusinessType>>((ref) {
+  return ref.watch(businessTypesRepositoryProvider).fetchTypes();
 });

@@ -219,6 +219,9 @@ abstract final class AppStrings {
       'Do‘kon ichidagi kvadrat plitka (3 ustun, yumaloq 20). Masshtab 100–200% — kesish.';
   static const storeCategoryImagePreviewHint =
       'Rasm yuklang — kategoriya plitkasi ko‘rinishi';
+  static const allCategoriesTileImage = '«Barcha kategoriyalar» rasmi';
+  static const allCategoriesTileImageHint =
+      'Do‘kon menyusidagi «Barcha kategoriyalar» plitkasi uchun rasm.';
   static const bannerImageScale = 'Masshtab';
   static const bannerImagePosX = 'Gorizontal';
   static const bannerImagePosY = 'Vertikal';

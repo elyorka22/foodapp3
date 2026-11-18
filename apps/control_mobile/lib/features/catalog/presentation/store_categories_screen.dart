@@ -15,6 +15,7 @@ import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
+import '../../business_types/data/business_types_repository.dart';
 import '../../shell/control_vertical_scope.dart';
 import '../data/catalog_repository.dart';
 import '../data/product_category_model.dart';
@@ -113,6 +114,16 @@ class StoreCategoriesScreen extends ConsumerWidget {
             ),
           ),
         ),
+        if (canManage && scope.id != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              0,
+              AppSpacing.lg,
+              8,
+            ),
+            child: _AllCategoriesTileCard(businessTypeId: scope.id!),
+          ),
         Expanded(
           child: !canManage
               ? const Center(child: Text(AppStrings.storeCategoriesNeedType))
@@ -171,6 +182,154 @@ class StoreCategoriesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(child: body),
+    );
+  }
+}
+
+class _AllCategoriesTileCard extends ConsumerWidget {
+  const _AllCategoriesTileCard({required this.businessTypeId});
+
+  final String businessTypeId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final typesAsync = ref.watch(businessTypesListProvider);
+    ControlBusinessType? type;
+    for (final t in typesAsync.valueOrNull ?? const <ControlBusinessType>[]) {
+      if (t.id == businessTypeId) {
+        type = t;
+        break;
+      }
+    }
+
+    return Material(
+      color: AppColors.surfaceMuted,
+      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        onTap: type == null
+            ? null
+            : () => showDetailSheet(
+                  context: context,
+                  title: AppStrings.allCategoriesTileImage,
+                  initialChildSize: 0.9,
+                  builder: (_) => _AllCategoriesTileFormSheet(type: type),
+                ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              _Thumb(url: type?.allCategoriesImageUrl),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStrings.allCategoriesTileImage,
+                      style: AppTypography.subtitle,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      AppStrings.allCategoriesTileImageHint,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AllCategoriesTileFormSheet extends ConsumerStatefulWidget {
+  const _AllCategoriesTileFormSheet({required this.type});
+
+  final ControlBusinessType type;
+
+  @override
+  ConsumerState<_AllCategoriesTileFormSheet> createState() =>
+      _AllCategoriesTileFormSheetState();
+}
+
+class _AllCategoriesTileFormSheetState
+    extends ConsumerState<_AllCategoriesTileFormSheet> {
+  late final TextEditingController _imageUrl;
+  late ImageFramingValues _framing;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final t = widget.type;
+    _imageUrl = TextEditingController(text: t.allCategoriesImageUrl ?? '');
+    _framing = ImageFramingValues(
+      imageScale: t.allCategoriesImageScale,
+      imagePositionX: t.allCategoriesImagePositionX,
+      imagePositionY: t.allCategoriesImagePositionY,
+    );
+  }
+
+  @override
+  void dispose() {
+    _imageUrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(businessTypesRepositoryProvider).updateType(
+            widget.type.id,
+            allCategoriesImageUrl: _imageUrl.text.trim(),
+            allCategoriesImageScale: _framing.imageScale,
+            allCategoriesImagePositionX: _framing.imagePositionX,
+            allCategoriesImagePositionY: _framing.imagePositionY,
+          );
+      ref.invalidate(businessTypesListProvider);
+      if (!mounted) return;
+      showActionSnackBar(context, AppStrings.actionDone);
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) showActionError(context, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          AppStrings.allCategoriesTileImageHint,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ImageUploadField(
+          imageUrlController: _imageUrl,
+          enabled: !_busy,
+          refererPath: '/admin/stores/categories',
+          enableFraming: true,
+          framingPreviewKind: ImageFramingPreviewKind.storeCategoryTile,
+          framing: _framing,
+          onFramingChanged: (v) => setState(() => _framing = v),
+        ),
+        MutationButton(
+          label: AppStrings.save,
+          loading: _busy,
+          onPressed: _busy ? null : _save,
+        ),
+      ],
     );
   }
 }

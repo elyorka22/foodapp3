@@ -1,8 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAdminProductCategories, type StoreCategoryForm } from '@/hooks/use-admin-product-categories';
+import {
+  useAdminBusinessTypes,
+  type AdminBusinessType,
+} from '@/hooks/use-admin-business-types';
 import { BusinessImageUpload } from '@/components/admin/business-image-upload';
 import { ImageFramingControls } from '@/components/admin/image-framing-controls';
 import { Button } from '@/components/ui/button';
@@ -16,6 +20,14 @@ import { uploadImage } from '@/lib/upload';
 type Props = {
   typeSlug: string;
   typeName: string;
+  businessType?: AdminBusinessType | null;
+};
+
+type AllTileForm = {
+  imageUrl: string;
+  imageScale: number;
+  imagePositionX: number;
+  imagePositionY: number;
 };
 
 const emptyForm: StoreCategoryForm = {
@@ -28,13 +40,31 @@ const emptyForm: StoreCategoryForm = {
   sortOrder: 0,
 };
 
-export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
+function allTileFromType(type?: AdminBusinessType | null): AllTileForm {
+  return {
+    imageUrl: type?.allCategoriesImageUrl ?? '',
+    imageScale: type?.allCategoriesImageScale ?? 100,
+    imagePositionX: type?.allCategoriesImagePositionX ?? 50,
+    imagePositionY: type?.allCategoriesImagePositionY ?? 50,
+  };
+}
+
+export function StoreCategoryPanel({ typeSlug, typeName, businessType }: Props) {
   const { list, create, update, remove } = useAdminProductCategories({ typeSlug });
+  const businessTypes = useAdminBusinessTypes();
   const [form, setForm] = useState<StoreCategoryForm>(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [allTile, setAllTile] = useState<AllTileForm>(() => allTileFromType(businessType));
+  const [allTileUploading, setAllTileUploading] = useState(false);
+  const [allTileSaving, setAllTileSaving] = useState(false);
 
   const rows = list.data ?? [];
+  const typeId = businessType?.id;
+
+  useEffect(() => {
+    setAllTile(allTileFromType(businessType));
+  }, [businessType]);
 
   const uploadCategoryImage = async (file: File) => {
     setUploading(true);
@@ -46,6 +76,43 @@ export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
       toast.error(e instanceof Error ? e.message : 'Upload failed');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const uploadAllTileImage = async (file: File) => {
+    setAllTileUploading(true);
+    try {
+      const { url } = await uploadImage(file);
+      setAllTile((f) => ({ ...f, imageUrl: url }));
+      toast.success('Rasm yuklandi');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setAllTileUploading(false);
+    }
+  };
+
+  const saveAllTile = async () => {
+    if (!typeId) {
+      toast.error('Biznes turi topilmadi');
+      return;
+    }
+    setAllTileSaving(true);
+    try {
+      await businessTypes.update.mutateAsync({
+        id: typeId,
+        body: {
+          allCategoriesImageUrl: allTile.imageUrl.trim() || '',
+          allCategoriesImageScale: allTile.imageScale,
+          allCategoriesImagePositionX: allTile.imagePositionX,
+          allCategoriesImagePositionY: allTile.imagePositionY,
+        },
+      });
+      toast.success('«Barcha kategoriyalar» rasmi saqlandi');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Xatolik');
+    } finally {
+      setAllTileSaving(false);
     }
   };
 
@@ -92,6 +159,53 @@ export function StoreCategoryPanel({ typeSlug, typeName }: Props) {
         <strong>{typeName}</strong> — umumiy mahsulot kategoriyalari. Shu turdagi barcha
         do‘konlar bir xil ro‘yxatdan foydalanadi. Faqat admin tahrirlaydi.
       </p>
+
+      {typeId ? (
+        <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-zinc-900/40">
+          <div>
+            <p className="text-sm font-semibold">«Barcha kategoriyalar» rasmi</p>
+            <p className="mt-0.5 text-xs text-zinc-500">
+              Do‘kon menyusidagi «Barcha kategoriyalar» plitkasi uchun.
+            </p>
+          </div>
+          <BusinessImageUpload
+            label="Plitka rasmi"
+            hint="Kvadrat kategoriya plitkasi"
+            imageUrl={allTile.imageUrl}
+            disabled={allTileUploading || allTileSaving}
+            onFile={(file) => void uploadAllTileImage(file)}
+          />
+          {allTile.imageUrl ? (
+            <ImageFramingControls
+              label="Joylashuv (zoom / position)"
+              imageUrl={allTile.imageUrl}
+              values={{
+                imageScale: allTile.imageScale,
+                imagePositionX: allTile.imagePositionX,
+                imagePositionY: allTile.imagePositionY,
+              }}
+              onChange={(next) =>
+                setAllTile((f) => ({
+                  ...f,
+                  imageScale: next.imageScale ?? 100,
+                  imagePositionX: next.imagePositionX ?? 50,
+                  imagePositionY: next.imagePositionY ?? 50,
+                }))
+              }
+              previewAspectClass="aspect-[1/1.05]"
+              previewMaxWidthClass="max-w-[140px]"
+              previewRoundedClass="rounded-[20px]"
+            />
+          ) : null}
+          <Button
+            type="button"
+            onClick={() => void saveAllTile()}
+            disabled={allTileUploading || allTileSaving || businessTypes.update.isPending}
+          >
+            {allTileSaving ? 'Saqlanmoqda…' : 'Plitka rasmini saqlash'}
+          </Button>
+        </div>
+      ) : null}
 
       <div className="space-y-3 rounded-lg border border-dashed border-zinc-200 p-3 dark:border-white/10">
         <p className="text-sm font-semibold">{editId ? 'Tahrirlash' : 'Yangi kategoriya'}</p>

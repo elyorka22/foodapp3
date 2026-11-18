@@ -74,7 +74,11 @@ export function MerchantCategoriesPage({ title, vertical, listHref, typeSlug }: 
         </Link>
       </div>
 
-      <StoreCategoryPanel typeSlug={typeSlug} typeName={typeName} />
+      <StoreCategoryPanel
+        typeSlug={typeSlug}
+        typeName={typeName}
+        businessType={type ?? null}
+      />
     </div>
   );
 }

@@ -58,6 +58,10 @@ class RestaurantModel {
     this.address,
     this.categories,
     this.products,
+    this.allCategoriesImageUrl,
+    this.allCategoriesImageScale,
+    this.allCategoriesImagePositionX,
+    this.allCategoriesImagePositionY,
   });
 
   final String id;
@@ -84,10 +88,16 @@ class RestaurantModel {
   final String? address;
   final List<RestaurantCategoryModel>? categories;
   final List<ProductModel>? products;
+  final String? allCategoriesImageUrl;
+  final int? allCategoriesImageScale;
+  final int? allCategoriesImagePositionX;
+  final int? allCategoriesImagePositionY;
 
   factory RestaurantModel.fromJson(Map<String, dynamic> json) {
     final cats = json['productCategories'] ?? json['categories'];
     final prods = json['products'];
+    final bt = json['businessType'];
+    final btMap = bt is Map ? Map<String, dynamic>.from(bt) : null;
     return RestaurantModel(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -112,6 +122,13 @@ class RestaurantModel {
       kind: json['kind'] as String?,
       phone: json['phone'] as String?,
       address: json['address'] as String?,
+      allCategoriesImageUrl: parseString(btMap?['allCategoriesImageUrl']),
+      allCategoriesImageScale:
+          parseIntOrNull(btMap?['allCategoriesImageScale']),
+      allCategoriesImagePositionX:
+          parseIntOrNull(btMap?['allCategoriesImagePositionX']),
+      allCategoriesImagePositionY:
+          parseIntOrNull(btMap?['allCategoriesImagePositionY']),
       categories: cats is List
           ? cats
               .whereType<Map>()
