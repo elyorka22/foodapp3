@@ -103,11 +103,7 @@ class DeliveryMap extends StatelessWidget {
                 onPressed: !canNav
                     ? null
                     : () async {
-                        final destLat = lat;
-                        final destLng = lng;
-                        if (destLat == null || destLng == null) return;
-                        final ok =
-                            await openYandexNavigation(destLat, destLng);
+                        final ok = await openYandexNavigation(lat, lng);
                         if (!ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -125,11 +121,7 @@ class DeliveryMap extends StatelessWidget {
                 onPressed: !canNav
                     ? null
                     : () async {
-                        final destLat = lat;
-                        final destLng = lng;
-                        if (destLat == null || destLng == null) return;
-                        final ok =
-                            await openGoogleNavigation(destLat, destLng);
+                        final ok = await openGoogleNavigation(lat, lng);
                         if (!ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
