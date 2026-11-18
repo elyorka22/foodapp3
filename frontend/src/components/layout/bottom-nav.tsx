@@ -133,7 +133,7 @@ export function BottomNav() {
       className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-100 bg-white pb-[env(safe-area-inset-bottom,0px)]"
       aria-label="Asosiy navigatsiya"
     >
-      <ul className="mx-auto flex max-w-lg items-stretch justify-around px-2 pt-2 pb-2">
+      <ul className="mx-auto flex max-w-lg items-stretch justify-around px-2 pt-1.5 pb-1">
         {tabs.map(({ href, label, Icon, match }) => {
           const active = match(pathname);
           const showBadge = href === '/cart' && cartCount > 0;
@@ -145,13 +145,13 @@ export function BottomNav() {
                 aria-label={label}
                 aria-current={active ? 'page' : undefined}
                 onClick={handleNavClick(href)}
-                className="mx-auto flex max-w-[5.5rem] flex-col items-center gap-1 px-2 py-1 transition active:scale-95"
+                className="mx-auto flex max-w-[5.5rem] flex-col items-center gap-0.5 px-2 py-0.5 transition active:scale-95"
               >
-                <span className="relative flex h-12 w-12 items-center justify-center">
+                <span className="relative flex h-9 w-9 items-center justify-center">
                   <Icon active={active} />
                   {showBadge && (
                     <span
-                      className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+                      className="absolute -right-1 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
                       style={{ backgroundColor: BRAND }}
                     >
                       {cartCount > 99 ? '99+' : cartCount}
