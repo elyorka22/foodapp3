@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// Lucide nav icons — same set as web `bottom-nav.tsx` (Home, shopping-cart, user).
-class _LucideStrokeIcon extends StatelessWidget {
-  const _LucideStrokeIcon({
+/// Nav stroke icons matching web `bottom-nav.tsx` (Lucide shopping-cart + user).
+///
+/// Uses [SvgTheme.currentColor] — not [ColorFilter] — so stroke weight matches web.
+class _WebNavStrokeIcon extends StatelessWidget {
+  const _WebNavStrokeIcon({
     required this.paths,
-    this.size = 28,
-    this.color,
-    this.strokeWidth = 2,
+    required this.size,
+    required this.color,
   });
 
   final String paths;
   final double size;
-  final Color? color;
-  final double strokeWidth;
+  final Color color;
+
+  static const _stroke = 2.0;
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? Theme.of(context).colorScheme.onSurface;
     final svg = '''
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="$strokeWidth" stroke-linecap="round" stroke-linejoin="round">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="$_stroke" stroke-linecap="round" stroke-linejoin="round">
   $paths
 </svg>
 ''';
@@ -27,12 +28,13 @@ class _LucideStrokeIcon extends StatelessWidget {
       svg,
       width: size,
       height: size,
-      colorFilter: ColorFilter.mode(c, BlendMode.srcIn),
+      allowDrawingOutsideViewBox: true,
+      theme: SvgTheme(currentColor: color),
     );
   }
 }
 
-/// New brand wing mark for home tab — matches rebrand logo / web home tab.
+/// Brand wing mark for home tab — same asset + grayscale idle as web.
 class LucideHomeNavIcon extends StatelessWidget {
   const LucideHomeNavIcon({
     super.key,
@@ -79,11 +81,11 @@ class LucideHomeNavIcon extends StatelessWidget {
   }
 }
 
-/// Lucide `shopping-cart` — same stroke family as [LucideUserNavIcon].
+/// Lucide `shopping-cart` — identical paths to web [CartIcon].
 class LucideShoppingBasketNavIcon extends StatelessWidget {
   const LucideShoppingBasketNavIcon({
     super.key,
-    this.size = 28,
+    this.size = 31,
     this.color,
   });
 
@@ -92,10 +94,9 @@ class LucideShoppingBasketNavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _LucideStrokeIcon(
+    return _WebNavStrokeIcon(
       size: size,
-      color: color,
-      strokeWidth: 2,
+      color: color ?? Theme.of(context).colorScheme.onSurface,
       paths: '''
 <circle cx="8" cy="21" r="1"/>
 <circle cx="19" cy="21" r="1"/>
@@ -105,11 +106,11 @@ class LucideShoppingBasketNavIcon extends StatelessWidget {
   }
 }
 
-/// Lucide `user` — same stroke as cart.
+/// Lucide `user` — identical paths to web [ProfileIcon].
 class LucideUserNavIcon extends StatelessWidget {
   const LucideUserNavIcon({
     super.key,
-    this.size = 28,
+    this.size = 31,
     this.color,
   });
 
@@ -118,10 +119,9 @@ class LucideUserNavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _LucideStrokeIcon(
+    return _WebNavStrokeIcon(
       size: size,
-      color: color,
-      strokeWidth: 2,
+      color: color ?? Theme.of(context).colorScheme.onSurface,
       paths: '''
 <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
 <circle cx="12" cy="7" r="4"/>

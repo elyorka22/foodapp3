@@ -44,6 +44,7 @@ class _BellButton extends ConsumerWidget {
     return NotificationBell(
       unreadCount: unread,
       color: AppColors.textPrimary,
+      // Same Lucide size as web `home-center-header.tsx`.
       size: 22,
       onTap: () {
         if (user == null) {

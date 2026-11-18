@@ -1,20 +1,21 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-/// Bildirishnoma qo'ng'irog'i.
+/// Bildirishnoma qo'ng'irog'i — matches web `notification-bell.tsx`.
 ///
-/// - unreadCount > 0: qo'ng'iroq har 4 soniyada bir marta silkinadi
-///   (qisqa "jiringlash", keyin pauza) va ustida qizil nishon chiqadi.
-/// - unreadCount == 0: qo'ng'iroq jim turadi, nishon yo'qoladi.
-/// - Telefonda "animatsiyalarni o'chirish" yoqilgan bo'lsa, silkinmaydi.
+/// - unreadCount > 0: short ring every 4s + filled Lucide bell + red badge
+/// - unreadCount == 0: outline Lucide bell, no badge
+/// - Respects reduce-motion
 class NotificationBell extends StatefulWidget {
   const NotificationBell({
     super.key,
     required this.unreadCount,
     this.onTap,
-    this.color = const Color(0xFF1C1C24),
-    this.size = 28,
+    this.color = const Color(0xFF18181B),
+    /// Lucide size on web home/profile headers.
+    this.size = 22,
   });
 
   final int unreadCount;
@@ -72,6 +73,24 @@ class _NotificationBellState extends State<NotificationBell>
     return math.sin(p * math.pi * 6) * (1 - p) * 0.38;
   }
 
+  /// Lucide `bell` — same paths as web `<Bell />`.
+  Widget _lucideBell() {
+    final stroke = _hasUnread ? 2.25 : 2.0;
+    final fill = _hasUnread ? 'currentColor' : 'none';
+    final svg = '''
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="$fill" stroke="currentColor" stroke-width="$stroke" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+</svg>
+''';
+    return SvgPicture.string(
+      svg,
+      width: widget.size,
+      height: widget.size,
+      theme: SvgTheme(currentColor: widget.color),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final count = widget.unreadCount;
@@ -84,6 +103,7 @@ class _NotificationBellState extends State<NotificationBell>
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
+        // Web hit area: h-11 w-11 (44px).
         child: SizedBox(
           width: 44,
           height: 44,
@@ -97,13 +117,7 @@ class _NotificationBellState extends State<NotificationBell>
                   alignment: Alignment.topCenter,
                   child: child,
                 ),
-                child: Icon(
-                  _hasUnread
-                      ? Icons.notifications_rounded
-                      : Icons.notifications_none_rounded,
-                  size: widget.size,
-                  color: widget.color,
-                ),
+                child: _lucideBell(),
               ),
               Positioned(
                 top: 3,
@@ -113,7 +127,8 @@ class _NotificationBellState extends State<NotificationBell>
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutBack,
                   child: Container(
-                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                    constraints:
+                        const BoxConstraints(minWidth: 18, minHeight: 18),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(

@@ -8,6 +8,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../shared/widgets/notification_bell.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
 import '../data/account_deletion_repository.dart';
@@ -324,38 +325,11 @@ class _ProfileHeader extends StatelessWidget {
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 22),
               color: AppColors.textPrimary,
             ),
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                IconButton(
-                  onPressed: () => context.push(AppRoutes.notifications),
-                  icon: const Icon(Icons.notifications_none_rounded, size: 24),
-                  color: AppColors.textPrimary,
-                ),
-                if (unread > 0)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.danger,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        unread > 99 ? '99+' : '$unread',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            NotificationBell(
+              unreadCount: unread,
+              size: 22,
+              color: AppColors.textPrimary,
+              onTap: () => context.push(AppRoutes.notifications),
             ),
           ],
         ),
