@@ -9,7 +9,8 @@ import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/widgets/business_availability_badge.dart';
 import '../../../shared/widgets/circle_icon_button.dart';
 import '../../../shared/widgets/menu_product_card.dart';
-import '../../../shared/widgets/restaurant_category_tabs.dart';
+import '../../../shared/widgets/store_all_categories_page.dart';
+import '../../../shared/widgets/store_category_circles.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../../restaurants/providers/restaurants_provider.dart';
 
@@ -174,11 +175,30 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                       ),
                     ],
                     const SizedBox(height: AppSpacing.lg),
-                    RestaurantCategoryTabs(
-                      categories: categories,
-                      activeId: widget.activeCategoryId,
-                      onChanged: widget.onCategoryChanged,
-                    ),
+                    if (categories.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE4E4E7)),
+                        ),
+                        child: StoreCategoryCircles(
+                          categories: categories,
+                          activeId: widget.activeCategoryId,
+                          onChanged: widget.onCategoryChanged,
+                          onOpenAll: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => StoreAllCategoriesPage(
+                                  categories: categories,
+                                  onSelect: widget.onCategoryChanged,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                   ],
                 ),
               ),

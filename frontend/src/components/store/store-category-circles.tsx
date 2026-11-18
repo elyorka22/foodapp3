@@ -19,6 +19,8 @@ type Props = {
   categories: StoreCategory[];
   activeId: string;
   onChange: (id: string) => void;
+  /** Opens full all-categories grid page (LayoutGrid tile). */
+  onOpenAll?: () => void;
 };
 
 const CIRCLE_COLORS = [
@@ -35,6 +37,7 @@ export function StoreCategoryCircles({
   categories,
   activeId,
   onChange,
+  onOpenAll,
 }: Props) {
   const visible = categories.slice(0, 7);
   const items: Array<StoreCategory & { all?: boolean }> = [
@@ -45,7 +48,7 @@ export function StoreCategoryCircles({
   return (
     <div className="grid grid-cols-4 gap-x-2 gap-y-3">
       {items.map((cat, index) => {
-        const active = activeId === cat.id;
+        const active = !cat.all && activeId === cat.id;
         const imageSrc =
           !cat.all && cat.imageUrl
             ? resolveImageUrl(cat.imageUrl) ?? cat.imageUrl
@@ -60,7 +63,14 @@ export function StoreCategoryCircles({
           <button
             key={cat.id === 'all' ? 'all-cats' : cat.id}
             type="button"
-            onClick={() => onChange(cat.id)}
+            onClick={() => {
+              if (cat.all) {
+                if (onOpenAll) onOpenAll();
+                else onChange('all');
+                return;
+              }
+              onChange(cat.id);
+            }}
             className="flex flex-col items-center gap-1.5 active:scale-[0.97]"
           >
             <span

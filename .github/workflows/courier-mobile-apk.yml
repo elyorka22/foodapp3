@@ -68,7 +68,7 @@ jobs:
         run: chmod +x scripts/apply_app_icons.sh && ./scripts/apply_app_icons.sh
 
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Test
         run: flutter test

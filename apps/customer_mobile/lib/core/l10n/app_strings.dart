@@ -31,6 +31,7 @@ abstract final class AppStrings {
   static String searchInMenu(String name) => '$name ichidan qidirish';
   static const searchNoResults = 'Hech narsa topilmadi';
   static const categories = 'Kategoriyalar';
+  static const storeAllCategories = 'Barcha kategoriyalar';
   static const dishCategories = 'Taom kategoriyalari';
   static const allRestaurants = 'Barcha restoranlar';
   static const restaurants = 'Restoranlar';

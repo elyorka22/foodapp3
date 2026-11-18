@@ -12,6 +12,7 @@ import { useHomeBanners } from '@/hooks/use-home-data';
 import { BannerSlotCarousel } from '@/components/home/banner-slot-carousel';
 import type { BusinessMenuDetail } from '@/components/business/business-menu-screen';
 import type { MenuProduct } from '@/components/restaurant/product-card';
+import { StoreAllCategoriesPage } from '@/components/store/store-all-categories-page';
 import { StoreCategoryCircles } from '@/components/store/store-category-circles';
 import { StoreProductCard } from '@/components/store/store-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -74,6 +75,7 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
   const router = useRouter();
   const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const [activeCategoryId, setActiveCategoryId] = useState('all');
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const [query, setQuery] = useState('');
 
   const { data: business, isLoading, isError, refetch } = useQuery({
@@ -177,6 +179,19 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
     );
   }
 
+  if (showAllCategories && categories.length > 0) {
+    return (
+      <StoreAllCategoriesPage
+        categories={categories}
+        onBack={() => setShowAllCategories(false)}
+        onSelect={(id) => {
+          setActiveCategoryId(id);
+          setShowAllCategories(false);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto min-h-screen max-w-lg bg-background pb-24">
       <header className="sticky top-0 z-30 bg-background/95 px-4 pb-3 pt-[calc(env(safe-area-inset-top,0px)+10px)] backdrop-blur-md">
@@ -217,6 +232,7 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
               categories={categories}
               activeId={activeCategoryId}
               onChange={setActiveCategoryId}
+              onOpenAll={() => setShowAllCategories(true)}
             />
           </div>
         ) : null}

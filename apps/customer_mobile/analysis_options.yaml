@@ -10,3 +10,7 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "lib/core/push/_firebase_dormant/**"
+  # Flutter 3.50 deprecates package:flutter/material.dart → material_ui.
+  # Keep infos non-blocking until the app migrates (dart fix migrate_design_widgets).
+  errors:
+    deprecated_member_use: ignore

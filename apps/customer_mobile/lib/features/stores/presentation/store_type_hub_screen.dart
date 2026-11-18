@@ -11,7 +11,6 @@ import '../../../core/utils/image_url.dart';
 import '../../../core/utils/restaurant_card_meta.dart';
 import '../../../core/utils/safe_area_padding.dart';
 import '../../../shared/models/business_model.dart';
-import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/widgets/circle_icon_button.dart';
 import '../data/stores_repository.dart';
 import '../providers/stores_provider.dart';

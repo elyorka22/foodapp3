@@ -4,3 +4,8 @@ linter:
   rules:
     prefer_const_constructors: true
     avoid_print: true
+
+analyzer:
+  # Flutter 3.50: material.dart → material_ui; migrate later via dart fix.
+  errors:
+    deprecated_member_use: ignore

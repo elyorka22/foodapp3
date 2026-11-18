@@ -69,7 +69,8 @@ jobs:
         run: flutter pub get
 
       - name: Analyze
-        run: flutter analyze
+        # Flutter 3.50: material.dart → material_ui deprecation infos
+        run: flutter analyze --no-fatal-infos
 
       - name: Test
         run: flutter test
