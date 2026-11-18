@@ -17,6 +17,9 @@ abstract final class AppStrings {
   static const profileNotificationsSubtitle = "yangi xabarlar";
   static const profileHelpSubtitle = 'savollar va yordam';
   static const profilePartnershipSubtitle = 'biznes takliflari va hamkorlik';
+  static const profileContact = "Bog'lanish";
+  static const profileAboutApp = 'Ilova haqida';
+  static String profileVersion(String version) => 'ver: $version';
   static const profileSocialTitle =
       "Bizni ijtimoiy tarmoqlarda kuzatib boring";
   static const profileSocialFollow = "obuna bo'ling";
@@ -24,6 +27,8 @@ abstract final class AppStrings {
       "Havola hali sozlanmagan. Admin panelda saqlang.";
   static const profileTermsSubtitle = "qoidalar va maxfiylik";
   static const profileLanguageSubtitle = "o'zbek / русский";
+  static const ordersTitle = 'Buyurtmalarim';
+  static const favoritesTitle = 'Sevimlilar';
 
   static const searchRestaurants = 'Restoran qidirish';
   static const searchStores = "Do'kon qidirish";

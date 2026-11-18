@@ -13,7 +13,7 @@ import { BannerSlotCarousel } from '@/components/home/banner-slot-carousel';
 import type { BusinessMenuDetail } from '@/components/business/business-menu-screen';
 import type { MenuProduct } from '@/components/restaurant/product-card';
 import { StoreAllCategoriesPage } from '@/components/store/store-all-categories-page';
-import { StoreCategoryCircles } from '@/components/store/store-category-circles';
+import { StoreCategoryGrid } from '@/components/store/store-category-grid';
 import { StoreProductCard } from '@/components/store/store-product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -227,14 +227,13 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
 
       <div className="px-4 pt-3">
         {categories.length > 0 ? (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-            <StoreCategoryCircles
-              categories={categories}
-              activeId={activeCategoryId}
-              onChange={setActiveCategoryId}
-              onOpenAll={() => setShowAllCategories(true)}
-            />
-          </div>
+          <StoreCategoryGrid
+            categories={categories}
+            limit={7}
+            activeId={activeCategoryId}
+            onSelectCategory={setActiveCategoryId}
+            onOpenAll={() => setShowAllCategories(true)}
+          />
         ) : null}
       </div>
 

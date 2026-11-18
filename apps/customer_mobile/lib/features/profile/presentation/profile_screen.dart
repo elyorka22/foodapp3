@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/config/public_settings_provider.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
@@ -10,34 +11,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../notifications/providers/notifications_provider.dart';
 import '../data/account_deletion_repository.dart';
-import 'profile_banner_tile.dart';
 import 'profile_social_section.dart';
-
-const _bannerAddIcon = Icon(
-  Icons.add,
-  size: 48,
-  color: Color(0xE6FFFFFF),
-);
-const _bannerRegisterIcon = Icon(
-  Icons.person_add_alt_1_outlined,
-  size: 40,
-  color: Color(0xD918181B),
-);
-const _bannerHelpIcon = Icon(
-  Icons.help_outline_rounded,
-  size: 40,
-  color: AppColors.textMuted,
-);
-const _bannerPartnershipIcon = Icon(
-  Icons.handshake_outlined,
-  size: 40,
-  color: AppColors.textSecondary,
-);
-const _bannerNotificationIcon = Icon(
-  Icons.notifications_outlined,
-  size: 40,
-  color: Color(0x999CA3AF),
-);
 
 Future<void> _confirmDeleteAccount(
   BuildContext context,
@@ -100,8 +74,8 @@ class ProfileScreen extends ConsumerWidget {
         child: auth.when(
           data: (user) {
             final unread = unreadAsync.valueOrNull ?? 0;
-            final displayName = user?.fullName ?? AppStrings.profileGuestName;
             final isLoggedIn = user != null;
+            final displayName = user?.fullName ?? AppStrings.profileGuestName;
             final settings = settingsAsync.valueOrNull;
             final socialLinks = ProfileSocialLinks(
               instagramUrl: settings?.socialInstagramUrl ?? '',
@@ -123,35 +97,99 @@ class ProfileScreen extends ConsumerWidget {
                   AppSpacing.xxxl,
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _ProfileHeader(name: displayName),
-                    const SizedBox(height: AppSpacing.xxl),
-                    if (!isLoggedIn)
-                      _GuestBannerGrid(
-                        onLogin: () => context.push('/profile/login'),
-                        onRegister: () => context.push('/profile/register'),
-                        onHelp: () => context.push(AppRoutes.profileHelp),
-                      )
-                    else
-                      _LoggedInBannerGrid(
-                        unread: unread,
-                        onNotifications: () =>
-                            context.push(AppRoutes.notifications),
-                        onHelp: () => context.push(AppRoutes.profileHelp),
-                        onPartnership: () =>
-                            context.push(AppRoutes.profilePartnership),
+                    _ProfileHeader(
+                      name: displayName,
+                      phone: user?.phone,
+                      unread: unread,
+                    ),
+                    const SizedBox(height: 20),
+                    if (!isLoggedIn) ...[
+                      _MenuCard(
+                        children: [
+                          _MenuRow(
+                            icon: Icons.login_rounded,
+                            label: AppStrings.login,
+                            hint: AppStrings.profileLoginSubtitle,
+                            onTap: () => context.push('/profile/login'),
+                          ),
+                          _MenuRow(
+                            icon: Icons.person_add_alt_1_rounded,
+                            label: AppStrings.register,
+                            hint: AppStrings.profileRegisterSubtitle,
+                            onTap: () => context.push('/profile/register'),
+                            showDivider: false,
+                          ),
+                        ],
                       ),
-                    ProfileSocialSection(links: socialLinks),
-                    if (user != null) ...[
-                      const SizedBox(height: AppSpacing.xl),
-                      TextButton(
-                        onPressed: () =>
+                      const SizedBox(height: 12),
+                    ],
+                    _MenuCard(
+                      children: [
+                        _MenuRow(
+                          icon: Icons.percent_rounded,
+                          label: AppStrings.promotionsTitle,
+                          onTap: () => context.push(AppRoutes.promotions),
+                        ),
+                        _MenuRow(
+                          icon: Icons.notifications_none_rounded,
+                          label: AppStrings.notificationsTitle,
+                          trailing: unread > 0
+                              ? (unread > 99 ? '99+' : '$unread')
+                              : null,
+                          onTap: () => context.push(AppRoutes.notifications),
+                          showDivider: isLoggedIn,
+                        ),
+                        if (isLoggedIn)
+                          _MenuRow(
+                            icon: Icons.handshake_outlined,
+                            label: AppStrings.partnership,
+                            onTap: () =>
+                                context.push(AppRoutes.profilePartnership),
+                            showDivider: false,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _MenuCard(
+                      children: [
+                        _MenuRow(
+                          icon: Icons.headset_mic_outlined,
+                          label: AppStrings.profileContact,
+                          onTap: () => context.push(AppRoutes.profileHelp),
+                        ),
+                        _AppVersionRow(),
+                      ],
+                    ),
+                    if (isLoggedIn) ...[
+                      const SizedBox(height: 16),
+                      InkWell(
+                        onTap: () =>
                             ref.read(authStateProvider.notifier).logout(),
-                        child: Text(
-                          AppStrings.logout,
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.danger,
-                            fontWeight: FontWeight.w600,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.logout_rounded,
+                                size: 22,
+                                color: AppColors.danger,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                AppStrings.logout,
+                                style: AppTypography.body.copyWith(
+                                  color: AppColors.danger,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -169,19 +207,9 @@ class ProfileScreen extends ConsumerWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                        )
-                      else
-                        Padding(
-                          padding: const EdgeInsets.only(top: AppSpacing.sm),
-                          child: Text(
-                            AppStrings.deleteAccountPhoneRequired,
-                            textAlign: TextAlign.center,
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textMuted,
-                            ),
-                          ),
                         ),
                     ],
+                    ProfileSocialSection(links: socialLinks),
                   ],
                 ),
               ),
@@ -208,143 +236,217 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.name});
+  const _ProfileHeader({
+    required this.name,
+    required this.unread,
+    this.phone,
+  });
 
   final String name;
+  final String? phone;
+  final int unread;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          AppStrings.profileAccount,
-          style: AppTypography.caption.copyWith(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-          ),
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                AppStrings.navProfile,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () => context.push(AppRoutes.profileHelp),
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 22),
+              color: AppColors.textPrimary,
+            ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  onPressed: () => context.push(AppRoutes.notifications),
+                  icon: const Icon(Icons.notifications_none_rounded, size: 24),
+                  color: AppColors.textPrimary,
+                ),
+                if (unread > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.danger,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        unread > 99 ? '99+' : '$unread',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: 16),
         Text(
           name,
-          textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 28,
+            fontSize: 22,
             fontWeight: FontWeight.w800,
             height: 1.15,
+            letterSpacing: -0.3,
             color: AppColors.textPrimary,
-            letterSpacing: -0.5,
           ),
         ),
+        if (phone != null && phone!.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            phone!,
+            style: AppTypography.body.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+              fontSize: 15,
+            ),
+          ),
+        ],
       ],
     );
   }
 }
 
-class _GuestBannerGrid extends StatelessWidget {
-  const _GuestBannerGrid({
-    required this.onLogin,
-    required this.onRegister,
-    required this.onHelp,
-  });
-
-  final VoidCallback onLogin;
-  final VoidCallback onRegister;
-  final VoidCallback onHelp;
-
-  @override
-  Widget build(BuildContext context) {
-    return _BannerGrid(
-      children: [
-        ProfileBannerTile(
-          variant: ProfileBannerVariant.accent,
-          title: AppStrings.login,
-          subtitle: AppStrings.profileLoginSubtitle,
-          onTap: onLogin,
-          bottomRight: _bannerAddIcon,
-        ),
-        ProfileBannerTile(
-          title: AppStrings.register,
-          subtitle: AppStrings.profileRegisterSubtitle,
-          onTap: onRegister,
-          bottomRight: _bannerRegisterIcon,
-        ),
-        ProfileBannerTile(
-          title: AppStrings.help,
-          subtitle: AppStrings.profileHelpSubtitle,
-          onTap: onHelp,
-          bottomRight: _bannerHelpIcon,
-        ),
-      ],
-    );
-  }
-}
-
-class _LoggedInBannerGrid extends StatelessWidget {
-  const _LoggedInBannerGrid({
-    required this.unread,
-    required this.onNotifications,
-    required this.onHelp,
-    required this.onPartnership,
-  });
-
-  final int unread;
-  final VoidCallback onNotifications;
-  final VoidCallback onHelp;
-  final VoidCallback onPartnership;
-
-  @override
-  Widget build(BuildContext context) {
-    final unreadLabel = unread > 99 ? '99+' : '$unread';
-
-    return _BannerGrid(
-      children: [
-        ProfileBannerTile(
-          title: AppStrings.notificationsTitle,
-          subtitle: AppStrings.profileNotificationsSubtitle,
-          heroText: unread > 0 ? unreadLabel : null,
-          heroColor: ProfileBannerTile.heroGreen,
-          onTap: onNotifications,
-          bottomRight: unread > 0 ? null : _bannerNotificationIcon,
-        ),
-        ProfileBannerTile(
-          title: AppStrings.help,
-          subtitle: AppStrings.profileHelpSubtitle,
-          onTap: onHelp,
-          bottomRight: _bannerHelpIcon,
-        ),
-        ProfileBannerTile(
-          title: AppStrings.partnership,
-          subtitle: AppStrings.profilePartnershipSubtitle,
-          onTap: onPartnership,
-          bottomRight: _bannerPartnershipIcon,
-        ),
-      ],
-    );
-  }
-}
-
-class _BannerGrid extends StatelessWidget {
-  const _BannerGrid({required this.children});
+class _MenuCard extends StatelessWidget {
+  const _MenuCard({required this.children});
 
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.md,
-      crossAxisSpacing: AppSpacing.md,
-      childAspectRatio: 0.92,
-      children: children
-          .map(
-            (child) => SizedBox(
-              height: 148,
-              child: child,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: children),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({
+    required this.icon,
+    required this.label,
+    this.hint,
+    this.trailing,
+    this.onTap,
+    this.showDivider = true,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? hint;
+  final String? trailing;
+  final VoidCallback? onTap;
+  final bool showDivider;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: showDivider
+              ? const Border(
+                  bottom: BorderSide(color: Color(0xFFF4F4F5)),
+                )
+              : null,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: AppColors.textPrimary),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  if (hint != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      hint!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          )
-          .toList(),
+            if (trailing != null)
+              Text(
+                trailing!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF059669),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AppVersionRow extends StatefulWidget {
+  @override
+  State<_AppVersionRow> createState() => _AppVersionRowState();
+}
+
+class _AppVersionRowState extends State<_AppVersionRow> {
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((info) {
+      if (!mounted) return;
+      setState(() => _version = info.version);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _MenuRow(
+      icon: Icons.info_outline_rounded,
+      label: AppStrings.profileAboutApp,
+      hint: _version.isEmpty ? null : AppStrings.profileVersion(_version),
+      showDivider: false,
     );
   }
 }

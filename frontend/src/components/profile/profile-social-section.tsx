@@ -1,8 +1,6 @@
 'use client';
 
 import { Instagram, Youtube } from 'lucide-react';
-import { ProfileBannerGrid } from '@/components/profile/profile-banner-grid';
-import { ProfileBannerTile } from '@/components/profile/profile-banner-tile';
 import { usePublicSettings } from '@/hooks/use-public-settings';
 import { openSocialUrl } from '@/lib/open-social-url';
 import { uz } from '@/lib/uz';
@@ -12,46 +10,44 @@ export function ProfileSocialSection() {
   const instagram = settings.data?.social_instagram_url?.trim() ?? '';
   const youtube = settings.data?.social_youtube_url?.trim() ?? '';
 
-  const tiles = [
+  const links = [
     instagram
       ? {
           key: 'instagram',
-          title: 'Instagram',
+          label: 'Instagram',
           icon: Instagram,
+          color: '#E1306C',
           onClick: () => openSocialUrl(instagram),
         }
       : null,
     youtube
       ? {
           key: 'youtube',
-          title: 'YouTube',
+          label: 'YouTube',
           icon: Youtube,
+          color: '#FF0000',
           onClick: () => openSocialUrl(youtube),
         }
       : null,
-  ].filter((tile): tile is NonNullable<typeof tile> => tile != null);
+  ].filter((item): item is NonNullable<typeof item> => item != null);
 
-  if (tiles.length === 0) return null;
+  if (links.length === 0) return null;
 
   return (
-    <section className="mt-6" aria-labelledby="social-section-heading">
-      <h2
-        id="social-section-heading"
-        className="mb-3 px-0.5 text-center text-[15px] font-semibold text-foreground"
-      >
-        {uz.profileSocialTitle}
-      </h2>
-      <ProfileBannerGrid>
-        {tiles.map(({ key, title, icon, onClick }) => (
-          <ProfileBannerTile
+    <section className="mt-5" aria-label={uz.profileSocialTitle}>
+      <div className="flex gap-2.5">
+        {links.map(({ key, label, icon: Icon, color, onClick }) => (
+          <button
             key={key}
-            title={title}
-            subtitle={uz.profileSocialFollow}
-            icon={icon}
+            type="button"
+            aria-label={label}
             onClick={onClick}
-          />
+            className="flex h-14 flex-1 items-center justify-center rounded-2xl bg-[#E7F6EC] transition active:scale-[0.98]"
+          >
+            <Icon size={26} strokeWidth={1.75} style={{ color }} />
+          </button>
         ))}
-      </ProfileBannerGrid>
+      </div>
     </section>
   );
 }

@@ -1,49 +1,43 @@
 'use client';
 
-import Image from 'next/image';
-import { UserCircle } from 'lucide-react';
+import Link from 'next/link';
+import { MessageCircle } from 'lucide-react';
+import { NotificationBell } from '@/components/ui/notification-bell';
 import { uz } from '@/lib/uz';
 
 type Props = {
   name: string;
-  photoUrl?: string | null;
-  badgeCount?: number;
+  phone?: string | null;
+  unreadCount?: number;
 };
 
-export function ProfilePageHeader({ name, photoUrl, badgeCount }: Props) {
-  const initial = name.trim().charAt(0).toUpperCase() || '?';
-
+export function ProfilePageHeader({ name, phone, unreadCount = 0 }: Props) {
   return (
-    <header className="flex flex-col items-center pt-2 text-center">
-      <div className="relative">
-        {photoUrl ? (
-          <Image
-            src={photoUrl}
-            alt={name}
-            width={88}
-            height={88}
-            className="h-[88px] w-[88px] rounded-full object-cover"
-            unoptimized
-          />
-        ) : (
-          <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full bg-primary-soft">
-            {name === uz.profileGuestName || name === uz.guestUserTitle ? (
-              <span className="text-3xl font-bold text-primary">{initial}</span>
-            ) : (
-              <UserCircle size={48} className="text-primary" strokeWidth={1.5} />
-            )}
-          </div>
-        )}
-        {badgeCount != null && badgeCount > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full border-2 border-background bg-primary px-1.5 text-[11px] font-bold text-white">
-            {badgeCount > 99 ? '99+' : badgeCount}
-          </span>
+    <header className="pt-1">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-[28px] font-extrabold tracking-tight text-zinc-900">
+          {uz.profile}
+        </h1>
+        <div className="flex items-center gap-1">
+          <Link
+            href="/profile/help"
+            aria-label={uz.profileHelp}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-900 transition active:bg-zinc-100"
+          >
+            <MessageCircle size={22} strokeWidth={2} />
+          </Link>
+          <NotificationBell unreadCount={unreadCount} size={22} />
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <p className="truncate text-[22px] font-extrabold leading-tight tracking-tight text-zinc-900">
+          {name}
+        </p>
+        {phone ? (
+          <p className="mt-1 text-[15px] font-medium text-zinc-500">{phone}</p>
         ) : null}
       </div>
-      <p className="mt-3 text-[13px] text-zinc-500">{uz.profileAccount}</p>
-      <h1 className="mt-1 max-w-full truncate text-[28px] font-extrabold leading-tight tracking-tight text-zinc-900">
-        {name}
-      </h1>
     </header>
   );
 }

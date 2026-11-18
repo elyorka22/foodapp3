@@ -62,6 +62,9 @@ export type ProductCategory = {
   description?: string | null;
   icon?: string | null;
   imageUrl?: string | null;
+  imageScale?: number | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
   sortOrder: number;
   isActive: boolean;
 };

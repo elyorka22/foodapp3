@@ -1,60 +1,62 @@
 'use client';
 
-import { ChevronRight, type LucideIcon } from 'lucide-react';
+import Link from 'next/link';
+import { type LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 
 type Props = {
   icon: LucideIcon;
   label: string;
   hint?: string;
-  iconClassName?: string;
-  onClick?: () => void;
   href?: string;
-  badge?: number;
+  onClick?: () => void;
+  trailing?: string;
+  trailingClassName?: string;
+  showDivider?: boolean;
 };
 
 export function ProfileMenuRow({
   icon: Icon,
   label,
   hint,
-  iconClassName,
-  onClick,
   href,
-  badge,
+  onClick,
+  trailing,
+  trailingClassName,
+  showDivider = true,
 }: Props) {
   const className = clsx(
-    'flex min-h-[52px] w-full items-center gap-3 border-b border-border px-4 py-3 text-left transition last:border-b-0 active:bg-[#FAFAFA]',
+    'flex min-h-[56px] w-full items-center gap-3.5 px-4 py-3 text-left transition active:bg-zinc-50',
+    showDivider && 'border-b border-zinc-100',
   );
 
   const inner = (
     <>
-      <div
-        className={clsx(
-          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F3F4F6] text-foreground-muted',
-          iconClassName,
-        )}
-      >
-        <Icon size={18} strokeWidth={1.75} />
-      </div>
+      <Icon size={22} strokeWidth={1.75} className="shrink-0 text-zinc-800" />
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-medium leading-snug text-foreground">{label}</p>
-        {hint && <p className="mt-0.5 text-[13px] leading-4 text-foreground-muted">{hint}</p>}
+        <p className="text-[16px] font-medium leading-snug text-zinc-900">{label}</p>
+        {hint ? (
+          <p className="mt-0.5 text-[12px] leading-4 text-zinc-400">{hint}</p>
+        ) : null}
       </div>
-      {badge != null && badge > 0 ? (
-        <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#E85D04] px-1.5 text-[11px] font-semibold text-white">
-          {badge > 99 ? '99+' : badge}
+      {trailing ? (
+        <span
+          className={clsx(
+            'shrink-0 text-[14px] font-semibold text-emerald-600',
+            trailingClassName,
+          )}
+        >
+          {trailing}
         </span>
-      ) : (
-        <ChevronRight size={16} className="shrink-0 text-[#D1D5DB]" strokeWidth={2} />
-      )}
+      ) : null}
     </>
   );
 
   if (href) {
     return (
-      <a href={href} className={className}>
+      <Link href={href} className={className}>
         {inner}
-      </a>
+      </Link>
     );
   }
 

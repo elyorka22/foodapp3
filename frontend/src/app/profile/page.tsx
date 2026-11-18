@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { GuestProfileView } from '@/components/profile/guest-profile-view';
 import { ProfileAccountMenu } from '@/components/profile/profile-account-menu';
 import { ProfilePageHeader } from '@/components/profile/profile-page-header';
 import { ProfileSocialSection } from '@/components/profile/profile-social-section';
-import { ProfileStaffLoginButton } from '@/components/profile/profile-staff-login-button';
 import { DeleteAccountDialog } from '@/components/profile/delete-account-dialog';
 import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
 import { api } from '@/lib/api';
@@ -61,11 +61,11 @@ export default function ProfilePage() {
 
   if (customer) {
     return (
-      <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+      <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-10 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
         <ProfilePageHeader
           name={customer.fullName}
-          photoUrl={customer.googlePhotoUrl}
-          badgeCount={unreadCount}
+          phone={customer.phone}
+          unreadCount={unreadCount}
         />
 
         {customerNeedsPhone() && (
@@ -79,59 +79,48 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        <ProfileAccountMenu />
+        <ProfileAccountMenu loyaltyPoints={customer.loyalty?.points} />
+
+        <button
+          type="button"
+          onClick={logoutCustomer}
+          className="mt-5 flex min-h-[48px] items-center gap-3 px-1 text-[16px] font-semibold text-red-600 transition active:opacity-70"
+        >
+          <LogOut size={22} strokeWidth={1.85} />
+          {uz.signOut}
+        </button>
+
+        {customer.phone ? (
+          <button
+            type="button"
+            onClick={() => setShowDeleteDialog(true)}
+            className="mt-1 px-1 text-[13px] font-medium text-zinc-400 transition hover:text-red-600"
+          >
+            Delete Account
+          </button>
+        ) : null}
 
         <ProfileSocialSection />
 
-        {customer.referralCode && (
-          <Card className="mt-4 rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-            <p className="text-xs text-foreground-muted">{uz.yourReferral}</p>
-            <p className="font-mono text-base font-semibold text-primary">{customer.referralCode}</p>
-          </Card>
-        )}
-
-        <div className="mt-6 flex flex-col items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            className="text-red-600 hover:text-red-700"
-            onClick={logoutCustomer}
-          >
-            {uz.signOut}
-          </Button>
-          {customer.phone && (
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-zinc-500 hover:text-red-600"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              Delete Account
-            </Button>
-          )}
-        </div>
-
-        {showDeleteDialog && customer.phone && (
+        {showDeleteDialog && customer.phone ? (
           <DeleteAccountDialog
             phone={customer.phone}
             token={getCustomerToken() ?? ''}
             onClose={() => setShowDeleteDialog(false)}
           />
-        )}
+        ) : null}
 
-        <ProfileStaffLoginButton className="mt-4" />
-
-        {message && (
+        {message ? (
           <p className="mt-4 rounded-xl bg-primary-soft px-4 py-3 text-sm text-primary-dark">
             {message}
           </p>
-        )}
+        ) : null}
       </main>
     );
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+    <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-10 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
       <GuestProfileView onAuthSuccess={handleAuthSuccess} />
     </main>
   );

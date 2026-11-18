@@ -34,6 +34,12 @@ class _LucideStrokeIcon extends StatelessWidget {
   }
 }
 
+String _svgHex(Color color) {
+  final hex = color.toARGB32().toRadixString(16).padLeft(8, '0');
+  return '#${hex.substring(2)}';
+}
+
+/// FoodApp brand mark: cloche + speed lines (matches app icon / web home tab).
 class LucideHomeNavIcon extends StatelessWidget {
   const LucideHomeNavIcon({
     super.key,
@@ -48,15 +54,32 @@ class LucideHomeNavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _LucideStrokeIcon(
-      size: size,
-      color: color,
-      strokeWidth: active ? 2.25 : 1.75,
-      paths: '''
-<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
-<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-''',
-    );
+    final c = _svgHex(color ?? Theme.of(context).colorScheme.onSurface);
+    if (active) {
+      final svg = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="$c">
+  <rect x="1.5" y="8.2" width="4.2" height="1.55" rx="0.75"/>
+  <rect x="1.5" y="11.2" width="5.4" height="1.55" rx="0.75"/>
+  <rect x="1.5" y="14.2" width="3.4" height="1.55" rx="0.75"/>
+  <rect x="13.1" y="3.2" width="4.2" height="1.7" rx="0.85"/>
+  <path d="M9.2 9.4c0-3.1 2.5-5.6 5.6-5.6s5.6 2.5 5.6 5.6v7.1H9.2V9.4Z"/>
+  <rect x="8.2" y="16.6" width="11.6" height="2.2" rx="1.1"/>
+  <path d="M11.2 10.2c.6-1.6 1.9-2.6 3.4-2.9" fill="none" stroke="#F5F5F7" stroke-width="1.35" stroke-linecap="round"/>
+</svg>
+''';
+      return SvgPicture.string(svg, width: size, height: size);
+    }
+
+    final svg = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="$c" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M1.8 9h3.6M1.8 12h4.8M1.8 15h2.8"/>
+  <rect x="13.2" y="3.4" width="3.8" height="1.5" rx="0.75"/>
+  <path d="M9.4 9.2a5.4 5.4 0 0 1 10.8 0V16H9.4V9.2Z"/>
+  <rect x="8.4" y="16.4" width="11.2" height="2" rx="1"/>
+  <path d="M11.4 10c.55-1.4 1.7-2.3 3-2.55"/>
+</svg>
+''';
+    return SvgPicture.string(svg, width: size, height: size);
   }
 }
 

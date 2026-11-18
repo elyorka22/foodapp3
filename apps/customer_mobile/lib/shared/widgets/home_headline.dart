@@ -8,7 +8,7 @@ import '../../features/cities/presentation/city_selector.dart';
 import '../../features/notifications/providers/notifications_provider.dart';
 import 'notification_bell.dart';
 
-/// Matches web `home-center-header.tsx`: menu · centered city · notifications.
+/// Matches web `home-center-header.tsx`: city left · notifications right.
 class HomeHeadline extends ConsumerWidget {
   const HomeHeadline({super.key});
 
@@ -16,25 +16,15 @@ class HomeHeadline extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       height: 44,
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 52),
-            child: CitySelector(centered: true),
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              onPressed: () => context.go(AppRoutes.profile),
-              icon: const Icon(Icons.menu_rounded, size: 26),
-              color: AppColors.textPrimary,
+          const Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: CitySelector(),
             ),
           ),
-          const Align(
-            alignment: Alignment.centerRight,
-            child: _BellButton(),
-          ),
+          const _BellButton(),
         ],
       ),
     );

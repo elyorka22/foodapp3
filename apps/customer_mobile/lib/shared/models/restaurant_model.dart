@@ -6,12 +6,18 @@ class RestaurantCategoryModel {
     required this.name,
     required this.slug,
     this.imageUrl,
+    this.imageScale,
+    this.imagePositionX,
+    this.imagePositionY,
   });
 
   final String id;
   final String name;
   final String slug;
   final String? imageUrl;
+  final int? imageScale;
+  final int? imagePositionX;
+  final int? imagePositionY;
 
   factory RestaurantCategoryModel.fromJson(Map<String, dynamic> json) {
     return RestaurantCategoryModel(
@@ -19,6 +25,9 @@ class RestaurantCategoryModel {
       name: json['name'] as String,
       slug: json['slug'] as String,
       imageUrl: parseString(json['imageUrl']),
+      imageScale: parseIntOrNull(json['imageScale']),
+      imagePositionX: parseIntOrNull(json['imagePositionX']),
+      imagePositionY: parseIntOrNull(json['imagePositionY']),
     );
   }
 }
