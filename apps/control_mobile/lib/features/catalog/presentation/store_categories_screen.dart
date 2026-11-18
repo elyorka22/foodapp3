@@ -207,14 +207,16 @@ class _AllCategoriesTileCard extends ConsumerWidget {
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        onTap: type == null
-            ? null
-            : () => showDetailSheet(
-                  context: context,
-                  title: AppStrings.allCategoriesTileImage,
-                  initialChildSize: 0.9,
-                  builder: (_) => _AllCategoriesTileFormSheet(type: type),
-                ),
+        onTap: () {
+          final selected = type;
+          if (selected == null) return;
+          showDetailSheet(
+            context: context,
+            title: AppStrings.allCategoriesTileImage,
+            initialChildSize: 0.9,
+            builder: (_) => _AllCategoriesTileFormSheet(type: selected),
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
