@@ -33,9 +33,16 @@ class ImageFramingValues {
   static int clampPos(int? v) => (v ?? 50).clamp(0, 100);
 }
 
-/// Preview + sliders matching customer home «Maxsus takliflar» banners.
-///
-/// Live web: `h-[150px] w-[85%] rounded-[24px]` ([HomePromoBanners]).
+/// Which live UI surface the framing preview should match.
+enum ImageFramingPreviewKind {
+  /// Home «Maxsus takliflar»: ~85% × 150px, radius 24.
+  homeBanner,
+
+  /// Store category tile: 3-col square ~1:1.05, radius 20.
+  storeCategoryTile,
+}
+
+/// Preview + sliders. Pass [previewKind] so the box matches production.
 class ImageFramingControls extends StatelessWidget {
   const ImageFramingControls({
     super.key,
@@ -43,21 +50,23 @@ class ImageFramingControls extends StatelessWidget {
     required this.values,
     required this.onChanged,
     this.enabled = true,
+    this.previewKind = ImageFramingPreviewKind.homeBanner,
   });
 
   final String? imageUrl;
   final ImageFramingValues values;
   final ValueChanged<ImageFramingValues> onChanged;
   final bool enabled;
+  final ImageFramingPreviewKind previewKind;
 
-  /// Same height as `frontend` HomePromoBanners tile.
   static const double homeBannerHeight = 150;
-
-  /// Same corner radius as the live promo tile.
   static const double homeBannerRadius = 24;
-
-  /// Width fraction of available form width (live carousel uses ~85vw).
   static const double homeBannerWidthFraction = 0.85;
+
+  /// Matches web/mobile store category tile: `rounded-[20px] aspect-[1/1.05]`.
+  static const double storeCategoryRadius = 20;
+  static const double storeCategoryAspect = 1 / 1.05;
+  static const double storeCategoryPreviewWidth = 140;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +75,8 @@ class ImageFramingControls extends StatelessWidget {
     final y = ImageFramingValues.clampPos(values.imagePositionY);
     final url = imageUrl?.trim();
     final hasImage = url != null && url.isNotEmpty;
+    final isStoreTile =
+        previewKind == ImageFramingPreviewKind.storeCategoryTile;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -77,10 +88,17 @@ class ImageFramingControls extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(AppStrings.bannerImageFraming, style: AppTypography.subtitle),
+          Text(
+            isStoreTile
+                ? AppStrings.storeCategoryImageFraming
+                : AppStrings.bannerImageFraming,
+            style: AppTypography.subtitle,
+          ),
           const SizedBox(height: 4),
           Text(
-            AppStrings.bannerImagePreviewSizeHint,
+            isStoreTile
+                ? AppStrings.storeCategoryImagePreviewSizeHint
+                : AppStrings.bannerImagePreviewSizeHint,
             style: AppTypography.bodySmall.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -88,16 +106,31 @@ class ImageFramingControls extends StatelessWidget {
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
-              final previewWidth =
-                  constraints.maxWidth * homeBannerWidthFraction;
+              final double previewWidth;
+              final double previewHeight;
+              final double radius;
+
+              if (isStoreTile) {
+                previewWidth = storeCategoryPreviewWidth
+                    .clamp(0, constraints.maxWidth)
+                    .toDouble();
+                previewHeight = previewWidth / storeCategoryAspect;
+                radius = storeCategoryRadius;
+              } else {
+                previewWidth =
+                    constraints.maxWidth * homeBannerWidthFraction;
+                previewHeight = homeBannerHeight;
+                radius = homeBannerRadius;
+              }
+
               return Align(
                 alignment: Alignment.centerLeft,
                 child: Container(
                   width: previewWidth,
-                  height: homeBannerHeight,
+                  height: previewHeight,
                   decoration: BoxDecoration(
                     color: const Color(0xFFE4E4E7),
-                    borderRadius: BorderRadius.circular(homeBannerRadius),
+                    borderRadius: BorderRadius.circular(radius),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x140F172A),
@@ -109,8 +142,7 @@ class ImageFramingControls extends StatelessWidget {
                   clipBehavior: Clip.antiAlias,
                   child: hasImage
                       ? ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(homeBannerRadius),
+                          borderRadius: BorderRadius.circular(radius),
                           child: Transform.scale(
                             scale: scale / 100,
                             alignment: Alignment(
@@ -119,12 +151,12 @@ class ImageFramingControls extends StatelessWidget {
                             ),
                             child: SizedBox(
                               width: previewWidth,
-                              height: homeBannerHeight,
+                              height: previewHeight,
                               child: Image.network(
                                 url,
                                 fit: BoxFit.cover,
                                 width: previewWidth,
-                                height: homeBannerHeight,
+                                height: previewHeight,
                                 alignment: Alignment(
                                   (x / 50) - 1,
                                   (y / 50) - 1,
@@ -140,7 +172,9 @@ class ImageFramingControls extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
-                              AppStrings.bannerImagePreviewHint,
+                              isStoreTile
+                                  ? AppStrings.storeCategoryImagePreviewHint
+                                  : AppStrings.bannerImagePreviewHint,
                               style: AppTypography.bodySmall.copyWith(
                                 color: AppColors.textSecondary,
                               ),

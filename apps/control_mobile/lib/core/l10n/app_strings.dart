@@ -214,6 +214,11 @@ abstract final class AppStrings {
   static const bannerImagePreviewSizeHint =
       '«Maxsus takliflar»: 150×~85%. Masshtab 100–200% — yaqinlashtirish (kesish); burchaklar yumaloq.';
   static const bannerImagePreviewHint = 'Rasm yuklang — banner ko‘rinishi';
+  static const storeCategoryImageFraming = 'Kategoriya rasmi joylashuvi';
+  static const storeCategoryImagePreviewSizeHint =
+      'Do‘kon ichidagi kvadrat plitka (3 ustun, yumaloq 20). Masshtab 100–200% — kesish.';
+  static const storeCategoryImagePreviewHint =
+      'Rasm yuklang — kategoriya plitkasi ko‘rinishi';
   static const bannerImageScale = 'Masshtab';
   static const bannerImagePosX = 'Gorizontal';
   static const bannerImagePosY = 'Vertikal';

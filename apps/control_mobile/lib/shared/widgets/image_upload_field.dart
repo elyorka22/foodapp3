@@ -22,6 +22,7 @@ class ImageUploadField extends ConsumerStatefulWidget {
     this.enableFraming = false,
     this.framing = const ImageFramingValues(),
     this.onFramingChanged,
+    this.framingPreviewKind = ImageFramingPreviewKind.homeBanner,
     this.showSimplePreview = true,
   });
 
@@ -29,10 +30,13 @@ class ImageUploadField extends ConsumerStatefulWidget {
   final bool enabled;
   final String refererPath;
 
-  /// When true, shows home-banner-sized preview + position sliders.
+  /// When true, shows framing preview + position sliders.
   final bool enableFraming;
   final ImageFramingValues framing;
   final ValueChanged<ImageFramingValues>? onFramingChanged;
+
+  /// Matches live surface size (banner vs store category tile).
+  final ImageFramingPreviewKind framingPreviewKind;
 
   /// Square thumbnail under the URL field (when framing is off).
   final bool showSimplePreview;
@@ -173,6 +177,7 @@ class _ImageUploadFieldState extends ConsumerState<ImageUploadField> {
             imageUrl: url,
             values: widget.framing,
             enabled: !locked,
+            previewKind: widget.framingPreviewKind,
             onChanged: widget.onFramingChanged!,
           ),
         ] else if (hasImage && widget.showSimplePreview) ...[

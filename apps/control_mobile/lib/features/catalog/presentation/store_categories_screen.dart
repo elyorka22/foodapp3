@@ -340,6 +340,7 @@ class _StoreCategoryFormSheetState
           enabled: !_busy,
           refererPath: '/admin/stores/categories',
           enableFraming: true,
+          framingPreviewKind: ImageFramingPreviewKind.storeCategoryTile,
           framing: _framing,
           onFramingChanged: (v) => setState(() => _framing = v),
         ),
