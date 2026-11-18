@@ -14,17 +14,17 @@ class HomeHeadline extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
+    return const SizedBox(
       height: 44,
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
               child: CitySelector(),
             ),
           ),
-          const _BellButton(),
+          _BellButton(),
         ],
       ),
     );

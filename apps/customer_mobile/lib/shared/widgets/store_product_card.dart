@@ -110,7 +110,7 @@ class StoreProductCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                formatSum(compare!),
+                formatSum(compare),
                 style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textMuted,

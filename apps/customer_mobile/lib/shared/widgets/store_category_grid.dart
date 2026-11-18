@@ -80,7 +80,7 @@ class StoreCategoryTile extends StatelessWidget {
                   fit: BoxFit.contain,
                   letterboxColor: Colors.white,
                   child: CachedNetworkImage(
-                    imageUrl: resolved!,
+                    imageUrl: resolved,
                     fit: BoxFit.contain,
                     width: double.infinity,
                     height: double.infinity,
