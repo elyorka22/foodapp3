@@ -18,7 +18,9 @@ class FoodAppBottomNav extends StatelessWidget {
   final ValueChanged<int> onTap;
   final int cartCount;
 
-  static const _iconSize = 28.0;
+  static const _homeIconSize = 28.0;
+  /// Stroke icons read smaller than the wing mark — bump for visual parity.
+  static const _iconSize = 31.0;
   static const _tapSize = 52.0;
   static const _bgSize = 48.0;
 
@@ -119,7 +121,7 @@ class FoodAppBottomNav extends StatelessWidget {
     switch (index) {
       case 0:
         return LucideHomeNavIcon(
-          size: _iconSize,
+          size: _homeIconSize,
           color: color,
           active: active,
         );

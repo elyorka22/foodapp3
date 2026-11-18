@@ -13,7 +13,9 @@ type TabIconProps = {
 /** Brand purple — matches wing logo; active nav tabs use this. */
 const BRAND = '#4A05CA';
 const IDLE = '#A1A1AA';
-const ICON = 28;
+const HOME_ICON = 28;
+/** Cart/profile stroke icons read smaller than the wing mark — bump for visual parity. */
+const ICON = 31;
 
 function HomeIcon({ active }: TabIconProps) {
   return (
@@ -21,8 +23,8 @@ function HomeIcon({ active }: TabIconProps) {
     <img
       src="/brand-wing.png"
       alt=""
-      width={ICON}
-      height={ICON}
+      width={HOME_ICON}
+      height={HOME_ICON}
       draggable={false}
       className={clsx(
         'select-none object-contain transition',
@@ -33,50 +35,37 @@ function HomeIcon({ active }: TabIconProps) {
 }
 
 function CartIcon({ active }: TabIconProps) {
-  if (active) {
-    return (
-      <svg width={ICON} height={ICON} viewBox="0 0 24 24" aria-hidden>
-        <path
-          fill={BRAND}
-          d="M7.2 6h13.1c.7 0 1.2.7 1 1.3l-1.5 5.2a2 2 0 0 1-1.9 1.4H9.1a2 2 0 0 1-1.9-1.4L5.2 4.8H3.2a1 1 0 1 1 0-2h2.6c.4 0 .8.3.9.7L7.2 6Zm1.3 13.2a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Zm9.2 0a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Z"
-        />
-      </svg>
-    );
-  }
+  const color = active ? BRAND : IDLE;
   return (
     <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M3 4h2.2l1.5 8.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.5L21 7H7"
-        stroke={IDLE}
-        strokeWidth="1.85"
+        stroke={color}
+        strokeWidth={active ? 2.15 : 1.85}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="9.5" cy="19" r="1.4" stroke={IDLE} strokeWidth="1.85" />
-      <circle cx="17.5" cy="19" r="1.4" stroke={IDLE} strokeWidth="1.85" />
+      <circle cx="9.5" cy="19" r="1.4" stroke={color} strokeWidth={active ? 2.15 : 1.85} />
+      <circle cx="17.5" cy="19" r="1.4" stroke={color} strokeWidth={active ? 2.15 : 1.85} />
     </svg>
   );
 }
 
 function ProfileIcon({ active }: TabIconProps) {
-  if (active) {
-    return (
-      <svg width={ICON} height={ICON} viewBox="0 0 24 24" aria-hidden>
-        <circle cx="12" cy="8" r="4" fill={BRAND} />
-        <path
-          fill={BRAND}
-          d="M4.4 19.6C5.7 16.9 8.5 15 12 15s6.3 1.9 7.6 4.6c.2.4-.1.9-.5.9H4.9c-.4 0-.7-.5-.5-.9Z"
-        />
-      </svg>
-    );
-  }
+  const color = active ? BRAND : IDLE;
   return (
     <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="8" r="3.4" stroke={IDLE} strokeWidth="1.85" />
+      <circle
+        cx="12"
+        cy="8"
+        r="3.4"
+        stroke={color}
+        strokeWidth={active ? 2.15 : 1.85}
+      />
       <path
         d="M5.2 19.2c1.2-2.6 3.8-4.2 6.8-4.2s5.6 1.6 6.8 4.2"
-        stroke={IDLE}
-        strokeWidth="1.85"
+        stroke={color}
+        strokeWidth={active ? 2.15 : 1.85}
         strokeLinecap="round"
       />
     </svg>

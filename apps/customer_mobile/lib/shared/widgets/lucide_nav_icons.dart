@@ -99,7 +99,7 @@ class LucideShoppingBasketNavIcon extends StatelessWidget {
     return _LucideStrokeIcon(
       size: size,
       color: color,
-      strokeWidth: active ? 2.25 : 1.75,
+      strokeWidth: active ? 2.15 : 1.75,
       paths: '''
 <path d="m15 11-1 9"/>
 <path d="m19 11-4-7"/>
@@ -130,8 +130,8 @@ class LucideUserNavIcon extends StatelessWidget {
     return _LucideStrokeIcon(
       size: size,
       color: color,
-      strokeWidth: active ? 2.25 : 1.75,
-      extra: '<circle cx="12" cy="7" r="4"/>',
+      strokeWidth: active ? 2.15 : 1.75,
+      extra: '<circle cx="12" cy="7" r="4" fill="none"/>',
       paths: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>',
     );
   }
