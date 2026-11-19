@@ -76,7 +76,7 @@ abstract final class AppStrings {
   static const homeServiceProducts = 'Mahsulotlar';
   static const homeServiceProductsEta = '30 daq';
   static const homeServiceDeliveryBadge = 'Tez';
-  static const groceryStores = 'Oziq-ovqat mahsulotlari';
+  static const groceryStores = "Oziq-ovqat do'konlari";
 
   static const cartEmpty = "Savat bo'sh";
   static const cartTitle = 'Savat';

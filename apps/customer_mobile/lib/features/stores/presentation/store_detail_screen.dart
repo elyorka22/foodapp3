@@ -244,13 +244,10 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                                   allCategoriesImagePositionY:
                                       business.allCategoriesImagePositionY,
                                   onOpenAll: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (_) => StoreAllCategoriesPage(
-                                          categories: categories,
-                                          onSelect: widget.onCategoryChanged,
-                                        ),
-                                      ),
+                                    showStoreAllCategoriesSheet(
+                                      context: context,
+                                      categories: categories,
+                                      onSelect: widget.onCategoryChanged,
                                     );
                                   },
                                 ),

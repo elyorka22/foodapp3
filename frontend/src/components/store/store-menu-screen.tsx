@@ -12,7 +12,7 @@ import { useHomeBanners } from '@/hooks/use-home-data';
 import { BannerSlotCarousel } from '@/components/home/banner-slot-carousel';
 import type { BusinessMenuDetail } from '@/components/business/business-menu-screen';
 import type { MenuProduct } from '@/components/restaurant/product-card';
-import { StoreAllCategoriesPage } from '@/components/store/store-all-categories-page';
+import { StoreAllCategoriesSheet } from '@/components/store/store-all-categories-page';
 import { StoreCategoryGrid } from '@/components/store/store-category-grid';
 import { StoreProductCard } from '@/components/store/store-product-card';
 import { BrandLoadingState } from '@/components/ui/brand-loading-pill';
@@ -176,19 +176,6 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
     );
   }
 
-  if (showAllCategories && categories.length > 0) {
-    return (
-      <StoreAllCategoriesPage
-        categories={categories}
-        onBack={() => setShowAllCategories(false)}
-        onSelect={(id) => {
-          setActiveCategoryId(id);
-          setShowAllCategories(false);
-        }}
-      />
-    );
-  }
-
   return (
     <div className="mx-auto min-h-screen max-w-lg bg-background pb-24">
       <header className="sticky top-0 z-30 bg-background/95 px-4 pb-2 pt-[calc(env(safe-area-inset-top,0px)+10px)] backdrop-blur-md">
@@ -299,6 +286,18 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
           <ShoppingCart size={20} /> {uz.cartFab(cartCount)}
         </button>
       )}
+
+      {categories.length > 0 ? (
+        <StoreAllCategoriesSheet
+          open={showAllCategories}
+          categories={categories}
+          onClose={() => setShowAllCategories(false)}
+          onSelect={(id) => {
+            setActiveCategoryId(id);
+            setShowAllCategories(false);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

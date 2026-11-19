@@ -257,7 +257,7 @@ export const uz = {
   navProducts: 'Mahsulotlar',
   navShops: "Do'konlar",
   shopsTitle: "Do'konlar",
-  groceryStores: "Oziq-ovqat mahsulotlari",
+  groceryStores: "Oziq-ovqat do'konlari",
   shopsSubtitle: "Shahardagi barcha do'konlar va xizmatlar",
   shopsSearchPlaceholder: "Do'kon yoki mahsulot qidiring...",
   shopsLoadError: "Do'konlar yuklanmadi",

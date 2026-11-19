@@ -5,7 +5,8 @@ export const colors = {
   primaryDark: '#09090B',
   primarySoft: '#F4F4F5',
   surface: '#FFFFFF',
-  background: '#F5F5F7',
+  /** Page gray — clear contrast vs white islands. */
+  background: '#E8E8ED',
   border: '#E8E8EC',
   textPrimary: '#18181B',
   textSecondary: '#71717A',

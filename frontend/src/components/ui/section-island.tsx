@@ -25,7 +25,7 @@ export function SectionIsland({
   return (
     <section
       className={clsx(
-        'w-full overflow-hidden rounded-[24px] bg-white',
+        'w-full overflow-hidden rounded-[24px] bg-surface',
         padded && 'p-4',
         className,
       )}

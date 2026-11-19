@@ -72,7 +72,7 @@ function ServiceTile({
     <Link
       href={homeHrefForType(type)}
       className={clsx(
-        'relative block overflow-hidden rounded-[28px] bg-white shadow-[0_4px_16px_rgba(15,23,42,0.06)] transition active:scale-[0.98]',
+        'relative block overflow-hidden rounded-[28px] bg-background transition active:scale-[0.98]',
         TILE_HEIGHT_CLASS,
         className,
       )}

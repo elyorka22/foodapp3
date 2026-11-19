@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/router/routes.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
 import 'section_island.dart';
 
-/// Matches web — special offers inside white island, ~7:2 strip, no title.
+/// Matches web — special offers without island, ~7:2 strip, no title.
 class HomePromoBanners extends StatelessWidget {
   const HomePromoBanners({
     super.key,
@@ -21,7 +20,7 @@ class HomePromoBanners extends StatelessWidget {
   final bool isLoading;
 
   static const double _aspect = 7 / 2;
-  static const double _innerRadius = 16;
+  static const double _radius = 24;
 
   List<BannerModel> get _slides {
     final list = banners
@@ -38,20 +37,17 @@ class HomePromoBanners extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenW = MediaQuery.sizeOf(context).width;
-    final innerW = screenW - AppSpacing.lg * 2;
-    final bannerH = innerW / _aspect;
+    final bannerH = screenW / _aspect;
 
     if (isLoading) {
       return Padding(
         padding: const EdgeInsets.only(top: SectionIsland.gap),
-        child: SectionIsland(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(_innerRadius),
-            child: SizedBox(
-              height: bannerH,
-              width: double.infinity,
-              child: const ColoredBox(color: AppColors.primarySoft),
-            ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(_radius),
+          child: SizedBox(
+            height: bannerH,
+            width: double.infinity,
+            child: const ColoredBox(color: AppColors.primarySoft),
           ),
         ),
       );
@@ -62,79 +58,77 @@ class HomePromoBanners extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(top: SectionIsland.gap),
-      child: SectionIsland(
-        child: SizedBox(
-          height: bannerH,
-          child: PageView.builder(
-            itemCount: slides.length,
-            itemBuilder: (context, index) {
-              final banner = slides[index];
-              final src = resolveImageUrl(banner.imageUrl)!;
-              final href = (banner.linkUrl ?? '').trim();
-              final title = banner.title.trim();
+      child: SizedBox(
+        height: bannerH,
+        child: PageView.builder(
+          itemCount: slides.length,
+          itemBuilder: (context, index) {
+            final banner = slides[index];
+            final src = resolveImageUrl(banner.imageUrl)!;
+            final href = (banner.linkUrl ?? '').trim();
+            final title = banner.title.trim();
 
-              return GestureDetector(
-                onTap: () {
-                  if (href.isEmpty) {
-                    context.push(AppRoutes.promotions);
-                    return;
-                  }
-                  if (href.startsWith('/')) {
-                    context.push(href);
-                  } else {
-                    context.push(AppRoutes.promotions);
-                  }
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(_innerRadius),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      const ColoredBox(color: AppColors.primarySoft),
-                      CachedNetworkImage(
-                        imageUrl: src,
-                        fit: BoxFit.cover,
-                        width: innerW,
-                        height: bannerH,
-                        errorWidget: (_, __, ___) => const ColoredBox(
-                          color: AppColors.primarySoft,
+            return GestureDetector(
+              onTap: () {
+                if (href.isEmpty) {
+                  context.push(AppRoutes.promotions);
+                  return;
+                }
+                if (href.startsWith('/')) {
+                  context.push(href);
+                } else {
+                  context.push(AppRoutes.promotions);
+                }
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(_radius),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    const ColoredBox(color: AppColors.primarySoft),
+                    CachedNetworkImage(
+                      imageUrl: src,
+                      fit: BoxFit.cover,
+                      width: screenW,
+                      height: bannerH,
+                      errorWidget: (_, __, ___) => const ColoredBox(
+                        color: AppColors.primarySoft,
+                      ),
+                    ),
+                    if (title.isNotEmpty) ...[
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Color(0x8C000000),
+                            ],
+                          ),
                         ),
                       ),
-                      if (title.isNotEmpty) ...[
-                        const DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Color(0x8C000000),
-                              ],
-                            ),
+                      Positioned(
+                        left: 12,
+                        right: 12,
+                        bottom: 12,
+                        child: Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.subtitle.copyWith(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                        Positioned(
-                          left: 12,
-                          right: 12,
-                          bottom: 12,
-                          child: Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.subtitle.copyWith(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

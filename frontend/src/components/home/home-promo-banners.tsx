@@ -5,10 +5,7 @@ import Link from 'next/link';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  SECTION_ISLAND_GAP,
-  SectionIsland,
-} from '@/components/ui/section-island';
+import { SECTION_ISLAND_GAP } from '@/components/ui/section-island';
 import type { HomeBanner } from '@/hooks/use-home-data';
 import { uz } from '@/lib/uz';
 
@@ -18,8 +15,8 @@ type Props = {
 };
 
 /**
- * Special-offers strip in a white island (same chrome as shops/restaurants).
- * Sized like Pyaterochka «Верните до 750» (~7:2). No section title.
+ * Special-offers strip without island — edge-flush, ~7:2 like «Верните до 750».
+ * PROMO canonical; HERO for legacy.
  */
 function promoList(banners: HomeBanner[]): HomeBanner[] {
   return banners
@@ -33,24 +30,24 @@ function promoList(banners: HomeBanner[]): HomeBanner[] {
 }
 
 const slideClass =
-  'relative aspect-[7/2] w-full min-w-full shrink-0 snap-center overflow-hidden rounded-[16px] bg-zinc-200';
+  'relative aspect-[7/2] w-full min-w-full shrink-0 snap-center overflow-hidden rounded-[24px] bg-zinc-200';
 
 export function HomePromoBanners({ banners, isLoading }: Props) {
   const slides = promoList(banners);
 
   if (isLoading) {
     return (
-      <SectionIsland className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
+      <section className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
         <Skeleton className={`${slideClass} shadow-none`} />
-      </SectionIsland>
+      </section>
     );
   }
 
   if (!slides.length) return null;
 
   return (
-    <SectionIsland className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
-      <div className="-mx-1 flex snap-x snap-mandatory overflow-x-auto scrollbar-hide">
+    <section className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
+      <div className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide">
         {slides.map((banner, index) => {
           const src = resolveImageUrl(banner.imageUrl)!;
           const href = banner.linkUrl?.trim() || '/promotions';
@@ -69,7 +66,7 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
               href={href}
               className={`${slideClass} transition active:scale-[0.99]`}
             >
-              <div className="absolute inset-0 overflow-hidden rounded-[16px]">
+              <div className="absolute inset-0 overflow-hidden rounded-[24px]">
                 <div
                   className="absolute inset-0"
                   style={{ transform, transformOrigin }}
@@ -80,7 +77,7 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
                     fill
                     className="object-cover"
                     style={{ objectPosition }}
-                    sizes="(max-width: 430px) 92vw, 400px"
+                    sizes="(max-width: 430px) 100vw, 430px"
                     priority={index === 0}
                   />
                 </div>
@@ -97,6 +94,6 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
           );
         })}
       </div>
-    </SectionIsland>
+    </section>
   );
 }

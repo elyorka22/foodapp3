@@ -6,7 +6,6 @@ import '../../core/config/public_settings_provider.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/router/routes.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/home_service_cards.dart';
@@ -197,7 +196,7 @@ class _ServiceTile extends StatelessWidget {
     final radius = BorderRadius.circular(AppSpacing.serviceTileRadius);
 
     return Material(
-      color: AppColors.surface,
+      color: AppColors.background,
       borderRadius: radius,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -205,10 +204,8 @@ class _ServiceTile extends StatelessWidget {
         borderRadius: radius,
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColors.background,
             borderRadius: radius,
-            border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
-            boxShadow: AppShadows.serviceTile,
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
