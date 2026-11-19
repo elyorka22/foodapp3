@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
 import { Skeleton } from '@/components/ui/skeleton';
-import { SECTION_ISLAND_GAP } from '@/components/ui/section-island';
+import {
+  SECTION_ISLAND_GAP,
+  SectionIsland,
+} from '@/components/ui/section-island';
 import type { HomeBanner } from '@/hooks/use-home-data';
 import { uz } from '@/lib/uz';
 
@@ -14,9 +17,10 @@ type Props = {
   isLoading?: boolean;
 };
 
-const BANNER_HEIGHT = 'h-[120px]';
-
-/** Promo strip — full-bleed, no section title. PROMO canonical; HERO for legacy. */
+/**
+ * Special-offers strip in a white island (same chrome as shops/restaurants).
+ * Sized like Pyaterochka «Верните до 750» (~7:2). No section title.
+ */
 function promoList(banners: HomeBanner[]): HomeBanner[] {
   return banners
     .filter((b) => resolveImageUrl(b.imageUrl))
@@ -28,24 +32,25 @@ function promoList(banners: HomeBanner[]): HomeBanner[] {
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 }
 
+const slideClass =
+  'relative aspect-[7/2] w-full min-w-full shrink-0 snap-center overflow-hidden rounded-[16px] bg-zinc-200';
+
 export function HomePromoBanners({ banners, isLoading }: Props) {
   const slides = promoList(banners);
 
   if (isLoading) {
     return (
-      <section className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
-        <div className="flex overflow-hidden">
-          <Skeleton className={`${BANNER_HEIGHT} w-full shrink-0 rounded-[20px] shadow-none`} />
-        </div>
-      </section>
+      <SectionIsland className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
+        <Skeleton className={`${slideClass} shadow-none`} />
+      </SectionIsland>
     );
   }
 
   if (!slides.length) return null;
 
   return (
-    <section className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
-      <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto scrollbar-hide">
+    <SectionIsland className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
+      <div className="-mx-1 flex snap-x snap-mandatory overflow-x-auto scrollbar-hide">
         {slides.map((banner, index) => {
           const src = resolveImageUrl(banner.imageUrl)!;
           const href = banner.linkUrl?.trim() || '/promotions';
@@ -62,9 +67,9 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
             <Link
               key={banner.id}
               href={href}
-              className={`relative ${BANNER_HEIGHT} w-full min-w-full shrink-0 snap-center overflow-hidden rounded-[20px] bg-zinc-200 transition active:scale-[0.99]`}
+              className={`${slideClass} transition active:scale-[0.99]`}
             >
-              <div className="absolute inset-0 overflow-hidden rounded-[20px]">
+              <div className="absolute inset-0 overflow-hidden rounded-[16px]">
                 <div
                   className="absolute inset-0"
                   style={{ transform, transformOrigin }}
@@ -75,7 +80,7 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
                     fill
                     className="object-cover"
                     style={{ objectPosition }}
-                    sizes="100vw"
+                    sizes="(max-width: 430px) 92vw, 400px"
                     priority={index === 0}
                   />
                 </div>
@@ -92,6 +97,6 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
           );
         })}
       </div>
-    </section>
+    </SectionIsland>
   );
 }

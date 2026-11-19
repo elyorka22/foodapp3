@@ -22,8 +22,8 @@ class SectionIsland extends StatelessWidget {
   /// Minimal gray seam between islands.
   static const double gap = 6;
 
-  /// Side inset from phone edges (matches web `mx-3`).
-  static const double sideInset = 12;
+  /// Kept for callers that still compute widths; islands are edge-flush (0).
+  static const double sideInset = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +34,7 @@ class SectionIsland extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      margin: margin ??
-          const EdgeInsets.symmetric(horizontal: sideInset),
+      margin: margin ?? EdgeInsets.zero,
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(radius),

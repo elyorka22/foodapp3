@@ -13,7 +13,7 @@ type Props = {
 export const SECTION_ISLAND_GAP = 'mt-1.5';
 
 /**
- * White island with side inset (Perekrestok-style floating plate).
+ * White island flush to left/right screen edges.
  * Header (city + bell) stays outside — only content blocks use this.
  */
 export function SectionIsland({
@@ -25,7 +25,7 @@ export function SectionIsland({
   return (
     <section
       className={clsx(
-        'mx-3 overflow-hidden rounded-[24px] bg-white',
+        'w-full overflow-hidden rounded-[24px] bg-white',
         padded && 'p-4',
         className,
       )}

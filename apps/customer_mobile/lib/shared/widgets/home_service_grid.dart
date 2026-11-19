@@ -14,8 +14,6 @@ import '../../features/stores/providers/stores_provider.dart';
 import '../models/business_model.dart';
 import 'section_island.dart';
 
-/// Side inset for floating service cards (matches web `px-3`).
-const _kServiceInset = 12.0;
 
 /// Home service tiles driven by active business types (`homeGridRow` + `isActive`).
 class HomeServiceGrid extends ConsumerWidget {
@@ -67,9 +65,8 @@ class HomeServiceGrid extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // Floating cards on gray — city + bell stay in HomeHeadline above.
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: _kServiceInset),
+    // City + bell stay in HomeHeadline above — outside islands.
+    return SectionIsland(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final contentWidth = constraints.maxWidth;
