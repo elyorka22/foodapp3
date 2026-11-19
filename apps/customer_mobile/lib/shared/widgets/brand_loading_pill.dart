@@ -1,7 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
-/// Dark pill loader with brand wing mark + diagonal shimmer
+/// Brand wing mark with a spinning ring around it
 /// (same asset as home-nav [LucideHomeNavIcon]).
 class BrandLoadingPill extends StatefulWidget {
   const BrandLoadingPill({
@@ -23,12 +25,14 @@ class _BrandLoadingPillState extends State<BrandLoadingPill>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
+  static const _brand = Color(0xFF4A05CA);
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 900),
     )..repeat();
   }
 
@@ -41,76 +45,31 @@ class _BrandLoadingPillState extends State<BrandLoadingPill>
   @override
   Widget build(BuildContext context) {
     final isLg = widget.size == BrandLoadingPillSize.lg;
-    final iconSize = isLg ? 28.0 : 24.0;
-    final fontSize = isLg ? 17.0 : 15.0;
-    final hPad = isLg ? 28.0 : 24.0;
-    final vPad = isLg ? 14.0 : 12.0;
+    final box = isLg ? 72.0 : 56.0;
+    final iconSize = isLg ? 36.0 : 28.0;
+    final stroke = isLg ? 3.0 : 2.5;
 
     return Semantics(
       label: widget.label,
       liveRegion: true,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A2A2E),
-                    borderRadius: BorderRadius.circular(999),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x2E0F172A),
-                        blurRadius: 24,
-                        offset: Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: hPad,
-                      vertical: vPad,
-                    ),
-                    child: child,
-                  ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Transform.translate(
-                      offset: Offset(
-                        (_controller.value * 2.4 - 0.7) * 160,
-                        0,
-                      ),
-                      child: Transform.rotate(
-                        angle: -0.55,
-                        child: Container(
-                          width: 56,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                Colors.white.withValues(alpha: 0),
-                                Colors.white.withValues(alpha: 0.28),
-                                Colors.white.withValues(alpha: 0),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+      child: SizedBox(
+        width: box,
+        height: box,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                return Transform.rotate(
+                  angle: _controller.value * 2 * math.pi,
+                  child: CustomPaint(
+                    size: Size(box, box),
+                    painter: _RingPainter(strokeWidth: stroke),
+                  ),
+                );
+              },
+            ),
             Image.asset(
               'assets/images/brand_wing.png',
               width: iconSize,
@@ -120,18 +79,7 @@ class _BrandLoadingPillState extends State<BrandLoadingPill>
               errorBuilder: (_, __, ___) => Icon(
                 Icons.home_rounded,
                 size: iconSize,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(width: isLg ? 12 : 10),
-            Text(
-              widget.label,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: fontSize,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.2,
-                height: 1.1,
+                color: _brand,
               ),
             ),
           ],
@@ -139,6 +87,40 @@ class _BrandLoadingPillState extends State<BrandLoadingPill>
       ),
     );
   }
+}
+
+class _RingPainter extends CustomPainter {
+  _RingPainter({required this.strokeWidth});
+
+  final double strokeWidth;
+
+  static const _brand = Color(0xFF4A05CA);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.shortestSide - strokeWidth) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    final track = Paint()
+      ..color = _brand.withValues(alpha: 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+    canvas.drawCircle(center, radius, track);
+
+    final arc = Paint()
+      ..color = _brand
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+    // ~28% of the circle — a short spinning line.
+    canvas.drawArc(rect, -math.pi / 2, math.pi * 0.55, false, arc);
+  }
+
+  @override
+  bool shouldRepaint(covariant _RingPainter oldDelegate) =>
+      oldDelegate.strokeWidth != strokeWidth;
 }
 
 /// Centered loader for page / section loading states.
@@ -162,6 +144,7 @@ class BrandLoadingState extends StatelessWidget {
         child: Center(
           child: BrandLoadingPill(
             label: label ?? 'Loading..',
+            size: BrandLoadingPillSize.lg,
           ),
         ),
       ),

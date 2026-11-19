@@ -4,23 +4,23 @@ import { clsx } from 'clsx';
 
 type Props = {
   className?: string;
-  /** Defaults to screenshot-style «Loading..». */
+  /** Accessible label only (not shown). */
   label?: string;
   size?: 'md' | 'lg';
 };
 
 /**
- * Dark pill loader with brand wing mark + diagonal shimmer
- * (home-nav logo from `/brand-wing.png`).
+ * Brand wing mark with a spinning ring around it
+ * (same logo as home-nav `/brand-wing.png`).
  */
 export function BrandLoadingPill({
   className,
   label = 'Loading..',
   size = 'md',
 }: Props) {
-  const pad = size === 'lg' ? 'px-7 py-3.5 gap-3' : 'px-6 py-3 gap-2.5';
-  const icon = size === 'lg' ? 28 : 24;
-  const text = size === 'lg' ? 'text-[17px]' : 'text-[15px]';
+  const box = size === 'lg' ? 72 : 56;
+  const icon = size === 'lg' ? 36 : 28;
+  const stroke = size === 'lg' ? 3 : 2.5;
 
   return (
     <div
@@ -28,11 +28,38 @@ export function BrandLoadingPill({
       aria-live="polite"
       aria-label={label}
       className={clsx(
-        'brand-loading-pill relative inline-flex items-center overflow-hidden rounded-full bg-[#2A2A2E] text-white shadow-[0_8px_24px_rgba(15,23,42,0.18)]',
-        pad,
+        'brand-loading-ring relative inline-flex items-center justify-center',
         className,
       )}
+      style={{ width: box, height: box }}
     >
+      <svg
+        className="brand-loading-ring__spin absolute inset-0"
+        width={box}
+        height={box}
+        viewBox={`0 0 ${box} ${box}`}
+        fill="none"
+        aria-hidden
+      >
+        <circle
+          cx={box / 2}
+          cy={box / 2}
+          r={(box - stroke) / 2}
+          stroke="rgba(74, 5, 202, 0.15)"
+          strokeWidth={stroke}
+          pathLength={100}
+        />
+        <circle
+          className="brand-loading-ring__arc"
+          cx={box / 2}
+          cy={box / 2}
+          r={(box - stroke) / 2}
+          stroke="#4A05CA"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          pathLength={100}
+        />
+      </svg>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/brand-wing.png"
@@ -40,12 +67,8 @@ export function BrandLoadingPill({
         width={icon}
         height={icon}
         draggable={false}
-        className="relative z-[1] shrink-0 select-none object-contain"
+        className="relative z-[1] select-none object-contain"
       />
-      <span className={clsx('relative z-[1] font-semibold tracking-tight', text)}>
-        {label}
-      </span>
-      <span className="brand-loading-pill__shimmer pointer-events-none absolute inset-0" aria-hidden />
     </div>
   );
 }
@@ -65,7 +88,7 @@ export function BrandLoadingState({
         className,
       )}
     >
-      <BrandLoadingPill label={label} />
+      <BrandLoadingPill label={label} size="lg" />
     </div>
   );
 }

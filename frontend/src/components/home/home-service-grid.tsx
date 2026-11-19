@@ -26,10 +26,10 @@ import {
   layoutForBusinessType,
   splitHomeGridTypes,
 } from '@/lib/home-service-type';
-import { SectionIsland } from '@/components/ui/section-island';
+import { SECTION_ISLAND_GAP } from '@/components/ui/section-island';
 
 /** Shared tile height — top carousel and bottom row must match. */
-const TILE_HEIGHT_CLASS = 'h-[120px]';
+const TILE_HEIGHT_CLASS = 'h-[132px]';
 
 function iconForType(type: BusinessType): LucideIcon {
   const slug = (type.slug ?? '').toLowerCase();
@@ -69,7 +69,7 @@ function ServiceTile({
     <Link
       href={homeHrefForType(type)}
       className={clsx(
-        'relative block overflow-hidden rounded-[26px] bg-white ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
+        'relative block overflow-hidden rounded-[28px] bg-white shadow-[0_4px_16px_rgba(15,23,42,0.06)] transition active:scale-[0.98]',
         TILE_HEIGHT_CLASS,
         className,
       )}
@@ -157,54 +157,57 @@ export function HomeServiceGrid() {
 
   if (!isLoading && types.length === 0) return null;
 
+  // First home block: floating cards on gray (Perekrestok-style), not one white plate.
+  // City + bell stay in the header above — outside islands.
   return (
-    <SectionIsland className="mt-3" aria-label={uz.categories}>
-      <div className="space-y-3">
-        {row1.length > 0 ? (
-          <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-1 snap-x snap-mandatory scrollbar-hide">
-            {row1.map((type) => (
-              <ServiceTile
-                key={type.id}
-                type={type}
-                layout={layoutForBusinessType(type, cards)}
-                compact
-                iconSize={30}
-                className="w-[44%] min-w-[10.25rem] shrink-0 snap-start"
-              />
-            ))}
-          </div>
-        ) : null}
+    <section
+      className={`${SECTION_ISLAND_GAP} space-y-2.5 px-3`}
+      aria-label={uz.categories}
+    >
+      {row1.length > 0 ? (
+        <div className="-mr-3 flex gap-2.5 overflow-x-auto pr-3 pb-0.5 snap-x snap-mandatory scrollbar-hide">
+          {row1.map((type) => (
+            <ServiceTile
+              key={type.id}
+              type={type}
+              layout={layoutForBusinessType(type, cards)}
+              compact
+              iconSize={30}
+              className="w-[46%] min-w-[10.5rem] shrink-0 snap-start"
+            />
+          ))}
+        </div>
+      ) : null}
 
-        {restaurant || row2Others.length > 0 ? (
-          <div
-            className="grid gap-3"
-            style={{
-              gridTemplateColumns: restaurant
-                ? row2Others.length > 0
-                  ? ['1.65fr', ...row2Others.map(() => 'minmax(0,1fr)')].join(' ')
-                  : '1fr'
-                : row2Others.map(() => 'minmax(0,1fr)').join(' ') || '1fr',
-            }}
-          >
-            {restaurant ? (
-              <ServiceTile
-                type={restaurant}
-                layout={layoutForBusinessType(restaurant, cards)}
-                iconSize={52}
-                wide
-              />
-            ) : null}
-            {row2Others.map((type) => (
-              <ServiceTile
-                key={type.id}
-                type={type}
-                layout={layoutForBusinessType(type, cards)}
-                iconSize={40}
-              />
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </SectionIsland>
+      {restaurant || row2Others.length > 0 ? (
+        <div
+          className="grid gap-2.5"
+          style={{
+            gridTemplateColumns: restaurant
+              ? row2Others.length > 0
+                ? ['1.65fr', ...row2Others.map(() => 'minmax(0,1fr)')].join(' ')
+                : '1fr'
+              : row2Others.map(() => 'minmax(0,1fr)').join(' ') || '1fr',
+          }}
+        >
+          {restaurant ? (
+            <ServiceTile
+              type={restaurant}
+              layout={layoutForBusinessType(restaurant, cards)}
+              iconSize={52}
+              wide
+            />
+          ) : null}
+          {row2Others.map((type) => (
+            <ServiceTile
+              key={type.id}
+              type={type}
+              layout={layoutForBusinessType(type, cards)}
+              iconSize={40}
+            />
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }

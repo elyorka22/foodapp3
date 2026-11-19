@@ -14,11 +14,14 @@ import '../../features/stores/providers/stores_provider.dart';
 import '../models/business_model.dart';
 import 'section_island.dart';
 
+/// Side inset for floating service cards (matches web `px-3`).
+const _kServiceInset = 12.0;
+
 /// Home service tiles driven by active business types (`homeGridRow` + `isActive`).
 class HomeServiceGrid extends ConsumerWidget {
   const HomeServiceGrid({super.key});
 
-  static const _tileHeight = 120.0;
+  static const _tileHeight = 132.0;
 
   String _routeFor(BusinessTypeModel type) {
     if (type.isRestaurantType) return AppRoutes.allRestaurants;
@@ -64,12 +67,14 @@ class HomeServiceGrid extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return SectionIsland(
+    // Floating cards on gray — city + bell stay in HomeHeadline above.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _kServiceInset),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final contentWidth = constraints.maxWidth;
           final topTileWidth =
-              (contentWidth * 0.44).clamp(164.0, double.infinity);
+              (contentWidth * 0.46).clamp(168.0, double.infinity);
 
           return Column(
             children: [
@@ -107,7 +112,7 @@ class HomeServiceGrid extends ConsumerWidget {
                 ),
               if (row1.isNotEmpty &&
                   (restaurant != null || row2Others.isNotEmpty))
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
               if (restaurant != null || row2Others.isNotEmpty)
                 SizedBox(
                   height: _tileHeight,
@@ -133,10 +138,10 @@ class HomeServiceGrid extends ConsumerWidget {
                             restaurantWide: true,
                           ),
                         ),
-                        if (row2Others.isNotEmpty) const SizedBox(width: 12),
+                        if (row2Others.isNotEmpty) const SizedBox(width: 10),
                       ],
                       for (var i = 0; i < row2Others.length; i++) ...[
-                        if (i > 0) const SizedBox(width: 12),
+                        if (i > 0) const SizedBox(width: 10),
                         Expanded(
                           flex: 100,
                           child: _ServiceTile(

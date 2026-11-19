@@ -16,7 +16,10 @@ import { StoreAllCategoriesPage } from '@/components/store/store-all-categories-
 import { StoreCategoryGrid } from '@/components/store/store-category-grid';
 import { StoreProductCard } from '@/components/store/store-product-card';
 import { BrandLoadingState } from '@/components/ui/brand-loading-pill';
-import { SectionIsland } from '@/components/ui/section-island';
+import {
+  SECTION_ISLAND_GAP,
+  SectionIsland,
+} from '@/components/ui/section-island';
 import { EmptyState } from '@/components/ui/empty-state';
 import { uz } from '@/lib/uz';
 
@@ -46,7 +49,7 @@ function ProductRow({
 }) {
   if (products.length === 0) return null;
   return (
-    <SectionIsland className="mx-3 mt-3">
+    <SectionIsland className={SECTION_ISLAND_GAP}>
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="text-[18px] font-extrabold tracking-tight text-zinc-900">
           {title}
@@ -203,7 +206,7 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
         </div>
       </header>
 
-      <SectionIsland className="mx-3 mt-1">
+      <SectionIsland className={SECTION_ISLAND_GAP}>
         <label className="flex h-11 items-center gap-2 rounded-2xl bg-zinc-100 px-3">
           <Search size={18} className="shrink-0 text-zinc-400" aria-hidden />
           <input
@@ -240,7 +243,7 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
       </SectionIsland>
 
       {storeBanners.length > 0 ? (
-        <SectionIsland className="mx-3 mt-3 h-28" padded={false}>
+        <SectionIsland className={`${SECTION_ISLAND_GAP} h-28`} padded={false}>
           <BannerSlotCarousel banners={storeBanners} />
         </SectionIsland>
       ) : null}

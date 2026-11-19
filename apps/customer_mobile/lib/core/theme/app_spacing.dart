@@ -10,7 +10,7 @@ abstract final class AppSpacing {
 
   static const double cardRadius = 16;
   static const double bannerRadius = 24;
-  static const double serviceTileRadius = 26;
+  static const double serviceTileRadius = 28;
   static const double restaurantCardRadius = 18;
   static const double buttonRadius = 16;
   static const double inputRadius = 16;

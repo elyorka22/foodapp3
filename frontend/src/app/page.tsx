@@ -27,8 +27,10 @@ export default function HomePage() {
     restaurants.length === 0;
 
   return (
-    <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-8">
-      <HomeCenterHeader />
+    <main className="customer-page mx-auto min-h-screen max-w-lg bg-background pb-8">
+      <div className="px-4">
+        <HomeCenterHeader />
+      </div>
       <HomeServiceGrid />
 
       <HomePromoBanners
@@ -49,7 +51,7 @@ export default function HomePage() {
       />
 
       {hasRestaurantError && (
-        <div className="mt-4">
+        <div className="mt-4 px-4">
           <EmptyState
             icon={Store}
             title={uz.restaurantsLoadError}
@@ -68,7 +70,7 @@ export default function HomePage() {
       )}
 
       {showRestaurantEmpty && (
-        <div className="mt-4">
+        <div className="mt-4 px-4">
           <EmptyState
             icon={UtensilsCrossed}
             title={uz.restaurantsComingSoon}

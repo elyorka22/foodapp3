@@ -1,18 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/l10n/app_strings.dart';
 import '../../core/router/routes.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shadows.dart';
-import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
-import 'home_section_header.dart';
 import 'section_island.dart';
 
-/// Matches web `home-promo-banners.tsx`.
+/// Matches web `home-promo-banners.tsx` — full-width, no title, shorter height.
 class HomePromoBanners extends StatelessWidget {
   const HomePromoBanners({
     super.key,
@@ -22,6 +18,8 @@ class HomePromoBanners extends StatelessWidget {
 
   final List<BannerModel> banners;
   final bool isLoading;
+
+  static const double _height = 120;
 
   List<BannerModel> get _slides {
     final list = banners
@@ -37,28 +35,19 @@ class HomePromoBanners extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenW = MediaQuery.sizeOf(context).width;
+
     if (isLoading) {
-      return SectionIsland(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            HomeSectionHeader(
-              title: AppStrings.specialOffers,
-              onSeeAll: () => context.push(AppRoutes.promotions),
+      return Padding(
+        padding: const EdgeInsets.only(top: SectionIsland.gap),
+        child: SizedBox(
+          height: _height,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 150,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _skeleton(context),
-                  const SizedBox(width: 12),
-                  _skeleton(context),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       );
     }
@@ -66,30 +55,24 @@ class HomePromoBanners extends StatelessWidget {
     final slides = _slides;
     if (slides.isEmpty) return const SizedBox.shrink();
 
-    return SectionIsland(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          HomeSectionHeader(
-            title: AppStrings.specialOffers,
-            linkLabel: AppStrings.seeAll,
-            onSeeAll: () => context.push(AppRoutes.promotions),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 150,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: slides.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final banner = slides[index];
-                final src = resolveImageUrl(banner.imageUrl)!;
-                final href = (banner.linkUrl ?? '').trim();
-              final title = banner.title.trim();
-              final width = MediaQuery.sizeOf(context).width * 0.85;
+    return Padding(
+      padding: const EdgeInsets.only(top: SectionIsland.gap),
+      child: SizedBox(
+        height: _height,
+        child: PageView.builder(
+          itemCount: slides.length,
+          controller: PageController(viewportFraction: 1),
+          itemBuilder: (context, index) {
+            final banner = slides[index];
+            final src = resolveImageUrl(banner.imageUrl)!;
+            final href = (banner.linkUrl ?? '').trim();
+            final title = banner.title.trim();
 
-              return GestureDetector(
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: slides.length > 1 ? 2 : 0,
+              ),
+              child: GestureDetector(
                 onTap: () {
                   if (href.isEmpty) {
                     context.push(AppRoutes.promotions);
@@ -101,71 +84,61 @@ class HomePromoBanners extends StatelessWidget {
                     context.push(AppRoutes.promotions);
                   }
                 },
-                child: Container(
-                  width: width,
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySoft,
-                    borderRadius: BorderRadius.circular(AppSpacing.bannerRadius),
-                    boxShadow: AppShadows.promo,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CachedNetworkImage(
-                        imageUrl: src,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => const ColoredBox(
-                          color: AppColors.primarySoft,
-                        ),
-                      ),
-                      if (title.isNotEmpty) ...[
-                        const DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Color(0x8C000000),
-                              ],
-                            ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: SizedBox(
+                    width: screenW,
+                    height: _height,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ColoredBox(color: AppColors.primarySoft),
+                        CachedNetworkImage(
+                          imageUrl: src,
+                          fit: BoxFit.cover,
+                          width: screenW,
+                          height: _height,
+                          errorWidget: (_, __, ___) => const ColoredBox(
+                            color: AppColors.primarySoft,
                           ),
                         ),
-                        Positioned(
-                          left: 12,
-                          right: 12,
-                          bottom: 12,
-                          child: Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.subtitle.copyWith(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
+                        if (title.isNotEmpty) ...[
+                          const DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Color(0x8C000000),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
+                          Positioned(
+                            left: 12,
+                            right: 12,
+                            bottom: 12,
+                            child: Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.subtitle.copyWith(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _skeleton(BuildContext context) {
-    return Container(
-      width: MediaQuery.sizeOf(context).width * 0.85,
-      decoration: BoxDecoration(
-        color: AppColors.primarySoft,
-        borderRadius: BorderRadius.circular(AppSpacing.bannerRadius),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

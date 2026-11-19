@@ -187,28 +187,25 @@ body.auth-modal-open nav[aria-label='Asosiy navigatsiya'] {
   pointer-events: none;
 }
 
-/* Brand loading pill — diagonal gloss sweep over dark capsule */
-@keyframes brand-loading-shimmer {
-  0% {
-    transform: translateX(-140%) skewX(-18deg);
-  }
-  100% {
-    transform: translateX(240%) skewX(-18deg);
+/* Brand loading — logo with spinning arc around it */
+@keyframes brand-loading-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-.brand-loading-pill__shimmer {
-  background: linear-gradient(
-    105deg,
-    transparent 36%,
-    rgba(255, 255, 255, 0.32) 50%,
-    transparent 64%
-  );
-  animation: brand-loading-shimmer 1.6s ease-in-out infinite;
+.brand-loading-ring__spin {
+  animation: brand-loading-spin 0.9s linear infinite;
+  transform-origin: center;
+}
+
+.brand-loading-ring__arc {
+  /* pathLength=100 → ~28% arc + gap */
+  stroke-dasharray: 28 72;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brand-loading-pill__shimmer {
+  .brand-loading-ring__spin {
     animation: none;
   }
 }

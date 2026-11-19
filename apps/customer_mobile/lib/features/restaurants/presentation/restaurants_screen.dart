@@ -11,6 +11,7 @@ import '../../../shared/widgets/home_promo_banners.dart';
 import '../../../shared/widgets/home_restaurants_carousel.dart';
 import '../../../shared/widgets/home_service_grid.dart';
 import '../../../shared/widgets/home_shops_carousel.dart';
+import '../../../shared/widgets/section_island.dart';
 import '../../stores/providers/stores_provider.dart';
 import '../providers/restaurants_provider.dart';
 
@@ -37,27 +38,30 @@ class RestaurantsScreen extends ConsumerWidget {
           },
           child: ListView(
             padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
+              0,
               10,
-              AppSpacing.lg,
+              0,
               AppSpacing.xxl,
             ),
             children: [
-              const HomeHeadline(),
-              const SizedBox(height: 12),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: HomeHeadline(),
+              ),
+              const SizedBox(height: SectionIsland.gap),
               const HomeServiceGrid(),
-              const SizedBox(height: 12),
+              const SizedBox(height: SectionIsland.gap),
               HomePromoBanners(
                 banners: banners.valueOrNull ?? const [],
                 isLoading: banners.isLoading,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: SectionIsland.gap),
               HomeShopsCarousel(
                 stores: featuredStores.valueOrNull ?? const [],
                 isLoading: featuredStores.isLoading,
                 total: featuredStores.valueOrNull?.length,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: SectionIsland.gap),
               HomeRestaurantsCarousel(
                 restaurants: restaurants.valueOrNull ?? const [],
                 isLoading: restaurants.isLoading,
@@ -65,20 +69,26 @@ class RestaurantsScreen extends ConsumerWidget {
               ),
               if (restaurants.hasError) ...[
                 const SizedBox(height: 16),
-                Text(
-                  ApiException.formatError(restaurants.error!),
-                  style: AppTypography.bodySmall,
-                  textAlign: TextAlign.center,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Text(
+                    ApiException.formatError(restaurants.error!),
+                    style: AppTypography.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
               if (!restaurants.isLoading &&
                   !restaurants.hasError &&
                   (restaurants.valueOrNull?.isEmpty ?? false)) ...[
                 const SizedBox(height: 16),
-                Text(
-                  AppStrings.restaurantsComingSoon,
-                  style: AppTypography.bodySmall,
-                  textAlign: TextAlign.center,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Text(
+                    AppStrings.restaurantsComingSoon,
+                    style: AppTypography.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ],

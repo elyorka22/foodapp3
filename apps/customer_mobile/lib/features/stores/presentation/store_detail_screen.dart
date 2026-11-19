@@ -141,17 +141,17 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
             child: CustomScrollView(
               slivers: [
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                      AppSpacing.lg,
-                      0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          AppSpacing.sm,
+                          AppSpacing.lg,
+                          0,
+                        ),
+                        child: Row(
                           children: [
                             Expanded(
                               child: Text(
@@ -177,10 +177,11 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        SectionIsland(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          child: Column(
+                      ),
+                      const SizedBox(height: SectionIsland.gap),
+                      SectionIsland(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               TextField(
@@ -257,8 +258,7 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
                 if (searched.isEmpty)
@@ -392,12 +392,7 @@ class _ProductRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-        0,
-      ),
+      padding: const EdgeInsets.only(top: SectionIsland.gap),
       child: SectionIsland(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.lg,

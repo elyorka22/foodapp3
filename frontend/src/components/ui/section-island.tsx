@@ -9,9 +9,12 @@ type Props = {
   padded?: boolean;
 } & React.HTMLAttributes<HTMLElement>;
 
+/** Minimal gray gap between stacked islands. */
+export const SECTION_ISLAND_GAP = 'mt-1.5';
+
 /**
- * Pyaterochka-style white “island” on gray page background.
- * Each major home/store block sits in its own rounded plate.
+ * White island with side inset (Perekrestok-style floating plate).
+ * Header (city + bell) stays outside — only content blocks use this.
  */
 export function SectionIsland({
   children,
@@ -22,7 +25,7 @@ export function SectionIsland({
   return (
     <section
       className={clsx(
-        'overflow-hidden rounded-[28px] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]',
+        'mx-3 overflow-hidden rounded-[24px] bg-white',
         padded && 'p-4',
         className,
       )}

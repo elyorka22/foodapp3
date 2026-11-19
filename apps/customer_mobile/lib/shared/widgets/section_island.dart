@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 
-/// Pyaterochka-style white island on gray page background.
+/// White island flush to phone side edges. Stack with [gap] between blocks.
 class SectionIsland extends StatelessWidget {
   const SectionIsland({
     super.key,
@@ -17,7 +17,13 @@ class SectionIsland extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final bool clip;
 
-  static const double radius = 28;
+  static const double radius = 24;
+
+  /// Minimal gray seam between islands.
+  static const double gap = 6;
+
+  /// Side inset from phone edges (matches web `mx-3`).
+  static const double sideInset = 12;
 
   @override
   Widget build(BuildContext context) {
@@ -27,17 +33,12 @@ class SectionIsland extends StatelessWidget {
     );
 
     return Container(
-      margin: margin,
+      width: double.infinity,
+      margin: margin ??
+          const EdgeInsets.symmetric(horizontal: sideInset),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(radius),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 2,
-            offset: Offset(0, 1),
-          ),
-        ],
       ),
       child: clip
           ? ClipRRect(
