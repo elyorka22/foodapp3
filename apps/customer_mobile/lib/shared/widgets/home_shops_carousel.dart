@@ -10,6 +10,7 @@ import '../../core/utils/image_url.dart';
 import '../../core/utils/restaurant_card_meta.dart';
 import '../models/business_model.dart';
 import 'home_section_header.dart';
+import 'section_island.dart';
 
 const _tileTints = [
   Color(0xFFE8F5E9),
@@ -48,35 +49,37 @@ class HomeShopsCarousel extends StatelessWidget {
 
     final count = total ?? stores.length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        HomeSectionHeader(
-          title: AppStrings.groceryStores,
-          count: count,
-          onSeeAll: () => context.push(AppRoutes.storesGrocery),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 148,
-          child: isLoading
-              ? ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 4,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (_, __) => const _ShopSkeleton(),
-                )
-              : ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: stores.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (context, index) {
-                    final store = stores[index];
-                    return _ShopCard(store: store, index: index);
-                  },
-                ),
-        ),
-      ],
+    return SectionIsland(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HomeSectionHeader(
+            title: AppStrings.groceryStores,
+            count: count,
+            onSeeAll: () => context.push(AppRoutes.storesGrocery),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 148,
+            child: isLoading
+                ? ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 4,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (_, __) => const _ShopSkeleton(),
+                  )
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: stores.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) {
+                      final store = stores[index];
+                      return _ShopCard(store: store, index: index);
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }

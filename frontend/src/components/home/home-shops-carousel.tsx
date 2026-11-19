@@ -9,6 +9,7 @@ import { shopPublicPath } from '@/lib/shop-url';
 import { restaurantDeliveryLabel } from '@/lib/restaurant-card-meta';
 import { uz } from '@/lib/uz';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SectionIsland } from '@/components/ui/section-island';
 import type { ShopBusiness } from '@/hooks/use-shops-data';
 
 /** Landscape logo tile — slightly wider than the Yandex baseline for readability. */
@@ -45,7 +46,7 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
   const count = total ?? stores.length;
 
   return (
-    <section className="mt-6" aria-label={uz.groceryStores}>
+    <SectionIsland className="mt-3" aria-label={uz.groceryStores}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-[20px] font-extrabold tracking-tight text-zinc-900">
           {uz.groceryStores}
@@ -124,6 +125,6 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
           })}
         </div>
       )}
-    </section>
+    </SectionIsland>
   );
 }

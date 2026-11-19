@@ -10,6 +10,7 @@ import { restaurantDeliveryLabel } from '@/lib/restaurant-card-meta';
 import { restaurantPublicPath } from '@/lib/restaurant-url';
 import { uz } from '@/lib/uz';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SectionIsland } from '@/components/ui/section-island';
 import type { HomeRestaurant } from '@/hooks/use-home-data';
 
 const FALLBACK = [
@@ -48,7 +49,7 @@ export function HomeRestaurantsCarousel({
   const count = total ?? restaurants.length;
 
   return (
-    <section className="mt-6" aria-label={uz.restaurants}>
+    <SectionIsland className="mt-3" aria-label={uz.restaurants}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-[20px] font-extrabold tracking-tight text-zinc-900">
           {uz.restaurants}
@@ -170,6 +171,6 @@ export function HomeRestaurantsCarousel({
           })}
         </div>
       )}
-    </section>
+    </SectionIsland>
   );
 }

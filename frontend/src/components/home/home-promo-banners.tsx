@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SectionIsland } from '@/components/ui/section-island';
 import { SectionHeader } from '@/components/home/section-header';
 import type { HomeBanner } from '@/hooks/use-home-data';
 import { uz } from '@/lib/uz';
@@ -31,22 +32,22 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
 
   if (isLoading) {
     return (
-      <section className="mt-6" aria-label={uz.specialOffers}>
+      <SectionIsland className="mt-3" aria-label={uz.specialOffers}>
         <SectionHeader title={uz.specialOffers} href="/promotions" linkLabel={uz.seeAll} />
-        <div className="-mx-4 flex gap-3 overflow-hidden px-4">
+        <div className="-mx-4 mt-3 flex gap-3 overflow-hidden px-4">
           <Skeleton className="h-[150px] w-[85%] shrink-0 rounded-[24px] shadow-none" />
           <Skeleton className="h-[150px] w-[85%] shrink-0 rounded-[24px] shadow-none" />
         </div>
-      </section>
+      </SectionIsland>
     );
   }
 
   if (!slides.length) return null;
 
   return (
-    <section className="mt-6" aria-label={uz.specialOffers}>
+    <SectionIsland className="mt-3" aria-label={uz.specialOffers}>
       <SectionHeader title={uz.specialOffers} href="/promotions" linkLabel={uz.seeAll} />
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-hide">
+      <div className="-mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-hide">
         {slides.map((banner, index) => {
           const src = resolveImageUrl(banner.imageUrl)!;
           const href = banner.linkUrl?.trim() || '/promotions';
@@ -94,6 +95,6 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
           );
         })}
       </div>
-    </section>
+    </SectionIsland>
   );
 }

@@ -44,20 +44,20 @@ class RestaurantsScreen extends ConsumerWidget {
             ),
             children: [
               const HomeHeadline(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               const HomeServiceGrid(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               HomePromoBanners(
                 banners: banners.valueOrNull ?? const [],
                 isLoading: banners.isLoading,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               HomeShopsCarousel(
                 stores: featuredStores.valueOrNull ?? const [],
                 isLoading: featuredStores.isLoading,
                 total: featuredStores.valueOrNull?.length,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               HomeRestaurantsCarousel(
                 restaurants: restaurants.valueOrNull ?? const [],
                 isLoading: restaurants.isLoading,

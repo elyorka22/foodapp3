@@ -15,7 +15,8 @@ import type { MenuProduct } from '@/components/restaurant/product-card';
 import { StoreAllCategoriesPage } from '@/components/store/store-all-categories-page';
 import { StoreCategoryGrid } from '@/components/store/store-category-grid';
 import { StoreProductCard } from '@/components/store/store-product-card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { BrandLoadingState } from '@/components/ui/brand-loading-pill';
+import { SectionIsland } from '@/components/ui/section-island';
 import { EmptyState } from '@/components/ui/empty-state';
 import { uz } from '@/lib/uz';
 
@@ -45,8 +46,8 @@ function ProductRow({
 }) {
   if (products.length === 0) return null;
   return (
-    <section className="mt-5">
-      <div className="mb-3 flex items-center justify-between gap-2 px-4">
+    <SectionIsland className="mx-3 mt-3">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="text-[18px] font-extrabold tracking-tight text-zinc-900">
           {title}
         </h2>
@@ -56,7 +57,7 @@ function ProductRow({
           </Link>
         ) : null}
       </div>
-      <div className="-mx-0 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide">
+      <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide">
         {products.map((p) => (
           <StoreProductCard
             key={p.id}
@@ -67,7 +68,7 @@ function ProductRow({
           />
         ))}
       </div>
-    </section>
+    </SectionIsland>
   );
 }
 
@@ -149,15 +150,8 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-lg bg-background px-4 pb-24 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="mt-3 h-11 w-full rounded-2xl" />
-        <Skeleton className="mt-3 h-10 w-full rounded-full" />
-        <div className="mt-5 grid grid-cols-4 gap-3">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <Skeleton key={i} className="mx-auto h-[4.25rem] w-[4.25rem] rounded-full" />
-          ))}
-        </div>
+      <div className="mx-auto min-h-screen max-w-lg bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+12px)]">
+        <BrandLoadingState className="min-h-[70vh]" />
       </div>
     );
   }
@@ -194,7 +188,7 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
 
   return (
     <div className="mx-auto min-h-screen max-w-lg bg-background pb-24">
-      <header className="sticky top-0 z-30 bg-background/95 px-4 pb-3 pt-[calc(env(safe-area-inset-top,0px)+10px)] backdrop-blur-md">
+      <header className="sticky top-0 z-30 bg-background/95 px-4 pb-2 pt-[calc(env(safe-area-inset-top,0px)+10px)] backdrop-blur-md">
         <div className="flex items-center justify-between gap-3">
           <h1 className="min-w-0 truncate text-[22px] font-extrabold tracking-tight text-zinc-900">
             {business.name}
@@ -207,8 +201,10 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
             <X size={18} strokeWidth={2.25} />
           </Link>
         </div>
+      </header>
 
-        <label className="mt-3 flex h-11 items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+      <SectionIsland className="mx-3 mt-1">
+        <label className="flex h-11 items-center gap-2 rounded-2xl bg-zinc-100 px-3">
           <Search size={18} className="shrink-0 text-zinc-400" aria-hidden />
           <input
             value={query}
@@ -223,30 +219,30 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
             {uz.deliveryTimeEnded}
           </p>
         ) : null}
-      </header>
 
-      <div className="px-4 pt-3">
         {categories.length > 0 ? (
-          <StoreCategoryGrid
-            categories={categories}
-            limit={5}
-            activeId={activeCategoryId}
-            onSelectCategory={setActiveCategoryId}
-            onOpenAll={() => setShowAllCategories(true)}
-            allCategoriesTile={{
-              imageUrl: business?.businessType?.allCategoriesImageUrl,
-              imageScale: business?.businessType?.allCategoriesImageScale,
-              imagePositionX: business?.businessType?.allCategoriesImagePositionX,
-              imagePositionY: business?.businessType?.allCategoriesImagePositionY,
-            }}
-          />
+          <div className="mt-3">
+            <StoreCategoryGrid
+              categories={categories}
+              limit={5}
+              activeId={activeCategoryId}
+              onSelectCategory={setActiveCategoryId}
+              onOpenAll={() => setShowAllCategories(true)}
+              allCategoriesTile={{
+                imageUrl: business?.businessType?.allCategoriesImageUrl,
+                imageScale: business?.businessType?.allCategoriesImageScale,
+                imagePositionX: business?.businessType?.allCategoriesImagePositionX,
+                imagePositionY: business?.businessType?.allCategoriesImagePositionY,
+              }}
+            />
+          </div>
         ) : null}
-      </div>
+      </SectionIsland>
 
       {storeBanners.length > 0 ? (
-        <div className="mt-4 h-28 px-4">
+        <SectionIsland className="mx-3 mt-3 h-28" padded={false}>
           <BannerSlotCarousel banners={storeBanners} />
-        </div>
+        </SectionIsland>
       ) : null}
 
       {searched.length === 0 ? (

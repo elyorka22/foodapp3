@@ -7,6 +7,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/restaurant_model.dart';
+import '../../../shared/widgets/brand_loading_pill.dart';
+import '../../../shared/widgets/section_island.dart';
 import '../../../shared/widgets/store_all_categories_page.dart';
 import '../../../shared/widgets/store_category_grid.dart';
 import '../../../shared/widgets/store_product_card.dart';
@@ -38,7 +40,7 @@ class _StoreDetailScreenState extends ConsumerState<StoreDetailScreen> {
       ),
       loading: () => const Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: BrandLoadingPill()),
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(),
@@ -176,77 +178,85 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: AppStrings.searchInMenu(business.name),
-                            prefixIcon: const Icon(
-                              Icons.search_rounded,
-                              size: 18,
-                              color: AppColors.textMuted,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide:
-                                  const BorderSide(color: Color(0xFFE4E4E7)),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide:
-                                  const BorderSide(color: Color(0xFFE4E4E7)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide:
-                                  const BorderSide(color: Color(0xFFD4D4D8)),
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 15),
-                          onChanged: (v) => setState(() => _search = v),
-                        ),
-                        if (closed)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              AppStrings.deliveryTimeEnded,
-                              style: AppTypography.bodySmall.copyWith(
-                                color: AppColors.danger,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 12),
-                        if (categories.isNotEmpty)
-                          StoreCategoryGrid(
-                            categories: categories,
-                            limit: 5,
-                            activeId: widget.activeCategoryId,
-                            onSelectCategory: widget.onCategoryChanged,
-                            allCategoriesImageUrl:
-                                business.allCategoriesImageUrl,
-                            allCategoriesImageScale:
-                                business.allCategoriesImageScale,
-                            allCategoriesImagePositionX:
-                                business.allCategoriesImagePositionX,
-                            allCategoriesImagePositionY:
-                                business.allCategoriesImagePositionY,
-                            onOpenAll: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => StoreAllCategoriesPage(
-                                    categories: categories,
-                                    onSelect: widget.onCategoryChanged,
+                        SectionIsland(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              TextField(
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  hintText:
+                                      AppStrings.searchInMenu(business.name),
+                                  prefixIcon: const Icon(
+                                    Icons.search_rounded,
+                                    size: 18,
+                                    color: AppColors.textMuted,
+                                  ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF4F4F5),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide.none,
                                   ),
                                 ),
-                              );
-                            },
+                                style: const TextStyle(fontSize: 15),
+                                onChanged: (v) =>
+                                    setState(() => _search = v),
+                              ),
+                              if (closed)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    AppStrings.deliveryTimeEnded,
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: AppColors.danger,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              if (categories.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                StoreCategoryGrid(
+                                  categories: categories,
+                                  limit: 5,
+                                  activeId: widget.activeCategoryId,
+                                  onSelectCategory: widget.onCategoryChanged,
+                                  allCategoriesImageUrl:
+                                      business.allCategoriesImageUrl,
+                                  allCategoriesImageScale:
+                                      business.allCategoriesImageScale,
+                                  allCategoriesImagePositionX:
+                                      business.allCategoriesImagePositionX,
+                                  allCategoriesImagePositionY:
+                                      business.allCategoriesImagePositionY,
+                                  onOpenAll: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => StoreAllCategoriesPage(
+                                          categories: categories,
+                                          onSelect: widget.onCategoryChanged,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ],
                           ),
+                        ),
                       ],
                     ),
                   ),
@@ -382,45 +392,56 @@ class _ProductRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.only(top: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: Text(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        0,
+      ),
+      child: SectionIsland(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
               title,
               style: AppTypography.sectionTitle,
             ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 260,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              itemCount: products.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final p = products[index];
-                final qty = ref.watch(
-                  cartProvider.select(
-                    (items) => items
-                        .where((i) => i.productId == p.id)
-                        .fold(0, (s, i) => s + i.quantity),
-                  ),
-                );
-                return StoreProductCard(
-                  product: p,
-                  quantity: qty,
-                  disabled: closed,
-                  onAdd: () => onAdd(p),
-                  onRemove: () => onRemove(p.id),
-                );
-              },
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 260,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                padding: EdgeInsets.zero,
+                itemCount: products.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final p = products[index];
+                  final qty = ref.watch(
+                    cartProvider.select(
+                      (items) => items
+                          .where((i) => i.productId == p.id)
+                          .fold(0, (s, i) => s + i.quantity),
+                    ),
+                  );
+                  return StoreProductCard(
+                    product: p,
+                    quantity: qty,
+                    disabled: closed,
+                    onAdd: () => onAdd(p),
+                    onRemove: () => onRemove(p.id),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -37,7 +37,7 @@ class StoreCategoryTile extends StatelessWidget {
     final y = (imagePositionY ?? 50).clamp(0, 100);
 
     return Material(
-      color: Colors.white,
+      color: const Color(0xFFF4F4F5),
       borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -47,17 +47,7 @@ class StoreCategoryTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             border: active
                 ? Border.all(color: AppColors.textPrimary, width: 2)
-                : null,
-            boxShadow: active
-                ? const [
-                    BoxShadow(
-                      color: Color(0x3318181B),
-                      blurRadius: 0,
-                      spreadRadius: 2,
-                      offset: Offset(0, 0),
-                    ),
-                  ]
-                : null,
+                : Border.all(color: const Color(0x0A000000)),
           ),
           child: Stack(
             fit: StackFit.expand,

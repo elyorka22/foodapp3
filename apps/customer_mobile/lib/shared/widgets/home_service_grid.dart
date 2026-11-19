@@ -12,6 +12,7 @@ import '../../core/theme/app_typography.dart';
 import '../../core/utils/home_service_cards.dart';
 import '../../features/stores/providers/stores_provider.dart';
 import '../models/business_model.dart';
+import 'section_island.dart';
 
 /// Home service tiles driven by active business types (`homeGridRow` + `isActive`).
 class HomeServiceGrid extends ConsumerWidget {
@@ -63,101 +64,107 @@ class HomeServiceGrid extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final contentWidth = constraints.maxWidth;
-        final topTileWidth =
-            (contentWidth * 0.44).clamp(164.0, double.infinity);
+    return SectionIsland(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final contentWidth = constraints.maxWidth;
+          final topTileWidth =
+              (contentWidth * 0.44).clamp(164.0, double.infinity);
 
-        return Column(
-          children: [
-            if (row1.isNotEmpty)
-              SizedBox(
-                height: _tileHeight,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  clipBehavior: Clip.none,
-                  padding: EdgeInsets.zero,
-                  itemCount: row1.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (context, index) {
-                    final type = row1[index];
-                    return SizedBox(
-                      width: topTileWidth,
-                      height: _tileHeight,
-                      child: _ServiceTile(
-                        title: type.name,
-                        eta: type.description?.trim().isNotEmpty == true
-                            ? type.description!.trim()
-                            : AppStrings.homeServiceProductsEta,
-                        route: _routeFor(type),
-                        iconData: _iconFor(type),
-                        layout: layoutForBusinessTypeSlug(
-                          slug: type.slug,
-                          imageUrl: type.imageUrl,
-                          overrides: overrides,
-                        ),
-                        compact: true,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            if (row1.isNotEmpty &&
-                (restaurant != null || row2Others.isNotEmpty))
-              const SizedBox(height: 12),
-            if (restaurant != null || row2Others.isNotEmpty)
-              SizedBox(
-                height: _tileHeight,
-                child: Row(
-                  children: [
-                    if (restaurant != null) ...[
-                      Expanded(
-                        flex: 165,
+          return Column(
+            children: [
+              if (row1.isNotEmpty)
+                SizedBox(
+                  height: _tileHeight,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    clipBehavior: Clip.none,
+                    padding: EdgeInsets.zero,
+                    itemCount: row1.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) {
+                      final type = row1[index];
+                      return SizedBox(
+                        width: topTileWidth,
+                        height: _tileHeight,
                         child: _ServiceTile(
-                          title: restaurant.name,
-                          eta: restaurant.description?.trim().isNotEmpty == true
-                              ? restaurant.description!.trim()
-                              : AppStrings.homeServiceRestaurantsEta,
-                          route: _routeFor(restaurant),
-                          iconData: _iconFor(restaurant),
-                          badge: AppStrings.homeServiceDeliveryBadge,
-                          layout: layoutForBusinessTypeSlug(
-                            slug: restaurant.slug,
-                            imageUrl: restaurant.imageUrl,
-                            overrides: overrides,
-                          ),
-                          restaurantWide: true,
-                        ),
-                      ),
-                      if (row2Others.isNotEmpty) const SizedBox(width: 12),
-                    ],
-                    for (var i = 0; i < row2Others.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 12),
-                      Expanded(
-                        flex: 100,
-                        child: _ServiceTile(
-                          title: row2Others[i].name,
-                          eta: row2Others[i].description?.trim().isNotEmpty ==
-                                  true
-                              ? row2Others[i].description!.trim()
+                          title: type.name,
+                          eta: type.description?.trim().isNotEmpty == true
+                              ? type.description!.trim()
                               : AppStrings.homeServiceProductsEta,
-                          route: _routeFor(row2Others[i]),
-                          iconData: _iconFor(row2Others[i]),
+                          route: _routeFor(type),
+                          iconData: _iconFor(type),
                           layout: layoutForBusinessTypeSlug(
-                            slug: row2Others[i].slug,
-                            imageUrl: row2Others[i].imageUrl,
+                            slug: type.slug,
+                            imageUrl: type.imageUrl,
                             overrides: overrides,
                           ),
+                          compact: true,
                         ),
-                      ),
-                    ],
-                  ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-          ],
-        );
-      },
+              if (row1.isNotEmpty &&
+                  (restaurant != null || row2Others.isNotEmpty))
+                const SizedBox(height: 12),
+              if (restaurant != null || row2Others.isNotEmpty)
+                SizedBox(
+                  height: _tileHeight,
+                  child: Row(
+                    children: [
+                      if (restaurant != null) ...[
+                        Expanded(
+                          flex: 165,
+                          child: _ServiceTile(
+                            title: restaurant.name,
+                            eta: restaurant.description?.trim().isNotEmpty ==
+                                    true
+                                ? restaurant.description!.trim()
+                                : AppStrings.homeServiceRestaurantsEta,
+                            route: _routeFor(restaurant),
+                            iconData: _iconFor(restaurant),
+                            badge: AppStrings.homeServiceDeliveryBadge,
+                            layout: layoutForBusinessTypeSlug(
+                              slug: restaurant.slug,
+                              imageUrl: restaurant.imageUrl,
+                              overrides: overrides,
+                            ),
+                            restaurantWide: true,
+                          ),
+                        ),
+                        if (row2Others.isNotEmpty) const SizedBox(width: 12),
+                      ],
+                      for (var i = 0; i < row2Others.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 12),
+                        Expanded(
+                          flex: 100,
+                          child: _ServiceTile(
+                            title: row2Others[i].name,
+                            eta: row2Others[i]
+                                        .description
+                                        ?.trim()
+                                        .isNotEmpty ==
+                                    true
+                                ? row2Others[i].description!.trim()
+                                : AppStrings.homeServiceProductsEta,
+                            route: _routeFor(row2Others[i]),
+                            iconData: _iconFor(row2Others[i]),
+                            layout: layoutForBusinessTypeSlug(
+                              slug: row2Others[i].slug,
+                              imageUrl: row2Others[i].imageUrl,
+                              overrides: overrides,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

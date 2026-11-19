@@ -46,8 +46,8 @@ export function StoreCategoryTile({
       type="button"
       onClick={onClick}
       className={clsx(
-        'relative aspect-[1/1.05] overflow-hidden rounded-[20px] bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition active:scale-[0.98]',
-        active ? 'ring-2 ring-zinc-900 ring-offset-2' : null,
+        'relative aspect-[1/1.05] overflow-hidden rounded-[20px] bg-zinc-100 text-left ring-1 ring-black/[0.04] transition active:scale-[0.98]',
+        active ? 'ring-2 ring-zinc-900 ring-offset-2 ring-offset-white' : null,
       )}
     >
       {gradient ? (

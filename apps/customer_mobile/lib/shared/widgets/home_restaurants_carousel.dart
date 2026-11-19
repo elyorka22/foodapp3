@@ -11,6 +11,7 @@ import '../../core/utils/image_url.dart';
 import '../../core/utils/restaurant_card_meta.dart';
 import '../models/restaurant_model.dart';
 import 'home_section_header.dart';
+import 'section_island.dart';
 
 const _fallbacks = [
   Color(0xFF3F3F46),
@@ -40,38 +41,40 @@ class HomeRestaurantsCarousel extends StatelessWidget {
     final cardWidth = (MediaQuery.sizeOf(context).width * 0.52 - 6)
         .clamp(176.0, 196.0);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        HomeSectionHeader(
-          title: AppStrings.restaurants,
-          count: count,
-          onSeeAll: () => context.push(AppRoutes.allRestaurants),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: cardWidth / (5 / 4) + 72,
-          child: isLoading
-              ? ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 3,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (_, __) => _Skeleton(width: cardWidth),
-                )
-              : ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: restaurants.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    return _RestaurantCard(
-                      restaurant: restaurants[index],
-                      index: index,
-                      width: cardWidth,
-                    );
-                  },
-                ),
-        ),
-      ],
+    return SectionIsland(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HomeSectionHeader(
+            title: AppStrings.restaurants,
+            count: count,
+            onSeeAll: () => context.push(AppRoutes.allRestaurants),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: cardWidth / (5 / 4) + 72,
+            child: isLoading
+                ? ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 3,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (_, __) => _Skeleton(width: cardWidth),
+                  )
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: restaurants.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      return _RestaurantCard(
+                        restaurant: restaurants[index],
+                        index: index,
+                        width: cardWidth,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }

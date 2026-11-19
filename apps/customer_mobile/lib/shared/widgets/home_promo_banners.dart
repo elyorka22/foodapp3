@@ -10,6 +10,7 @@ import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
 import 'home_section_header.dart';
+import 'section_island.dart';
 
 /// Matches web `home-promo-banners.tsx`.
 class HomePromoBanners extends StatelessWidget {
@@ -37,51 +38,54 @@ class HomePromoBanners extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          HomeSectionHeader(
-            title: AppStrings.specialOffers,
-            onSeeAll: () => context.push(AppRoutes.promotions),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 150,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _skeleton(context),
-                const SizedBox(width: 12),
-                _skeleton(context),
-              ],
+      return SectionIsland(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            HomeSectionHeader(
+              title: AppStrings.specialOffers,
+              onSeeAll: () => context.push(AppRoutes.promotions),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 150,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _skeleton(context),
+                  const SizedBox(width: 12),
+                  _skeleton(context),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     final slides = _slides;
     if (slides.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        HomeSectionHeader(
-          title: AppStrings.specialOffers,
-          linkLabel: AppStrings.seeAll,
-          onSeeAll: () => context.push(AppRoutes.promotions),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 150,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: slides.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final banner = slides[index];
-              final src = resolveImageUrl(banner.imageUrl)!;
-              final href = (banner.linkUrl ?? '').trim();
+    return SectionIsland(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HomeSectionHeader(
+            title: AppStrings.specialOffers,
+            linkLabel: AppStrings.seeAll,
+            onSeeAll: () => context.push(AppRoutes.promotions),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 150,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: slides.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final banner = slides[index];
+                final src = resolveImageUrl(banner.imageUrl)!;
+                final href = (banner.linkUrl ?? '').trim();
               final title = banner.title.trim();
               final width = MediaQuery.sizeOf(context).width * 0.85;
 
@@ -148,10 +152,11 @@ class HomePromoBanners extends StatelessWidget {
                   ),
                 ),
               );
-            },
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
