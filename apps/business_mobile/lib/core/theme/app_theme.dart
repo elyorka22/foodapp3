@@ -43,16 +43,16 @@ abstract final class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return AppTypography.caption.copyWith(
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            fontSize: 11,
-            color: selected ? AppColors.primaryDark : AppColors.textMuted,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            fontSize: 12,
+            color: selected ? AppColors.primary : AppColors.textSecondary,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? AppColors.primaryDark : AppColors.textMuted,
-            size: 22,
+            color: selected ? AppColors.primary : AppColors.textSecondary,
+            size: 24,
           );
         }),
       ),

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_typography.dart';
 import '../../core/utils/format_sum.dart';
 import '../models/order_model.dart';
-import 'app_card.dart';
 import 'status_badge.dart';
 
 class OpenOrderInProgressCard extends StatelessWidget {
@@ -13,50 +10,107 @@ class OpenOrderInProgressCard extends StatelessWidget {
     required this.order,
     required this.onTap,
     this.restaurantName,
+    this.useRestaurantAccent = true,
+    this.onReady,
   });
 
   final StaffOrderModel order;
   final VoidCallback onTap;
   final String? restaurantName;
+  final bool useRestaurantAccent;
+  final VoidCallback? onReady;
+
+  Color get _accent =>
+      useRestaurantAccent ? AppColors.restaurant : AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
-    final name = restaurantName ?? order.restaurantName;
+    final border = useRestaurantAccent
+        ? AppColors.borderRestaurant
+        : AppColors.borderLight;
+    final muted = useRestaurantAccent
+        ? AppColors.textSecondaryRestaurant
+        : AppColors.textSecondary;
 
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
                 children: [
                   Text(
-                    formatSum(order.itemsTotal),
-                    style: AppTypography.title.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
+                    '#${order.orderNumber}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  if (name != null && name.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      name,
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(width: 8),
                   StatusBadge(status: order.status),
+                  const Spacer(),
+                  Text(
+                    formatSum(order.itemsTotal),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const Icon(Icons.chevron_right, color: AppColors.textMuted),
-          ],
+              if (order.items.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                ...order.items.take(3).map(
+                      (line) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          '${line.quantity}× ${line.name}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: muted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+              ],
+              if (onReady != null) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: onReady,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _accent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Tayyor',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
