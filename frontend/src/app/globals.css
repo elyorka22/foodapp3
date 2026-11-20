@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
   --color-primary: #18181b;
   --color-primary-hover: #27272a;
   --color-surface: #ffffff;
