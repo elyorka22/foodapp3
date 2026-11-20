@@ -26,11 +26,6 @@ import {
   layoutForBusinessType,
   splitHomeGridTypes,
 } from '@/lib/home-service-type';
-import {
-  SECTION_ISLAND_GAP,
-  SectionIsland,
-} from '@/components/ui/section-island';
-
 /** Shared tile height — top carousel and bottom row must match. */
 const TILE_HEIGHT_CLASS = 'h-[132px]';
 
@@ -72,7 +67,7 @@ function ServiceTile({
     <Link
       href={homeHrefForType(type)}
       className={clsx(
-        'relative block overflow-hidden rounded-[28px] bg-background transition active:scale-[0.98]',
+        'relative block overflow-hidden rounded-[28px] bg-white ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
         TILE_HEIGHT_CLASS,
         className,
       )}
@@ -160,9 +155,8 @@ export function HomeServiceGrid() {
 
   if (!isLoading && types.length === 0) return null;
 
-  // City + bell stay in the header above — outside islands.
   return (
-    <SectionIsland className={SECTION_ISLAND_GAP} aria-label={uz.categories}>
+    <section className="mt-5 space-y-2.5" aria-label={uz.categories}>
       <div className="space-y-2.5">
         {row1.length > 0 ? (
           <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-0.5 snap-x snap-mandatory scrollbar-hide">
@@ -209,6 +203,6 @@ export function HomeServiceGrid() {
           </div>
         ) : null}
       </div>
-    </SectionIsland>
+    </section>
   );
 }

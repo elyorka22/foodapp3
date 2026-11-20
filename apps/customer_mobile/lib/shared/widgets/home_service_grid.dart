@@ -11,7 +11,6 @@ import '../../core/theme/app_typography.dart';
 import '../../core/utils/home_service_cards.dart';
 import '../../features/stores/providers/stores_provider.dart';
 import '../models/business_model.dart';
-import 'section_island.dart';
 
 
 /// Home service tiles driven by active business types (`homeGridRow` + `isActive`).
@@ -64,9 +63,7 @@ class HomeServiceGrid extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // City + bell stay in HomeHeadline above — outside islands.
-    return SectionIsland(
-      child: LayoutBuilder(
+    return LayoutBuilder(
         builder: (context, constraints) {
           final contentWidth = constraints.maxWidth;
           final topTileWidth =
@@ -165,7 +162,6 @@ class HomeServiceGrid extends ConsumerWidget {
             ],
           );
         },
-      ),
     );
   }
 }
@@ -196,7 +192,7 @@ class _ServiceTile extends StatelessWidget {
     final radius = BorderRadius.circular(AppSpacing.serviceTileRadius);
 
     return Material(
-      color: AppColors.background,
+      color: AppColors.surface,
       borderRadius: radius,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -204,8 +200,9 @@ class _ServiceTile extends StatelessWidget {
         borderRadius: radius,
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.background,
+            color: AppColors.surface,
             borderRadius: radius,
+            border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {

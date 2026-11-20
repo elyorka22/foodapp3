@@ -6,7 +6,6 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
-import 'section_island.dart';
 
 /// Matches web — special offers without island, ~7:2 strip, no title.
 class HomePromoBanners extends StatelessWidget {
@@ -41,7 +40,7 @@ class HomePromoBanners extends StatelessWidget {
 
     if (isLoading) {
       return Padding(
-        padding: const EdgeInsets.only(top: SectionIsland.gap),
+        padding: const EdgeInsets.only(top: 20),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(_radius),
           child: SizedBox(
@@ -57,7 +56,7 @@ class HomePromoBanners extends StatelessWidget {
     if (slides.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(top: SectionIsland.gap),
+      padding: EdgeInsets.zero,
       child: SizedBox(
         height: bannerH,
         child: PageView.builder(

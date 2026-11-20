@@ -8,7 +8,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/widgets/brand_loading_pill.dart';
-import '../../../shared/widgets/section_island.dart';
 import '../../../shared/widgets/store_all_categories_page.dart';
 import '../../../shared/widgets/store_category_grid.dart';
 import '../../../shared/widgets/store_product_card.dart';
@@ -178,9 +177,11 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: SectionIsland.gap),
-                      SectionIsland(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg,
+                        ),
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -389,28 +390,23 @@ class _ProductRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.only(top: SectionIsland.gap),
-      child: SectionIsland(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.md,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Text(
               title,
               style: AppTypography.sectionTitle,
             ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 260,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                clipBehavior: Clip.none,
-                padding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 260,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 itemCount: products.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
@@ -431,9 +427,8 @@ class _ProductRow extends ConsumerWidget {
                   );
                 },
               ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

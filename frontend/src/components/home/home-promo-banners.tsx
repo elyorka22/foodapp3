@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { resolveImageUrl } from '@/lib/image-url';
 import { categoryImageStyle } from '@/lib/category-image-style';
 import { Skeleton } from '@/components/ui/skeleton';
-import { SECTION_ISLAND_GAP } from '@/components/ui/section-island';
 import type { HomeBanner } from '@/hooks/use-home-data';
 import { uz } from '@/lib/uz';
 
@@ -37,7 +36,7 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
 
   if (isLoading) {
     return (
-      <section className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
+      <section className="mt-5" aria-label={uz.specialOffers}>
         <Skeleton className={`${slideClass} shadow-none`} />
       </section>
     );
@@ -46,7 +45,7 @@ export function HomePromoBanners({ banners, isLoading }: Props) {
   if (!slides.length) return null;
 
   return (
-    <section className={SECTION_ISLAND_GAP} aria-label={uz.specialOffers}>
+    <section className="mt-5" aria-label={uz.specialOffers}>
       <div className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide">
         {slides.map((banner, index) => {
           const src = resolveImageUrl(banner.imageUrl)!;

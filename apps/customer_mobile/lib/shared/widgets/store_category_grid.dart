@@ -37,7 +37,7 @@ class StoreCategoryTile extends StatelessWidget {
     final y = (imagePositionY ?? 50).clamp(0, 100);
 
     return Material(
-      color: const Color(0xFFF4F4F5),
+      color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
       child: InkWell(

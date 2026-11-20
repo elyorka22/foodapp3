@@ -16,10 +16,6 @@ import { StoreAllCategoriesSheet } from '@/components/store/store-all-categories
 import { StoreCategoryGrid } from '@/components/store/store-category-grid';
 import { StoreProductCard } from '@/components/store/store-product-card';
 import { BrandLoadingState } from '@/components/ui/brand-loading-pill';
-import {
-  SECTION_ISLAND_GAP,
-  SectionIsland,
-} from '@/components/ui/section-island';
 import { EmptyState } from '@/components/ui/empty-state';
 import { uz } from '@/lib/uz';
 
@@ -49,8 +45,8 @@ function ProductRow({
 }) {
   if (products.length === 0) return null;
   return (
-    <SectionIsland className={SECTION_ISLAND_GAP}>
-      <div className="mb-3 flex items-center justify-between gap-2">
+    <section className="mt-5">
+      <div className="mb-3 flex items-center justify-between gap-2 px-4">
         <h2 className="text-[18px] font-extrabold tracking-tight text-zinc-900">
           {title}
         </h2>
@@ -60,7 +56,7 @@ function ProductRow({
           </Link>
         ) : null}
       </div>
-      <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide">
+      <div className="flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide">
         {products.map((p) => (
           <StoreProductCard
             key={p.id}
@@ -71,7 +67,7 @@ function ProductRow({
           />
         ))}
       </div>
-    </SectionIsland>
+    </section>
   );
 }
 
@@ -193,8 +189,8 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
         </div>
       </header>
 
-      <SectionIsland className={SECTION_ISLAND_GAP}>
-        <label className="flex h-11 items-center gap-2 rounded-2xl bg-zinc-100 px-3">
+      <div className="px-4 pt-3">
+        <label className="flex h-11 items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3">
           <Search size={18} className="shrink-0 text-zinc-400" aria-hidden />
           <input
             value={query}
@@ -227,12 +223,12 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
             />
           </div>
         ) : null}
-      </SectionIsland>
+      </div>
 
       {storeBanners.length > 0 ? (
-        <SectionIsland className={`${SECTION_ISLAND_GAP} h-28`} padded={false}>
+        <div className="mt-4 h-28 px-4">
           <BannerSlotCarousel banners={storeBanners} />
-        </SectionIsland>
+        </div>
       ) : null}
 
       {searched.length === 0 ? (

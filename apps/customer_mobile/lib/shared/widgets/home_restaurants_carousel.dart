@@ -11,7 +11,6 @@ import '../../core/utils/image_url.dart';
 import '../../core/utils/restaurant_card_meta.dart';
 import '../models/restaurant_model.dart';
 import 'home_section_header.dart';
-import 'section_island.dart';
 
 const _fallbacks = [
   Color(0xFF3F3F46),
@@ -41,10 +40,9 @@ class HomeRestaurantsCarousel extends StatelessWidget {
     final cardWidth = (MediaQuery.sizeOf(context).width * 0.52 - 6)
         .clamp(176.0, 196.0);
 
-    return SectionIsland(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
           HomeSectionHeader(
             title: AppStrings.restaurants,
             count: count,
@@ -73,8 +71,7 @@ class HomeRestaurantsCarousel extends StatelessWidget {
                     },
                   ),
           ),
-        ],
-      ),
+      ],
     );
   }
 }

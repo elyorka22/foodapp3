@@ -10,7 +10,6 @@ import '../../core/utils/image_url.dart';
 import '../../core/utils/restaurant_card_meta.dart';
 import '../models/business_model.dart';
 import 'home_section_header.dart';
-import 'section_island.dart';
 
 const _tileTints = [
   Color(0xFFE8F5E9),
@@ -49,10 +48,9 @@ class HomeShopsCarousel extends StatelessWidget {
 
     final count = total ?? stores.length;
 
-    return SectionIsland(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
           HomeSectionHeader(
             title: AppStrings.groceryStores,
             count: count,
@@ -78,8 +76,7 @@ class HomeShopsCarousel extends StatelessWidget {
                     },
                   ),
           ),
-        ],
-      ),
+      ],
     );
   }
 }
