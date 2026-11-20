@@ -12,9 +12,8 @@ abstract final class AppColors {
   static const Color brandSoft = Color(0xFFF1E6FD);
 
   static const Color surface = Color(0xFFFFFFFF);
-  /// Page gray — clear contrast vs white islands.
-  static const Color background = Color(0xFFE8E8ED);
-  static const Color pageBackground = Color(0xFFE8E8ED);
+  static const Color background = Color(0xFFF5F5F7);
+  static const Color pageBackground = Color(0xFFF5F5F7);
   static const Color border = Color(0xFFE8E8EC);
   /// Stronger hairline for chips / icon buttons on gray page backgrounds.
   static const Color borderStrong = Color(0xFFD4D4D8);
