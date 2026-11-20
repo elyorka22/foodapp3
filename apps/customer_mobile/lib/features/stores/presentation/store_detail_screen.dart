@@ -8,7 +8,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/models/restaurant_model.dart';
 import '../../../shared/widgets/brand_loading_pill.dart';
-import '../../../shared/widgets/store_all_categories_page.dart';
 import '../../../shared/widgets/store_category_grid.dart';
 import '../../../shared/widgets/store_product_card.dart';
 import '../../cart/providers/cart_provider.dart';
@@ -67,6 +66,7 @@ class _StoreMenuBody extends ConsumerStatefulWidget {
 class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
   final _searchController = TextEditingController();
   String _search = '';
+  bool _categoriesExpanded = false;
 
   @override
   void dispose() {
@@ -233,7 +233,7 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                                 const SizedBox(height: 12),
                                 StoreCategoryGrid(
                                   categories: categories,
-                                  limit: 5,
+                                  limit: _categoriesExpanded ? null : 5,
                                   activeId: widget.activeCategoryId,
                                   onSelectCategory: widget.onCategoryChanged,
                                   allCategoriesImageUrl:
@@ -244,13 +244,11 @@ class _StoreMenuBodyState extends ConsumerState<_StoreMenuBody> {
                                       business.allCategoriesImagePositionX,
                                   allCategoriesImagePositionY:
                                       business.allCategoriesImagePositionY,
-                                  onOpenAll: () {
-                                    showStoreAllCategoriesSheet(
-                                      context: context,
-                                      categories: categories,
-                                      onSelect: widget.onCategoryChanged,
-                                    );
-                                  },
+                                  onOpenAll: _categoriesExpanded
+                                      ? null
+                                      : () => setState(
+                                            () => _categoriesExpanded = true,
+                                          ),
                                 ),
                               ],
                             ],

@@ -12,7 +12,6 @@ import { useHomeBanners } from '@/hooks/use-home-data';
 import { BannerSlotCarousel } from '@/components/home/banner-slot-carousel';
 import type { BusinessMenuDetail } from '@/components/business/business-menu-screen';
 import type { MenuProduct } from '@/components/restaurant/product-card';
-import { StoreAllCategoriesSheet } from '@/components/store/store-all-categories-page';
 import { StoreCategoryGrid } from '@/components/store/store-category-grid';
 import { StoreProductCard } from '@/components/store/store-product-card';
 import { BrandLoadingState } from '@/components/ui/brand-loading-pill';
@@ -210,10 +209,12 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
           <div className="mt-3">
             <StoreCategoryGrid
               categories={categories}
-              limit={5}
+              limit={showAllCategories ? undefined : 5}
               activeId={activeCategoryId}
               onSelectCategory={setActiveCategoryId}
-              onOpenAll={() => setShowAllCategories(true)}
+              onOpenAll={
+                showAllCategories ? undefined : () => setShowAllCategories(true)
+              }
               allCategoriesTile={{
                 imageUrl: business?.businessType?.allCategoriesImageUrl,
                 imageScale: business?.businessType?.allCategoriesImageScale,
@@ -283,17 +284,6 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
         </button>
       )}
 
-      {categories.length > 0 ? (
-        <StoreAllCategoriesSheet
-          open={showAllCategories}
-          categories={categories}
-          onClose={() => setShowAllCategories(false)}
-          onSelect={(id) => {
-            setActiveCategoryId(id);
-            setShowAllCategories(false);
-          }}
-        />
-      ) : null}
     </div>
   );
 }
