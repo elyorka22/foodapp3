@@ -111,6 +111,28 @@ textarea::placeholder {
   }
 }
 
+/* Two copies of the title; shift by half so the loop has no jump. */
+@keyframes category-title-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.category-title-slide {
+  animation-name: category-title-slide;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-title-slide {
+    animation: none;
+  }
+}
+
 /* Short ring (~0.9s) then pause — 4s cycle, matches Flutter NotificationBell */
 @keyframes notification-bell-ring {
   0%,
