@@ -38,31 +38,8 @@ class _TileMeta {
   final bool wide;
 }
 
-const _tileBg = Colors.white;
-
-const _topRow = <_TileMeta>[
-  _TileMeta(
-    keyName: 'flowers',
-    title: 'Gullar',
-    eta: '40 daq',
-    tileColor: _tileBg,
-    compact: true,
-  ),
-  _TileMeta(
-    keyName: 'cosmetics',
-    title: 'Kosmetika',
-    eta: '45 daq',
-    tileColor: _tileBg,
-    compact: true,
-  ),
-  _TileMeta(
-    keyName: 'pharmacy',
-    title: 'Dorixona',
-    eta: '35 daq',
-    tileColor: _tileBg,
-    compact: true,
-  ),
-];
+const _tileBg = Color(0xFFF5F5F7);
+const _tileHeight = 112.0;
 
 const _restaurantsMeta = _TileMeta(
   keyName: 'restaurants',
@@ -70,6 +47,7 @@ const _restaurantsMeta = _TileMeta(
   eta: '25 daq',
   tileColor: _tileBg,
   badge: 'Tez',
+  compact: true,
   wide: true,
 );
 
@@ -78,7 +56,40 @@ const _productsMeta = _TileMeta(
   title: 'Mahsulotlar',
   eta: '30 daq',
   tileColor: _tileBg,
+  compact: true,
 );
+
+const _flowersMeta = _TileMeta(
+  keyName: 'flowers',
+  title: 'Gullar',
+  eta: '40 daq',
+  tileColor: _tileBg,
+  compact: true,
+);
+
+const _cosmeticsMeta = _TileMeta(
+  keyName: 'cosmetics',
+  title: 'Parfyumeriya',
+  eta: '45 daq',
+  tileColor: _tileBg,
+  compact: true,
+);
+
+const _pharmacyMeta = _TileMeta(
+  keyName: 'pharmacy',
+  title: 'Dorixona',
+  eta: '35 daq',
+  tileColor: _tileBg,
+  compact: true,
+);
+
+const _homeTiles = <_TileMeta>[
+  _restaurantsMeta,
+  _productsMeta,
+  _flowersMeta,
+  _cosmeticsMeta,
+  _pharmacyMeta,
+];
 
 class HomeServiceCardsScreen extends ConsumerStatefulWidget {
   const HomeServiceCardsScreen({super.key});
@@ -168,10 +179,9 @@ class _HomeServiceCardsScreenState
   }
 
   _TileMeta get _selectedMeta {
-    for (final m in _topRow) {
-      if (m.keyName == _selectedKey) return m;
+    for (final meta in _homeTiles) {
+      if (meta.keyName == _selectedKey) return meta;
     }
-    if (_selectedKey == 'products') return _productsMeta;
     return _restaurantsMeta;
   }
 
@@ -322,7 +332,7 @@ class _HomeServiceCardsScreenState
   }
 }
 
-/// Mirrors web `HomeServiceGrid`: 3 compact tiles, then restaurants + products.
+/// Mirrors the web home island: restaurants + products, then flowers, perfume, all categories.
 class _ProdLikeGrid extends StatelessWidget {
   const _ProdLikeGrid({
     required this.cards,
@@ -337,62 +347,104 @@ class _ProdLikeGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F7),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
         children: [
-          // Same height as web HomeServiceGrid tiles (h-[120px]).
-          SizedBox(
-            height: 120,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _topRow.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (context, i) {
-                final meta = _topRow[i];
-                return SizedBox(
-                  width: 148,
-                  child: _ProdTile(
-                    meta: meta,
-                    layout: cards[meta.keyName],
-                    selected: selectedKey == meta.keyName,
-                    height: 120,
-                    onTap: () => onSelect(meta.keyName),
-                  ),
-                );
-              },
-            ),
+          Row(
+            children: [
+              Expanded(child: _tile(_restaurantsMeta)),
+              const SizedBox(width: 10),
+              Expanded(child: _tile(_productsMeta)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: _tile(_flowersMeta)),
+              const SizedBox(width: 10),
+              Expanded(child: _tile(_cosmeticsMeta)),
+              const SizedBox(width: 10),
+              const Expanded(child: _AllCategoriesTile()),
+            ],
           ),
           const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 165,
-                child: _ProdTile(
-                  meta: _restaurantsMeta,
-                  layout: cards.restaurants,
-                  selected: selectedKey == 'restaurants',
-                  height: 120,
-                  onTap: () => onSelect('restaurants'),
-                ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Dorixona katalogda',
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 100,
-                child: _ProdTile(
-                  meta: _productsMeta,
-                  layout: cards.products,
-                  selected: selectedKey == 'products',
-                  height: 120,
-                  onTap: () => onSelect('products'),
-                ),
-              ),
-            ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: SizedBox(
+              width: 120,
+              child: _tile(_pharmacyMeta),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tile(_TileMeta meta) {
+    return _ProdTile(
+      meta: meta,
+      layout: cards[meta.keyName],
+      selected: selectedKey == meta.keyName,
+      height: _tileHeight,
+      onTap: () => onSelect(meta.keyName),
+    );
+  }
+}
+
+class _AllCategoriesTile extends StatelessWidget {
+  const _AllCategoriesTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: _tileHeight,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _tileBg,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Barcha kategoriyalar',
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              height: 1.15,
+              color: Color(0xFF18181B),
+            ),
+          ),
+          const Spacer(),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.arrow_forward,
+              size: 16,
+              color: Color(0xFF27272A),
+            ),
           ),
         ],
       ),
@@ -424,24 +476,17 @@ class _ProdTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(22),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           height: height,
           decoration: BoxDecoration(
             color: meta.tileColor,
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: selected ? AppColors.primary : const Color(0x0A000000),
-              width: selected ? 2 : 1,
+              color: selected ? AppColors.primary : Colors.transparent,
+              width: selected ? 2 : 0,
             ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A0F172A),
-                blurRadius: 12,
-                offset: Offset(0, 2),
-              ),
-            ],
           ),
           clipBehavior: Clip.antiAlias,
           child: LayoutBuilder(

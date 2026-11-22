@@ -56,7 +56,7 @@ abstract final class AppStrings {
       'Yangi dizayn: bannerlar «Maxsus takliflar» qatorida. Restoranlar — Bizneslar + Shaharlar.';
   static const homeServiceCardsTitle = 'Kategoriya rasmlari';
   static const homeServiceCardsHint =
-      'Yuqorida — saytdagi kabi to‘liq setka. Plitkani tanlang, pastda sozlang. Ortgan qism konteyner ichida kesiladi.';
+      'Birinchi qator: restoranlar va mahsulotlar. Ikkinchi: gullar, parfyumeriya va barcha kategoriyalar. Plitkani bosing, rasmni joylashtiring. Ortgan qism kartochka ichida kesiladi.';
   static const homeServiceLivePreview = 'Jonli ko‘rinish (sayt kabi)';
   static const homeServiceLivePreviewHint =
       'Plitkani bosing — pastda shu kategoriya sozlamalari ochiladi.';
