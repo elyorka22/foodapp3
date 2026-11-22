@@ -68,7 +68,7 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
               >
                 <div
                   className={clsx(
-                    'relative overflow-hidden rounded-[16px] bg-white ring-1 ring-black/[0.04]',
+                    'relative overflow-hidden rounded-[16px] bg-background ring-1 ring-black/[0.04]',
                     SHOP_TILE_ASPECT,
                   )}
                 >

@@ -27,12 +27,12 @@ export default function HomePage() {
     restaurants.length === 0;
 
   return (
-    <main className="customer-page mx-auto flex min-h-screen max-w-lg flex-col bg-white">
+    <main className="customer-page mx-auto flex min-h-screen max-w-lg flex-col bg-background">
       <div className="px-4">
         <HomeCenterHeader />
       </div>
 
-      <section className="mt-3 flex-1 rounded-t-[32px] bg-background px-4 pb-8 pt-4">
+      <section className="mt-3 flex-1 rounded-t-[32px] bg-white px-4 pb-8 pt-4">
         <HomeServiceGrid />
 
         <HomePromoBanners
