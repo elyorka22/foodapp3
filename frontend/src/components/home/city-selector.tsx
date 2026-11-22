@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useSelectedCity } from '@/hooks/use-selected-city';
 import { uz } from '@/lib/uz';
@@ -54,15 +54,6 @@ export function CitySelector({ className }: CitySelectorProps) {
         >
           {label}
         </span>
-        <ChevronDown
-          size={centered ? 18 : 22}
-          strokeWidth={2.5}
-          className={clsx(
-            'shrink-0 text-zinc-700 transition-transform duration-200',
-            centered ? 'mt-0.5' : 'mt-1',
-            open && 'rotate-180',
-          )}
-        />
       </button>
 
       {open ? (

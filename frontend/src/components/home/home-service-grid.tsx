@@ -67,7 +67,7 @@ function ServiceTile({
     <Link
       href={homeHrefForType(type)}
       className={clsx(
-        'relative block overflow-hidden rounded-[22px] bg-[#F2F3F5] transition active:scale-[0.98]',
+        'relative block overflow-hidden rounded-[22px] bg-white transition active:scale-[0.98]',
         TILE_HEIGHT_CLASS,
         className,
       )}
@@ -203,12 +203,12 @@ export function HomeServiceGrid() {
         ))}
         <Link
           href="/stores"
-          className="flex h-[112px] flex-col rounded-[22px] bg-[#F2F3F5] p-3 transition active:scale-[0.98]"
+          className="flex h-[112px] flex-col rounded-[22px] bg-white p-3 transition active:scale-[0.98]"
         >
           <p className="line-clamp-3 text-[13px] font-bold leading-tight text-zinc-900">
             {uz.storeAllCategories}
           </p>
-          <span className="mt-auto flex h-8 w-8 items-center justify-center rounded-full bg-white text-zinc-800">
+          <span className="mt-auto flex h-8 w-8 items-center justify-center rounded-full bg-background text-zinc-800">
             <ArrowRight size={16} strokeWidth={2.25} />
           </span>
         </Link>

@@ -15,24 +15,6 @@ import type { ShopBusiness } from '@/hooks/use-shops-data';
 const SHOP_CARD_WIDTH = 'w-[8.25rem]';
 const SHOP_TILE_ASPECT = 'aspect-[3/2]';
 
-const TILE_TINTS = [
-  'bg-[#E8F5E9]',
-  'bg-[#E3F2FD]',
-  'bg-[#FFF3E0]',
-  'bg-[#FCE4EC]',
-  'bg-[#E0F7FA]',
-  'bg-[#FFF8E1]',
-  'bg-[#EFEBE9]',
-] as const;
-
-function tintFor(name: string, index: number): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i += 1) {
-    hash = (hash + name.charCodeAt(i) * (i + 1)) % 997;
-  }
-  return TILE_TINTS[(hash + index) % TILE_TINTS.length];
-}
-
 type Props = {
   stores: ShopBusiness[];
   isLoading?: boolean;
@@ -72,7 +54,7 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
         </div>
       ) : (
         <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-1 scrollbar-hide">
-          {stores.map((store, index) => {
+          {stores.map((store) => {
             const logo = resolveImageUrl(store.logoUrl ?? store.coverUrl);
             const href = shopPublicPath(store);
             const delivery = restaurantDeliveryLabel(store);
@@ -86,9 +68,8 @@ export function HomeShopsCarousel({ stores, isLoading, total }: Props) {
               >
                 <div
                   className={clsx(
-                    'relative overflow-hidden rounded-[16px] ring-1 ring-black/[0.04]',
+                    'relative overflow-hidden rounded-[16px] bg-white ring-1 ring-black/[0.04]',
                     SHOP_TILE_ASPECT,
-                    tintFor(store.name, index),
                   )}
                 >
                   {logo ? (
