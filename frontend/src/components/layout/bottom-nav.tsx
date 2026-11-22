@@ -39,22 +39,21 @@ const STROKE = 2;
 
 function CartIcon({ active }: TabIconProps) {
   const color = active ? BRAND : IDLE;
-  // Lucide `shopping-cart` — same family as ProfileIcon.
+  // Filled takeaway basket — matches the reference nav mark.
   return (
     <svg
       width={ICON}
       height={ICON}
       viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={STROKE}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill={color}
       aria-hidden
     >
-      <circle cx="8" cy="21" r="1" />
-      <circle cx="19" cy="21" r="1" />
-      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+      <path d="M6.15 9.85c.15-1.85 1.7-3.15 3.45-2.9 1.05.15 1.85.95 2.15 1.9.1.25-.1.45-.35.45H6.55c-.3 0-.5-.2-.4-.45z" />
+      <path d="M14.35 7.55c.25-.7 1.2-.95 1.8-.35l1.15 1.25c.25.28.05.7-.32.7h-2.25c-.38 0-.58-.42-.38-.7z" />
+      <path
+        fillRule="evenodd"
+        d="M4.15 10.15h15.7c.55 0 .95.5.85 1.05l-1.45 8.15A1.7 1.7 0 0 1 17.58 21H6.42a1.7 1.7 0 0 1-1.67-1.65L3.3 11.2c-.1-.55.3-1.05.85-1.05zm4.55.15v2.35c0 1.85 1.35 3.15 3.3 3.15s3.3-1.3 3.3-3.15V10.3h-1.35v2.15c0 1.05-.8 1.8-1.95 1.8s-1.95-.75-1.95-1.8V10.3H8.7z"
+      />
     </svg>
   );
 }
