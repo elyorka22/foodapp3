@@ -10,42 +10,29 @@ class LucideHomeNavIcon extends StatelessWidget {
     super.key,
     this.size = 30,
     this.color,
-    this.active = false,
   });
 
   final double size;
   final Color? color;
-  final bool active;
-
-  static const _grayScale = ColorFilter.matrix(<double>[
-    0.2126, 0.7152, 0.0722, 0, 0,
-    0.2126, 0.7152, 0.0722, 0, 0,
-    0.2126, 0.7152, 0.0722, 0, 0,
-    0, 0, 0, 1, 0,
-  ]);
 
   @override
   Widget build(BuildContext context) {
-    final image = Image.asset(
-      'assets/images/brand_wing.png',
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.high,
-      errorBuilder: (_, __, ___) => Icon(
-        Icons.home_rounded,
-        size: size,
-        color: color,
-      ),
-    );
-
-    if (active) return image;
-
-    return Opacity(
-      opacity: 0.5,
-      child: ColorFiltered(
-        colorFilter: _grayScale,
-        child: image,
+    final paint = color ?? Theme.of(context).colorScheme.onSurface;
+    // Wing artwork fills its box more than the other marks, so draw it smaller.
+    final mark = size * 26 / 30;
+    return ColorFiltered(
+      colorFilter: ColorFilter.mode(paint, BlendMode.srcIn),
+      child: Image.asset(
+        'assets/images/brand_wing.png',
+        width: mark,
+        height: mark,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        errorBuilder: (_, __, ___) => Icon(
+          Icons.home_rounded,
+          size: mark,
+          color: paint,
+        ),
       ),
     );
   }

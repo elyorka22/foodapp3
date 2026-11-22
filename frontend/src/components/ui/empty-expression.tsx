@@ -4,7 +4,9 @@ export type EmptyMood =
   | 'confused'
   | 'calm'
   | 'curious'
-  | 'pensive';
+  | 'pensive'
+  | 'pleased'
+  | 'quiet';
 
 type Props = {
   mood?: EmptyMood;
@@ -34,6 +36,8 @@ export function EmptyExpression({ mood = 'calm', className }: Props) {
       {mood === 'calm' ? <Calm /> : null}
       {mood === 'curious' ? <Curious /> : null}
       {mood === 'pensive' ? <Pensive /> : null}
+      {mood === 'pleased' ? <Pleased /> : null}
+      {mood === 'quiet' ? <Quiet /> : null}
     </svg>
   );
 }
@@ -116,6 +120,27 @@ function Pensive() {
       <circle cx="45" cy="56" r="3.6" fill="currentColor" />
       <circle cx="77" cy="56" r="3.6" fill="currentColor" />
       <path d="M50 86c5 4 15 4 20-1" {...stroke} />
+    </>
+  );
+}
+
+function Pleased() {
+  return (
+    <>
+      <path d="M33 42c7-6 14-6 18 0" {...stroke} />
+      <path d="M69 42c7-6 14-6 18 0" {...stroke} />
+      <Eyes y={52} />
+      <path d="M46 82c7 9 21 9 28 0" {...stroke} />
+    </>
+  );
+}
+
+function Quiet() {
+  return (
+    <>
+      <path d="M33 50c7 5 14 5 18 0" {...stroke} />
+      <path d="M69 50c7 5 14 5 18 0" {...stroke} />
+      <path d="M50 84h20" {...stroke} />
     </>
   );
 }

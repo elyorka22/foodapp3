@@ -48,7 +48,7 @@ export default function NotificationsPage() {
 
       {!loggedIn && (
         <EmptyState
-          mood="curious"
+          mood="quiet"
           title={uz.notificationsTitle}
           description={uz.notificationsLoginHint}
         />
@@ -60,7 +60,7 @@ export default function NotificationsPage() {
 
       {loggedIn && !list.isLoading && items.length === 0 && (
         <EmptyState
-          mood="calm"
+          mood="quiet"
           title={uz.notificationsTitle}
           description={uz.notificationsEmptyHint}
         />

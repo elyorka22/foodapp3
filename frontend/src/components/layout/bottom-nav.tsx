@@ -17,18 +17,25 @@ const IDLE = '#A1A1AA';
 const NAV_ICON = 30;
 
 function HomeIcon({ active }: TabIconProps) {
+  const color = active ? BRAND : IDLE;
+  // Same box and currentColor as cart/profile. Mask keeps the wing shape.
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="/brand-wing.png"
-      alt=""
-      width={NAV_ICON}
-      height={NAV_ICON}
-      draggable={false}
-      className={clsx(
-        'select-none object-contain transition',
-        active ? 'opacity-100' : 'opacity-50 grayscale',
-      )}
+    <span
+      aria-hidden
+      className="block"
+      style={{
+        width: 26,
+        height: 26,
+        backgroundColor: color,
+        WebkitMaskImage: 'url(/brand-wing.png)',
+        maskImage: 'url(/brand-wing.png)',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskPosition: 'center',
+        WebkitMaskSize: 'contain',
+        maskSize: 'contain',
+      }}
     />
   );
 }
