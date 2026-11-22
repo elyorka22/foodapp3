@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight, Package, Search, ShoppingCart, X } from 'lucide-react';
+import { ChevronRight, Search, ShoppingCart, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { resolveImageUrl } from '@/lib/image-url';
 import { useCartStore } from '@/store/cart';
@@ -234,10 +234,10 @@ export function StoreMenuScreen({ slug, backHref = '/' }: Props) {
 
       {searched.length === 0 ? (
         <EmptyState
-          icon={Package}
+          mood="curious"
           title={uz.menuEmpty}
           description={uz.menuEmptyHint}
-          className="mt-8 px-4"
+          className="mx-4 mt-8"
         />
       ) : (
         <>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, CheckCheck } from 'lucide-react';
+import { CheckCheck } from 'lucide-react';
 import { clsx } from 'clsx';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useCustomerNotifications } from '@/hooks/use-customer-notifications';
@@ -48,7 +48,7 @@ export default function NotificationsPage() {
 
       {!loggedIn && (
         <EmptyState
-          icon={Bell}
+          mood="curious"
           title={uz.notificationsTitle}
           description={uz.notificationsLoginHint}
         />
@@ -60,7 +60,7 @@ export default function NotificationsPage() {
 
       {loggedIn && !list.isLoading && items.length === 0 && (
         <EmptyState
-          icon={Bell}
+          mood="calm"
           title={uz.notificationsTitle}
           description={uz.notificationsEmptyHint}
         />

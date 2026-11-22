@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckoutHeader } from '@/components/checkout/checkout-header';
+import { EmptyState } from '@/components/ui/empty-state';
 import { CheckoutDeliveryCard } from '@/components/checkout/checkout-delivery-card';
 import { CheckoutFulfillmentCard } from '@/components/checkout/checkout-fulfillment-card';
 import { CheckoutSummaryCard } from '@/components/checkout/checkout-summary-card';
@@ -44,11 +45,16 @@ export default function CheckoutDeliveryPage() {
   if (!items.length) {
     return (
       <main className={checkoutMainClass}>
-        <div className="mt-12 text-center">
-          <p className="text-lg font-semibold text-zinc-900">{uz.cartEmpty}</p>
-          <Link href="/" className="mt-4 inline-block text-[15px] font-semibold text-[#18181B]">
-            {uz.browseRestaurants}
-          </Link>
+        <div className="mt-8">
+          <EmptyState
+            mood="pouty"
+            title={uz.cartEmpty}
+            action={
+              <Link href="/" className="text-[15px] font-semibold text-zinc-900">
+                {uz.browseRestaurants}
+              </Link>
+            }
+          />
         </div>
       </main>
     );

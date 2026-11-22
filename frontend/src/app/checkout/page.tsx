@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { CheckoutHeader } from '@/components/checkout/checkout-header';
+import { EmptyState } from '@/components/ui/empty-state';
 import { CheckoutPromoCard } from '@/components/checkout/checkout-promo-card';
 import { CheckoutPhoneCard } from '@/components/checkout/checkout-phone-card';
 import { CheckoutDualActionBar } from '@/components/checkout/checkout-dual-action-bar';
@@ -31,11 +32,16 @@ export default function CheckoutDetailsPage() {
   if (!items.length) {
     return (
       <main className={checkoutMainClass}>
-        <div className="mt-12 text-center">
-          <p className="text-lg font-semibold text-zinc-900">{uz.cartEmpty}</p>
-          <Link href="/" className="mt-4 inline-block text-[15px] font-semibold text-[#18181B]">
-            {uz.browseRestaurants}
-          </Link>
+        <div className="mt-8">
+          <EmptyState
+            mood="pouty"
+            title={uz.cartEmpty}
+            action={
+              <Link href="/" className="text-[15px] font-semibold text-zinc-900">
+                {uz.browseRestaurants}
+              </Link>
+            }
+          />
         </div>
       </main>
     );
