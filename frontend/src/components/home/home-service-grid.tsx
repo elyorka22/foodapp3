@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
+  ArrowRight,
   Flower2,
   Pill,
   ShoppingBag,
@@ -24,10 +25,9 @@ import {
   homeHrefForType,
   isRestaurantHomeType,
   layoutForBusinessType,
-  splitHomeGridTypes,
 } from '@/lib/home-service-type';
-/** Shared tile height — top carousel and bottom row must match. */
-const TILE_HEIGHT_CLASS = 'h-[132px]';
+/** Cards inside the home island — same height on both rows. */
+const TILE_HEIGHT_CLASS = 'h-[112px]';
 
 function iconForType(type: BusinessType): LucideIcon {
   const slug = (type.slug ?? '').toLowerCase();
@@ -67,7 +67,7 @@ function ServiceTile({
     <Link
       href={homeHrefForType(type)}
       className={clsx(
-        'relative block overflow-hidden rounded-[28px] bg-white ring-1 ring-black/[0.04] shadow-[0_2px_12px_rgba(15,23,42,0.04)] transition active:scale-[0.98]',
+        'relative block overflow-hidden rounded-[22px] bg-[#F2F3F5] transition active:scale-[0.98]',
         TILE_HEIGHT_CLASS,
         className,
       )}
@@ -147,61 +147,71 @@ function ServiceTile({
   );
 }
 
+function slugOf(type: BusinessType) {
+  return (type.slug ?? '').toLowerCase();
+}
+
 export function HomeServiceGrid() {
   const { data: settings } = usePublicSettings();
   const { data: types = [], isLoading } = useBusinessTypes();
   const cards = settings?.home_service_cards;
-  const { row1, restaurant, row2Others } = splitHomeGridTypes(types);
 
-  if (!isLoading && types.length === 0) return null;
+  const restaurant = types.find((type) => isRestaurantHomeType(type)) ?? null;
+  const grocery =
+    types.find((type) => {
+      const slug = slugOf(type);
+      return slug === 'grocery' || slug === 'products';
+    }) ?? null;
+  const flowers = types.find((type) => slugOf(type) === 'flowers') ?? null;
+  const perfume =
+    types.find((type) => {
+      const slug = slugOf(type);
+      return slug === 'perfume' || slug === 'cosmetics';
+    }) ?? null;
+
+  const row1 = [restaurant, grocery].filter((type): type is BusinessType => Boolean(type));
+  const row2 = [flowers, perfume].filter((type): type is BusinessType => Boolean(type));
+
+  if (!isLoading && row1.length === 0 && row2.length === 0) return null;
 
   return (
-    <section className="mt-5 space-y-2.5" aria-label={uz.categories}>
-      <div className="space-y-2.5">
-        {row1.length > 0 ? (
-          <div className="-mr-4 flex gap-2.5 overflow-x-auto pr-4 pb-0.5 snap-x snap-mandatory scrollbar-hide">
-            {row1.map((type) => (
-              <ServiceTile
-                key={type.id}
-                type={type}
-                layout={layoutForBusinessType(type, cards)}
-                compact
-                iconSize={30}
-                className="w-[46%] min-w-[10.5rem] shrink-0 snap-start"
-              />
-            ))}
-          </div>
-        ) : null}
+    <section className="space-y-2.5" aria-label={uz.categories}>
+      {row1.length > 0 ? (
+        <div className="grid grid-cols-2 gap-2.5">
+          {row1.map((type) => (
+            <ServiceTile
+              key={type.id}
+              type={type}
+              layout={layoutForBusinessType(type, cards)}
+              compact
+              wide={isRestaurantHomeType(type)}
+              iconSize={28}
+            />
+          ))}
+        </div>
+      ) : null}
 
-        {restaurant || row2Others.length > 0 ? (
-          <div
-            className="grid gap-2.5"
-            style={{
-              gridTemplateColumns: restaurant
-                ? row2Others.length > 0
-                  ? ['1.65fr', ...row2Others.map(() => 'minmax(0,1fr)')].join(' ')
-                  : '1fr'
-                : row2Others.map(() => 'minmax(0,1fr)').join(' ') || '1fr',
-            }}
-          >
-            {restaurant ? (
-              <ServiceTile
-                type={restaurant}
-                layout={layoutForBusinessType(restaurant, cards)}
-                iconSize={52}
-                wide
-              />
-            ) : null}
-            {row2Others.map((type) => (
-              <ServiceTile
-                key={type.id}
-                type={type}
-                layout={layoutForBusinessType(type, cards)}
-                iconSize={40}
-              />
-            ))}
-          </div>
-        ) : null}
+      <div className="grid grid-cols-3 gap-2.5">
+        {row2.map((type) => (
+          <ServiceTile
+            key={type.id}
+            type={type}
+            layout={layoutForBusinessType(type, cards)}
+            compact
+            iconSize={26}
+          />
+        ))}
+        <Link
+          href="/stores"
+          className="flex h-[112px] flex-col rounded-[22px] bg-[#F2F3F5] p-3 transition active:scale-[0.98]"
+        >
+          <p className="line-clamp-3 text-[13px] font-bold leading-tight text-zinc-900">
+            {uz.storeAllCategories}
+          </p>
+          <span className="mt-auto flex h-8 w-8 items-center justify-center rounded-full bg-white text-zinc-800">
+            <ArrowRight size={16} strokeWidth={2.25} />
+          </span>
+        </Link>
       </div>
     </section>
   );

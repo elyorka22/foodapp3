@@ -27,55 +27,60 @@ export default function HomePage() {
     restaurants.length === 0;
 
   return (
-    <main className="customer-page mx-auto min-h-screen max-w-lg bg-background px-4 pb-8">
-      <HomeCenterHeader />
-      <HomeServiceGrid />
+    <main className="customer-page mx-auto min-h-screen max-w-lg bg-background pb-8">
+      <div className="px-4">
+        <HomeCenterHeader />
+      </div>
 
-      <HomePromoBanners
-        banners={bannersQuery.data ?? []}
-        isLoading={bannersQuery.isLoading}
-      />
+      <section className="mt-3 rounded-t-[32px] bg-white px-4 pb-8 pt-4">
+        <HomeServiceGrid />
 
-      <HomeShopsCarousel
-        stores={stores}
-        isLoading={storesQuery.isLoading}
-        total={stores.length}
-      />
+        <HomePromoBanners
+          banners={bannersQuery.data ?? []}
+          isLoading={bannersQuery.isLoading}
+        />
 
-      <HomeRestaurantsCarousel
-        restaurants={restaurants}
-        isLoading={restaurantsQuery.isLoading}
-        total={restaurantsTotal}
-      />
+        <HomeRestaurantsCarousel
+          restaurants={restaurants}
+          isLoading={restaurantsQuery.isLoading}
+          total={restaurantsTotal}
+        />
 
-      {hasRestaurantError && (
-        <div className="mt-4">
-          <EmptyState
-            icon={Store}
-            title={uz.restaurantsLoadError}
-            description={
-              restaurantsQuery.error instanceof Error
-                ? restaurantsQuery.error.message
-                : uz.checkConnection
-            }
-            action={
-              <Button type="button" size="sm" onClick={() => restaurantsQuery.refetch()}>
-                {uz.retry}
-              </Button>
-            }
-          />
-        </div>
-      )}
+        <HomeShopsCarousel
+          stores={stores}
+          isLoading={storesQuery.isLoading}
+          total={stores.length}
+        />
 
-      {showRestaurantEmpty && (
-        <div className="mt-4">
-          <EmptyState
-            icon={UtensilsCrossed}
-            title={uz.restaurantsComingSoon}
-            description={uz.restaurantsEmptyHint}
-          />
-        </div>
-      )}
+        {hasRestaurantError && (
+          <div className="mt-4">
+            <EmptyState
+              icon={Store}
+              title={uz.restaurantsLoadError}
+              description={
+                restaurantsQuery.error instanceof Error
+                  ? restaurantsQuery.error.message
+                  : uz.checkConnection
+              }
+              action={
+                <Button type="button" size="sm" onClick={() => restaurantsQuery.refetch()}>
+                  {uz.retry}
+                </Button>
+              }
+            />
+          </div>
+        )}
+
+        {showRestaurantEmpty && (
+          <div className="mt-4">
+            <EmptyState
+              icon={UtensilsCrossed}
+              title={uz.restaurantsComingSoon}
+              description={uz.restaurantsEmptyHint}
+            />
+          </div>
+        )}
+      </section>
     </main>
   );
 }
