@@ -88,7 +88,6 @@ class _TypeFormState extends ConsumerState<_TypeForm> {
   bool _isActive = true;
   bool _busy = false;
   String? _menuMode;
-  int _homeGridRow = 1;
 
   static const _options = <({
     String value,
@@ -118,7 +117,6 @@ class _TypeFormState extends ConsumerState<_TypeForm> {
     _name = TextEditingController(text: widget.type?.name ?? '');
     _isActive = widget.type?.isActive ?? true;
     _menuMode = widget.type?.menuMode;
-    _homeGridRow = widget.type?.homeGridRow == 2 ? 2 : 1;
   }
 
   @override
@@ -147,7 +145,6 @@ class _TypeFormState extends ConsumerState<_TypeForm> {
           name: name,
           isActive: _isActive,
           menuMode: menuMode,
-          homeGridRow: _homeGridRow,
         );
       } else {
         await repo.updateType(
@@ -155,7 +152,6 @@ class _TypeFormState extends ConsumerState<_TypeForm> {
           name: name,
           isActive: _isActive,
           menuMode: menuMode,
-          homeGridRow: _homeGridRow,
         );
       }
       ref.invalidate(businessTypesListProvider);
@@ -251,29 +247,6 @@ class _TypeFormState extends ConsumerState<_TypeForm> {
           ),
           const SizedBox(height: 8),
         ],
-        DropdownButtonFormField<int>(
-          value: _homeGridRow,
-          decoration: const InputDecoration(
-            labelText: AppStrings.homeGridRowLabel,
-          ),
-          items: const [
-            DropdownMenuItem(value: 1, child: Text(AppStrings.homeGridRow1)),
-            DropdownMenuItem(value: 2, child: Text(AppStrings.homeGridRow2)),
-          ],
-          onChanged: _busy
-              ? null
-              : (v) {
-                  if (v == null) return;
-                  setState(() => _homeGridRow = v);
-                },
-        ),
-        const SizedBox(height: 4),
-        Text(
-          AppStrings.homeGridRowHint,
-          style: AppTypography.bodySmall.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text(AppStrings.active),

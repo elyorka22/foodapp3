@@ -1,8 +1,7 @@
 /// Banner placements aligned with the **new** customer web home.
 ///
-/// Live home (`frontend` `/`) shows one strip: «Maxsus takliflar»
-/// ([HomePromoBanners]). Old grid slots (HOME_MAIN / SIDE_*) are no longer
-/// separate UI surfaces — new banners always save as [canonicalHome].
+/// Live home shows one full-width banner strip. Old slots are not separate
+/// surfaces — new banners always save as [canonicalHome].
 abstract final class BannerPlacement {
   /// Canonical placement for the home offers carousel.
   static const canonicalHome = 'PROMO';
@@ -33,11 +32,11 @@ abstract final class BannerPlacement {
       case 'HOME_MAIN':
       case 'HOME_SIDE_TOP':
       case '':
-        return 'Maxsus takliflar';
+        return 'Bosh sahifa banneri';
       case 'HOME_SIDE_BOTTOM':
-        return 'Eski — do‘kon qatori';
+        return 'Eski — endi ko‘rinmaydi';
       default:
-        return p.isEmpty ? 'Maxsus takliflar' : p;
+        return p.isEmpty ? 'Bosh sahifa banneri' : p;
     }
   }
 

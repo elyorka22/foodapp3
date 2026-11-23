@@ -42,16 +42,15 @@ class ControlBusinessType {
       menuMode == 'OWN_CATEGORIES' || menuMode == 'SHARED_CATALOG';
 
   String get verticalHint {
-    final row = homeGridRow == 2 ? '2-qator' : '1-qator';
     switch (menuMode) {
       case 'SHARED_CATALOG':
-        return 'Umumiy katalog · $row';
+        return 'Umumiy katalog';
       case 'OWN_CATEGORIES':
-        return 'Individual katalog · $row';
+        return 'Individual katalog';
       case 'GLOBAL_DISH':
-        return 'Restoran · $row';
+        return 'Restoran';
       default:
-        return '${isStoreVertical ? "Do'kon" : 'Restoran'} · $row';
+        return isStoreVertical ? "Do'kon" : 'Restoran';
     }
   }
 

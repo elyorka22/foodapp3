@@ -35,7 +35,7 @@ class ImageFramingValues {
 
 /// Which live UI surface the framing preview should match.
 enum ImageFramingPreviewKind {
-  /// Home «Maxsus takliflar»: ~85% × 150px, radius 24.
+  /// Home banner strip: full width, about 7:2, radius 24.
   homeBanner,
 
   /// Store category tile: 3-col square ~1:1.05, radius 20.
@@ -59,9 +59,7 @@ class ImageFramingControls extends StatelessWidget {
   final bool enabled;
   final ImageFramingPreviewKind previewKind;
 
-  static const double homeBannerHeight = 150;
   static const double homeBannerRadius = 24;
-  static const double homeBannerWidthFraction = 0.85;
 
   /// Matches web/mobile store category tile: `rounded-[20px] aspect-[1/1.05]`.
   static const double storeCategoryRadius = 20;
@@ -117,9 +115,8 @@ class ImageFramingControls extends StatelessWidget {
                 previewHeight = previewWidth / storeCategoryAspect;
                 radius = storeCategoryRadius;
               } else {
-                previewWidth =
-                    constraints.maxWidth * homeBannerWidthFraction;
-                previewHeight = homeBannerHeight;
+                previewWidth = constraints.maxWidth;
+                previewHeight = previewWidth * 2 / 7;
                 radius = homeBannerRadius;
               }
 

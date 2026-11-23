@@ -524,17 +524,6 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        InputDecorator(
-          decoration: const InputDecoration(
-            labelText: AppStrings.bannerSurfaceLabel,
-            border: OutlineInputBorder(),
-          ),
-          child: Text(
-            AppStrings.bannerSurfaceHomeOffers,
-            style: AppTypography.body,
-          ),
-        ),
-        const SizedBox(height: 8),
         TextField(
           controller: _title,
           enabled: !_busy,

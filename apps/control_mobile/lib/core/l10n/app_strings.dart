@@ -53,7 +53,7 @@ abstract final class AppStrings {
   static const settingsTitle = 'Ilova sozlamalari';
   static const mediaSection = 'Bosh sahifa media';
   static const mediaSectionHint =
-      'Yangi dizayn: bannerlar «Maxsus takliflar» qatorida. Restoranlar — Bizneslar + Shaharlar.';
+      'Banner — bosh sahifa orolidagi keng polosa. Kategoriya rasmlari — shu yerdagi kartochkalar.';
   static const homeServiceCardsTitle = 'Kategoriya rasmlari';
   static const homeServiceCardsHint =
       'Birinchi qator: restoranlar va mahsulotlar. Ikkinchi: gullar, parfyumeriya va barcha kategoriyalar. Plitkani bosing, rasmni joylashtiring. Ortgan qism kartochka ichida kesiladi.';
@@ -84,11 +84,10 @@ abstract final class AppStrings {
   static const confirmDeleteCategory =
       'Kategoriyani o‘chirishni tasdiqlaysizmi?';
   static const bannerEmptyHint =
-      'Hali banner yo‘q. Qo‘shing — mijoz bosh sahifasida «Maxsus takliflar»da ko‘rinadi.';
+      'Hali banner yo‘q. Qo‘shilgan rasm bosh sahifa orolida keng polosa bo‘lib chiqadi.';
   static const bannersHomeHint =
-      'Bosh sahifa karuseli (Maxsus takliflar). HERO / HOME_MAIN kabi eski joylashuvlar yo‘q.';
-  static const bannerSurfaceLabel = 'Ko‘rinish joyi';
-  static const bannerSurfaceHomeOffers = 'Bosh sahifa — Maxsus takliflar';
+      'Bosh sahifadagi banner. Alohida joy tanlanmaydi: hammasi shu polosaga tushadi.';
+  static const bannerSurfaceHomeOffers = 'Bosh sahifa banneri';
   static const bannerLinkHint = 'Masalan /promotions yoki /restaurants/slug';
   static const auditTitle = 'Audit jurnali';
 
@@ -212,7 +211,7 @@ abstract final class AppStrings {
   static const bannerImageRequired = 'Rasm majburiy — yuklang yoki URL kiriting';
   static const bannerImageFraming = 'Banner joylashuvi';
   static const bannerImagePreviewSizeHint =
-      '«Maxsus takliflar»: 150×~85%. Masshtab 100–200% — yaqinlashtirish (kesish); burchaklar yumaloq.';
+      'Bosh sahifa banneri: to‘liq kenglik, taxminan 7:2. Masshtab 100–200% — yaqinlashtirish.';
   static const bannerImagePreviewHint = 'Rasm yuklang — banner ko‘rinishi';
   static const storeCategoryImageFraming = 'Kategoriya rasmi joylashuvi';
   static const storeCategoryImagePreviewSizeHint =
@@ -269,11 +268,6 @@ abstract final class AppStrings {
   static const addCity = 'Shahar qo‘shish';
   static const addBusinessType = 'Tur qo‘shish';
   static const catalogKindLabel = 'Katalog turi';
-  static const homeGridRowLabel = 'Bosh sahifa qatori';
-  static const homeGridRow1 = '1-qator (yuqori karusel)';
-  static const homeGridRow2 = '2-qator (pastki, mahsulot o‘lchami)';
-  static const homeGridRowHint =
-      'Faol turlar bosh sahifada kartochka sifatida ko‘rinadi. Nofaol — yashiriladi.';
   static const catalogKindRequired = 'Katalog turini tanlang';
   static const catalogKindShared = 'Umumiy katalog';
   static const catalogKindSharedHint =

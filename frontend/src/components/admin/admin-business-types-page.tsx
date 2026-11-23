@@ -50,7 +50,6 @@ const emptyForm: BusinessTypeForm = {
   description: '',
   icon: '',
   menuMode: undefined,
-  homeGridRow: 1,
   sortOrder: 0,
 };
 
@@ -103,7 +102,6 @@ export function AdminBusinessTypesPage() {
       description: row.description ?? '',
       icon: row.icon ?? '',
       menuMode: row.menuMode ?? 'OWN_CATEGORIES',
-      homeGridRow: row.homeGridRow === 2 ? 2 : 1,
       sortOrder: row.sortOrder,
     });
   };
@@ -166,19 +164,6 @@ export function AdminBusinessTypesPage() {
               setForm((f) => ({ ...f, sortOrder: Number(e.target.value) || 0 }))
             }
           />
-          <select
-            className="w-full rounded-lg border px-3 py-2 text-sm dark:border-white/20 dark:bg-zinc-900"
-            value={form.homeGridRow ?? 1}
-            onChange={(e) =>
-              setForm((f) => ({
-                ...f,
-                homeGridRow: Number(e.target.value) === 2 ? 2 : 1,
-              }))
-            }
-          >
-            <option value={1}>Bosh sahifa: 1-qator</option>
-            <option value={2}>Bosh sahifa: 2-qator</option>
-          </select>
           <Input
             placeholder="Tavsif"
             value={form.description ?? ''}
@@ -249,7 +234,6 @@ export function AdminBusinessTypesPage() {
                 <th className="px-4 py-3">Nom</th>
                 <th className="px-4 py-3">Slug</th>
                 <th className="px-4 py-3">Katalog</th>
-                <th className="px-4 py-3">Qator</th>
                 <th className="px-4 py-3">Holat</th>
                 <th className="px-4 py-3 text-right">Amallar</th>
               </tr>
@@ -264,9 +248,6 @@ export function AdminBusinessTypesPage() {
                   <td className="px-4 py-3 font-mono text-xs">{row.slug}</td>
                   <td className="px-4 py-3 text-xs">
                     {catalogLabel(row.menuMode)}
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    {row.homeGridRow === 2 ? '2-qator' : '1-qator'}
                   </td>
                   <td className="px-4 py-3">
                     <ActiveBadge active={row.isActive} />
