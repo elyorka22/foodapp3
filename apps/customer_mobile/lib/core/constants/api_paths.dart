@@ -13,6 +13,8 @@ class ApiPaths {
 
   static const customersRegister = '/customers/register';
   static const customersLogin = '/customers/login';
+  static const customersOtpRequest = '/customers/otp/request';
+  static const customersOtpVerify = '/customers/otp/verify';
   static const customersMe = '/customers/me';
   static const customersCompleteProfile = '/customers/complete-profile';
   static const accountDeleteRequest = '/account/delete-request';

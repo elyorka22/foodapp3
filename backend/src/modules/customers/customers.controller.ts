@@ -20,6 +20,8 @@ import { Request } from 'express';
 import { CustomersService } from './customers.service';
 import { RegisterCustomerDto } from './dto/register-customer.dto';
 import { LoginCustomerDto } from './dto/login-customer.dto';
+import { RequestOtpDto } from './dto/request-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { AdminCustomersQueryDto } from './dto/admin-customers-query.dto';
 import { CustomerStatusDto } from './dto/customer-status.dto';
 import { CustomerProfileQueryDto } from './dto/customer-profile-query.dto';
@@ -48,6 +50,22 @@ export class CustomersController {
   login(@Body() dto: LoginCustomerDto, @Req() req: Request) {
     const ip = req.ips?.[0] ?? req.ip ?? 'unknown';
     return this.customers.login(dto, ip);
+  }
+
+  @Post('otp/request')
+  @Throttle({ default: THROTTLE.CUSTOMER_AUTH })
+  @ApiOperation({ summary: 'Send a 4-digit SMS code to a Uzbekistan phone' })
+  requestOtp(@Body() dto: RequestOtpDto, @Req() req: Request) {
+    const ip = req.ips?.[0] ?? req.ip ?? 'unknown';
+    return this.customers.requestOtp(dto, ip);
+  }
+
+  @Post('otp/verify')
+  @Throttle({ default: THROTTLE.CUSTOMER_AUTH })
+  @ApiOperation({ summary: 'Verify SMS code and sign in or create the customer' })
+  verifyOtp(@Body() dto: VerifyOtpDto, @Req() req: Request) {
+    const ip = req.ips?.[0] ?? req.ip ?? 'unknown';
+    return this.customers.verifyOtp(dto, ip);
   }
 
   @Get('me')

@@ -1,19 +1,27 @@
 import { api } from '@/lib/api';
 import { registerCustomerDevice } from '@/lib/device-registration';
 import { setCustomerAuth, type CustomerProfile } from '@/lib/customer';
-import { obtainGoogleIdToken } from '@/lib/firebase';
 
 export type CustomerAuthResponse = {
   accessToken: string;
   user: CustomerProfile;
 };
 
-/** POST /auth/google — Firebase ID token from Google Sign-In. */
-export async function signInWithGoogle(): Promise<CustomerAuthResponse> {
-  const idToken = await obtainGoogleIdToken();
-  return api<CustomerAuthResponse>('/auth/google', {
+export async function requestCustomerOtp(phone: string) {
+  return api<{ ok: boolean; retryAfterSeconds: number }>('/customers/otp/request', {
     method: 'POST',
-    body: JSON.stringify({ idToken }),
+    body: JSON.stringify({ phone }),
+  });
+}
+
+export async function verifyCustomerOtp(body: {
+  phone: string;
+  code: string;
+  fullName?: string;
+}): Promise<CustomerAuthResponse> {
+  return api<CustomerAuthResponse>('/customers/otp/verify', {
+    method: 'POST',
+    body: JSON.stringify(body),
   });
 }
 

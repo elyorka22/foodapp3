@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -28,55 +28,6 @@ import {
 } from '@/lib/home-service-type';
 /** Cards inside the home island — same height on both rows. */
 const TILE_HEIGHT_CLASS = 'h-[112px]';
-
-function SlidingTitle({ text, className }: { text: string; className?: string }) {
-  const clipRef = useRef<HTMLParagraphElement>(null);
-  const measureRef = useRef<HTMLSpanElement>(null);
-  const [slides, setSlides] = useState(false);
-
-  useEffect(() => {
-    const clip = clipRef.current;
-    const measure = measureRef.current;
-    if (!clip || !measure) return;
-
-    const update = () => {
-      setSlides(measure.scrollWidth > clip.clientWidth + 1);
-    };
-
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(clip);
-    return () => observer.disconnect();
-  }, [text]);
-
-  return (
-    <p ref={clipRef} className={clsx('relative overflow-hidden', className)}>
-      <span
-        ref={measureRef}
-        className="pointer-events-none absolute whitespace-nowrap opacity-0"
-        aria-hidden
-      >
-        {text}
-      </span>
-      <span
-        className={clsx(
-          'inline-flex w-max whitespace-nowrap',
-          slides && 'category-title-slide',
-        )}
-        style={
-          slides ? { animationDuration: `${Math.max(5, text.length * 0.28)}s` } : undefined
-        }
-      >
-        <span className={slides ? 'pr-8' : undefined}>{text}</span>
-        {slides ? (
-          <span className="pr-8" aria-hidden>
-            {text}
-          </span>
-        ) : null}
-      </span>
-    </p>
-  );
-}
 
 function iconForType(type: BusinessType): LucideIcon {
   const slug = (type.slug ?? '').toLowerCase();
@@ -166,13 +117,14 @@ function ServiceTile({
             compact ? 'max-w-[78%]' : 'max-w-[62%]',
           )}
         >
-          <SlidingTitle
-            text={type.name}
+          <p
             className={clsx(
-              'font-bold leading-tight text-zinc-900',
+              'truncate font-bold leading-tight text-zinc-900',
               compact ? 'text-[12px] sm:text-[13px]' : 'text-[13px] sm:text-[15px]',
             )}
-          />
+          >
+            {type.name}
+          </p>
           <p className="mt-0.5 text-[11px] font-medium text-zinc-400 sm:text-[12px]">
             {eta}
           </p>

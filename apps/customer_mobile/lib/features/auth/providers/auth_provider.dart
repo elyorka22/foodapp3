@@ -37,11 +37,23 @@ class AuthNotifier extends AsyncNotifier<CustomerUserModel?> {
     });
   }
 
-  Future<CustomerUserModel?> loginGoogle() async {
+  Future<void> requestOtp(String phone) {
+    return ref.read(authRepositoryProvider).requestOtp(phone);
+  }
+
+  Future<CustomerUserModel?> verifyOtp({
+    required String phone,
+    required String code,
+    String? fullName,
+  }) async {
     final previousUser = state.valueOrNull;
     state = const AsyncLoading();
     try {
-      final res = await ref.read(authRepositoryProvider).loginGoogle();
+      final res = await ref.read(authRepositoryProvider).verifyOtp(
+            phone: phone,
+            code: code,
+            fullName: fullName,
+          );
       state = AsyncData(res.user);
       return res.user;
     } catch (error, stackTrace) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { LogIn, UserPlus } from 'lucide-react';
 import { CustomerAuthSheet, type AuthSheetMode } from '@/components/auth/customer-auth-sheet';
 import { ProfileAccountMenu } from '@/components/profile/profile-account-menu';
@@ -54,6 +55,13 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
       <ProfileAccountMenu />
 
       <ProfileSocialSection />
+
+      <Link
+        href="/delete-account"
+        className="mt-6 block px-1 text-center text-[13px] font-medium text-zinc-400"
+      >
+        {uz.deleteAccountPage}
+      </Link>
 
       <CustomerAuthSheet
         open={authOpen}

@@ -3,6 +3,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AdminNotificationsModule } from '../admin-notifications/admin-notifications.module';
 import { CustomersService } from './customers.service';
+import { SmsService } from './sms.service';
 import { CustomersController } from './customers.controller';
 import { CustomerTokenService } from './customer-token.service';
 import { CustomerJwtStrategy } from './customer-jwt.strategy';
@@ -17,7 +18,7 @@ import { CustomerJwtStrategy } from './customer-jwt.strategy';
     }),
   ],
   controllers: [CustomersController],
-  providers: [CustomersService, CustomerTokenService, CustomerJwtStrategy],
+  providers: [CustomersService, CustomerTokenService, CustomerJwtStrategy, SmsService],
   exports: [CustomersService, CustomerTokenService],
 })
 export class CustomersModule {}

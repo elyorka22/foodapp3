@@ -1,71 +1,19 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/l10n/app_strings.dart';
-import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
-import '../data/google_auth_service.dart';
-import '../providers/auth_provider.dart';
-import 'auth_social_layout.dart';
-import 'google_sign_in_button.dart';
+import 'phone_otp_screen.dart';
 
-class RegisterScreen extends ConsumerStatefulWidget {
+class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
 
   @override
-  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
-}
-
-class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  bool _googleLoading = false;
-
-  bool get _busy => _googleLoading;
-
-  Future<void> _submitGoogle() async {
-    setState(() => _googleLoading = true);
-    try {
-      await ref.read(authStateProvider.notifier).loginGoogle();
-      if (mounted) context.pop();
-    } on GoogleAuthCancelledException {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.googleSignInCancelled)),
-        );
-      }
-    } on GoogleAuthConfigException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-      }
-    } on DioException catch (e) {
-      final err = e.error;
-      final msg = err is ApiException ? err.message : AppStrings.googleSignInFailed;
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.googleSignInFailed)),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _googleLoading = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AuthSocialLayout(
+    return PhoneOtpScreen(
       title: AppStrings.register,
-      subtitle: AppStrings.registerSocialSubtitle,
-      actions: [
-        GoogleSignInButton(
-          isLoading: _googleLoading,
-          onPressed: _busy ? null : _submitGoogle,
-        ),
-      ],
+      askName: true,
       footer: TextButton(
         onPressed: () => context.pushReplacement('/profile/login'),
         child: Text(

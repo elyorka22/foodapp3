@@ -138,7 +138,16 @@ abstract final class AppStrings {
   static const login = 'Kirish';
   static const register = "Ro'yxatdan o'tish";
   static const loginSocialSubtitle =
-      'Google orqali tez va xavfsiz kiring';
+      'Telefon raqamingizga SMS kod yuboramiz';
+  static const sendCode = 'Kod yuborish';
+  static const resendCode = 'Kodni qayta yuborish';
+  static const otpCode = 'SMS kod';
+  static const otpInvalid = '4 xonali kodni kiriting';
+  static const otpSendFailed = 'SMS yuborib bo‘lmadi';
+  static const phoneInvalid = 'Telefon raqam noto‘g‘ri';
+  static const nameRequired = 'Ism kamida 2 harfdan iborat bo‘lishi kerak';
+  static const continueAction = 'Davom etish';
+  static const registerStepPhoneHint = 'SMS orqali tasdiqlash kodi yuboramiz';
   static const registerSocialSubtitle =
       "Bir necha soniyada hisob oching — telefon va parol hozircha shart emas";
   static const noAccountRegister = "Hisobingiz yo'qmi? Ro'yxatdan o'ting";

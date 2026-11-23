@@ -6,6 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { randomInt, timingSafeEqual } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import {
   CustomerAuthProvider,
@@ -24,6 +25,9 @@ import { LoginCustomerDto } from './dto/login-customer.dto';
 import { AdminCustomersQueryDto } from './dto/admin-customers-query.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { CustomerTokenService } from './customer-token.service';
+import { SmsService } from './sms.service';
+import { RequestOtpDto } from './dto/request-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
 export class CustomersService {
@@ -33,6 +37,7 @@ export class CustomersService {
     private adminNotifications: AdminNotificationsService,
     private bruteForce: BruteForceService,
     private customerTokens: CustomerTokenService,
+    private sms: SmsService,
   ) {}
 
   async register(dto: RegisterCustomerDto, clientIp: string) {
@@ -106,6 +111,109 @@ export class CustomersService {
 
     await this.bruteForce.clearFailures('customer-auth', scopeKey);
     return this.customerTokens.issueToken(updated);
+  }
+
+  async requestOtp(dto: RequestOtpDto, clientIp: string) {
+    const phone = normalizePhone(dto.phone);
+    if (!/^\+998\d{9}$/.test(phone)) {
+      throw new BadRequestException('Telefon raqam noto‘g‘ri');
+    }
+
+    const scopeKey = `${clientIp}:${phone}`;
+    await this.bruteForce.assertNotBlocked('customer-auth', scopeKey);
+
+    const existing = await this.prisma.customer.findFirst({
+      where: { phone, deletedAt: null },
+    });
+    if (existing && !existing.isActive) {
+      throw new ForbiddenException('Account is blocked. Contact support.');
+    }
+
+    const sentAt = existing?.otpExpiresAt
+      ? existing.otpExpiresAt.getTime() - 5 * 60 * 1000
+      : 0;
+    if (sentAt && Date.now() - sentAt < 60 * 1000) {
+      throw new BadRequestException('Kodni qayta yuborish uchun biroz kuting');
+    }
+
+    const code = String(randomInt(0, 10000)).padStart(4, '0');
+    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    const saved = existing
+      ? await this.prisma.customer.update({
+          where: { id: existing.id },
+          data: { otpCode: code, otpExpiresAt, otpVerified: false },
+        })
+      : await this.prisma.customer.create({
+          data: {
+            phone,
+            fullName: 'Mijoz',
+            authProvider: CustomerAuthProvider.PHONE,
+            otpCode: code,
+            otpExpiresAt,
+            otpVerified: false,
+          },
+        });
+
+    try {
+      await this.sms.sendOtp(phone, code);
+    } catch (error) {
+      await this.prisma.customer.update({
+        where: { id: saved.id },
+        data: { otpCode: null, otpExpiresAt: null },
+      });
+      throw error;
+    }
+
+    return { ok: true, retryAfterSeconds: 60 };
+  }
+
+  async verifyOtp(dto: VerifyOtpDto, clientIp: string) {
+    const phone = normalizePhone(dto.phone);
+    const scopeKey = `${clientIp}:${phone}`;
+    await this.bruteForce.assertNotBlocked('customer-auth', scopeKey);
+
+    const customer = await this.prisma.customer.findFirst({
+      where: { phone, deletedAt: null },
+      include: { loyalty: true },
+    });
+    const expired =
+      !customer?.otpExpiresAt || customer.otpExpiresAt.getTime() < Date.now();
+    const matches =
+      customer?.otpCode != null && this.otpCodesMatch(customer.otpCode, dto.code);
+
+    if (!customer || expired || !matches) {
+      await this.bruteForce.recordFailure('customer-auth', scopeKey);
+      throw new UnauthorizedException('Kod noto‘g‘ri yoki muddati tugagan');
+    }
+    if (!customer.isActive) {
+      throw new ForbiddenException('Account is blocked. Contact support.');
+    }
+
+    const nextName = dto.fullName?.trim();
+    const updated = await this.prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        otpVerified: true,
+        otpCode: null,
+        otpExpiresAt: null,
+        authProvider: CustomerAuthProvider.PHONE,
+        ...(nextName && (customer.fullName === 'Mijoz' || !customer.fullName.trim())
+          ? { fullName: nextName }
+          : {}),
+      },
+      include: { loyalty: true },
+    });
+
+    await this.bruteForce.clearFailures('customer-auth', scopeKey);
+    return this.customerTokens.issueToken(updated);
+  }
+
+  private otpCodesMatch(stored: string, given: string) {
+    const left = Buffer.from(stored);
+    const right = Buffer.from(given);
+    if (left.length !== right.length) return false;
+    return timingSafeEqual(left, right);
   }
 
   async findMe(customerId: string) {

@@ -8,24 +8,21 @@ import '../../../core/push/device_registration_service.dart';
 import '../../../core/storage/storage_providers.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../../shared/models/auth_model.dart';
-import 'google_auth_service.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     ref.watch(dioProvider),
     ref.watch(tokenStorageProvider),
     ref.watch(deviceRegistrationServiceProvider),
-    ref.watch(googleAuthServiceProvider),
   );
 });
 
 class AuthRepository {
-  AuthRepository(this._dio, this._storage, this._devices, this._googleAuth);
+  AuthRepository(this._dio, this._storage, this._devices);
 
   final Dio _dio;
   final TokenStorage _storage;
   final DeviceRegistrationService _devices;
-  final GoogleAuthService _googleAuth;
 
   Future<AuthResponseModel> loginPhone({
     required String phone,
@@ -63,11 +60,25 @@ class AuthRepository {
     return model;
   }
 
-  Future<AuthResponseModel> loginGoogle() async {
-    final idToken = await _googleAuth.signInAndGetIdToken();
+  Future<void> requestOtp(String phone) async {
+    await _dio.post<Map<String, dynamic>>(
+      ApiPaths.customersOtpRequest,
+      data: {'phone': phone},
+    );
+  }
+
+  Future<AuthResponseModel> verifyOtp({
+    required String phone,
+    required String code,
+    String? fullName,
+  }) async {
     final res = await _dio.post<Map<String, dynamic>>(
-      ApiPaths.authGoogle,
-      data: {'idToken': idToken},
+      ApiPaths.customersOtpVerify,
+      data: {
+        'phone': phone,
+        'code': code,
+        if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
+      },
     );
     final model = AuthResponseModel.fromJson(res.data!);
     await _persist(model);
