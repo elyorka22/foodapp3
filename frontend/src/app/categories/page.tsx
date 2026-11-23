@@ -32,7 +32,7 @@ function CategoryCard({
       href={href}
       className="relative flex aspect-square flex-col overflow-hidden rounded-[22px] bg-[#F3EEFF] p-3 transition active:scale-[0.98]"
     >
-      <p className="relative z-10 line-clamp-2 pr-1 text-[13px] font-bold leading-tight text-zinc-900">
+      <p className="relative z-10 text-[13px] font-bold leading-tight text-zinc-900">
         {name}
       </p>
       {showImage ? (

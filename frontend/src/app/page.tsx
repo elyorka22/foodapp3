@@ -32,7 +32,7 @@ export default function HomePage() {
         <HomeCenterHeader />
       </div>
 
-      <section className="mt-3 flex-1 rounded-t-[32px] bg-white px-4 pb-8 pt-4">
+      <section className="mt-3 flex-1 rounded-t-[32px] bg-white px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] pt-4">
         <HomeServiceGrid />
 
         <HomePromoBanners

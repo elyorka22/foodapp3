@@ -18,6 +18,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
   const isStaff = STAFF_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const isEmbed = EMBED_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const isLegal = LEGAL_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isHome = pathname === '/';
 
   useEffect(() => {
     if (isStaff) return;
@@ -31,7 +32,9 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-transparent">
-      <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))]">{children}</div>
+      <div className={isHome ? undefined : 'pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))]'}>
+        {children}
+      </div>
       <BottomNav />
     </div>
   );

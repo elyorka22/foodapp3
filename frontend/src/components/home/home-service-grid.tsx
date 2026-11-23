@@ -111,15 +111,10 @@ function ServiceTile({
           compact ? 'p-3' : 'p-3.5',
         )}
       >
-        <div
-          className={clsx(
-            'min-w-0 pr-1',
-            compact ? 'max-w-[78%]' : 'max-w-[62%]',
-          )}
-        >
+        <div className="min-w-0 w-full">
           <p
             className={clsx(
-              'truncate font-bold leading-tight text-zinc-900',
+              'font-bold leading-tight text-zinc-900',
               compact ? 'text-[12px] sm:text-[13px]' : 'text-[13px] sm:text-[15px]',
             )}
           >
