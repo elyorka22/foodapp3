@@ -152,6 +152,33 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    _MenuCard(
+                      children: [
+                        _MenuRow(
+                          icon: Icons.handshake_outlined,
+                          label: AppStrings.partnership,
+                          onTap: () =>
+                              context.push(AppRoutes.profilePartnership),
+                          showDivider: isLoggedIn &&
+                              user.phone != null &&
+                              user.phone!.isNotEmpty,
+                        ),
+                        if (isLoggedIn &&
+                            user.phone != null &&
+                            user.phone!.isNotEmpty)
+                          _MenuRow(
+                            icon: Icons.delete_outline_rounded,
+                            label: AppStrings.deleteAccount,
+                            onTap: () => _confirmDeleteAccount(
+                              context,
+                              ref,
+                              user.phone!,
+                            ),
+                            showDivider: false,
+                          ),
+                      ],
+                    ),
                     if (isLoggedIn) ...[
                       const SizedBox(height: 16),
                       InkWell(
@@ -183,34 +210,8 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      if (user.phone != null && user.phone!.isNotEmpty)
-                        TextButton(
-                          onPressed: () => _confirmDeleteAccount(
-                            context,
-                            ref,
-                            user.phone!,
-                          ),
-                          child: Text(
-                            AppStrings.deleteAccount,
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textMuted,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
                     ],
                     ProfileSocialSection(links: socialLinks),
-                    TextButton(
-                      onPressed: () =>
-                          context.push(AppRoutes.profilePartnership),
-                      child: Text(
-                        AppStrings.partnership,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textMuted,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

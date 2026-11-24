@@ -79,7 +79,12 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        <ProfileAccountMenu />
+        <ProfileAccountMenu
+          showDeleteAccount={Boolean(customer.phone)}
+          onDeleteAccount={
+            customer.phone ? () => setShowDeleteDialog(true) : undefined
+          }
+        />
 
         <button
           type="button"
@@ -90,24 +95,7 @@ export default function ProfilePage() {
           {uz.signOut}
         </button>
 
-        {customer.phone ? (
-          <button
-            type="button"
-            onClick={() => setShowDeleteDialog(true)}
-            className="mt-1 px-1 text-[13px] font-medium text-zinc-400 transition hover:text-red-600"
-          >
-            Delete Account
-          </button>
-        ) : null}
-
         <ProfileSocialSection />
-
-        <Link
-          href="/hamkorlik"
-          className="mt-6 block px-1 text-center text-[13px] font-medium text-zinc-400"
-        >
-          {uz.profilePartnership}
-        </Link>
 
         {showDeleteDialog && customer.phone ? (
           <DeleteAccountDialog
