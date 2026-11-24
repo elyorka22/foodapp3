@@ -18,7 +18,7 @@ const NAV_ICON = 30;
 
 function HomeIcon({ active }: TabIconProps) {
   const color = active ? BRAND : IDLE;
-  // Solid silhouette, same box and flat fill as cart and profile.
+  // Wing outline, same box as cart and profile. Inner cutouts stay open.
   return (
     <span
       aria-hidden

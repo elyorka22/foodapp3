@@ -9,11 +9,17 @@ import type { City } from '@/hooks/use-cities';
 
 type CitySelectorProps = {
   className?: string;
+  onOpenChange?: (open: boolean) => void;
 };
 
-export function CitySelector({ className }: CitySelectorProps) {
+export function CitySelector({ className, onOpenChange }: CitySelectorProps) {
   const { cities, selectedCity, selectCity, isLoading } = useSelectedCity();
   const [open, setOpen] = useState(false);
+
+  const changeOpen = (next: boolean) => {
+    setOpen(next);
+    onOpenChange?.(next);
+  };
   const centered = Boolean(className?.includes('home-city-center'));
 
   const label = selectedCity?.name ?? uz.cityName;
@@ -38,7 +44,7 @@ export function CitySelector({ className }: CitySelectorProps) {
     <div className={clsx('relative', centered && 'flex justify-center', className)}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => changeOpen(!open)}
         className={clsx(
           'group flex max-w-full items-center gap-1 text-left',
           centered && 'justify-center',
@@ -62,7 +68,7 @@ export function CitySelector({ className }: CitySelectorProps) {
             type="button"
             className="fixed inset-0 z-40 cursor-default bg-transparent"
             aria-label="Yopish"
-            onClick={() => setOpen(false)}
+            onClick={() => changeOpen(false)}
           />
           <CityList
             cities={cities}
@@ -70,7 +76,7 @@ export function CitySelector({ className }: CitySelectorProps) {
             centered={centered}
             onSelect={(city) => {
               selectCity(city);
-              setOpen(false);
+              changeOpen(false);
             }}
           />
         </>

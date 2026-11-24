@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { Store, UtensilsCrossed } from 'lucide-react';
+import { clsx } from 'clsx';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { HomeCenterHeader } from '@/components/home/home-center-header';
@@ -25,14 +27,22 @@ export default function HomePage() {
     !restaurantsQuery.isLoading &&
     !hasRestaurantError &&
     restaurants.length === 0;
+  const [cityOpen, setCityOpen] = useState(false);
 
   return (
-    <main className="customer-page mx-auto flex min-h-screen max-w-lg flex-col bg-background">
-      <div className="px-4">
-        <HomeCenterHeader />
+    <main className="customer-page relative mx-auto min-h-screen max-w-lg bg-background">
+      <div
+        className={clsx(
+          'fixed inset-x-0 top-0 mx-auto max-w-lg px-4',
+          cityOpen ? 'z-40' : 'z-10',
+        )}
+      >
+        <HomeCenterHeader onCityOpenChange={setCityOpen} />
       </div>
 
-      <section className="mt-3 flex-1 rounded-t-[32px] bg-white px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] pt-4">
+      <div className="pointer-events-none h-[calc(env(safe-area-inset-top,0px)+58px)]" />
+
+      <section className="relative z-20 min-h-screen rounded-t-[32px] bg-white px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] pt-4">
         <HomeServiceGrid />
 
         <HomePromoBanners

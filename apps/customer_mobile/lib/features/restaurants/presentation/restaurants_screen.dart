@@ -25,90 +25,153 @@ class RestaurantsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: () async {
-            ref.invalidate(publicSettingsProvider);
-            ref.invalidate(bannersProvider);
-            ref.invalidate(homeFeaturedStoresProvider);
-            ref.invalidate(restaurantsListProvider);
-          },
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // City row is 44px plus the padding around it.
-              const headerHeight = 66.0;
-              final islandMinHeight = constraints.maxHeight - headerHeight;
+      body: _CoveringIsland(
+        onRefresh: () async {
+          ref.invalidate(publicSettingsProvider);
+          ref.invalidate(bannersProvider);
+          ref.invalidate(homeFeaturedStoresProvider);
+          ref.invalidate(restaurantsListProvider);
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const HomeServiceGrid(),
+            const SizedBox(height: 20),
+            HomePromoBanners(
+              banners: banners.valueOrNull ?? const [],
+              isLoading: banners.isLoading,
+            ),
+            const SizedBox(height: 24),
+            HomeRestaurantsCarousel(
+              restaurants: restaurants.valueOrNull ?? const [],
+              isLoading: restaurants.isLoading,
+              total: restaurants.valueOrNull?.length,
+            ),
+            const SizedBox(height: 24),
+            HomeShopsCarousel(
+              stores: featuredStores.valueOrNull ?? const [],
+              isLoading: featuredStores.isLoading,
+              total: featuredStores.valueOrNull?.length,
+            ),
+            if (restaurants.hasError) ...[
+              const SizedBox(height: 16),
+              Text(
+                ApiException.formatError(restaurants.error!),
+                style: AppTypography.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+            if (!restaurants.isLoading &&
+                !restaurants.hasError &&
+                (restaurants.valueOrNull?.isEmpty ?? false)) ...[
+              const SizedBox(height: 16),
+              Text(
+                AppStrings.restaurantsComingSoon,
+                style: AppTypography.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 10, 16, 12),
-                    child: HomeHeadline(),
-                  ),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: islandMinHeight),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(32),
+/// City and bell stay put. The white sheet scrolls up and covers them.
+class _CoveringIsland extends StatefulWidget {
+  const _CoveringIsland({
+    required this.onRefresh,
+    required this.child,
+  });
+
+  final Future<void> Function() onRefresh;
+  final Widget child;
+
+  @override
+  State<_CoveringIsland> createState() => _CoveringIslandState();
+}
+
+class _CoveringIslandState extends State<_CoveringIsland> {
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final safeTop = MediaQuery.paddingOf(context).top;
+    // 10px top pad + 44px city row + 12px gap before the sheet.
+    const headerBody = 66.0;
+    final headerHeight = safeTop + headerBody;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return AnimatedBuilder(
+          animation: _scroll,
+          builder: (context, _) {
+            final offset = _scroll.hasClients ? _scroll.offset : 0.0;
+            final visibleHeader =
+                (headerHeight - offset).clamp(0.0, headerHeight);
+            final radius = visibleHeader <= 1 ? 0.0 : 32.0;
+
+            return Stack(
+              children: [
+                RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: widget.onRefresh,
+                  child: ListView(
+                    controller: _scroll,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(top: headerHeight),
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(radius),
+                            ),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                          child: widget.child,
                         ),
                       ),
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const HomeServiceGrid(),
-                          const SizedBox(height: 20),
-                          HomePromoBanners(
-                            banners: banners.valueOrNull ?? const [],
-                            isLoading: banners.isLoading,
-                          ),
-                          const SizedBox(height: 24),
-                          HomeRestaurantsCarousel(
-                            restaurants: restaurants.valueOrNull ?? const [],
-                            isLoading: restaurants.isLoading,
-                            total: restaurants.valueOrNull?.length,
-                          ),
-                          const SizedBox(height: 24),
-                          HomeShopsCarousel(
-                            stores: featuredStores.valueOrNull ?? const [],
-                            isLoading: featuredStores.isLoading,
-                            total: featuredStores.valueOrNull?.length,
-                          ),
-                          if (restaurants.hasError) ...[
-                            const SizedBox(height: 16),
-                            Text(
-                              ApiException.formatError(restaurants.error!),
-                              style: AppTypography.bodySmall,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                          if (!restaurants.isLoading &&
-                              !restaurants.hasError &&
-                              (restaurants.valueOrNull?.isEmpty ?? false)) ...[
-                            const SizedBox(height: 16),
-                            Text(
-                              AppStrings.restaurantsComingSoon,
-                              style: AppTypography.bodySmall,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ],
+                    ],
+                  ),
+                ),
+                if (visibleHeader > 0)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: visibleHeader,
+                    child: ClipRect(
+                      child: OverflowBox(
+                        alignment: Alignment.topCenter,
+                        minHeight: headerHeight,
+                        maxHeight: headerHeight,
+                        child: Padding(
+                          padding:
+                              EdgeInsets.fromLTRB(16, safeTop + 10, 16, 12),
+                          child: const HomeHeadline(),
+                        ),
                       ),
                     ),
                   ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

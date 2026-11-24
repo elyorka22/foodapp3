@@ -268,7 +268,7 @@ class _ProfileHeader extends StatelessWidget {
             ),
             IconButton(
               onPressed: () => context.push(AppRoutes.profileHelp),
-              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 22),
+              icon: const Icon(Icons.headset_mic_outlined, size: 22),
               color: AppColors.textPrimary,
             ),
             NotificationBell(

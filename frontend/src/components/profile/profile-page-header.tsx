@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MessageCircle } from 'lucide-react';
+import { Headset } from 'lucide-react';
 import { NotificationBell } from '@/components/ui/notification-bell';
 import { uz } from '@/lib/uz';
 
@@ -29,7 +29,7 @@ export function ProfilePageHeader({ name, phone, unreadCount = 0 }: Props) {
             aria-label={uz.profileHelp}
             className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-900 transition active:bg-zinc-100"
           >
-            <MessageCircle size={22} strokeWidth={2} />
+            <Headset size={22} strokeWidth={2} />
           </Link>
           <NotificationBell unreadCount={unreadCount} size={22} />
         </div>
