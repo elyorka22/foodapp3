@@ -7,7 +7,7 @@ import '../models/city_model.dart';
 import '../providers/cities_provider.dart';
 import '../providers/selected_city_provider.dart';
 
-/// City name with inverted caret — opens a bottom sheet picker.
+/// City name. Tap opens the city list when more than one city exists.
 class CitySelector extends ConsumerWidget {
   const CitySelector({super.key, this.centered = false});
 
@@ -132,12 +132,6 @@ class _CityButton extends StatelessWidget {
               letterSpacing: -0.3,
             ),
           ),
-        ),
-        const SizedBox(width: 2),
-        Icon(
-          Icons.keyboard_arrow_down_rounded,
-          size: centered ? 22 : 28,
-          color: AppColors.textPrimary.withValues(alpha: onTap == null ? 0.35 : 1),
         ),
       ],
     );

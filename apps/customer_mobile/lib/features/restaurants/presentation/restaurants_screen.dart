@@ -14,7 +14,7 @@ import '../../../shared/widgets/home_shops_carousel.dart';
 import '../../stores/providers/stores_provider.dart';
 import '../providers/restaurants_provider.dart';
 
-/// Home tab — same composition as web `page.tsx`.
+/// Home tab — same island as the web home.
 class RestaurantsScreen extends ConsumerWidget {
   const RestaurantsScreen({super.key});
 
@@ -27,7 +27,22 @@ class RestaurantsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: RefreshIndicator(
+        bottom: false,
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: HomeHeadline(),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () async {
             ref.invalidate(publicSettingsProvider);
@@ -36,32 +51,25 @@ class RestaurantsScreen extends ConsumerWidget {
             ref.invalidate(restaurantsListProvider);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              10,
-              AppSpacing.lg,
-              AppSpacing.xxl,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
-              const HomeHeadline(),
-              const SizedBox(height: 20),
               const HomeServiceGrid(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               HomePromoBanners(
                 banners: banners.valueOrNull ?? const [],
                 isLoading: banners.isLoading,
-              ),
-              const SizedBox(height: 24),
-              HomeShopsCarousel(
-                stores: featuredStores.valueOrNull ?? const [],
-                isLoading: featuredStores.isLoading,
-                total: featuredStores.valueOrNull?.length,
               ),
               const SizedBox(height: 24),
               HomeRestaurantsCarousel(
                 restaurants: restaurants.valueOrNull ?? const [],
                 isLoading: restaurants.isLoading,
                 total: restaurants.valueOrNull?.length,
+              ),
+              const SizedBox(height: 24),
+              HomeShopsCarousel(
+                stores: featuredStores.valueOrNull ?? const [],
+                isLoading: featuredStores.isLoading,
+                total: featuredStores.valueOrNull?.length,
               ),
               if (restaurants.hasError) ...[
                 const SizedBox(height: 16),
@@ -83,6 +91,10 @@ class RestaurantsScreen extends ConsumerWidget {
               ],
             ],
           ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

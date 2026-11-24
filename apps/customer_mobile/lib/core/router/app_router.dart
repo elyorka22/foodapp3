@@ -18,6 +18,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/restaurants/presentation/all_restaurants_screen.dart';
 import '../../features/restaurants/presentation/category_products_screen.dart';
 import '../../features/restaurants/presentation/restaurant_detail_screen.dart';
+import '../../features/restaurants/presentation/home_categories_screen.dart';
 import '../../features/restaurants/presentation/restaurants_screen.dart';
 import '../../features/shell/main_shell_screen.dart';
 import '../../features/splash/presentation/splash_page.dart';
@@ -87,6 +88,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.networkHealth,
         builder: (_, __) => const NetworkHealthScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.homeCategories,
+        builder: (_, __) => const HomeCategoriesScreen(),
       ),
       GoRoute(
         path: '${AppRoutes.categoryProductsBase}/:slug',

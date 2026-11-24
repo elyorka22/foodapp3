@@ -13,11 +13,11 @@ import '../../features/stores/providers/stores_provider.dart';
 import '../models/business_model.dart';
 
 
-/// Home service tiles driven by active business types (`homeGridRow` + `isActive`).
+/// Home category grid: restaurants + grocery, then flowers, perfume, all categories.
 class HomeServiceGrid extends ConsumerWidget {
   const HomeServiceGrid({super.key});
 
-  static const _tileHeight = 132.0;
+  static const _tileHeight = 112.0;
 
   String _routeFor(BusinessTypeModel type) {
     if (type.isRestaurantType) return AppRoutes.allRestaurants;
@@ -41,127 +41,133 @@ class HomeServiceGrid extends ConsumerWidget {
     final overrides =
         ref.watch(publicSettingsProvider).valueOrNull?.homeServiceCards;
     final typesAsync = ref.watch(businessTypesProvider);
-    final types = [...(typesAsync.valueOrNull ?? const <BusinessTypeModel>[])]
-      ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+    final types = typesAsync.valueOrNull ?? const <BusinessTypeModel>[];
 
-    final row1 = types.where((t) => t.homeGridRow == 1).toList();
-    final row2 = types.where((t) => t.homeGridRow == 2).toList();
-    BusinessTypeModel? restaurant;
-    for (final t in row2) {
-      if (t.isRestaurantType) {
-        restaurant = t;
-        break;
+    BusinessTypeModel? find(bool Function(BusinessTypeModel) test) {
+      for (final type in types) {
+        if (test(type)) return type;
       }
+      return null;
     }
-    final row2Others =
-        row2.where((t) => t.id != restaurant?.id).toList(growable: false);
+
+    final restaurant = find((type) => type.isRestaurantType);
+    final grocery = find((type) {
+      final slug = type.slug.toLowerCase();
+      return slug == 'grocery' || slug == 'products';
+    });
+    final flowers = find((type) => type.slug.toLowerCase() == 'flowers');
+    final perfume = find((type) {
+      final slug = type.slug.toLowerCase();
+      return slug == 'perfume' || slug == 'cosmetics';
+    });
 
     if (typesAsync.isLoading && types.isEmpty) {
       return const SizedBox(height: _tileHeight);
     }
-    if (row1.isEmpty && restaurant == null && row2Others.isEmpty) {
-      return const SizedBox.shrink();
+
+    String etaFor(BusinessTypeModel type, String fallback) {
+      final text = type.description?.trim();
+      if (text != null && text.isNotEmpty) return text;
+      return fallback;
     }
 
-    return LayoutBuilder(
-        builder: (context, constraints) {
-          final contentWidth = constraints.maxWidth;
-          final topTileWidth =
-              (contentWidth * 0.46).clamp(168.0, double.infinity);
+    Widget tile(BusinessTypeModel type, {String? badge}) {
+      return _ServiceTile(
+        title: type.name,
+        eta: etaFor(
+          type,
+          type.isRestaurantType
+              ? AppStrings.homeServiceRestaurantsEta
+              : AppStrings.homeServiceProductsEta,
+        ),
+        route: _routeFor(type),
+        iconData: _iconFor(type),
+        badge: badge,
+        layout: layoutForBusinessTypeSlug(
+          slug: type.slug,
+          imageUrl: type.imageUrl,
+          overrides: overrides,
+        ),
+      );
+    }
 
-          return Column(
+    return Column(
+      children: [
+        if (restaurant != null || grocery != null)
+          SizedBox(
+            height: _tileHeight,
+            child: Row(
+              children: [
+                if (restaurant != null)
+                  Expanded(
+                    child: tile(
+                      restaurant,
+                      badge: AppStrings.homeServiceDeliveryBadge,
+                    ),
+                  ),
+                if (restaurant != null && grocery != null)
+                  const SizedBox(width: 10),
+                if (grocery != null) Expanded(child: tile(grocery)),
+              ],
+            ),
+          ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: _tileHeight,
+          child: Row(
             children: [
-              if (row1.isNotEmpty)
-                SizedBox(
-                  height: _tileHeight,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    clipBehavior: Clip.none,
-                    padding: EdgeInsets.zero,
-                    itemCount: row1.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (context, index) {
-                      final type = row1[index];
-                      return SizedBox(
-                        width: topTileWidth,
-                        height: _tileHeight,
-                        child: _ServiceTile(
-                          title: type.name,
-                          eta: type.description?.trim().isNotEmpty == true
-                              ? type.description!.trim()
-                              : AppStrings.homeServiceProductsEta,
-                          route: _routeFor(type),
-                          iconData: _iconFor(type),
-                          layout: layoutForBusinessTypeSlug(
-                            slug: type.slug,
-                            imageUrl: type.imageUrl,
-                            overrides: overrides,
-                          ),
-                          compact: true,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              if (row1.isNotEmpty &&
-                  (restaurant != null || row2Others.isNotEmpty))
-                const SizedBox(height: 10),
-              if (restaurant != null || row2Others.isNotEmpty)
-                SizedBox(
-                  height: _tileHeight,
-                  child: Row(
-                    children: [
-                      if (restaurant != null) ...[
-                        Expanded(
-                          flex: 165,
-                          child: _ServiceTile(
-                            title: restaurant.name,
-                            eta: restaurant.description?.trim().isNotEmpty ==
-                                    true
-                                ? restaurant.description!.trim()
-                                : AppStrings.homeServiceRestaurantsEta,
-                            route: _routeFor(restaurant),
-                            iconData: _iconFor(restaurant),
-                            badge: AppStrings.homeServiceDeliveryBadge,
-                            layout: layoutForBusinessTypeSlug(
-                              slug: restaurant.slug,
-                              imageUrl: restaurant.imageUrl,
-                              overrides: overrides,
-                            ),
-                            restaurantWide: true,
-                          ),
-                        ),
-                        if (row2Others.isNotEmpty) const SizedBox(width: 10),
-                      ],
-                      for (var i = 0; i < row2Others.length; i++) ...[
-                        if (i > 0) const SizedBox(width: 10),
-                        Expanded(
-                          flex: 100,
-                          child: _ServiceTile(
-                            title: row2Others[i].name,
-                            eta: row2Others[i]
-                                        .description
-                                        ?.trim()
-                                        .isNotEmpty ==
-                                    true
-                                ? row2Others[i].description!.trim()
-                                : AppStrings.homeServiceProductsEta,
-                            route: _routeFor(row2Others[i]),
-                            iconData: _iconFor(row2Others[i]),
-                            layout: layoutForBusinessTypeSlug(
-                              slug: row2Others[i].slug,
-                              imageUrl: row2Others[i].imageUrl,
-                              overrides: overrides,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+              if (flowers != null) Expanded(child: tile(flowers)),
+              if (flowers != null) const SizedBox(width: 10),
+              if (perfume != null) Expanded(child: tile(perfume)),
+              if (perfume != null) const SizedBox(width: 10),
+              const Expanded(child: _AllCategoriesTile()),
             ],
-          );
-        },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AllCategoriesTile extends StatelessWidget {
+  const _AllCategoriesTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.background,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        onTap: () => context.push(AppRoutes.homeCategories),
+        borderRadius: BorderRadius.circular(22),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppStrings.storeAllCategories,
+                style: AppTypography.subtitle.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  height: 1.15,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_forward, size: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -189,10 +195,10 @@ class _ServiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppSpacing.serviceTileRadius);
+    final radius = BorderRadius.circular(22);
 
     return Material(
-      color: AppColors.surface,
+      color: AppColors.background,
       borderRadius: radius,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -200,9 +206,8 @@ class _ServiceTile extends StatelessWidget {
         borderRadius: radius,
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColors.background,
             borderRadius: radius,
-            border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -259,20 +264,13 @@ class _ServiceTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: tileW * (compact ? 0.78 : 0.62),
-                          ),
-                          child: Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.subtitle.copyWith(
-                              fontSize: compact ? 13 : 15,
-                              fontWeight: FontWeight.w700,
-                              height: 1.15,
-                              color: AppColors.textPrimary,
-                            ),
+                        Text(
+                          title,
+                          style: AppTypography.subtitle.copyWith(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            height: 1.15,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -292,7 +290,7 @@ class _ServiceTile extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: const Color(0xFF18181B),
                               borderRadius:
                                   BorderRadius.circular(AppSpacing.pillRadius),
                             ),
