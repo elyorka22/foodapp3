@@ -30,17 +30,7 @@ export default function HomePage() {
   const [cityOpen, setCityOpen] = useState(false);
 
   return (
-    <main className="customer-page relative mx-auto min-h-screen max-w-lg">
-      <div
-        aria-hidden
-        className="pointer-events-none fixed bottom-0 left-1/2 top-0 z-0 w-full max-w-lg -translate-x-1/2 bg-[#FF4FA6]"
-      >
-        <img
-          src="/home-waves.svg"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover object-top"
-        />
-      </div>
+    <main className="customer-page relative mx-auto min-h-screen max-w-lg bg-background">
       <div
         className={clsx(
           'fixed inset-x-0 top-0 mx-auto max-w-lg px-4',
@@ -50,7 +40,7 @@ export default function HomePage() {
         <HomeCenterHeader onCityOpenChange={setCityOpen} />
       </div>
 
-      <div className="pointer-events-none relative z-10 h-[calc(env(safe-area-inset-top,0px)+112px)]" />
+      <div className="pointer-events-none h-[calc(env(safe-area-inset-top,0px)+58px)]" />
 
       <section className="relative z-20 min-h-screen rounded-t-[32px] bg-white px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] pt-4">
         <HomeServiceGrid />

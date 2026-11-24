@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/config/public_settings_provider.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/network/api_exception.dart';
@@ -26,11 +24,8 @@ class RestaurantsScreen extends ConsumerWidget {
     final restaurants = ref.watch(restaurantsListProvider(null));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFF4FA6),
-      body: Stack(
-        children: [
-          const _PinkLimeBackdrop(),
-          _CoveringIsland(
+      backgroundColor: AppColors.background,
+      body: _CoveringIsland(
         onRefresh: () async {
           ref.invalidate(publicSettingsProvider);
           ref.invalidate(bannersProvider);
@@ -79,26 +74,6 @@ class RestaurantsScreen extends ConsumerWidget {
             ],
           ],
         ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Wavy lime on hot pink, shown behind the white home island.
-class _PinkLimeBackdrop extends StatelessWidget {
-  const _PinkLimeBackdrop();
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: SizedBox.expand(
-        child: SvgPicture.asset(
-          'assets/images/home_waves.svg',
-          fit: BoxFit.cover,
-          alignment: Alignment.topCenter,
-        ),
       ),
     );
   }
@@ -130,8 +105,8 @@ class _CoveringIslandState extends State<_CoveringIsland> {
   @override
   Widget build(BuildContext context) {
     final safeTop = MediaQuery.paddingOf(context).top;
-    // City row, then a full colored cap down to the white sheet.
-    const headerBody = 112.0;
+    // 10px top pad + 44px city row + 12px gap before the sheet.
+    const headerBody = 66.0;
     final headerHeight = safeTop + headerBody;
 
     return LayoutBuilder(
@@ -144,9 +119,7 @@ class _CoveringIslandState extends State<_CoveringIsland> {
                 (headerHeight - offset).clamp(0.0, headerHeight);
             final radius = visibleHeader <= 1 ? 0.0 : 32.0;
 
-            return AnnotatedRegion<SystemUiOverlayStyle>(
-              value: SystemUiOverlayStyle.dark,
-              child: Stack(
+            return Stack(
               children: [
                 RefreshIndicator(
                   color: AppColors.primary,
@@ -195,7 +168,6 @@ class _CoveringIslandState extends State<_CoveringIsland> {
                     ),
                   ),
               ],
-            ),
             );
           },
         );
