@@ -58,7 +58,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
               controller: _name,
               enabled: !_codeSent,
               textCapitalization: TextCapitalization.words,
-              decoration: InputDecoration(labelText: AppStrings.fullName),
+              decoration: const InputDecoration(labelText: AppStrings.fullName),
             ),
             const SizedBox(height: AppSpacing.md),
           ],

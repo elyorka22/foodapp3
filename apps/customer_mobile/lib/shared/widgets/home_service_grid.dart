@@ -180,8 +180,6 @@ class _ServiceTile extends StatelessWidget {
     required this.iconData,
     required this.layout,
     this.badge,
-    this.compact = false,
-    this.restaurantWide = false,
   });
 
   final String title;
@@ -190,8 +188,6 @@ class _ServiceTile extends StatelessWidget {
   final IconData iconData;
   final HomeServiceCardLayout layout;
   final String? badge;
-  final bool compact;
-  final bool restaurantWide;
 
   @override
   Widget build(BuildContext context) {
@@ -240,11 +236,7 @@ class _ServiceTile extends StatelessWidget {
                             ),
                             errorWidget: (_, __, ___) => Align(
                               alignment: Alignment.bottomRight,
-                              child: _FallbackIcon(
-                                iconData: iconData,
-                                compact: compact,
-                                restaurantWide: restaurantWide,
-                              ),
+                              child: _FallbackIcon(iconData: iconData),
                             ),
                           ),
                         ),
@@ -253,14 +245,10 @@ class _ServiceTile extends StatelessWidget {
                   else
                     Align(
                       alignment: Alignment.bottomRight,
-                      child: _FallbackIcon(
-                        iconData: iconData,
-                        compact: compact,
-                        restaurantWide: restaurantWide,
-                      ),
+                      child: _FallbackIcon(iconData: iconData),
                     ),
                   Padding(
-                    padding: EdgeInsets.all(compact ? 12 : 14),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -278,7 +266,7 @@ class _ServiceTile extends StatelessWidget {
                           eta,
                           style: AppTypography.caption.copyWith(
                             color: AppColors.textMuted,
-                            fontSize: compact ? 11 : 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -317,21 +305,15 @@ class _ServiceTile extends StatelessWidget {
 }
 
 class _FallbackIcon extends StatelessWidget {
-  const _FallbackIcon({
-    required this.iconData,
-    required this.compact,
-    required this.restaurantWide,
-  });
+  const _FallbackIcon({required this.iconData});
 
   final IconData iconData;
-  final bool compact;
-  final bool restaurantWide;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: compact ? 56 : 72,
-      height: compact ? 56 : 72,
+      width: 56,
+      height: 56,
       margin: const EdgeInsets.only(right: 4, bottom: 4),
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
@@ -343,7 +325,7 @@ class _FallbackIcon extends StatelessWidget {
       ),
       child: Icon(
         iconData,
-        size: compact ? 30 : (restaurantWide ? 52 : 40),
+        size: 30,
         color: AppColors.textPrimary,
       ),
     );

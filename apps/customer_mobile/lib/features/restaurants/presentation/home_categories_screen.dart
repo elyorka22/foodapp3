@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/config/public_settings_provider.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/home_service_cards.dart';
 import '../../../shared/models/business_model.dart';
