@@ -9,9 +9,10 @@ import '../providers/selected_city_provider.dart';
 
 /// City name. Tap opens the city list when more than one city exists.
 class CitySelector extends ConsumerWidget {
-  const CitySelector({super.key, this.centered = false});
+  const CitySelector({super.key, this.centered = false, this.color});
 
   final bool centered;
+  final Color? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,11 +31,13 @@ class CitySelector extends ConsumerWidget {
       error: (_, __) => _CityButton(
         label: selected?.name ?? 'Chust',
         centered: centered,
+        color: color,
         onTap: () {},
       ),
       data: (cities) => _CityButton(
         label: selected?.name ?? (cities.isNotEmpty ? cities.first.name : 'Chust'),
         centered: centered,
+        color: color,
         onTap: cities.length <= 1
             ? null
             : () => _openCitySheet(context, ref, cities, selected?.slug),
@@ -107,11 +110,13 @@ class _CityButton extends StatelessWidget {
     required this.label,
     this.onTap,
     this.centered = false,
+    this.color,
   });
 
   final String label;
   final VoidCallback? onTap;
   final bool centered;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +135,7 @@ class _CityButton extends StatelessWidget {
               fontSize: centered ? 22 : 26,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.3,
+              color: color,
             ),
           ),
         ),

@@ -9,10 +9,11 @@ import type { City } from '@/hooks/use-cities';
 
 type CitySelectorProps = {
   className?: string;
+  light?: boolean;
   onOpenChange?: (open: boolean) => void;
 };
 
-export function CitySelector({ className, onOpenChange }: CitySelectorProps) {
+export function CitySelector({ className, light = false, onOpenChange }: CitySelectorProps) {
   const { cities, selectedCity, selectCity, isLoading } = useSelectedCity();
   const [open, setOpen] = useState(false);
 
@@ -29,7 +30,8 @@ export function CitySelector({ className, onOpenChange }: CitySelectorProps) {
     return (
       <span
         className={clsx(
-          'truncate font-extrabold leading-tight tracking-tight text-zinc-900',
+          'truncate font-extrabold leading-tight tracking-tight',
+          light ? 'text-white' : 'text-zinc-900',
           centered ? 'text-[22px]' : 'text-[26px]',
           isLoading && 'opacity-70',
           className,
@@ -54,7 +56,8 @@ export function CitySelector({ className, onOpenChange }: CitySelectorProps) {
       >
         <span
           className={clsx(
-            'truncate font-extrabold leading-tight tracking-tight text-zinc-900',
+            'truncate font-extrabold leading-tight tracking-tight',
+            light ? 'text-white' : 'text-zinc-900',
             centered ? 'text-[22px]' : 'text-[26px]',
           )}
         >

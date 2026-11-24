@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/router/routes.dart';
-import '../../core/theme/app_colors.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/cities/presentation/city_selector.dart';
 import '../../features/notifications/providers/notifications_provider.dart';
@@ -21,7 +20,7 @@ class HomeHeadline extends ConsumerWidget {
           Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
-              child: CitySelector(),
+              child: CitySelector(color: Colors.white),
             ),
           ),
           _BellButton(),
@@ -43,7 +42,7 @@ class _BellButton extends ConsumerWidget {
 
     return NotificationBell(
       unreadCount: unread,
-      color: AppColors.textPrimary,
+      color: Colors.white,
       // Same Lucide size as web `home-center-header.tsx`.
       size: 22,
       onTap: () {

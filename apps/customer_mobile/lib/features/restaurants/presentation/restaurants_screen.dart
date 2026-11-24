@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/public_settings_provider.dart';
 import '../../../core/l10n/app_strings.dart';
@@ -24,8 +25,11 @@ class RestaurantsScreen extends ConsumerWidget {
     final restaurants = ref.watch(restaurantsListProvider(null));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: _CoveringIsland(
+      backgroundColor: const Color(0xFFFF2E95),
+      body: Stack(
+        children: [
+          const _PinkLimeBackdrop(),
+          _CoveringIsland(
         onRefresh: () async {
           ref.invalidate(publicSettingsProvider);
           ref.invalidate(bannersProvider);
@@ -74,6 +78,73 @@ class RestaurantsScreen extends ConsumerWidget {
             ],
           ],
         ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Lime and hot-pink field behind the white home island.
+class _PinkLimeBackdrop extends StatelessWidget {
+  const _PinkLimeBackdrop();
+
+  @override
+  Widget build(BuildContext context) {
+    return const IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFF4DB5),
+              Color(0xFFFF2A92),
+              Color(0xFFE7FF55),
+            ],
+            stops: [0, 0.48, 1],
+          ),
+        ),
+        child: SizedBox.expand(
+          child: Stack(
+            children: [
+              Positioned(
+                top: -50,
+                left: -40,
+                child: _Blob(size: 220, color: Color(0xFFD8FF3C)),
+              ),
+              Positioned(
+                top: 10,
+                right: -70,
+                child: _Blob(size: 190, color: Color(0xFFFF5AD4)),
+              ),
+              Positioned(
+                top: 120,
+                right: 20,
+                child: _Blob(size: 140, color: Color(0xFFC6FF45)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Blob extends StatelessWidget {
+  const _Blob({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.85),
       ),
     );
   }
@@ -105,8 +176,8 @@ class _CoveringIslandState extends State<_CoveringIsland> {
   @override
   Widget build(BuildContext context) {
     final safeTop = MediaQuery.paddingOf(context).top;
-    // 10px top pad + 44px city row + 12px gap before the sheet.
-    const headerBody = 66.0;
+    // 10px top pad + 44px city row + extra gray field before the sheet.
+    const headerBody = 94.0;
     final headerHeight = safeTop + headerBody;
 
     return LayoutBuilder(
@@ -119,7 +190,11 @@ class _CoveringIslandState extends State<_CoveringIsland> {
                 (headerHeight - offset).clamp(0.0, headerHeight);
             final radius = visibleHeader <= 1 ? 0.0 : 32.0;
 
-            return Stack(
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: visibleHeader > 24
+                  ? SystemUiOverlayStyle.light
+                  : SystemUiOverlayStyle.dark,
+              child: Stack(
               children: [
                 RefreshIndicator(
                   color: AppColors.primary,
@@ -168,6 +243,7 @@ class _CoveringIslandState extends State<_CoveringIsland> {
                     ),
                   ),
               ],
+            ),
             );
           },
         );

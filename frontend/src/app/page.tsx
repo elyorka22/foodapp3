@@ -30,7 +30,7 @@ export default function HomePage() {
   const [cityOpen, setCityOpen] = useState(false);
 
   return (
-    <main className="customer-page relative mx-auto min-h-screen max-w-lg bg-background">
+    <main className="customer-page home-backdrop relative mx-auto min-h-screen max-w-lg">
       <div
         className={clsx(
           'fixed inset-x-0 top-0 mx-auto max-w-lg px-4',
@@ -40,7 +40,7 @@ export default function HomePage() {
         <HomeCenterHeader onCityOpenChange={setCityOpen} />
       </div>
 
-      <div className="pointer-events-none h-[calc(env(safe-area-inset-top,0px)+58px)]" />
+      <div className="pointer-events-none h-[calc(env(safe-area-inset-top,0px)+86px)]" />
 
       <section className="relative z-20 min-h-screen rounded-t-[32px] bg-white px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] pt-4">
         <HomeServiceGrid />

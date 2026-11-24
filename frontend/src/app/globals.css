@@ -175,6 +175,16 @@ textarea::placeholder {
     color: #18181b;
   }
 
+  /* Home field behind the white island: lime and hot pink, like the brand stills. */
+  .home-backdrop {
+    background-color: #ff2e95;
+    background-image:
+      radial-gradient(90% 70% at 0% 0%, #d8ff3c 0%, transparent 52%),
+      radial-gradient(70% 55% at 100% 8%, #ff5ad4 0%, transparent 46%),
+      radial-gradient(80% 50% at 78% 100%, #c6ff45 0%, transparent 48%),
+      linear-gradient(165deg, #ff4db5 0%, #ff2a92 48%, #eaff6a 130%);
+  }
+
   .customer-surface {
     background-color: #ffffff;
     border-radius: 1.25rem;

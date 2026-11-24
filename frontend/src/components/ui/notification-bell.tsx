@@ -11,6 +11,7 @@ type Props = {
   onClick?: () => void;
   className?: string;
   size?: number;
+  light?: boolean;
 };
 
 /**
@@ -23,6 +24,7 @@ export function NotificationBell({
   onClick,
   className,
   size = 22,
+  light = false,
 }: Props) {
   const hasUnread = unreadCount > 0;
   const label =
@@ -41,7 +43,8 @@ export function NotificationBell({
       />
       <span
         className={clsx(
-          'absolute right-0.5 top-0.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-[10px] border-2 border-[#F5F5F7] bg-[#FF3B5C] px-1 text-[10px] font-bold leading-none text-white transition-transform duration-200',
+          'absolute right-0.5 top-0.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-[10px] border-2 bg-[#FF3B5C] px-1 text-[10px] font-bold leading-none text-white transition-transform duration-200',
+          light ? 'border-white' : 'border-[#F5F5F7]',
           hasUnread ? 'scale-100' : 'scale-0',
         )}
         aria-hidden={!hasUnread}
@@ -52,7 +55,8 @@ export function NotificationBell({
   );
 
   const classes = clsx(
-    'relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-900 transition active:scale-95 active:bg-zinc-100',
+    'relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition active:scale-95',
+    light ? 'text-white active:bg-white/20' : 'text-zinc-900 active:bg-zinc-100',
     className,
   );
 
