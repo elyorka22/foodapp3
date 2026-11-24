@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { LogIn, UserPlus } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { CustomerAuthSheet, type AuthSheetMode } from '@/components/auth/customer-auth-sheet';
 import { ProfileAccountMenu } from '@/components/profile/profile-account-menu';
 import { ProfileMenuGroup } from '@/components/profile/profile-menu-group';
@@ -41,12 +41,6 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
             label={uz.signIn}
             hint={uz.profileLoginSubtitle}
             onClick={() => openAuth('login')}
-          />
-          <ProfileMenuRow
-            icon={UserPlus}
-            label={uz.register}
-            hint={uz.profileRegisterSubtitle}
-            onClick={() => openAuth('register')}
             showDivider={false}
           />
         </ProfileMenuGroup>
@@ -57,8 +51,14 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
       <ProfileSocialSection />
 
       <Link
-        href="/delete-account"
+        href="/hamkorlik"
         className="mt-6 block px-1 text-center text-[13px] font-medium text-zinc-400"
+      >
+        {uz.profilePartnership}
+      </Link>
+      <Link
+        href="/delete-account"
+        className="mt-3 block px-1 text-center text-[13px] font-medium text-zinc-400"
       >
         {uz.deleteAccountPage}
       </Link>

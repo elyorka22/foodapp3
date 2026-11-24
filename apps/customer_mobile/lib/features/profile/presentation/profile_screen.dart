@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/config/public_settings_provider.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
@@ -133,12 +132,6 @@ class ProfileScreen extends ConsumerWidget {
                             label: AppStrings.login,
                             hint: AppStrings.profileLoginSubtitle,
                             onTap: () => context.push('/profile/login'),
-                          ),
-                          _MenuRow(
-                            icon: Icons.person_add_alt_1_rounded,
-                            label: AppStrings.register,
-                            hint: AppStrings.profileRegisterSubtitle,
-                            onTap: () => context.push('/profile/register'),
                             showDivider: false,
                           ),
                         ],
@@ -155,67 +148,8 @@ class ProfileScreen extends ConsumerWidget {
                             AppStrings.ordersTitle,
                             AppStrings.noOrders,
                           ),
-                        ),
-                        _MenuRow(
-                          icon: Icons.favorite_border_rounded,
-                          label: AppStrings.favoritesTitle,
-                          onTap: () => _openSimplePage(
-                            context,
-                            AppStrings.favoritesTitle,
-                            AppStrings.noFavorites,
-                          ),
                           showDivider: false,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _MenuCard(
-                      children: [
-                        _MenuRow(
-                          icon: Icons.percent_rounded,
-                          label: AppStrings.promotionsTitle,
-                          onTap: () => context.push(AppRoutes.promotions),
-                        ),
-                        _MenuRow(
-                          icon: Icons.notifications_none_rounded,
-                          label: AppStrings.notificationsTitle,
-                          trailing: unread > 0
-                              ? (unread > 99 ? '99+' : '$unread')
-                              : null,
-                          onTap: () => context.push(AppRoutes.notifications),
-                          showDivider: isLoggedIn,
-                        ),
-                        if (isLoggedIn)
-                          _MenuRow(
-                            icon: Icons.handshake_outlined,
-                            label: AppStrings.partnership,
-                            onTap: () =>
-                                context.push(AppRoutes.profilePartnership),
-                            showDivider: false,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _MenuCard(
-                      children: [
-                        _MenuRow(
-                          icon: Icons.headset_mic_outlined,
-                          label: AppStrings.profileContact,
-                          onTap: () => context.push(AppRoutes.profileHelp),
-                        ),
-                        _MenuRow(
-                          icon: Icons.language_rounded,
-                          label: AppStrings.changeLanguage,
-                          hint: AppStrings.profileLanguageSubtitle,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(AppStrings.profileLanguageSubtitle),
-                              ),
-                            );
-                          },
-                        ),
-                        _AppVersionRow(),
                       ],
                     ),
                     if (isLoggedIn) ...[
@@ -266,6 +200,17 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                     ],
                     ProfileSocialSection(links: socialLinks),
+                    TextButton(
+                      onPressed: () =>
+                          context.push(AppRoutes.profilePartnership),
+                      child: Text(
+                        AppStrings.partnership,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -381,7 +326,6 @@ class _MenuRow extends StatelessWidget {
     required this.icon,
     required this.label,
     this.hint,
-    this.trailing,
     this.onTap,
     this.showDivider = true,
   });
@@ -389,7 +333,6 @@ class _MenuRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String? hint;
-  final String? trailing;
   final VoidCallback? onTap;
   final bool showDivider;
 
@@ -436,15 +379,6 @@ class _MenuRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailing != null)
-              Text(
-                trailing!,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF059669),
-                ),
-              ),
           ],
         ),
       ),
@@ -452,30 +386,3 @@ class _MenuRow extends StatelessWidget {
   }
 }
 
-class _AppVersionRow extends StatefulWidget {
-  @override
-  State<_AppVersionRow> createState() => _AppVersionRowState();
-}
-
-class _AppVersionRowState extends State<_AppVersionRow> {
-  String _version = '';
-
-  @override
-  void initState() {
-    super.initState();
-    PackageInfo.fromPlatform().then((info) {
-      if (!mounted) return;
-      setState(() => _version = info.version);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _MenuRow(
-      icon: Icons.info_outline_rounded,
-      label: AppStrings.profileAboutApp,
-      hint: _version.isEmpty ? null : AppStrings.profileVersion(_version),
-      showDivider: false,
-    );
-  }
-}

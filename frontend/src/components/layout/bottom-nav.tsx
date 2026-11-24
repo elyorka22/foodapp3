@@ -10,31 +10,32 @@ type TabIconProps = {
   active: boolean;
 };
 
-/** Brand purple — matches wing logo; active nav tabs use this. */
-const BRAND = '#4A05CA';
+/** Active tab fill. Idle icons stay gray. */
+const BRAND = '#16A34A';
 const IDLE = '#A1A1AA';
 /** One box for every tab so home, cart, and profile read the same size. */
 const NAV_ICON = 30;
 
 function HomeIcon({ active }: TabIconProps) {
   const color = active ? BRAND : IDLE;
-  // Same box and currentColor as cart/profile. Mask keeps the wing shape.
+  // Solid silhouette, same box and flat fill as cart and profile.
   return (
     <span
       aria-hidden
       className="block"
       style={{
-        width: 26,
-        height: 26,
+        width: NAV_ICON,
+        height: NAV_ICON,
         backgroundColor: color,
-        WebkitMaskImage: 'url(/brand-wing.png)',
-        maskImage: 'url(/brand-wing.png)',
+        WebkitMaskImage: 'url(/brand-wing-nav.png)',
+        maskImage: 'url(/brand-wing-nav.png)',
         WebkitMaskRepeat: 'no-repeat',
         maskRepeat: 'no-repeat',
         WebkitMaskPosition: 'center',
         maskPosition: 'center',
         WebkitMaskSize: 'contain',
         maskSize: 'contain',
+        maskMode: 'alpha',
       }}
     />
   );

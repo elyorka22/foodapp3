@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// Nav icons matching web `bottom-nav.tsx`. Filled marks share one size.
-///
-/// Uses [SvgTheme.currentColor] so fill color matches the active tab.
-/// Brand wing mark for home tab — same asset + grayscale idle as web.
+/// Nav icons matching web `bottom-nav.tsx`. All three use one size and one flat fill.
 class LucideHomeNavIcon extends StatelessWidget {
   const LucideHomeNavIcon({
     super.key,
@@ -18,21 +15,18 @@ class LucideHomeNavIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final paint = color ?? Theme.of(context).colorScheme.onSurface;
-    // Wing artwork fills its box more than the other marks, so draw it smaller.
-    final mark = size * 26 / 30;
-    return ColorFiltered(
-      colorFilter: ColorFilter.mode(paint, BlendMode.srcIn),
-      child: Image.asset(
-        'assets/images/brand_wing.png',
-        width: mark,
-        height: mark,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-        errorBuilder: (_, __, ___) => Icon(
-          Icons.home_rounded,
-          size: mark,
-          color: paint,
-        ),
+    return Image.asset(
+      'assets/images/brand_wing_nav.png',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
+      color: paint,
+      colorBlendMode: BlendMode.srcIn,
+      errorBuilder: (_, __, ___) => Icon(
+        Icons.home_rounded,
+        size: size,
+        color: paint,
       ),
     );
   }

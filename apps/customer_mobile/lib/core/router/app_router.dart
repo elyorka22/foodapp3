@@ -38,12 +38,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (needsPhone && !onComplete) {
         return AppRoutes.completeProfile;
       }
-      if (state.matchedLocation == AppRoutes.profilePartnership) {
-        final user = ref.read(authStateProvider).valueOrNull;
-        if (user == null) {
-          return AppRoutes.profile;
-        }
-      }
       return null;
     },
     routes: [

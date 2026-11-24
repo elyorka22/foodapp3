@@ -27,21 +27,7 @@ class RestaurantsScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
-              child: HomeHeadline(),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                ),
-                child: RefreshIndicator(
+        child: RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () async {
             ref.invalidate(publicSettingsProvider);
@@ -49,51 +35,78 @@ class RestaurantsScreen extends ConsumerWidget {
             ref.invalidate(homeFeaturedStoresProvider);
             ref.invalidate(restaurantsListProvider);
           },
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            children: [
-              const HomeServiceGrid(),
-              const SizedBox(height: 20),
-              HomePromoBanners(
-                banners: banners.valueOrNull ?? const [],
-                isLoading: banners.isLoading,
-              ),
-              const SizedBox(height: 24),
-              HomeRestaurantsCarousel(
-                restaurants: restaurants.valueOrNull ?? const [],
-                isLoading: restaurants.isLoading,
-                total: restaurants.valueOrNull?.length,
-              ),
-              const SizedBox(height: 24),
-              HomeShopsCarousel(
-                stores: featuredStores.valueOrNull ?? const [],
-                isLoading: featuredStores.isLoading,
-                total: featuredStores.valueOrNull?.length,
-              ),
-              if (restaurants.hasError) ...[
-                const SizedBox(height: 16),
-                Text(
-                  ApiException.formatError(restaurants.error!),
-                  style: AppTypography.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-              if (!restaurants.isLoading &&
-                  !restaurants.hasError &&
-                  (restaurants.valueOrNull?.isEmpty ?? false)) ...[
-                const SizedBox(height: 16),
-                Text(
-                  AppStrings.restaurantsComingSoon,
-                  style: AppTypography.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // City row is 44px plus the padding around it.
+              const headerHeight = 66.0;
+              final islandMinHeight = constraints.maxHeight - headerHeight;
+
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 10, 16, 12),
+                    child: HomeHeadline(),
+                  ),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: islandMinHeight),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(32),
+                        ),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const HomeServiceGrid(),
+                          const SizedBox(height: 20),
+                          HomePromoBanners(
+                            banners: banners.valueOrNull ?? const [],
+                            isLoading: banners.isLoading,
+                          ),
+                          const SizedBox(height: 24),
+                          HomeRestaurantsCarousel(
+                            restaurants: restaurants.valueOrNull ?? const [],
+                            isLoading: restaurants.isLoading,
+                            total: restaurants.valueOrNull?.length,
+                          ),
+                          const SizedBox(height: 24),
+                          HomeShopsCarousel(
+                            stores: featuredStores.valueOrNull ?? const [],
+                            isLoading: featuredStores.isLoading,
+                            total: featuredStores.valueOrNull?.length,
+                          ),
+                          if (restaurants.hasError) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              ApiException.formatError(restaurants.error!),
+                              style: AppTypography.bodySmall,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                          if (!restaurants.isLoading &&
+                              !restaurants.hasError &&
+                              (restaurants.valueOrNull?.isEmpty ?? false)) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              AppStrings.restaurantsComingSoon,
+                              style: AppTypography.bodySmall,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );

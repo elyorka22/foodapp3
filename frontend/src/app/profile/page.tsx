@@ -79,7 +79,7 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        <ProfileAccountMenu loyaltyPoints={customer.loyalty?.points} />
+        <ProfileAccountMenu />
 
         <button
           type="button"
@@ -101,6 +101,13 @@ export default function ProfilePage() {
         ) : null}
 
         <ProfileSocialSection />
+
+        <Link
+          href="/hamkorlik"
+          className="mt-6 block px-1 text-center text-[13px] font-medium text-zinc-400"
+        >
+          {uz.profilePartnership}
+        </Link>
 
         {showDeleteDialog && customer.phone ? (
           <DeleteAccountDialog
