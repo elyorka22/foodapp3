@@ -9,27 +9,114 @@ import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { requestAccountDeletion } from '@/lib/account-deletion';
 import { isValidUzPhone, normalizePhone } from '@/lib/phone';
-import { uz } from '@/lib/uz';
 import { getCustomerToken } from '@/lib/customer';
 
-const DATA_DELETED = [
-  'Phone number',
-  'User profile',
-  'Saved addresses',
-  'Location data',
-  'Push notification tokens (FCM)',
-  'Google authentication linkage',
-  'Personal information',
-  'Order history (anonymized)',
-];
+type Lang = 'uz' | 'en';
 
-const DATA_RETAINED = [
-  'Anonymized order records required for accounting, tax, and fraud prevention',
-  'Payment-related metadata retained only as required by law',
-  'Server logs retained for security monitoring',
-];
+const COPY = {
+  uz: {
+    switchLabel: 'English',
+    back: 'Bosh sahifa',
+    title: 'Hisobni o‘chirish',
+    justDeleted: 'Hisobingiz o‘chirildi. FoodAppdan foydalanganingiz uchun rahmat.',
+    introTitle: 'Hisobni o‘chirish',
+    intro:
+      'FoodApp mijoz hisobingizni va unga bog‘liq shaxsiy ma’lumotlarni o‘chirishni so‘rashingiz mumkin. Bu sahifada tizimga kirish shart emas — hisobingizga bog‘langan telefon raqamini yuboring.',
+    introProfileBefore: 'Agar tizimga kirgan bo‘lsangiz, hisobni ',
+    introProfileLink: 'Profil',
+    introProfileAfter: ' sahifasidan ham o‘chirishingiz mumkin.',
+    deletedTitle: 'Nima o‘chiriladi',
+    deleted: [
+      'Telefon raqami',
+      'Foydalanuvchi profili',
+      'Saqlangan manzillar',
+      'Joylashuv ma’lumotlari',
+      'Push-bildirishnoma tokenlari (FCM)',
+      'Google orqali kirish bog‘lanishi',
+      'Shaxsiy ma’lumotlar',
+      'Buyurtmalar tarixi (anonimlashtiriladi)',
+    ],
+    retainedTitle: 'Saqlab qolinishi mumkin bo‘lgan ma’lumotlar',
+    retained: [
+      'Buxgalteriya, soliq va firibgarlikning oldini olish uchun anonim buyurtma yozuvlari',
+      'Qonun talab qiladigan to‘lovga oid meta-ma’lumotlar',
+      'Xavfsizlik nazorati uchun server jurnallari',
+    ],
+    retention:
+      'Saqlash muddati: anonim buyurtma va moliyaviy yozuvlar qonunga muvofiq 5 yilgacha saqlanadi. Xavfsizlik jurnallari 90 kungacha saqlanadi.',
+    formTitle: 'O‘chirish so‘rovi',
+    formBody:
+      'Bu amalni qaytarib bo‘lmaydi. Profil, telefon raqami, saqlangan manzillar, joylashuv, bildirishnoma tokenlari, kirish ma’lumotlari va shaxsiy ma’lumotlar o‘chiriladi va tiklanmaydi.',
+    phone: 'Telefon raqami',
+    email: 'Email (ixtiyoriy)',
+    reason: 'Sabab (ixtiyoriy)',
+    reasonPlaceholder: 'Nima uchun ketayotganingizni yozing (ixtiyoriy)',
+    phoneInvalid: 'Telefon raqam noto‘g‘ri',
+    requestFailed: 'So‘rov yuborilmadi',
+    success:
+      'Hisobni o‘chirish so‘rovi qabul qilindi. Bu raqamda hisob bo‘lsa, u o‘chirishga qo‘yiladi.',
+    submitting: 'Yuborilmoqda…',
+    submit: 'O‘chirish so‘rovini yuborish',
+    supportTitle: 'Aloqa va yordam',
+    support:
+      'Hisobni o‘chirish yoki ma’lumotlar maxfiyligi bo‘yicha savol bo‘lsa, qo‘llab-quvvatlash xizmatiga yozing:',
+    privacyBefore: 'Shuningdek, ',
+    privacyLink: 'Maxfiylik siyosati',
+    privacyAfter: ' bilan tanishing.',
+  },
+  en: {
+    switchLabel: 'O‘zbekcha',
+    back: 'Back to home',
+    title: 'Delete Account',
+    justDeleted: 'Your account has been deleted. Thank you for using FoodApp.',
+    introTitle: 'Account deletion',
+    intro:
+      'You can request deletion of your FoodApp customer account and associated personal data. No login is required on this page — submit the phone number linked to your account.',
+    introProfileBefore: 'If you are logged in, you can also delete your account from ',
+    introProfileLink: 'Profile',
+    introProfileAfter: '.',
+    deletedTitle: 'What will be deleted',
+    deleted: [
+      'Phone number',
+      'User profile',
+      'Saved addresses',
+      'Location data',
+      'Push notification tokens (FCM)',
+      'Google authentication linkage',
+      'Personal information',
+      'Order history (anonymized)',
+    ],
+    retainedTitle: 'Data we may retain',
+    retained: [
+      'Anonymized order records required for accounting, tax, and fraud prevention',
+      'Payment-related metadata retained only as required by law',
+      'Server logs retained for security monitoring',
+    ],
+    retention:
+      'Retention period: anonymized order and financial records are kept for up to 5 years as required by applicable law. Security logs are retained for up to 90 days.',
+    formTitle: 'Request deletion',
+    formBody:
+      'This action is permanent. Your profile, phone number, saved addresses, location information, notification tokens, authentication data and personal information will be deleted and cannot be recovered.',
+    phone: 'Phone number',
+    email: 'Email (optional)',
+    reason: 'Reason (optional)',
+    reasonPlaceholder: 'Tell us why you are leaving (optional)',
+    phoneInvalid: 'Phone number is invalid',
+    requestFailed: 'Request failed',
+    success:
+      'Your account deletion request has been received. If an account exists for this phone number, it has been scheduled for deletion.',
+    submitting: 'Submitting…',
+    submit: 'Submit deletion request',
+    supportTitle: 'Contact & support',
+    support: 'Questions about account deletion or data privacy? Contact our support team:',
+    privacyBefore: 'See also our ',
+    privacyLink: 'Privacy Policy',
+    privacyAfter: '.',
+  },
+} as const;
 
 export default function DeleteAccountPage() {
+  const [lang, setLang] = useState<Lang>('uz');
   const [justDeleted, setJustDeleted] = useState(false);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -37,6 +124,7 @@ export default function DeleteAccountPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const t = COPY[lang];
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -46,7 +134,7 @@ export default function DeleteAccountPage() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!isValidUzPhone(phone)) {
-      setError(uz.phoneInvalid);
+      setError(t.phoneInvalid);
       return;
     }
     setLoading(true);
@@ -54,7 +142,7 @@ export default function DeleteAccountPage() {
     setMessage('');
     try {
       const token = getCustomerToken() ?? undefined;
-      const res = await requestAccountDeletion(
+      await requestAccountDeletion(
         {
           phone: normalizePhone(phone),
           ...(email.trim() ? { email: email.trim() } : {}),
@@ -62,12 +150,12 @@ export default function DeleteAccountPage() {
         },
         token,
       );
-      setMessage(res.message);
+      setMessage(t.success);
       setPhone('');
       setEmail('');
       setReason('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed');
+      setError(err instanceof Error ? err.message : t.requestFailed);
     } finally {
       setLoading(false);
     }
@@ -76,17 +164,26 @@ export default function DeleteAccountPage() {
   return (
     <main className="mx-auto min-h-screen max-w-lg bg-background px-4 pb-10">
       <div className="flex items-center gap-2 py-4">
-        <Link href="/" className="rounded-full p-2 active:bg-zinc-200" aria-label="Back to home">
+        <Link href="/" className="rounded-full p-2 active:bg-zinc-200" aria-label={t.back}>
           <ChevronLeft size={22} />
         </Link>
-        <h1 className="text-xl font-bold text-zinc-900">Delete Account</h1>
+        <h1 className="min-w-0 flex-1 text-xl font-bold text-zinc-900">{t.title}</h1>
+        <button
+          type="button"
+          onClick={() => {
+            setLang(lang === 'uz' ? 'en' : 'uz');
+            setError('');
+            setMessage('');
+          }}
+          className="shrink-0 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-sm font-semibold text-zinc-800"
+        >
+          {t.switchLabel}
+        </button>
       </div>
 
       {justDeleted && (
         <Card className="mb-4 border-green-200 bg-green-50 p-4">
-          <p className="text-sm font-medium text-green-800">
-            Your account has been deleted. Thank you for using FoodApp.
-          </p>
+          <p className="text-sm font-medium text-green-800">{t.justDeleted}</p>
         </Card>
       )}
 
@@ -94,25 +191,22 @@ export default function DeleteAccountPage() {
         <Card className="rounded-2xl p-5 shadow-card">
           <div className="flex items-center gap-2 text-[#18181B]">
             <Trash2 size={20} />
-            <h2 className="text-base font-semibold text-zinc-900">Account deletion</h2>
+            <h2 className="text-base font-semibold text-zinc-900">{t.introTitle}</h2>
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-600">
-            You can request deletion of your FoodApp customer account and associated personal data.
-            No login is required on this page — submit the phone number linked to your account.
-          </p>
+          <p className="mt-3 text-sm leading-relaxed text-zinc-600">{t.intro}</p>
           <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-            If you are logged in, you can also delete your account from{' '}
+            {t.introProfileBefore}
             <Link href="/profile" className="font-medium text-[#18181B]">
-              Profile
+              {t.introProfileLink}
             </Link>
-            .
+            {t.introProfileAfter}
           </p>
         </Card>
 
         <Card className="rounded-2xl p-5 shadow-card">
-          <h2 className="text-base font-semibold text-zinc-900">What will be deleted</h2>
+          <h2 className="text-base font-semibold text-zinc-900">{t.deletedTitle}</h2>
           <ul className="mt-3 space-y-2">
-            {DATA_DELETED.map((item) => (
+            {t.deleted.map((item) => (
               <li key={item} className="flex gap-2 text-sm text-zinc-600">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#18181B]" />
                 {item}
@@ -124,39 +218,32 @@ export default function DeleteAccountPage() {
         <Card className="rounded-2xl p-5 shadow-card">
           <div className="flex items-center gap-2">
             <ShieldAlert size={18} className="text-amber-600" />
-            <h2 className="text-base font-semibold text-zinc-900">Data we may retain</h2>
+            <h2 className="text-base font-semibold text-zinc-900">{t.retainedTitle}</h2>
           </div>
           <ul className="mt-3 space-y-2">
-            {DATA_RETAINED.map((item) => (
+            {t.retained.map((item) => (
               <li key={item} className="text-sm leading-relaxed text-zinc-600">
                 • {item}
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-sm text-zinc-600">
-            <strong>Retention period:</strong> anonymized order and financial records are kept for up
-            to 5 years as required by applicable law. Security logs are retained for up to 90 days.
-          </p>
+          <p className="mt-3 text-sm text-zinc-600">{t.retention}</p>
         </Card>
 
         <Card className="rounded-2xl p-5 shadow-card">
-          <h2 className="text-base font-semibold text-zinc-900">Request deletion</h2>
-          <p className="mt-2 text-sm text-zinc-600">
-            This action is permanent. Your profile, phone number, saved addresses, location
-            information, notification tokens, authentication data and personal information will be
-            deleted and cannot be recovered.
-          </p>
+          <h2 className="text-base font-semibold text-zinc-900">{t.formTitle}</h2>
+          <p className="mt-2 text-sm text-zinc-600">{t.formBody}</p>
 
           <form onSubmit={onSubmit} className="mt-4 space-y-3">
             <div>
               <label htmlFor="phone" className="mb-1 block text-sm font-medium text-zinc-700">
-                Phone number <span className="text-red-600">*</span>
+                {t.phone} <span className="text-red-600">*</span>
               </label>
               <PhoneInput id="phone" name="phone" value={phone} onChange={setPhone} required />
             </div>
             <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium text-zinc-700">
-                Email (optional)
+                {t.email}
               </label>
               <Input
                 id="email"
@@ -170,13 +257,13 @@ export default function DeleteAccountPage() {
             </div>
             <div>
               <label htmlFor="reason" className="mb-1 block text-sm font-medium text-zinc-700">
-                Reason (optional)
+                {t.reason}
               </label>
               <textarea
                 id="reason"
                 name="reason"
                 rows={3}
-                placeholder="Tell us why you are leaving (optional)"
+                placeholder={t.reasonPlaceholder}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-base text-foreground outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500/30"
@@ -191,16 +278,14 @@ export default function DeleteAccountPage() {
             )}
 
             <Button type="submit" variant="danger" size="lg" disabled={loading}>
-              {loading ? 'Submitting…' : 'Submit deletion request'}
+              {loading ? t.submitting : t.submit}
             </Button>
           </form>
         </Card>
 
         <Card className="rounded-2xl p-5 shadow-card">
-          <h2 className="text-base font-semibold text-zinc-900">Contact & support</h2>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-            Questions about account deletion or data privacy? Contact our support team:
-          </p>
+          <h2 className="text-base font-semibold text-zinc-900">{t.supportTitle}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-600">{t.support}</p>
           <p className="mt-2 text-sm">
             Email:{' '}
             <a href="mailto:support@foodapp.uz" className="font-medium text-[#18181B]">
@@ -208,11 +293,11 @@ export default function DeleteAccountPage() {
             </a>
           </p>
           <p className="mt-2 text-sm text-zinc-600">
-            See also our{' '}
+            {t.privacyBefore}
             <Link href="/privacy" className="font-medium text-[#18181B]">
-              Privacy Policy
+              {t.privacyLink}
             </Link>
-            .
+            {t.privacyAfter}
           </p>
         </Card>
       </article>
