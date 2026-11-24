@@ -20,7 +20,7 @@ class HomeHeadline extends ConsumerWidget {
           Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
-              child: CitySelector(color: Colors.white),
+              child: CitySelector(),
             ),
           ),
           _BellButton(),
@@ -42,7 +42,6 @@ class _BellButton extends ConsumerWidget {
 
     return NotificationBell(
       unreadCount: unread,
-      color: Colors.white,
       // Same Lucide size as web `home-center-header.tsx`.
       size: 22,
       onTap: () {

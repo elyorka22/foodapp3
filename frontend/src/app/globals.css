@@ -175,15 +175,6 @@ textarea::placeholder {
     color: #18181b;
   }
 
-  /* Wavy lime on hot pink, shown behind the white home island. */
-  .home-backdrop {
-    background-color: #ff2e96;
-    background-image: url('/home-waves.svg');
-    background-repeat: no-repeat;
-    background-position: top center;
-    background-size: cover;
-  }
-
   .customer-surface {
     background-color: #ffffff;
     border-radius: 1.25rem;

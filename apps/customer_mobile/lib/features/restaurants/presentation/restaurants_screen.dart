@@ -26,7 +26,7 @@ class RestaurantsScreen extends ConsumerWidget {
     final restaurants = ref.watch(restaurantsListProvider(null));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE989B0),
+      backgroundColor: const Color(0xFFFF4FA6),
       body: Stack(
         children: [
           const _PinkLimeBackdrop(),
@@ -131,7 +131,7 @@ class _CoveringIslandState extends State<_CoveringIsland> {
   Widget build(BuildContext context) {
     final safeTop = MediaQuery.paddingOf(context).top;
     // City row, then a full colored cap down to the white sheet.
-    const headerBody = 176.0;
+    const headerBody = 112.0;
     final headerHeight = safeTop + headerBody;
 
     return LayoutBuilder(
@@ -145,9 +145,7 @@ class _CoveringIslandState extends State<_CoveringIsland> {
             final radius = visibleHeader <= 1 ? 0.0 : 32.0;
 
             return AnnotatedRegion<SystemUiOverlayStyle>(
-              value: visibleHeader > 24
-                  ? SystemUiOverlayStyle.light
-                  : SystemUiOverlayStyle.dark,
+              value: SystemUiOverlayStyle.dark,
               child: Stack(
               children: [
                 RefreshIndicator(
