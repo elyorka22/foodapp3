@@ -42,13 +42,19 @@ export class SmsService {
 
     const token = await this.eskizAccessToken(email, password);
     const mobile = phone.replace(/\D/g, '');
+    if (!/^998\d{9}$/.test(mobile)) {
+      this.logger.error(`Eskiz phone is not 998 and 9 digits: ${mobile}`);
+      throw new BadRequestException('SMS yuborib bo‘lmadi. Qayta urinib ko‘ring');
+    }
+
+    const body = new FormData();
+    body.set('mobile_phone', mobile);
+    body.set('message', text);
+    body.set('from', from);
     const response = await fetch('https://notify.eskiz.uz/api/message/sms/send', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ mobile, message: text, from }),
+      headers: { Authorization: `Bearer ${token}` },
+      body,
     });
 
     if (!response.ok) {
