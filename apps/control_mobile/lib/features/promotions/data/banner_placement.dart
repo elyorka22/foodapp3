@@ -39,7 +39,7 @@ abstract final class BannerPlacement {
       case 'HOME_SIDE_BOTTOM':
         return 'Eski — endi ko‘rinmaydi';
       default:
-        return p.isEmpty ? 'Bosh sahifa banneri' : p;
+        return 'Bosh sahifa banneri';
     }
   }
 

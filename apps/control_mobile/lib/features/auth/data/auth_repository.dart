@@ -94,7 +94,7 @@ class AuthRepository {
           elapsedMs: elapsedMs,
           failureClass: DiagnosticFailureClass.parse,
         );
-        throw Exception('Bo\'sh javob (HTTP ${res.statusCode})');
+        throw Exception('Bo‘sh javob (kod ${res.statusCode})');
       }
       final auth = AuthResponseModel.fromJson(data);
       DiagnosticLog.instance.log(

@@ -149,7 +149,7 @@ class SharedCatalogProductsScreen extends ConsumerWidget {
                           if (p.categoryName != null &&
                               p.categoryName!.isNotEmpty)
                             p.categoryName!,
-                          '${_formatPrice(price)} UZS / ${p.saleUnit}',
+                          '${_formatPrice(price)} so‘m / ${p.saleUnit}',
                         ].join(' · '),
                         trailing: StatusChip(
                           status: p.isAvailable ? 'DELIVERED' : 'CANCELLED',

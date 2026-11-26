@@ -360,33 +360,24 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trimmed = url?.trim() ?? '';
-    final scale = ((imageScale ?? 100).clamp(100, 200)) / 100.0;
-    final align = Alignment(
-      (((imagePositionX ?? 50).clamp(0, 100)) / 50) - 1,
-      (((imagePositionY ?? 50).clamp(0, 100)) / 50) - 1,
-    );
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(12),
       child: SizedBox(
-        width: 48,
-        height: 48,
+        width: 42,
+        height: 44,
         child: trimmed.isEmpty
             ? const ColoredBox(
-                color: Color(0xFFE4E4E7),
+                color: Colors.white,
                 child: Icon(Icons.category_outlined, size: 22),
               )
-            : ClipRect(
-                child: Transform.scale(
-                  scale: scale,
-                  alignment: align,
-                  child: Image.network(
-                    trimmed,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const ColoredBox(
-                      color: Color(0xFFE4E4E7),
-                      child: Icon(Icons.broken_image_outlined, size: 20),
-                    ),
-                  ),
+            : ColoredBox(
+                color: Colors.white,
+                child: ProductionFramedImage(
+                  url: trimmed,
+                  scale: imageScale ?? 100,
+                  x: imagePositionX ?? 50,
+                  y: imagePositionY ?? 50,
+                  mode: ProductionFrameMode.pan,
                 ),
               ),
       ),

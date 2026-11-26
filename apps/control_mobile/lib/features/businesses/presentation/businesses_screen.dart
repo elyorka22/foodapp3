@@ -147,7 +147,7 @@ class BusinessesScreen extends ConsumerWidget {
                         r.businessTypeName!,
                       if (r.cityName != null && r.cityName!.isNotEmpty)
                         r.cityName!,
-                      r.approvalStatus,
+                      AppStrings.approvalUz(r.approvalStatus),
                       if (r.branchAddress != null) r.branchAddress!,
                       formatMoney(r.revenue),
                     ].join(' · '),

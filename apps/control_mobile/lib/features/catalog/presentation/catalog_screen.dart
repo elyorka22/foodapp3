@@ -220,33 +220,24 @@ class _CategoryThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = category.imageUrl?.trim() ?? '';
-    final scale = category.framing.imageScale / 100.0;
-    final align = Alignment(
-      (category.framing.imagePositionX / 50) - 1,
-      (category.framing.imagePositionY / 50) - 1,
-    );
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: SizedBox(
-        width: 48,
-        height: 48,
+        width: 44,
+        height: 45,
         child: url.isEmpty
             ? const ColoredBox(
-                color: Color(0xFFE4E4E7),
+                color: Colors.white,
                 child: Icon(Icons.category_outlined, size: 22),
               )
-            : ClipRect(
-                child: Transform.scale(
-                  scale: scale,
-                  alignment: align,
-                  child: Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const ColoredBox(
-                      color: Color(0xFFE4E4E7),
-                      child: Icon(Icons.broken_image_outlined, size: 20),
-                    ),
-                  ),
+            : ColoredBox(
+                color: Colors.white,
+                child: ProductionFramedImage(
+                  url: url,
+                  scale: category.framing.imageScale,
+                  x: category.framing.imagePositionX,
+                  y: category.framing.imagePositionY,
+                  mode: ProductionFrameMode.contain,
                 ),
               ),
       ),
@@ -399,7 +390,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
           enabled: !_busy,
           refererPath: '/admin/restaurants',
           enableFraming: true,
-          framingPreviewKind: ImageFramingPreviewKind.storeCategoryTile,
+          framingPreviewKind: ImageFramingPreviewKind.dishCategory,
           framing: _framing,
           onFramingChanged: (v) => setState(() => _framing = v),
         ),

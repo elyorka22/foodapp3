@@ -101,29 +101,29 @@ abstract final class DiagnosticClassifier {
   static String label(DiagnosticFailureClass c) {
     switch (c) {
       case DiagnosticFailureClass.none:
-        return 'OK';
+        return 'Yaxshi';
       case DiagnosticFailureClass.dns:
-        return 'DNS/resolution';
+        return 'Manzil topilmadi';
       case DiagnosticFailureClass.tcp:
-        return 'TCP connection';
+        return 'Ulanish ochilmadi';
       case DiagnosticFailureClass.tls:
-        return 'TLS/certificate';
+        return 'Himoya sertifikati';
       case DiagnosticFailureClass.headersNotReceived:
-        return 'Request sent, response headers not received';
+        return 'So‘rov ketdi, javob kelmadi';
       case DiagnosticFailureClass.bodyNotCompleted:
-        return 'Response received but body not completed';
+        return 'Javob to‘liq kelmadi';
       case DiagnosticFailureClass.httpClientError:
-        return 'HTTP 4xx';
+        return 'So‘rov xatosi';
       case DiagnosticFailureClass.httpServerError:
-        return 'HTTP 5xx';
+        return 'Server xatosi';
       case DiagnosticFailureClass.parse:
-        return 'Malformed JSON / parsing';
+        return 'Javobni o‘qib bo‘lmadi';
       case DiagnosticFailureClass.secureStorage:
-        return 'Secure storage failure';
+        return 'Xavfsiz saqlash xatosi';
       case DiagnosticFailureClass.timeoutUnknownStage:
-        return 'Timeout (stage unknown)';
+        return 'Javob kechikdi';
       case DiagnosticFailureClass.unknown:
-        return 'Unknown error';
+        return 'Noma’lum xato';
     }
   }
 }

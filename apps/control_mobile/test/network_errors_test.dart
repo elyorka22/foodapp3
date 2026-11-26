@@ -32,14 +32,14 @@ void main() {
       final message = ApiException.fromDio(
         dioError(status: 400, data: {'message': 'Invalid login client'}),
       );
-      expect(message.toLowerCase(), contains('client'));
+      expect(message.toLowerCase(), contains('noto'));
     });
 
     test('maps HTTP 403', () {
       final message = ApiException.fromDio(
         dioError(status: 403, data: {'message': 'Forbidden'}),
       );
-      expect(message, contains('SUPER_ADMIN'));
+      expect(message, contains('bosh administrator'));
     });
 
     test('HTTP 401 wins over receiveTimeout type', () {
@@ -62,7 +62,7 @@ void main() {
           type: DioExceptionType.receiveTimeout,
         ),
       );
-      expect(message, contains('SUPER_ADMIN'));
+      expect(message, contains('bosh administrator'));
       expect(message.toLowerCase(), isNot(contains('timeout')));
     });
 
@@ -73,7 +73,7 @@ void main() {
           type: DioExceptionType.receiveTimeout,
         ),
       );
-      expect(message.toLowerCase(), contains('timeout'));
+      expect(message.toLowerCase(), contains('javob'));
       expect(message, contains('Server javob bermadi'));
     });
 
@@ -90,7 +90,7 @@ void main() {
           type: DioExceptionType.receiveTimeout,
         ),
       );
-      expect(message.startsWith('Server javob bermadi (timeout'), isTrue);
+      expect(message.startsWith('Server javob bermadi'), isTrue);
       expect(message.toLowerCase(), contains('qayta'));
     });
   });

@@ -5,13 +5,47 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/network/paginated_response.dart';
 import 'order_model.dart';
 
+class OrderListStats {
+  const OrderListStats({
+    this.total = 0,
+    this.active = 0,
+    this.delivered = 0,
+    this.cancelled = 0,
+    this.amount = 0,
+  });
+
+  final int total;
+  final int active;
+  final int delivered;
+  final int cancelled;
+  final num amount;
+
+  factory OrderListStats.fromJson(Map<String, dynamic>? json) {
+    final map = json ?? const <String, dynamic>{};
+    return OrderListStats(
+      total: (map['total'] as num?)?.toInt() ?? 0,
+      active: (map['active'] as num?)?.toInt() ?? 0,
+      delivered: (map['delivered'] as num?)?.toInt() ?? 0,
+      cancelled: (map['cancelled'] as num?)?.toInt() ?? 0,
+      amount: map['amount'] as num? ?? 0,
+    );
+  }
+}
+
+class OrdersListResult {
+  const OrdersListResult({required this.page, required this.stats});
+
+  final PaginatedResponse<ControlOrder> page;
+  final OrderListStats stats;
+}
+
 class OrdersRepository {
   OrdersRepository(this._dio);
 
   final Dio _dio;
 
   /// `GET /orders?page&limit`
-  Future<PaginatedResponse<ControlOrder>> fetchOrders({
+  Future<OrdersListResult> fetchOrders({
     int page = 1,
     int limit = 20,
     Map<String, dynamic>? query,
@@ -24,9 +58,10 @@ class OrdersRepository {
         ...?query,
       },
     );
-    return PaginatedResponse.fromJson(
-      res.data ?? <String, dynamic>{},
-      ControlOrder.fromJson,
+    final raw = res.data ?? <String, dynamic>{};
+    return OrdersListResult(
+      page: PaginatedResponse.fromJson(raw, ControlOrder.fromJson),
+      stats: OrderListStats.fromJson(raw['summary'] as Map<String, dynamic>?),
     );
   }
 

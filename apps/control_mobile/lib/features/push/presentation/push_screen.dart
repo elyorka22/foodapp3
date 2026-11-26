@@ -67,7 +67,7 @@ class _PushScreenState extends ConsumerState<PushScreen> {
               const InputDecoration(labelText: AppStrings.pushAudience),
           items: [
             for (final a in _audiences)
-              DropdownMenuItem(value: a, child: Text(a)),
+              DropdownMenuItem(value: a, child: Text(AppStrings.audienceUz(a))),
           ],
           onChanged:
               _busy ? null : (v) => setState(() => _audience = v ?? _audience),

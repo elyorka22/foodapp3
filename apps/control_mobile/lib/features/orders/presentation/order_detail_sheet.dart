@@ -155,7 +155,7 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
             for (final status in ControlOrder.statusOptions)
               if (status != _order.status)
                 MutationButton(
-                  label: status,
+                  label: statusLabelUz(status),
                   filled: false,
                   loading: _busy,
                   destructive: status == 'CANCELLED',

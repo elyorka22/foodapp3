@@ -54,7 +54,8 @@ class AuditScreen extends ConsumerWidget {
                       e.userId ??
                       '—';
                   return ControlListCard(
-                    title: '${e.action} · ${e.entity}',
+                    title:
+                        '${AppStrings.auditActionUz(e.action)} · ${AppStrings.auditEntityUz(e.entity)}',
                     subtitle: [
                       who,
                       if (e.entityId != null) e.entityId!,

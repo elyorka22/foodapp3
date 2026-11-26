@@ -39,7 +39,7 @@ class _EmployeeCreateSheetState extends ConsumerState<EmployeeCreateSheet> {
     final email = _email.text.trim();
     final password = _password.text.trim();
     if (email.isEmpty || password.length < 6) {
-      showActionSnackBar(context, 'Email va parol (min 6) majburiy', error: true);
+      showActionSnackBar(context, 'Pochta va parol (kamida 6 belgi) majburiy', error: true);
       return;
     }
     setState(() => _busy = true);
@@ -96,7 +96,7 @@ class _EmployeeCreateSheetState extends ConsumerState<EmployeeCreateSheet> {
           decoration: const InputDecoration(labelText: AppStrings.roleLabel),
           items: [
             for (final r in _roles)
-              DropdownMenuItem(value: r, child: Text(r)),
+              DropdownMenuItem(value: r, child: Text(AppStrings.roleUz(r))),
           ],
           onChanged: _busy ? null : (v) => setState(() => _role = v ?? _role),
         ),

@@ -131,7 +131,7 @@ void main() {
           data: {'message': 'This account cannot sign in via this client'},
         ),
       );
-      expect(message, contains('SUPER_ADMIN'));
+      expect(message, contains('bosh administrator'));
       expect(message.toLowerCase(), isNot(contains('token')));
       expect(message.toLowerCase(), isNot(contains('password')));
       expect(message, isNot(contains('DummyPass')));
@@ -145,7 +145,7 @@ void main() {
           data: {'message': 'Invalid login client'},
         ),
       );
-      expect(message.toLowerCase(), contains('client'));
+      expect(message.toLowerCase(), contains('noto'));
       expect(message.toLowerCase(), isNot(contains('bearer')));
       expect(message.toLowerCase(), isNot(contains('password')));
     });
@@ -178,7 +178,7 @@ void main() {
           type: DioExceptionType.receiveTimeout,
         ),
       );
-      expect(message, contains('SUPER_ADMIN'));
+      expect(message, contains('bosh administrator'));
       expect(message.toLowerCase(), isNot(contains('timeout')));
     });
 
@@ -188,7 +188,7 @@ void main() {
         type: DioExceptionType.receiveTimeout,
       );
       final message = ApiException.fromDio(err);
-      expect(message.toLowerCase(), contains('timeout'));
+      expect(message.toLowerCase(), contains('javob'));
     });
 
     test('formatError unwraps DioException ApiException', () {
@@ -200,7 +200,7 @@ void main() {
         ),
       );
       final text = ApiException.formatError(wrapped);
-      expect(text, contains('SUPER_ADMIN'));
+      expect(text, contains('bosh administrator'));
       expect(text.toLowerCase(), isNot(contains('forbidden')));
     });
   });

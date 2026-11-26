@@ -1,14 +1,14 @@
 abstract final class AppStrings {
-  static const appName = 'FoodApp Control';
+  static const appName = 'FoodApp boshqaruv';
   static const appTagline = 'Operatsion boshqaruv';
-  static const appShortName = 'Control';
+  static const appShortName = 'Boshqaruv';
   static const menuOpen = 'Bo‘limlar';
   static const navGroupMain = 'Asosiy';
   static const navGroupManagement = 'Boshqaruv';
   static const navGroupRestaurants = 'Restoranlar';
   static const navGroupOpsOrders = 'Buyurtmalar (operatsiya)';
   static const navGroupOps = 'Operatsiyalar';
-  static const navGroupGrowth = 'Marketing';
+  static const navGroupGrowth = 'Reklama';
   static const navGroupPlatform = 'Platforma';
   static const navGroupSystem = 'Tizim';
   static const navList = 'Ro‘yxat';
@@ -20,13 +20,13 @@ abstract final class AppStrings {
   static const navAllOrders = 'Barcha buyurtmalar';
 
   static const loginTitle = 'Super admin kirishi';
-  static const loginSubtitle = 'Faqat SUPER_ADMIN hisoblari uchun';
-  static const loginIdHint = 'Email yoki telefon';
+  static const loginSubtitle = 'Faqat bosh administrator hisoblari uchun';
+  static const loginIdHint = 'Pochta yoki telefon';
   static const password = 'Parol';
   static const login = 'Kirish';
   static const logout = 'Chiqish';
   static const wrongRole =
-      'Bu ilova faqat SUPER_ADMIN uchun. FoodApp Business yoki veb-panelni ishlating.';
+      'Bu ilova faqat bosh administrator uchun. Biznes ilovasi yoki veb-sahifadan foydalaning.';
   static const loginFailed = 'Kirish amalga oshmadi';
 
   static const splashLoading = 'Yuklanmoqda…';
@@ -38,7 +38,7 @@ abstract final class AppStrings {
   static const navCatalog = 'Kategoriyalar';
   static const navPromotions = 'Takliflar';
   static const navSettings = 'Sozlamalar';
-  static const navAudit = 'Audit';
+  static const navAudit = 'Nazorat';
 
   static const dashboardTitle = 'Boshqaruv paneli';
   static const dashboardWelcome = 'Xush kelibsiz';
@@ -49,6 +49,14 @@ abstract final class AppStrings {
   static const businessesTitle = 'Restoran va do‘konlar';
   static const ordersTitle = 'Buyurtmalar';
   static const orderNoCourier = 'Kuryer biriktirilmagan';
+  static const orderFilterType = 'Biznes turi';
+  static const orderFilterBusiness = 'Biznes';
+  static const orderAllTypes = 'Barcha turlar';
+  static const orderAllBusinesses = 'Barcha bizneslar';
+  static const orderStatTotal = 'Jami';
+  static const orderStatActive = 'Faol';
+  static const orderStatDelivered = 'Yetkazildi';
+  static const orderStatAmount = 'Summa';
   static const catalogTitle = 'Taom kategoriyalari';
   static const promotionsTitle = 'Maxsus takliflar';
   static const settingsTitle = 'Ilova sozlamalari';
@@ -62,9 +70,9 @@ abstract final class AppStrings {
   static const homeServiceLivePreviewHint =
       'Plitkani bosing — pastda shu kategoriya sozlamalari ochiladi.';
   static const homeServiceWidth = 'Kenglik (%)';
-  static const homeServiceRight = 'O‘ngdan (px)';
-  static const homeServiceBottom = 'Pastdan (px)';
-  static const homeServiceRotate = 'Burilish (°)';
+  static const homeServiceRight = 'O‘ngdan';
+  static const homeServiceBottom = 'Pastdan';
+  static const homeServiceRotate = 'Burilish';
   static const categoriesSection = 'Taom kategoriyalari';
   static const storeCategoriesSection = 'Do‘kon kategoriyalari';
   static const storeCategoriesHint =
@@ -79,7 +87,7 @@ abstract final class AppStrings {
   static const editCategory = 'Kategoriyani tahrirlash';
   static const categoryName = 'Kategoriya nomi';
   static const categoryImageHint =
-      'Web bosh sahifada ko‘rinmaydi. /categories va mobil ilova uchun.';
+      'Sayt bosh sahifasida ko‘rinmaydi. Kategoriyalar sahifasi va mobil ilova uchun.';
   static const categoryEmptyHint =
       'Hali kategoriya yo‘q. Yuqoridagi tugma orqali qo‘shing va rasm yuklang.';
   static const confirmDeleteCategory =
@@ -94,8 +102,8 @@ abstract final class AppStrings {
   static const bannerPageMenu = 'Biznes menyusi';
   static const bannerPickBusiness = 'Biznesni tanlang';
   static const bannerSurfaceHomeOffers = 'Bosh sahifa banneri';
-  static const bannerLinkHint = 'Masalan /promotions yoki /restaurants/slug';
-  static const auditTitle = 'Audit jurnali';
+  static const bannerLinkHint = 'Masalan aksiyalar sahifasi yoki restoran manzili';
+  static const auditTitle = 'Nazorat jurnali';
 
   static const emptyList = 'Hali ma’lumot yo‘q';
   static const retry = 'Qayta urinish';
@@ -116,8 +124,8 @@ abstract final class AppStrings {
   static const details = 'Tafsilotlar';
 
   // Orders manage
-  static const orderStatus = 'Status';
-  static const changeStatus = 'Statusni o‘zgartirish';
+  static const orderStatus = 'Holat';
+  static const changeStatus = 'Holatni o‘zgartirish';
   static const assignCourier = 'Kuryer biriktirish';
   static const reassignCourier = 'Kuryerni almashtirish';
   static const removeCourier = 'Kuryerni olib tashlash';
@@ -127,7 +135,7 @@ abstract final class AppStrings {
   static const cancelReason = 'Bekor qilish sababi';
   static const confirmRemoveCourier =
       'Buyurtmadan kuryerni olib tashlamoqchimisiz?';
-  static const allStatuses = 'Barcha statuslar';
+  static const allStatuses = 'Barcha holatlar';
   static const dateFrom = 'Dan';
   static const dateTo = 'Gacha';
   static const loadMore = 'Yana yuklash';
@@ -141,7 +149,7 @@ abstract final class AppStrings {
   static const setActive = 'Faollashtirish';
   static const setInactive = 'O‘chirish (nofaol)';
   static const ownerAccount = 'Egasi hisobi';
-  static const ownerLogin = 'Login';
+  static const ownerLogin = 'Kirish nomi';
   static const ownerPassword = 'Parol';
   static const ownerFullName = 'To‘liq ism';
   static const createOwnerAccount = 'Egasi hisobini yaratish';
@@ -160,12 +168,12 @@ abstract final class AppStrings {
       'Restoran yoki do‘konni to‘g‘ri tanlang.';
   static const businessTypeLockedHint =
       'Biznes turi o‘zgartirilmaydi. Yangi tur kerak bo‘lsa — yangi biznes yarating.';
-  static const latitudeLabel = 'Kenglik (lat)';
-  static const longitudeLabel = 'Uzunlik (lng)';
+  static const latitudeLabel = 'Kenglik';
+  static const longitudeLabel = 'Uzunlik';
   static const descriptionLabel = 'Tavsif';
   static const commissionLabel = 'Komissiya (%)';
   static const ownerOptionalHint =
-      'Ixtiyoriy: egasi login/parol — birga yaratiladi';
+      'Ixtiyoriy: egasining kirish nomi va paroli — birga yaratiladi';
 
   // Employees manage
   static const addEmployee = 'Xodim qo‘shish';
@@ -174,9 +182,11 @@ abstract final class AppStrings {
   static const resetPassword = 'Parolni yangilash';
   static const newPassword = 'Yangi parol';
   static const roleLabel = 'Rol';
-  static const emailLabel = 'Email';
+  static const emailLabel = 'Elektron pochta';
   static const fullNameLabel = 'To‘liq ism';
   static const confirmDeactivate = 'Xodimni faolsizlantirmoqchimisiz?';
+  static const cannotDeactivateSelf =
+      'Bu sizning hisobingiz. O‘zingizni faolsizlantirib bo‘lmaydi.';
 
   // Catalog / promotions
   static const toggleAvailability = 'Mavjudlikni almashtirish';
@@ -187,7 +197,7 @@ abstract final class AppStrings {
   static const sharedCatalogHint =
       'Nom, rasm, tavsif — umumiy. Narx do‘konda sozlanadi.';
   static const sharedCatalogNeedType =
-      'Chap menyudan SHARED_CATALOG turini tanlang (oziq-ovqat, dorixona, …).';
+      'Chap menyudan umumiy katalog turini tanlang (oziq-ovqat, dorixona, …).';
   static const sharedCatalogEmpty =
       'Katalog bo‘sh. Birinchi umumiy mahsulotni qo‘shing.';
   static const addSharedProduct = 'Katalog mahsuloti';
@@ -209,12 +219,12 @@ abstract final class AppStrings {
   static const promoValue = 'Qiymat';
   static const bannerTitle = 'Banner sarlavhasi';
   static const bannerDescription = 'Tavsif (ixtiyoriy)';
-  static const bannerImageUrl = 'Rasm URL';
+  static const bannerImageUrl = 'Rasm manzili';
   static const bannerPickImage = 'Galereyadan tanlash';
   static const bannerChangeImage = 'Rasmni almashtirish';
   static const bannerRemoveImage = 'Rasmni olib tashlash';
   static const bannerUploading = 'Yuklanmoqda…';
-  static const bannerImageRequired = 'Rasm majburiy — yuklang yoki URL kiriting';
+  static const bannerImageRequired = 'Rasm majburiy — yuklang yoki manzil kiriting';
   static const bannerImageFraming = 'Banner joylashuvi';
   static const bannerImagePreviewSizeHint =
       'Bosh sahifa banneri: to‘liq kenglik, taxminan 7:2. Masshtab 100–200% — yaqinlashtirish.';
@@ -238,13 +248,13 @@ abstract final class AppStrings {
 
 
   // Push
-  static const navPush = 'Push';
-  static const pushTitle = 'Push xabar';
+  static const navPush = 'Bildirishnoma';
+  static const pushTitle = 'Bildirishnoma';
   static const pushSend = 'Yuborish';
-  static const pushAudience = 'Auditoriya';
+  static const pushAudience = 'Kimga';
   static const pushMessageTitle = 'Sarlavha';
   static const pushMessageBody = 'Matn';
-  static const pushSent = 'Push yuborildi';
+  static const pushSent = 'Bildirishnoma yuborildi';
 
   // Platform
   static const navMore = 'Platforma';
@@ -270,7 +280,7 @@ abstract final class AppStrings {
   static const perKmFee = 'Km uchun';
   static const maxDeliveryDistance = 'Maks. masofa (km)';
   static const courierPricePerKm = 'Kuryer / km';
-  static const courierMinFee = 'Kuryer min.';
+  static const courierMinFee = 'Kuryer minimal';
   static const addCity = 'Shahar qo‘shish';
   static const addBusinessType = 'Tur qo‘shish';
   static const catalogKindLabel = 'Katalog turi';
@@ -311,35 +321,142 @@ abstract final class AppStrings {
 
   static const settingsAppName = 'Ilova nomi';
   static const settingsSupportPhone = 'Qo‘llab-quvvatlash telefoni';
-  static const settingsSupportEmail = 'Qo‘llab-quvvatlash email';
+  static const settingsSupportEmail = 'Qo‘llab-quvvatlash pochtasi';
   static const settingsMinOrder = 'Minimal buyurtma (so‘m)';
   static const settingsDeliveryFee = 'Yetkazib berish narxi';
   static const settingsCommission = 'Komissiya (%)';
 
   static const requiredBackendClient =
-      'Kirish so‘rovida client=control yuboriladi. Faqat SUPER_ADMIN qabul qilinadi.';
+      'Kirishda boshqaruv ilovasi belgisi yuboriladi. Faqat bosh administrator qabul qilinadi.';
 
-  static const diagOpen = 'Diagnostika / Loglar';
-  static const diagTitle = 'Diagnostika';
+  static const diagOpen = 'Tekshiruv / yozuvlar';
+  static const diagTitle = 'Tekshiruv';
   static const diagDisclaimer =
-      'Loglarda parol, token yoki so‘rov/javob body yo‘q. Health tekshiruvi login emas.';
+      'Yozuvlarda parol, kalit yoki so‘rov matni yo‘q. Server tekshiruvi kirish emas.';
   static const diagSearch = 'Qidiruv';
-  static const diagRefresh = 'Loglarni yangilash';
-  static const diagCopy = 'Loglarni nusxalash';
-  static const diagShare = 'Loglarni ulashish';
-  static const diagClear = 'Loglarni tozalash';
+  static const diagRefresh = 'Yozuvlarni yangilash';
+  static const diagCopy = 'Yozuvlarni nusxalash';
+  static const diagShare = 'Yozuvlarni ulashish';
+  static const diagClear = 'Yozuvlarni tozalash';
   static const diagHealth = 'Serverni tekshirish';
-  static const diagProbeDio = 'Dio orqali tekshirish';
-  static const diagProbeHttpClient = 'HttpClient orqali tekshirish';
-  static const diagProbeDnsTls = 'DNS va TLS tekshiruvi';
-  static const diagRetryLogin = 'Loginni qayta sinash';
-  static const diagEmpty = 'Hali log yo‘q. Login yoki Serverni tekshirishni bosing.';
-  static const diagCopied = 'Loglar buferga nusxalandi.';
-  static const diagCleared = 'Loglar tozalandi.';
-  static const diagHealthDone = 'Health so‘rovi yakunlandi — logni ko‘ring.';
+  static const diagProbeDio = 'Asosiy ulanish orqali tekshirish';
+  static const diagProbeHttpClient = 'To‘g‘ridan-to‘g‘ri ulanish orqali tekshirish';
+  static const diagProbeDnsTls = 'Manzil va himoya tekshiruvi';
+  static const diagRetryLogin = 'Kirishni qayta sinash';
+  static const diagEmpty =
+      'Hali yozuv yo‘q. Kirish yoki Serverni tekshirishni bosing.';
+  static const diagCopied = 'Yozuvlar buferga nusxalandi.';
+  static const diagCleared = 'Yozuvlar tozalandi.';
+  static const diagHealthDone = 'Server tekshiruvi yakunlandi — yozuvni ko‘ring.';
   static const diagProbeDone = 'Tekshiruv yakunlandi — taqqoslash qatorini ko‘ring.';
   static const diagCompareTitle = 'Taqqoslash (oxirgi natijalar)';
-  static const diagLoginOk = 'Login muvaffaqiyatli.';
+  static const diagLoginOk = 'Kirish muvaffaqiyatli.';
   static const diagNeedCredentials =
-      'Avval login ekranida email/parol kiriting, keyin qayta sinang.';
+      'Avval kirish ekranida pochta va parolni kiriting, keyin qayta sinang.';
+
+  static String roleUz(String role) {
+    switch (role) {
+      case 'SUPER_ADMIN':
+        return 'Bosh administrator';
+      case 'MANAGER':
+        return 'Boshqaruvchi';
+      case 'BUSINESS':
+        return 'Biznes egasi';
+      case 'COURIER':
+        return 'Kuryer';
+      case 'CUSTOMER':
+        return 'Mijoz';
+      default:
+        return 'Xodim';
+    }
+  }
+
+  static String approvalUz(String status) {
+    switch (status) {
+      case 'APPROVED':
+        return 'Tasdiqlangan';
+      case 'REJECTED':
+        return 'Rad etilgan';
+      case 'SUSPENDED':
+        return 'To‘xtatilgan';
+      case 'PENDING':
+        return 'Kutilmoqda';
+      default:
+        return 'Kutilmoqda';
+    }
+  }
+
+  static String promoTypeUz(String type) {
+    if (type.toUpperCase().contains('PERCENT')) return 'Foiz';
+    return 'Qat’iy summa';
+  }
+
+  static String audienceUz(String audience) {
+    switch (audience) {
+      case 'CUSTOMERS':
+        return 'Mijozlar';
+      case 'COURIERS':
+        return 'Kuryerlar';
+      case 'STAFF':
+        return 'Xodimlar';
+      case 'ALL':
+        return 'Hammasi';
+      default:
+        return 'Mijozlar';
+    }
+  }
+
+  static String auditActionUz(String action) {
+    switch (action) {
+      case 'create':
+        return 'Yaratildi';
+      case 'update':
+        return 'Yangilandi';
+      case 'delete':
+        return 'O‘chirildi';
+      case 'bulk_delete':
+        return 'Ko‘plab o‘chirish';
+      case 'enroll_catalog':
+        return 'Katalog ulandi';
+      case 'approval_change':
+        return 'Tasdiq o‘zgardi';
+      case 'setup_owner_account':
+        return 'Egasi hisobi';
+      case 'clear_test_data':
+        return 'Sinov ma’lumotlari tozalandi';
+      case 'delete_account':
+        return 'Hisob o‘chirildi';
+      case 'ADMIN_PUSH_SEND':
+        return 'Bildirishnoma yuborildi';
+      default:
+        return 'Amal';
+    }
+  }
+
+  static String auditEntityUz(String entity) {
+    switch (entity) {
+      case 'customer':
+        return 'mijoz';
+      case 'product':
+        return 'mahsulot';
+      case 'shared_product':
+        return 'katalog mahsuloti';
+      case 'business':
+        return 'biznes';
+      case 'business_product_offer':
+        return 'do‘kon narxi';
+      case 'restaurant':
+        return 'restoran';
+      case 'settings':
+        return 'sozlamalar';
+      case 'notification':
+        return 'bildirishnoma';
+      case 'banner':
+        return 'banner';
+      case 'courier':
+        return 'kuryer';
+      default:
+        return 'yozuv';
+    }
+  }
 }

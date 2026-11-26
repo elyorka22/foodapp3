@@ -12,6 +12,9 @@ import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
+import '../../business_types/data/business_types_repository.dart';
+import '../../businesses/data/businesses_repository.dart';
+import '../../businesses/data/restaurant_model.dart';
 import '../data/order_model.dart';
 import '../data/orders_repository.dart';
 import 'order_detail_sheet.dart';
@@ -22,27 +25,38 @@ class OrdersFilter {
     this.dateFrom,
     this.dateTo,
     this.search = '',
+    this.businessTypeSlug,
+    this.businessId,
   });
 
   final String? status;
   final DateTime? dateFrom;
   final DateTime? dateTo;
   final String search;
+  final String? businessTypeSlug;
+  final String? businessId;
 
   OrdersFilter copyWith({
     String? status,
     DateTime? dateFrom,
     DateTime? dateTo,
     String? search,
+    String? businessTypeSlug,
+    String? businessId,
     bool clearStatus = false,
     bool clearDateFrom = false,
     bool clearDateTo = false,
+    bool clearType = false,
+    bool clearBusiness = false,
   }) {
     return OrdersFilter(
       status: clearStatus ? null : (status ?? this.status),
       dateFrom: clearDateFrom ? null : (dateFrom ?? this.dateFrom),
       dateTo: clearDateTo ? null : (dateTo ?? this.dateTo),
       search: search ?? this.search,
+      businessTypeSlug:
+          clearType ? null : (businessTypeSlug ?? this.businessTypeSlug),
+      businessId: clearBusiness ? null : (businessId ?? this.businessId),
     );
   }
 }
@@ -52,16 +66,32 @@ class OrdersPagedState {
     required this.items,
     required this.page,
     required this.totalPages,
+    this.stats = const OrderListStats(),
     this.loadingMore = false,
   });
 
   final List<ControlOrder> items;
   final int page;
   final int totalPages;
+  final OrderListStats stats;
   final bool loadingMore;
 
   bool get hasMore => page < totalPages;
 }
+
+final _orderBusinessTypesProvider =
+    FutureProvider.autoDispose<List<ControlBusinessType>>((ref) {
+  return ref.watch(businessTypesRepositoryProvider).fetchTypes();
+});
+
+final _orderBusinessesProvider =
+    FutureProvider.autoDispose<List<ControlRestaurant>>((ref) async {
+  final page = await ref.watch(businessesRepositoryProvider).fetchRestaurants(
+        page: 1,
+        limit: 100,
+      );
+  return page.data;
+});
 
 final ordersFilterProvider =
     StateProvider.autoDispose<OrdersFilter>((ref) => const OrdersFilter());
@@ -95,21 +125,25 @@ class OrdersPagedNotifier
           999,
         ).toUtc().toIso8601String(),
       if (f.search.trim().isNotEmpty) 'search': f.search.trim(),
+      if ((f.businessTypeSlug ?? '').isNotEmpty)
+        'businessType': f.businessTypeSlug,
+      if ((f.businessId ?? '').isNotEmpty) 'businessId': f.businessId,
     };
   }
 
   @override
   Future<OrdersPagedState> build() async {
     final filter = ref.watch(ordersFilterProvider);
-    final page = await ref.read(ordersRepositoryProvider).fetchOrders(
+    final result = await ref.read(ordersRepositoryProvider).fetchOrders(
           page: 1,
           limit: _limit,
           query: _queryFrom(filter),
         );
     return OrdersPagedState(
-      items: page.data,
-      page: page.meta.page,
-      totalPages: page.meta.totalPages,
+      items: result.page.data,
+      page: result.page.meta.page,
+      totalPages: result.page.meta.totalPages,
+      stats: result.stats,
     );
   }
 
@@ -122,6 +156,7 @@ class OrdersPagedNotifier
         items: current.items,
         page: current.page,
         totalPages: current.totalPages,
+        stats: current.stats,
         loadingMore: true,
       ),
     );
@@ -129,16 +164,17 @@ class OrdersPagedNotifier
     try {
       final filter = ref.read(ordersFilterProvider);
       final nextPage = current.page + 1;
-      final page = await ref.read(ordersRepositoryProvider).fetchOrders(
+      final result = await ref.read(ordersRepositoryProvider).fetchOrders(
             page: nextPage,
             limit: _limit,
             query: _queryFrom(filter),
           );
       state = AsyncData(
         OrdersPagedState(
-          items: [...current.items, ...page.data],
-          page: page.meta.page,
-          totalPages: page.meta.totalPages,
+          items: [...current.items, ...result.page.data],
+          page: result.page.meta.page,
+          totalPages: result.page.meta.totalPages,
+          stats: result.stats,
         ),
       );
     } catch (e) {
@@ -147,6 +183,7 @@ class OrdersPagedNotifier
           items: current.items,
           page: current.page,
           totalPages: current.totalPages,
+          stats: current.stats,
         ),
       );
       rethrow;
@@ -211,8 +248,23 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     final hasFilters = filter.status != null ||
         filter.dateFrom != null ||
         filter.dateTo != null ||
-        filter.search.isNotEmpty;
+        filter.search.isNotEmpty ||
+        (filter.businessTypeSlug ?? '').isNotEmpty ||
+        (filter.businessId ?? '').isNotEmpty;
     final title = AppStrings.ordersTitle;
+    final types =
+        ref.watch(_orderBusinessTypesProvider).valueOrNull ?? const [];
+    final businesses =
+        ref.watch(_orderBusinessesProvider).valueOrNull ?? const [];
+    ControlBusinessType? selectedType;
+    for (final type in types) {
+      if (type.slug == filter.businessTypeSlug) selectedType = type;
+    }
+    final typeId = selectedType?.id;
+    final businessChoices = typeId == null
+        ? businesses
+        : businesses.where((b) => b.businessTypeId == typeId).toList();
+    final stats = async.valueOrNull?.stats ?? const OrderListStats();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -276,7 +328,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                         for (final s in ControlOrder.statusOptions)
                           DropdownMenuItem<String?>(
                             value: s,
-                            child: Text(s, overflow: TextOverflow.ellipsis),
+                            child: Text(
+                              statusLabelUz(s),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                       ],
                       onChanged: (v) {
@@ -298,6 +353,102 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                     hint: AppStrings.dateTo,
                     active: filter.dateTo != null,
                     onPressed: () => _pickDate(from: false),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String?>(
+                      value: selectedType == null
+                          ? null
+                          : filter.businessTypeSlug,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: AppStrings.orderFilterType,
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(AppStrings.orderAllTypes),
+                        ),
+                        for (final type in types)
+                          if ((type.slug ?? '').isNotEmpty)
+                            DropdownMenuItem<String?>(
+                              value: type.slug,
+                              child: Text(
+                                type.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                      ],
+                      onChanged: (slug) {
+                        ref.read(ordersFilterProvider.notifier).state =
+                            filter.copyWith(
+                          businessTypeSlug: slug,
+                          clearType: slug == null,
+                          clearBusiness: true,
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: DropdownButtonFormField<String?>(
+                      value: businessChoices.any((b) => b.id == filter.businessId)
+                          ? filter.businessId
+                          : null,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: AppStrings.orderFilterBusiness,
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(AppStrings.orderAllBusinesses),
+                        ),
+                        for (final business in businessChoices)
+                          DropdownMenuItem<String?>(
+                            value: business.id,
+                            child: Text(
+                              business.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                      onChanged: (id) {
+                        ref.read(ordersFilterProvider.notifier).state =
+                            filter.copyWith(
+                          businessId: id,
+                          clearBusiness: id == null,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  _StatTile(
+                    label: AppStrings.orderStatTotal,
+                    value: '${stats.total}',
+                  ),
+                  const SizedBox(width: 6),
+                  _StatTile(
+                    label: AppStrings.orderStatActive,
+                    value: '${stats.active}',
+                  ),
+                  const SizedBox(width: 6),
+                  _StatTile(
+                    label: AppStrings.orderStatDelivered,
+                    value: '${stats.delivered}',
+                  ),
+                  const SizedBox(width: 6),
+                  _StatTile(
+                    label: AppStrings.orderStatAmount,
+                    value: formatMoney(stats.amount),
                   ),
                 ],
               ),
@@ -395,6 +546,53 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

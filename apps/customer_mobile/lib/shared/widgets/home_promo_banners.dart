@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/router/routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/image_framing.dart';
 import '../../core/utils/image_url.dart';
 import '../models/banner_model.dart';
 
@@ -85,13 +86,22 @@ class HomePromoBanners extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     const ColoredBox(color: AppColors.primarySoft),
-                    CachedNetworkImage(
-                      imageUrl: src,
-                      fit: BoxFit.cover,
-                      width: screenW,
-                      height: bannerH,
-                      errorWidget: (_, __, ___) => const ColoredBox(
-                        color: AppColors.primarySoft,
+                    applyImageFraming(
+                      imageScale: banner.imageScale,
+                      imagePositionX: banner.imagePositionX,
+                      imagePositionY: banner.imagePositionY,
+                      child: CachedNetworkImage(
+                        imageUrl: src,
+                        fit: BoxFit.cover,
+                        width: screenW,
+                        height: bannerH,
+                        alignment: Alignment(
+                          ((banner.imagePositionX ?? 50) / 50) - 1,
+                          ((banner.imagePositionY ?? 50) / 50) - 1,
+                        ),
+                        errorWidget: (_, __, ___) => const ColoredBox(
+                          color: AppColors.primarySoft,
+                        ),
                       ),
                     ),
                     if (title.isNotEmpty) ...[

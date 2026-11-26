@@ -32,16 +32,9 @@ export function categoryImageStyle(
   const fit = options.fit ?? 'cover';
   const x = clamp(framing.imagePositionX ?? 50, 0, 100);
   const y = clamp(framing.imagePositionY ?? 50, 0, 100);
-  if (fit === 'contain') {
-    return {
-      objectFit: 'contain',
-      objectPosition: coverObjectPosition(x, y),
-    };
-  }
-  // Cover: always fill the rounded clip; scale ≥ 1 crops more of the photo.
   const scale = clamp(framing.imageScale ?? 100, 100, 200) / 100;
   return {
-    objectFit: 'cover',
+    objectFit: fit,
     objectPosition: coverObjectPosition(x, y),
     transform: scale === 1 ? undefined : `scale(${scale})`,
     transformOrigin: `${x}% ${y}%`,

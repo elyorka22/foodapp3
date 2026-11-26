@@ -23,7 +23,7 @@ class StatusChip extends StatelessWidget {
         border: Border.all(color: colors.border),
       ),
       child: Text(
-        label ?? _labelForStatus(status),
+        label ?? statusLabelUz(status),
         style: AppTypography.caption.copyWith(
           color: colors.foreground,
           fontWeight: FontWeight.w700,
@@ -86,17 +86,17 @@ _StatusColors _colorsForStatus(String status) {
   }
 }
 
-String _labelForStatus(String status) {
+String statusLabelUz(String status) {
   const labels = {
     'PENDING': 'Kutilmoqda',
     'ACCEPTED': 'Qabul qilindi',
     'PREPARING': 'Tayyorlanmoqda',
-    'COURIER_ASSIGNED': 'Kuryer',
-    'ARRIVED_AT_RESTAURANT': 'Restoranda',
-    'PICKED_UP': 'Olingan',
+    'COURIER_ASSIGNED': 'Kuryer biriktirildi',
+    'ARRIVED_AT_RESTAURANT': 'Joyida',
+    'PICKED_UP': 'Olib ketildi',
     'DELIVERING': 'Yo‘lda',
     'DELIVERED': 'Yetkazildi',
-    'CANCELLED': 'Bekor',
+    'CANCELLED': 'Bekor qilindi',
   };
   return labels[status] ?? status;
 }

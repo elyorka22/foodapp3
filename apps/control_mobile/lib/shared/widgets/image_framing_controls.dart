@@ -35,11 +35,106 @@ class ImageFramingValues {
 
 /// Which live UI surface the framing preview should match.
 enum ImageFramingPreviewKind {
-  /// Home banner strip: full width, about 7:2, radius 24.
+  /// Home strip inside the phone page: width up to 398, aspect 7:2, radius 24.
   homeBanner,
 
-  /// Store category tile: 3-col square ~1:1.05, radius 20.
+  /// Restaurant menu carousel: content width, height 144, radius 24.
+  restaurantMenuBanner,
+
+  /// Store menu carousel: content width, height 112, radius 24.
+  storeMenuBanner,
+
+  /// Store menu category tile: 3 columns, aspect 1:1.05, pan crop, radius 20.
   storeCategoryTile,
+
+  /// Home dish-category card: 88×90, contain, radius 20.
+  dishCategory,
+}
+
+/// How production places the photo inside the frame.
+enum ProductionFrameMode { cover, contain, pan }
+
+/// Same crop as the customer web/app: focal point + zoom.
+class ProductionFramedImage extends StatelessWidget {
+  const ProductionFramedImage({
+    super.key,
+    required this.url,
+    required this.scale,
+    required this.x,
+    required this.y,
+    required this.mode,
+  });
+
+  final String url;
+  final int scale;
+  final int x;
+  final int y;
+  final ProductionFrameMode mode;
+
+  @override
+  Widget build(BuildContext context) {
+    if (mode == ProductionFrameMode.pan) return _pan();
+    return _coverOrContain();
+  }
+
+  Widget _coverOrContain() {
+    final s = ImageFramingValues.clampScale(scale) / 100;
+    final align = Alignment(
+      (ImageFramingValues.clampPos(x) / 50) - 1,
+      (ImageFramingValues.clampPos(y) / 50) - 1,
+    );
+    Widget image = Image.network(
+      url,
+      fit: mode == ProductionFrameMode.contain ? BoxFit.contain : BoxFit.cover,
+      alignment: align,
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder: (_, __, ___) => const Center(
+        child: Icon(Icons.broken_image_outlined, color: AppColors.textMuted),
+      ),
+    );
+    if (s != 1) {
+      image = Transform.scale(scale: s, alignment: align, child: image);
+    }
+    return ClipRect(child: image);
+  }
+
+  Widget _pan() {
+    final s = ImageFramingValues.clampScale(scale) / 100;
+    final px = ImageFramingValues.clampPos(x) / 100;
+    final py = ImageFramingValues.clampPos(y) / 100;
+    return LayoutBuilder(
+      builder: (context, box) {
+        final bw = box.maxWidth;
+        final bh = box.maxHeight;
+        final w = bw * s;
+        final h = bh * s;
+        return Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            Positioned(
+              left: bw * px - w / 2,
+              top: bh * py - h / 2,
+              width: w,
+              height: h,
+              child: Image.network(
+                url,
+                fit: BoxFit.cover,
+                width: w,
+                height: h,
+                errorBuilder: (_, __, ___) => const Center(
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 /// Preview + sliders. Pass [previewKind] so the box matches production.
@@ -59,12 +154,7 @@ class ImageFramingControls extends StatelessWidget {
   final bool enabled;
   final ImageFramingPreviewKind previewKind;
 
-  static const double homeBannerRadius = 24;
-
-  /// Matches web/mobile store category tile: `rounded-[20px] aspect-[1/1.05]`.
-  static const double storeCategoryRadius = 20;
-  static const double storeCategoryAspect = 1 / 1.05;
-  static const double storeCategoryPreviewWidth = 96;
+  static const double _phoneWidth = 430;
 
   @override
   Widget build(BuildContext context) {
@@ -76,17 +166,8 @@ class ImageFramingControls extends StatelessWidget {
     final isStoreTile =
         previewKind == ImageFramingPreviewKind.storeCategoryTile;
 
-    final preview = _PreviewBox(
-      hasImage: hasImage,
-      url: url,
-      scale: scale,
-      x: x,
-      y: y,
-      isStoreTile: isStoreTile,
-    );
-
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 8, 4),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
       decoration: BoxDecoration(
         color: AppColors.surfaceMuted,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
@@ -102,51 +183,47 @@ class ImageFramingControls extends StatelessWidget {
             style: AppTypography.subtitle,
           ),
           const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              preview,
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  children: [
-                    _SliderRow(
-                      label: AppStrings.bannerImageScale,
-                      valueLabel: '$scale%',
-                      value: scale.toDouble(),
-                      min: 100,
-                      max: 200,
-                      enabled: enabled,
-                      onChanged: (v) => onChanged(
-                        values.copyWith(imageScale: v.round()),
-                      ),
-                    ),
-                    _SliderRow(
-                      label: AppStrings.bannerImagePosX,
-                      valueLabel: '$x%',
-                      value: x.toDouble(),
-                      min: 0,
-                      max: 100,
-                      enabled: enabled,
-                      onChanged: (v) => onChanged(
-                        values.copyWith(imagePositionX: v.round()),
-                      ),
-                    ),
-                    _SliderRow(
-                      label: AppStrings.bannerImagePosY,
-                      valueLabel: '$y%',
-                      value: y.toDouble(),
-                      min: 0,
-                      max: 100,
-                      enabled: enabled,
-                      onChanged: (v) => onChanged(
-                        values.copyWith(imagePositionY: v.round()),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          _LivePreview(
+            kind: previewKind,
+            hasImage: hasImage,
+            url: url,
+            scale: scale,
+            x: x,
+            y: y,
+          ),
+          const SizedBox(height: 8),
+          _SliderRow(
+            label: AppStrings.bannerImageScale,
+            valueLabel: '$scale%',
+            value: scale.toDouble(),
+            min: 100,
+            max: 200,
+            enabled: enabled,
+            onChanged: (v) => onChanged(
+              values.copyWith(imageScale: v.round()),
+            ),
+          ),
+          _SliderRow(
+            label: AppStrings.bannerImagePosX,
+            valueLabel: '$x%',
+            value: x.toDouble(),
+            min: 0,
+            max: 100,
+            enabled: enabled,
+            onChanged: (v) => onChanged(
+              values.copyWith(imagePositionX: v.round()),
+            ),
+          ),
+          _SliderRow(
+            label: AppStrings.bannerImagePosY,
+            valueLabel: '$y%',
+            value: y.toDouble(),
+            min: 0,
+            max: 100,
+            enabled: enabled,
+            onChanged: (v) => onChanged(
+              values.copyWith(imagePositionY: v.round()),
+            ),
           ),
         ],
       ),
@@ -154,83 +231,130 @@ class ImageFramingControls extends StatelessWidget {
   }
 }
 
-class _PreviewBox extends StatelessWidget {
-  const _PreviewBox({
+class _LivePreview extends StatelessWidget {
+  const _LivePreview({
+    required this.kind,
     required this.hasImage,
     required this.url,
     required this.scale,
     required this.x,
     required this.y,
-    required this.isStoreTile,
   });
 
+  final ImageFramingPreviewKind kind;
   final bool hasImage;
   final String? url;
   final int scale;
   final int x;
   final int y;
-  final bool isStoreTile;
 
   @override
   Widget build(BuildContext context) {
-    final width = isStoreTile
-        ? ImageFramingControls.storeCategoryPreviewWidth
-        : 132.0;
-    final height = isStoreTile
-        ? width / ImageFramingControls.storeCategoryAspect
-        : width * 2 / 7;
-    final radius = isStoreTile
-        ? ImageFramingControls.storeCategoryRadius
-        : ImageFramingControls.homeBannerRadius;
-
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE4E4E7),
-        borderRadius: BorderRadius.circular(radius),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: hasImage
-          ? LayoutBuilder(
-              builder: (context, box) {
-                final bw = box.maxWidth;
-                final bh = box.maxHeight;
-                final s = scale / 100.0;
-                final w = bw * s;
-                final h = bh * s;
-                final left = bw * x / 100 - w / 2;
-                final top = bh * y / 100 - h / 2;
-                return Stack(
-                  clipBehavior: Clip.hardEdge,
-                  children: [
-                    Positioned(
-                      left: left,
-                      top: top,
-                      width: w,
-                      height: h,
-                      child: Image.network(
-                        url!,
-                        fit: BoxFit.cover,
-                        width: w,
-                        height: h,
-                        errorBuilder: (_, __, ___) => const Center(
-                          child: Icon(Icons.broken_image_outlined),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            )
-          : const Center(
-              child: Icon(
-                Icons.image_outlined,
-                color: AppColors.textMuted,
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final frame = _frameFor(kind, constraints.maxWidth);
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            width: frame.width,
+            height: frame.height,
+            decoration: BoxDecoration(
+              color: frame.color,
+              borderRadius: BorderRadius.circular(frame.radius),
             ),
+            clipBehavior: Clip.antiAlias,
+            child: hasImage
+                ? ProductionFramedImage(
+                    url: url!,
+                    scale: scale,
+                    x: x,
+                    y: y,
+                    mode: frame.mode,
+                  )
+                : const Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+          ),
+        );
+      },
     );
   }
+
+  /// Phone column is 430px. Sizes match the customer page, not a thumbnail.
+  _Frame _frameFor(ImageFramingPreviewKind kind, double maxWidth) {
+    switch (kind) {
+      case ImageFramingPreviewKind.homeBanner:
+        final width = _fit(maxWidth, ImageFramingControls._phoneWidth - 32);
+        return _Frame(
+          width: width,
+          height: width * 2 / 7,
+          radius: 24,
+          color: const Color(0xFFE4E4E7),
+          mode: ProductionFrameMode.cover,
+        );
+      case ImageFramingPreviewKind.restaurantMenuBanner:
+        final width = _fit(maxWidth, ImageFramingControls._phoneWidth - 24);
+        return _Frame(
+          width: width,
+          height: 144,
+          radius: 24,
+          color: const Color(0xFFE4E4E7),
+          mode: ProductionFrameMode.cover,
+        );
+      case ImageFramingPreviewKind.storeMenuBanner:
+        final width = _fit(maxWidth, ImageFramingControls._phoneWidth - 32);
+        return _Frame(
+          width: width,
+          height: 112,
+          radius: 24,
+          color: const Color(0xFFE4E4E7),
+          mode: ProductionFrameMode.cover,
+        );
+      case ImageFramingPreviewKind.storeCategoryTile:
+        final inner = ImageFramingControls._phoneWidth - 32;
+        final tile = (inner - 20) / 3;
+        final width = tile > maxWidth ? maxWidth : tile;
+        return _Frame(
+          width: width,
+          height: width * 1.05,
+          radius: 20,
+          color: Colors.white,
+          mode: ProductionFrameMode.pan,
+        );
+      case ImageFramingPreviewKind.dishCategory:
+        return const _Frame(
+          width: 88,
+          height: 90,
+          radius: 20,
+          color: Colors.white,
+          mode: ProductionFrameMode.contain,
+        );
+    }
+  }
+
+  double _fit(double maxWidth, double phoneWidth) {
+    if (maxWidth <= 0) return phoneWidth;
+    return maxWidth < phoneWidth ? maxWidth : phoneWidth;
+  }
+}
+
+class _Frame {
+  const _Frame({
+    required this.width,
+    required this.height,
+    required this.radius,
+    required this.color,
+    required this.mode,
+  });
+
+  final double width;
+  final double height;
+  final double radius;
+  final Color color;
+  final ProductionFrameMode mode;
 }
 
 class _SliderRow extends StatelessWidget {

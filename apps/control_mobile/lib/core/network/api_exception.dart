@@ -25,7 +25,7 @@ class ApiException implements Exception {
 
   String get displayMessage {
     if (statusCode != null) {
-      return '$message (HTTP $statusCode)';
+      return '$message (kod $statusCode)';
     }
     return message;
   }
@@ -51,12 +51,12 @@ class ApiException implements Exception {
   /// Important: a partial response can arrive with type receiveTimeout; never
   /// hide 400/401/403 behind a generic timeout string.
   static String? messageForHttpStatus(int? code) {
-    if (code == 401) return 'Login yoki parol noto\'g\'ri';
+    if (code == 401) return 'Kirish nomi yoki parol noto‘g‘ri';
     if (code == 403) {
-      return 'Kirish taqiqlangan. FoodApp Control faqat SUPER_ADMIN uchun.';
+      return 'Kirish taqiqlangan. Ilova faqat bosh administrator uchun.';
     }
     if (code == 400) {
-      return 'Noto\'g\'ri so\'rov (client yoki maydonlar).';
+      return 'Noto‘g‘ri so‘rov. Maydonlarni tekshiring.';
     }
     return null;
   }
@@ -82,16 +82,16 @@ class ApiException implements Exception {
       case DioExceptionType.sendTimeout:
         return 'So‘rov yuborilmadi ($host). Qayta urinib ko‘ring.';
       case DioExceptionType.receiveTimeout:
-        return 'Server javob bermadi (timeout, $host). Qayta urinib ko‘ring.';
+        return 'Server javob bermadi ($host). Qayta urinib ko‘ring.';
       case DioExceptionType.connectionError:
         return _withTransport(
           'Serverga ulanib bo‘lmadi ($host). Internet yoki VPN ni tekshiring.',
           err,
         );
       case DioExceptionType.badCertificate:
-        return 'SSL sertifikat xatosi ($host).';
+        return 'Himoya sertifikati xatosi ($host).';
       case DioExceptionType.badResponse:
-        if (code != null) return 'Server xatosi (HTTP $code)';
+        if (code != null) return 'Server xatosi (kod $code)';
         return 'Server noto‘g‘ri javob qaytardi';
       case DioExceptionType.cancel:
         return 'So‘rov bekor qilindi';

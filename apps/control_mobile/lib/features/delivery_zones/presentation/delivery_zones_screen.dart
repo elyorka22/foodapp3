@@ -212,7 +212,7 @@ class _ZoneFormSheetState extends ConsumerState<_ZoneFormSheet> {
       return;
     }
     if (lat == null || lng == null || radius == null || radius < 0.1) {
-      showActionSnackBar(context, 'Lat/lng/radius noto‘g‘ri', error: true);
+      showActionSnackBar(context, 'Kenglik, uzunlik yoki radius noto‘g‘ri', error: true);
       return;
     }
     if (baseFee == null || perKm == null || minFee == null) {

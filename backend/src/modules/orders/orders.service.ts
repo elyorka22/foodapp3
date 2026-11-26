@@ -511,7 +511,12 @@ export class OrdersService {
         include: {
           items: true,
           guestOrder: { include: { customer: true } },
-          business: { select: { name: true } },
+          business: {
+            select: {
+              name: true,
+              businessType: { select: { id: true, name: true, slug: true } },
+            },
+          },
           courier: { include: { user: { select: { fullName: true } } } },
           assignment: true,
         },
@@ -519,12 +524,33 @@ export class OrdersService {
       this.prisma.order.count({ where }),
     ]);
 
-    return paginatedResponse(
-      data.map((o) => this.serializeOrder(o)),
-      total,
-      query.page ?? 1,
-      query.limit ?? 20,
-    );
+    const grouped = await this.prisma.order.groupBy({
+      by: ['status'],
+      where,
+      _count: { id: true },
+      _sum: { total: true },
+    });
+    let active = 0;
+    let delivered = 0;
+    let cancelled = 0;
+    let amount = 0;
+    for (const row of grouped) {
+      const count = row._count.id;
+      amount += Number(row._sum.total ?? 0);
+      if (row.status === OrderStatus.DELIVERED) delivered += count;
+      else if (row.status === OrderStatus.CANCELLED) cancelled += count;
+      else active += count;
+    }
+
+    return {
+      ...paginatedResponse(
+        data.map((o) => this.serializeOrder(o)),
+        total,
+        query.page ?? 1,
+        query.limit ?? 20,
+      ),
+      summary: { total, active, delivered, cancelled, amount },
+    };
   }
 
   async updateStatus(orderId: string, dto: UpdateOrderStatusDto, user: JwtPayload) {

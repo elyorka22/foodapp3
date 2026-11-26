@@ -81,7 +81,7 @@ class EmployeesScreen extends ConsumerWidget {
                     ),
                     title: name,
                     subtitle: [
-                      u.role,
+                      AppStrings.roleUz(u.role),
                       if (u.email != null) u.email!,
                       if (u.phone != null) u.phone!,
                       if (u.businessName != null) u.businessName!,

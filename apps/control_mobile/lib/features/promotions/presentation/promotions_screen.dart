@@ -322,34 +322,25 @@ class _BannerThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final url = banner.imageUrl.trim();
     final framing = banner.framing;
+    final onMenu = (banner.businessId ?? '').trim().isNotEmpty;
+    final width = 96.0;
+    final height = onMenu ? 34.0 : width * 2 / 7;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(8),
       child: SizedBox(
-        width: 64,
-        height: 44,
+        width: width,
+        height: height,
         child: url.isEmpty
             ? const ColoredBox(
                 color: Color(0xFFE4E4E7),
                 child: Icon(Icons.image_outlined, size: 20),
               )
-            : Transform.scale(
-                scale: framing.imageScale / 100,
-                alignment: Alignment(
-                  (framing.imagePositionX / 50) - 1,
-                  (framing.imagePositionY / 50) - 1,
-                ),
-                child: Image.network(
-                  url,
-                  fit: BoxFit.cover,
-                  alignment: Alignment(
-                    (framing.imagePositionX / 50) - 1,
-                    (framing.imagePositionY / 50) - 1,
-                  ),
-                  errorBuilder: (_, __, ___) => const ColoredBox(
-                    color: Color(0xFFE4E4E7),
-                    child: Icon(Icons.broken_image_outlined, size: 20),
-                  ),
-                ),
+            : ProductionFramedImage(
+                url: url,
+                scale: framing.imageScale,
+                x: framing.imagePositionX,
+                y: framing.imagePositionY,
+                mode: ProductionFrameMode.cover,
               ),
       ),
     );
@@ -464,8 +455,14 @@ class _PromoFormSheetState extends ConsumerState<_PromoFormSheet> {
           value: _type,
           decoration: const InputDecoration(labelText: AppStrings.promoType),
           items: const [
-            DropdownMenuItem(value: 'PERCENTAGE', child: Text('PERCENTAGE')),
-            DropdownMenuItem(value: 'FIXED', child: Text('FIXED')),
+            DropdownMenuItem(
+              value: 'PERCENTAGE',
+              child: Text(AppStrings.promoTypeUz('PERCENTAGE')),
+            ),
+            DropdownMenuItem(
+              value: 'FIXED',
+              child: Text(AppStrings.promoTypeUz('FIXED')),
+            ),
           ],
           onChanged: _busy ? null : (v) => setState(() => _type = v ?? _type),
         ),
@@ -636,6 +633,18 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
     }
   }
 
+  ImageFramingPreviewKind _previewKind() {
+    if (!_onMenu) return ImageFramingPreviewKind.homeBanner;
+    final businesses =
+        ref.watch(_bannerBusinessesProvider).valueOrNull ?? const [];
+    for (final business in businesses) {
+      if (business.id == _businessId && business.usesSharedCatalog) {
+        return ImageFramingPreviewKind.storeMenuBanner;
+      }
+    }
+    return ImageFramingPreviewKind.restaurantMenuBanner;
+  }
+
   @override
   Widget build(BuildContext context) {
     return DetailSheetFooter(
@@ -671,6 +680,7 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
           enabled: !_busy,
           refererPath: '/admin/banners',
           enableFraming: true,
+          framingPreviewKind: _previewKind(),
           framing: _framing,
           onFramingChanged: (v) => setState(() => _framing = v),
         ),

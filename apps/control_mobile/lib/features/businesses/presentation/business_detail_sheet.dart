@@ -119,7 +119,7 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
     if (login.isEmpty || password.length < 6) {
       showActionSnackBar(
         context,
-        'Login va parol (min 6) majburiy',
+        'Kirish nomi va parol (kamida 6 belgi) majburiy',
         error: true,
       );
       return;
@@ -156,7 +156,7 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
                   : (_restaurant.approvalStatus == 'REJECTED'
                       ? 'CANCELLED'
                       : 'PENDING'),
-              label: _restaurant.approvalStatus,
+              label: AppStrings.approvalUz(_restaurant.approvalStatus),
             ),
           ],
         ),

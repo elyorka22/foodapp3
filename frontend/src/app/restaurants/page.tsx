@@ -221,7 +221,14 @@ export default function RestaurantsPage() {
                   href={href}
                   className="relative h-[8.5rem] w-[8.5rem] shrink-0 overflow-hidden rounded-[18px] bg-zinc-200 active:scale-[0.98]"
                 >
-                  <Image src={src} alt={banner.title || ''} fill className="object-cover" sizes="136px" />
+                  <Image
+                    src={src}
+                    alt={banner.title || ''}
+                    fill
+                    className="object-cover"
+                    style={categoryImageStyle(banner)}
+                    sizes="136px"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                   {banner.title?.trim() ? (
                     <p className="absolute bottom-2 left-2 right-2 line-clamp-2 text-[12px] font-bold leading-snug text-white">

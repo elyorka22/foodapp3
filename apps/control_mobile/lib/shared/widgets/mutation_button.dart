@@ -40,7 +40,12 @@ class MutationButton extends StatelessWidget {
                 Icon(icon, size: 16),
                 const SizedBox(width: 8),
               ],
-              Text(label),
+              Text(
+                label,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           );
 

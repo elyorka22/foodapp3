@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -66,6 +67,8 @@ class _EmployeeDetailSheetState extends ConsumerState<EmployeeDetailSheet> {
     final name = (_user.fullName?.isNotEmpty == true)
         ? _user.fullName!
         : (_user.email ?? _user.phone ?? _user.id);
+    final me = ref.watch(authStateProvider).valueOrNull;
+    final isSelf = me != null && me.id == _user.id;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -79,7 +82,7 @@ class _EmployeeDetailSheetState extends ConsumerState<EmployeeDetailSheet> {
               status: _user.isActive ? 'DELIVERED' : 'CANCELLED',
               label: _user.isActive ? AppStrings.active : AppStrings.inactive,
             ),
-            Text(_user.role, style: AppTypography.bodySmall),
+            Text(AppStrings.roleUz(_user.role), style: AppTypography.bodySmall),
           ],
         ),
         if (_user.email != null) ...[
@@ -141,29 +144,35 @@ class _EmployeeDetailSheetState extends ConsumerState<EmployeeDetailSheet> {
           },
         ),
         const SizedBox(height: 20),
-        MutationButton(
-          label: _user.isActive ? AppStrings.deactivate : AppStrings.activate,
-          destructive: _user.isActive,
-          filled: false,
-          loading: _busy,
-          onPressed: () async {
-            if (_user.isActive) {
-              final ok = await showConfirmDialog(
-                context,
-                title: AppStrings.deactivate,
-                message: AppStrings.confirmDeactivate,
-                destructive: true,
+        if (isSelf)
+          Text(
+            AppStrings.cannotDeactivateSelf,
+            style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+          )
+        else
+          MutationButton(
+            label: _user.isActive ? AppStrings.deactivate : AppStrings.activate,
+            destructive: _user.isActive,
+            filled: false,
+            loading: _busy,
+            onPressed: () async {
+              if (_user.isActive) {
+                final ok = await showConfirmDialog(
+                  context,
+                  title: AppStrings.deactivate,
+                  message: AppStrings.confirmDeactivate,
+                  destructive: true,
+                );
+                if (!ok) return;
+              }
+              await _run(
+                () => ref.read(employeesRepositoryProvider).updateUser(
+                      _user.id,
+                      isActive: !_user.isActive,
+                    ),
               );
-              if (!ok) return;
-            }
-            await _run(
-              () => ref.read(employeesRepositoryProvider).updateUser(
-                    _user.id,
-                    isActive: !_user.isActive,
-                  ),
-            );
-          },
-        ),
+            },
+          ),
         const SizedBox(height: AppSpacing.lg),
       ],
     );

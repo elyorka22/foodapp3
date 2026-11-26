@@ -60,7 +60,7 @@ class ControlShellScreen extends ConsumerWidget {
     final user = ref.watch(authStateProvider).valueOrNull;
     final userName = user?.fullName.isNotEmpty == true
         ? user!.fullName
-        : (user?.email ?? 'SUPER_ADMIN');
+        : (user?.email ?? AppStrings.roleUz('SUPER_ADMIN'));
     final compact = Breakpoints.isCompact(context);
     final typesAsync = ref.watch(_navBusinessTypesProvider);
     final sections = buildControlNavSections(

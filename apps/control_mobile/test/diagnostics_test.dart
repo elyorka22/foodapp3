@@ -63,7 +63,7 @@ void main() {
       );
       expect(
         DiagnosticClassifier.label(DiagnosticFailureClass.headersNotReceived),
-        contains('headers not received'),
+        contains('javob kelmadi'),
       );
     });
 
