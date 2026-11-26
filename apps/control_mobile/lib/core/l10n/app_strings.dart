@@ -84,9 +84,14 @@ abstract final class AppStrings {
   static const confirmDeleteCategory =
       'Kategoriyani o‘chirishni tasdiqlaysizmi?';
   static const bannerEmptyHint =
-      'Hali banner yo‘q. Qo‘shilgan rasm bosh sahifa orolida keng polosa bo‘lib chiqadi.';
+      'Hali banner yo‘q. Sahifani tanlab rasm qo‘shing.';
   static const bannersHomeHint =
-      'Bosh sahifadagi banner. Alohida joy tanlanmaydi: hammasi shu polosaga tushadi.';
+      'Bosh sahifa va restoranlar ro‘yxatidagi polosa.';
+  static const bannersMenuHint = 'Shu biznes menyusidagi banner.';
+  static const bannerPageLabel = 'Sahifa';
+  static const bannerPageHome = 'Bosh sahifa';
+  static const bannerPageMenu = 'Biznes menyusi';
+  static const bannerPickBusiness = 'Biznesni tanlang';
   static const bannerSurfaceHomeOffers = 'Bosh sahifa banneri';
   static const bannerLinkHint = 'Masalan /promotions yoki /restaurants/slug';
   static const auditTitle = 'Audit jurnali';

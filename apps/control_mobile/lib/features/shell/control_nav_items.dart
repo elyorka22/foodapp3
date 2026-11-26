@@ -145,13 +145,6 @@ List<ControlNavEntry> _verticalEntries({
         catalogIntent: CatalogNavIntent.products,
       ),
     _entry(
-      id: '$prefix-banners',
-      label: AppStrings.navBanners,
-      icon: Icons.image_outlined,
-      branch: ControlBranches.promotions,
-      scope: scope,
-    ),
-    _entry(
       id: '$prefix-orders',
       label: AppStrings.navOrders,
       icon: Icons.receipt_long_outlined,
@@ -247,6 +240,12 @@ List<ControlNavSection> buildControlNavSections(
     ControlNavSection(
       label: AppStrings.navGroupGrowth,
       entries: [
+        _entry(
+          id: 'banners',
+          label: AppStrings.navBanners,
+          icon: Icons.image_outlined,
+          branch: ControlBranches.promotions,
+        ),
         _entry(
           id: 'promotions',
           label: AppStrings.navPromotions,

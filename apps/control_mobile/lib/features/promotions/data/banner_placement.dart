@@ -6,6 +6,9 @@ abstract final class BannerPlacement {
   /// Canonical placement for the home offers carousel.
   static const canonicalHome = 'PROMO';
 
+  /// Menu banner. Not shown on the home strip (that strip is only PROMO/HERO).
+  static const businessMenu = 'HOME_SIDE_BOTTOM';
+
   /// Placements that appear on the new home carousel (incl. legacy).
   static const homeVisible = {
     'PROMO',

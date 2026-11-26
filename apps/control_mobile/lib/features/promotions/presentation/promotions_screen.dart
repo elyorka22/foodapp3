@@ -16,10 +16,22 @@ import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/section_panel.dart';
 import '../../../shared/widgets/status_chip.dart';
+import '../../businesses/data/businesses_repository.dart';
+import '../../businesses/data/restaurant_model.dart';
+import '../../shell/control_vertical_scope.dart';
 import '../data/banner_model.dart';
 import '../data/banner_placement.dart';
 import '../data/promo_model.dart';
 import '../data/promotions_repository.dart';
+
+final _bannerBusinessesProvider =
+    FutureProvider.autoDispose<List<ControlRestaurant>>((ref) async {
+  final page = await ref.watch(businessesRepositoryProvider).fetchRestaurants(
+        page: 1,
+        limit: 100,
+      );
+  return page.data;
+});
 
 class _PromotionsBundle {
   const _PromotionsBundle({
@@ -45,22 +57,25 @@ class PromotionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(promotionsProvider);
+    final showBanners = ref.watch(controlNavEntryIdProvider) != 'promotions';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PageHeader(
-          title: AppStrings.promotionsTitle,
-          trailing: HeaderAction(
-            label: AppStrings.addBanner,
-            icon: Icons.add_photo_alternate_outlined,
-            onPressed: () => showDetailSheet(
-              context: context,
-              title: AppStrings.addBanner,
-              initialChildSize: 0.92,
-              builder: (_) => const _BannerFormSheet(),
-            ),
-          ),
+          title: showBanners ? AppStrings.navBanners : AppStrings.navPromotions,
+          trailing: showBanners
+              ? HeaderAction(
+                  label: AppStrings.addBanner,
+                  icon: Icons.add_photo_alternate_outlined,
+                  onPressed: () => showDetailSheet(
+                    context: context,
+                    title: AppStrings.addBanner,
+                    initialChildSize: 0.92,
+                    builder: (_) => const _BannerFormSheet(),
+                  ),
+                )
+              : null,
         ),
         Expanded(
           child: AsyncPageBody<_PromotionsBundle>(
@@ -73,83 +88,12 @@ class PromotionsScreen extends ConsumerWidget {
               AppSpacing.xxl,
             ),
             dataBuilder: (bundle) {
-              final banners = [...bundle.banners]
-                ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+              if (showBanners) {
+                return _BannersBody(banners: bundle.banners);
+              }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SectionPanel(
-                    title: AppStrings.bannersSection,
-                    subtitle: banners.isEmpty
-                        ? AppStrings.bannerEmptyHint
-                        : AppStrings.bannersHomeHint,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (banners.isNotEmpty) ...[
-                          ReorderableListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: banners.length,
-                            onReorder: (oldIndex, newIndex) async {
-                              if (newIndex > oldIndex) newIndex -= 1;
-                              final next = [...banners];
-                              final item = next.removeAt(oldIndex);
-                              next.insert(newIndex, item);
-                              try {
-                                await ref
-                                    .read(promotionsRepositoryProvider)
-                                    .reorderBanners(
-                                      next.map((e) => e.id).toList(),
-                                    );
-                                ref.invalidate(promotionsProvider);
-                              } catch (e) {
-                                if (context.mounted) {
-                                  showActionError(context, e);
-                                }
-                              }
-                            },
-                            itemBuilder: (context, index) {
-                              final b = banners[index];
-                              final surface =
-                                  BannerPlacement.labelUz(b.placement);
-                              return Padding(
-                                key: ValueKey(b.id),
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: ControlListCard(
-                                  leading: _BannerThumb(banner: b),
-                                  title: b.title.isNotEmpty
-                                      ? b.title
-                                      : surface,
-                                  subtitle: [
-                                    surface,
-                                    if (b.linkUrl != null &&
-                                        b.linkUrl!.isNotEmpty)
-                                      b.linkUrl!,
-                                  ].join(' · '),
-                                  trailing: StatusChip(
-                                    status: b.isActive
-                                        ? 'DELIVERED'
-                                        : 'CANCELLED',
-                                    label: b.isActive
-                                        ? AppStrings.active
-                                        : AppStrings.inactive,
-                                  ),
-                                  onTap: () => showDetailSheet(
-                                    context: context,
-                                    title: AppStrings.details,
-                                    builder: (_) =>
-                                        _BannerFormSheet(banner: b),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   SectionPanel(
                     title: AppStrings.promosSection,
                     trailing: HeaderAction(
@@ -209,6 +153,162 @@ class PromotionsScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BannersBody extends ConsumerWidget {
+  const _BannersBody({required this.banners});
+
+  final List<ControlBanner> banners;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final businesses =
+        ref.watch(_bannerBusinessesProvider).valueOrNull ?? const [];
+    final names = <String, String>{
+      for (final b in businesses) b.id: b.name,
+    };
+
+    final home = banners.where((b) => (b.businessId ?? '').isEmpty).toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final menuIds = <String>[];
+    final menu = <String, List<ControlBanner>>{};
+    for (final banner in banners) {
+      final id = banner.businessId?.trim() ?? '';
+      if (id.isEmpty) continue;
+      menu.putIfAbsent(id, () {
+        menuIds.add(id);
+        return [];
+      }).add(banner);
+    }
+    for (final list in menu.values) {
+      list.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _BannerGroup(
+          title: AppStrings.bannerPageHome,
+          subtitle: home.isEmpty
+              ? AppStrings.bannerEmptyHint
+              : AppStrings.bannersHomeHint,
+          banners: home,
+        ),
+        for (final id in menuIds) ...[
+          const SizedBox(height: 16),
+          _BannerGroup(
+            title: '${AppStrings.bannerPageMenu} · ${names[id] ?? id}',
+            subtitle: AppStrings.bannersMenuHint,
+            banners: menu[id]!,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _BannerGroup extends ConsumerWidget {
+  const _BannerGroup({
+    required this.title,
+    required this.subtitle,
+    required this.banners,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<ControlBanner> banners;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SectionPanel(
+      title: title,
+      subtitle: subtitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (banners.isEmpty)
+            Text(AppStrings.emptyList, style: AppTypography.bodySmall)
+          else
+            ReorderableListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: banners.length,
+              onReorder: (oldIndex, newIndex) async {
+                if (newIndex > oldIndex) newIndex -= 1;
+                final next = [...banners];
+                final item = next.removeAt(oldIndex);
+                next.insert(newIndex, item);
+                try {
+                  await ref.read(promotionsRepositoryProvider).reorderBanners(
+                        next.map((e) => e.id).toList(),
+                      );
+                  ref.invalidate(promotionsProvider);
+                } catch (e) {
+                  if (context.mounted) showActionError(context, e);
+                }
+              },
+              itemBuilder: (context, index) {
+                final b = banners[index];
+                return Padding(
+                  key: ValueKey(b.id),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: ControlListCard(
+                    leading: _BannerThumb(banner: b),
+                    title: b.title.isNotEmpty ? b.title : title,
+                    subtitle: (b.linkUrl ?? '').trim().isEmpty
+                        ? null
+                        : b.linkUrl,
+                    trailing: StatusChip(
+                      status: b.isActive ? 'DELIVERED' : 'CANCELLED',
+                      label: b.isActive
+                          ? AppStrings.active
+                          : AppStrings.inactive,
+                    ),
+                    onTap: () => showDetailSheet(
+                      context: context,
+                      title: AppStrings.details,
+                      initialChildSize: 0.92,
+                      builder: (_) => _BannerFormSheet(banner: b),
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BusinessPicker extends ConsumerWidget {
+  const _BusinessPicker({
+    required this.businessId,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final String? businessId;
+  final bool enabled;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final businesses =
+        ref.watch(_bannerBusinessesProvider).valueOrNull ?? const [];
+    final ids = businesses.map((b) => b.id).toSet();
+    final selected = ids.contains(businessId) ? businessId : null;
+    return DropdownButtonFormField<String>(
+      value: selected,
+      decoration: const InputDecoration(
+        labelText: AppStrings.bannerPickBusiness,
+      ),
+      items: [
+        for (final b in businesses)
+          DropdownMenuItem(value: b.id, child: Text(b.name)),
+      ],
+      onChanged: enabled ? onChanged : null,
     );
   }
 }
@@ -418,6 +518,8 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
   late final TextEditingController _sortOrder;
   bool _isActive = true;
   bool _busy = false;
+  bool _onMenu = false;
+  String? _businessId;
   late ImageFramingValues _framing;
 
   @override
@@ -430,6 +532,8 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
     _link = TextEditingController(text: b?.linkUrl ?? '');
     _sortOrder = TextEditingController(text: '${b?.sortOrder ?? 0}');
     _isActive = b?.isActive ?? true;
+    _onMenu = (b?.businessId ?? '').trim().isNotEmpty;
+    _businessId = b?.businessId;
     _framing = b?.framing ?? const ImageFramingValues();
   }
 
@@ -454,8 +558,19 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
       final repo = ref.read(promotionsRepositoryProvider);
       final sortOrder = int.tryParse(_sortOrder.text.trim()) ?? 0;
       final desc = _description.text.trim();
-      // Always write canonical placement for the new home design.
-      final placement = BannerPlacement.canonicalHome;
+      final businessId = _onMenu ? (_businessId ?? '').trim() : '';
+      if (_onMenu && businessId.isEmpty) {
+        showActionSnackBar(
+          context,
+          AppStrings.bannerPickBusiness,
+          error: true,
+        );
+        setState(() => _busy = false);
+        return;
+      }
+      final placement = _onMenu
+          ? BannerPlacement.businessMenu
+          : BannerPlacement.canonicalHome;
       if (widget.banner == null) {
         await repo.createBanner(
           imageUrl: imageUrl,
@@ -465,6 +580,7 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
           placement: placement,
           sortOrder: sortOrder,
           isActive: _isActive,
+          restaurantId: businessId.isEmpty ? null : businessId,
           imageScale: _framing.imageScale,
           imagePositionX: _framing.imagePositionX,
           imagePositionY: _framing.imagePositionY,
@@ -479,6 +595,7 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
           placement: placement,
           sortOrder: sortOrder,
           isActive: _isActive,
+          restaurantId: businessId,
           imageScale: _framing.imageScale,
           imagePositionX: _framing.imagePositionX,
           imagePositionY: _framing.imagePositionY,
@@ -557,6 +674,32 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
           framing: _framing,
           onFramingChanged: (v) => setState(() => _framing = v),
         ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<bool>(
+          value: _onMenu,
+          decoration: const InputDecoration(labelText: AppStrings.bannerPageLabel),
+          items: const [
+            DropdownMenuItem(
+              value: false,
+              child: Text(AppStrings.bannerPageHome),
+            ),
+            DropdownMenuItem(
+              value: true,
+              child: Text(AppStrings.bannerPageMenu),
+            ),
+          ],
+          onChanged: _busy
+              ? null
+              : (v) => setState(() => _onMenu = v ?? false),
+        ),
+        if (_onMenu) ...[
+          const SizedBox(height: 8),
+          _BusinessPicker(
+            businessId: _businessId,
+            enabled: !_busy,
+            onChanged: (id) => setState(() => _businessId = id),
+          ),
+        ],
         const SizedBox(height: 12),
         TextField(
           controller: _title,
