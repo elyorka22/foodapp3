@@ -12,10 +12,14 @@ export class SmsService {
 
   async sendOtp(phone: string, code: string) {
     const provider = this.provider();
-    const text = `FoodApp tasdiqlash kodi: ${code}`;
+    // Eskiz test mode accepts only these exact texts:
+    // "Bu Eskiz dan test", "This is test from Eskiz", "Это тест от Eskiz".
+    // The login code stays in the server log until a custom template is approved.
+    const text = 'Bu Eskiz dan test';
+
+    this.logger.log(`OTP for ${phone}: ${code}`);
 
     if (provider === 'log') {
-      this.logger.log(`OTP for ${phone}: ${code}`);
       return;
     }
 
