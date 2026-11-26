@@ -13,8 +13,8 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/storage/storage_providers.dart';
 import '../../../core/storage/token_storage.dart';
-import '../../../core/utils/phone_util.dart';
 import '../../../shared/models/auth_model.dart';
+import 'login_payload.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
@@ -173,20 +173,7 @@ class AuthRepository {
 
   /// Builds payload matching backend LoginDto: email OR phone + password + client.
   static Map<String, dynamic> buildLoginPayload(String loginId, String password) {
-    final id = loginId.trim();
-    final client = AppConfig.clientId;
-    if (id.contains('@')) {
-      return {
-        'email': id.toLowerCase(),
-        'password': password,
-        'client': client,
-      };
-    }
-    return {
-      'phone': normalizePhone(id),
-      'password': password,
-      'client': client,
-    };
+    return buildControlLoginPayload(loginId, password);
   }
 
   Future<AuthUserModel?> currentUser() async {

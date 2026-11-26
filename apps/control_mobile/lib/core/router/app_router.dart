@@ -21,38 +21,10 @@ import '../../features/push/presentation/push_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/shell/control_shell_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import 'auth_redirect.dart';
 import 'routes.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
-
-/// Auth gate for Control routes.
-///
-/// While [isLoading] is true, stay on the current page (do not bounce login →
-/// splash). That keeps the login form mounted so API errors remain visible.
-/// Diagnostics is reachable before login.
-String? resolveControlAuthRedirect({
-  required String location,
-  required bool isLoading,
-  required bool loggedIn,
-}) {
-  final onSplash = location == AppRoutes.splash;
-  final onLogin = location == AppRoutes.login;
-  final onDiagnostics = location == AppRoutes.diagnostics;
-
-  if (isLoading) {
-    return null;
-  }
-
-  if (!loggedIn) {
-    if (onLogin || onDiagnostics) return null;
-    return AppRoutes.login;
-  }
-
-  if (onLogin || onSplash) {
-    return AppRoutes.dashboard;
-  }
-  return null;
-}
 
 GoRoute _branch(String path, Widget child) {
   return GoRoute(path: path, builder: (_, __) => child);

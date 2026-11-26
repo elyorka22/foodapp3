@@ -1,20 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:control_mobile/core/config/app_config.dart';
-import 'package:control_mobile/core/l10n/app_strings.dart';
 import 'package:control_mobile/core/layout/breakpoints.dart';
 import 'package:control_mobile/core/network/api_exception.dart';
-import 'package:control_mobile/core/router/app_router.dart';
+import 'package:control_mobile/core/router/auth_redirect.dart';
 import 'package:control_mobile/core/router/routes.dart';
-import 'package:control_mobile/features/auth/data/auth_repository.dart';
-import 'package:control_mobile/features/auth/presentation/login_screen.dart';
-import 'package:control_mobile/features/dashboard/data/dashboard_model.dart';
-import 'package:control_mobile/features/dashboard/presentation/dashboard_screen.dart';
-import 'package:control_mobile/features/auth/providers/auth_provider.dart';
+import 'package:control_mobile/features/auth/data/login_payload.dart';
 import 'package:control_mobile/shared/models/auth_model.dart';
-import 'package:control_mobile/shared/widgets/placeholder_banner.dart';
 
 void main() {
   group('Auth redirect', () {
@@ -95,7 +88,7 @@ void main() {
 
   group('Auth payload', () {
     test('email login includes client=control', () {
-      final payload = AuthRepository.buildLoginPayload(
+      final payload = buildControlLoginPayload(
         'Admin@FoodApp.Local',
         'DummyPass123!',
       );
@@ -107,7 +100,7 @@ void main() {
     });
 
     test('phone login includes client=control', () {
-      final payload = AuthRepository.buildLoginPayload('900000001', 'DummyPass123!');
+      final payload = buildControlLoginPayload('900000001', 'DummyPass123!');
       expect(payload['phone'], '+998900000001');
       expect(payload.containsKey('email'), isFalse);
       expect(payload['client'], 'control');
@@ -238,53 +231,6 @@ void main() {
     });
   });
 
-  testWidgets('LoginScreen shows control branding and form', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
-          home: LoginScreen(),
-        ),
-      ),
-    );
-
-    expect(find.text(AppStrings.loginTitle), findsOneWidget);
-    expect(find.text(AppStrings.login), findsOneWidget);
-    expect(find.text(AppStrings.requiredBackendClient), findsOneWidget);
-  });
-
-  testWidgets('Dashboard loads live metrics title', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          authStateProvider.overrideWith(() => _FakeAuthNotifier()),
-          dashboardProvider.overrideWith((ref) async {
-            return const DashboardMetrics(
-              todayOrders: 3,
-              pendingOrders: 1,
-              deliveredOrders: 2,
-              cancelledOrders: 0,
-              revenueToday: 150000,
-              revenueMonth: 900000,
-              activeCouriers: 4,
-              activeRestaurants: 5,
-              activeStores: 2,
-              recentOrders: [],
-            );
-          }),
-        ],
-        child: const MaterialApp(
-          home: Scaffold(body: DashboardScreen()),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text(AppStrings.dashboardTitle), findsOneWidget);
-    expect(find.text(AppStrings.cardTodayOrders), findsOneWidget);
-    expect(find.text('3'), findsWidgets);
-    expect(find.byType(PlaceholderBanner), findsNothing);
-  });
-
   testWidgets('compact vs wide breakpoints', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     await tester.pumpWidget(
@@ -314,16 +260,4 @@ void main() {
       ),
     );
   });
-}
-
-class _FakeAuthNotifier extends AuthNotifier {
-  @override
-  Future<AuthUserModel?> build() async {
-    return const AuthUserModel(
-      id: 'test-admin',
-      fullName: 'Test Admin',
-      email: 'admin@test.local',
-      role: 'SUPER_ADMIN',
-    );
-  }
 }

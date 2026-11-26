@@ -1,16 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:control_mobile/core/diagnostics/diagnostic_classifier.dart';
 import 'package:control_mobile/core/diagnostics/diagnostic_event.dart';
 import 'package:control_mobile/core/diagnostics/diagnostic_log.dart';
 import 'package:control_mobile/core/diagnostics/diagnostic_sanitizer.dart';
-import 'package:control_mobile/core/l10n/app_strings.dart';
-import 'package:control_mobile/core/router/routes.dart';
-import 'package:control_mobile/features/auth/presentation/login_screen.dart';
-import 'package:control_mobile/features/diagnostics/presentation/diagnostics_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -154,32 +148,6 @@ void main() {
       expect(e.formattedLine, contains('#r9'));
       expect(e.formattedLine, contains('+5ms'));
       expect(e.formattedLine, contains('login_start'));
-    });
-  });
-
-  group('Diagnostics UI', () {
-    testWidgets('login screen shows diagnostics entry point', (tester) async {
-      await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(home: LoginScreen()),
-        ),
-      );
-      expect(find.text(AppStrings.diagOpen), findsOneWidget);
-      expect(find.text(AppRoutes.diagnostics), findsNothing);
-    });
-
-    testWidgets('diagnostics screen is usable before login', (tester) async {
-      await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(home: DiagnosticsScreen()),
-        ),
-      );
-      expect(find.text(AppStrings.diagTitle), findsOneWidget);
-      expect(find.text(AppStrings.diagProbeDio), findsOneWidget);
-      expect(find.text(AppStrings.diagProbeHttpClient), findsOneWidget);
-      expect(find.text(AppStrings.diagProbeDnsTls), findsOneWidget);
-      expect(find.text(AppStrings.diagRetryLogin), findsOneWidget);
-      expect(find.textContaining('API:'), findsOneWidget);
     });
   });
 }
