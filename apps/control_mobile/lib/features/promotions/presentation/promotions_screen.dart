@@ -454,7 +454,7 @@ class _PromoFormSheetState extends ConsumerState<_PromoFormSheet> {
         DropdownButtonFormField<String>(
           value: _type,
           decoration: const InputDecoration(labelText: AppStrings.promoType),
-          items: const [
+          items: [
             DropdownMenuItem(
               value: 'PERCENTAGE',
               child: Text(AppStrings.promoTypeUz('PERCENTAGE')),
