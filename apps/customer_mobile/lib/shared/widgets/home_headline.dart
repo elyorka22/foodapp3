@@ -46,7 +46,7 @@ class _BellButton extends ConsumerWidget {
       size: 22,
       onTap: () {
         if (user == null) {
-          context.push('/profile/login');
+          context.push('/profile/register');
           return;
         }
         context.push(AppRoutes.notifications);

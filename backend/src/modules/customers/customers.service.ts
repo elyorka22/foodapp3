@@ -216,6 +216,19 @@ export class CustomersService {
     return timingSafeEqual(left, right);
   }
 
+  async updateName(customerId: string, fullName: string) {
+    const name = fullName.trim();
+    if (name.length < 2) {
+      throw new BadRequestException('Ism kamida 2 harfdan iborat bo‘lishi kerak');
+    }
+    const customer = await this.prisma.customer.update({
+      where: { id: customerId },
+      data: { fullName: name },
+      include: { loyalty: true },
+    });
+    return this.customerTokens.issueToken(customer);
+  }
+
   async findMe(customerId: string) {
     const customer = await this.prisma.customer.findFirst({
       where: { id: customerId, deletedAt: null },

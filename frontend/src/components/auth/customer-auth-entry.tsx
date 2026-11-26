@@ -6,20 +6,28 @@ import { uz } from '@/lib/uz';
 
 type Props = {
   onSuccess: (res: CustomerAuthResponse) => void;
+  onStepChange?: (step: 'phone' | 'code' | 'name') => void;
   onSwitchToRegister?: () => void;
 };
 
-export function CustomerAuthEntry({ onSuccess, onSwitchToRegister }: Props) {
+export function CustomerAuthEntry({ onSuccess, onStepChange, onSwitchToRegister }: Props) {
   return (
-    <section aria-label={uz.signIn} className="pb-2">
-      <CustomerOtpForm onSuccess={onSuccess} />
-      {onSwitchToRegister ? (
-        <div className="mt-4 text-center">
-          <button type="button" className="text-sm text-foreground-muted" onClick={onSwitchToRegister}>
-            {uz.noAccount} <span className="font-semibold text-primary">{uz.register}</span>
-          </button>
-        </div>
-      ) : null}
+    <section aria-label={uz.signIn}>
+      <CustomerOtpForm
+        onSuccess={onSuccess}
+        onStepChange={onStepChange}
+        phoneFooter={
+          onSwitchToRegister ? (
+            <button
+              type="button"
+              className="w-full py-1 text-center text-sm text-foreground-muted"
+              onClick={onSwitchToRegister}
+            >
+              {uz.noAccount} <span className="font-semibold text-foreground">{uz.register}</span>
+            </button>
+          ) : null
+        }
+      />
     </section>
   );
 }

@@ -62,6 +62,11 @@ class AuthNotifier extends AsyncNotifier<CustomerUserModel?> {
     }
   }
 
+  Future<void> updateName(String fullName) async {
+    final res = await ref.read(authRepositoryProvider).updateName(fullName);
+    state = AsyncData(res.user);
+  }
+
   Future<void> completeProfile(String phone) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {

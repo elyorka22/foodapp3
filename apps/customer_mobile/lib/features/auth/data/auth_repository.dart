@@ -85,6 +85,16 @@ class AuthRepository {
     return model;
   }
 
+  Future<AuthResponseModel> updateName(String fullName) async {
+    final res = await _dio.patch<Map<String, dynamic>>(
+      ApiPaths.customersMe,
+      data: {'fullName': fullName},
+    );
+    final model = AuthResponseModel.fromJson(res.data!);
+    await _persist(model);
+    return model;
+  }
+
   Future<CustomerUserModel?> currentUser() async {
     final json = await _storage.getUserJson();
     if (json == null) return null;

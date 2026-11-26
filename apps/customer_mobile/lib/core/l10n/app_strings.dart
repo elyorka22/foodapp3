@@ -148,6 +148,12 @@ abstract final class AppStrings {
   static const nameRequired = 'Ism kamida 2 harfdan iborat bo‘lishi kerak';
   static const continueAction = 'Davom etish';
   static const registerStepPhoneHint = 'SMS orqali tasdiqlash kodi yuboramiz';
+  static const registerStepOtp = 'SMS kodni kiriting';
+  static const registerStepOtpHint = '4 xonali kodni SMS dan kiriting';
+  static const registerStepName = 'Ismingiz';
+  static const registerStepNameHint =
+      'Kuryer va restoran sizni shu ism bilan chaqiradi';
+  static const skip = "O'tkazib yuborish";
   static const registerSocialSubtitle =
       "Bir necha soniyada hisob oching — telefon va parol hozircha shart emas";
   static const noAccountRegister = "Hisobingiz yo'qmi? Ro'yxatdan o'ting";

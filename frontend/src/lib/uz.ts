@@ -195,6 +195,8 @@ export const uz = {
   nameRequired: 'Ism kamida 2 harfdan iborat bo\'lishi kerak',
   otpResendSoon: 'SMS xizmati tez orada ulanadi',
   resendCode: 'Kodni qayta yuborish',
+  skip: "O'tkazib yuborish",
+  saveName: 'Saqlash',
   continue: 'Davom etish',
   guestFeatureFavoritesTitle: 'Sevimlilar',
   guestFeatureFavoritesDesc: "Yoqtirgan restoran va mahsulotlarni saqlang",

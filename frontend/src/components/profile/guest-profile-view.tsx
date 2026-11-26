@@ -17,7 +17,7 @@ type Props = {
 
 export function GuestProfileView({ onAuthSuccess }: Props) {
   const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<AuthSheetMode>('login');
+  const [authMode, setAuthMode] = useState<AuthSheetMode>('register');
 
   const openAuth = (mode: AuthSheetMode) => {
     setAuthMode(mode);
@@ -39,7 +39,7 @@ export function GuestProfileView({ onAuthSuccess }: Props) {
             icon={LogIn}
             label={uz.signIn}
             hint={uz.profileLoginSubtitle}
-            onClick={() => openAuth('login')}
+            onClick={() => openAuth('register')}
             showDivider={false}
           />
         </ProfileMenuGroup>

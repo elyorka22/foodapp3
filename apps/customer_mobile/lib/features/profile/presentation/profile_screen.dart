@@ -131,7 +131,7 @@ class ProfileScreen extends ConsumerWidget {
                             icon: Icons.login_rounded,
                             label: AppStrings.login,
                             hint: AppStrings.profileLoginSubtitle,
-                            onTap: () => context.push('/profile/login'),
+                            onTap: () => context.push('/profile/register'),
                             showDivider: false,
                           ),
                         ],

@@ -57,6 +57,14 @@ export async function registerWithPhone(body: {
   });
 }
 
+export async function updateCustomerName(fullName: string, token: string): Promise<CustomerAuthResponse> {
+  return api<CustomerAuthResponse>('/customers/me', {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify({ fullName }),
+  });
+}
+
 export function persistCustomerSession(res: CustomerAuthResponse) {
   setCustomerAuth(res.accessToken, res.user);
   void registerCustomerDevice();

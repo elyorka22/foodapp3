@@ -13,6 +13,7 @@ import { CustomerJwtAuthGuard } from '../../common/guards/customer-jwt-auth.guar
 import { CurrentCustomer } from '../../common/decorators/current-customer.decorator';
 import { CustomerJwtPayload } from './customer-token.service';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { UpdateNameDto } from './dto/update-name.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { UserRole } from '@prisma/client';
@@ -74,6 +75,17 @@ export class CustomersController {
   @ApiOperation({ summary: 'Current customer profile (JWT)' })
   me(@CurrentCustomer() customer: CustomerJwtPayload) {
     return this.customers.findMe(customer.sub);
+  }
+
+  @Patch('me')
+  @UseGuards(CustomerJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Save the name shown to couriers and restaurants' })
+  updateName(
+    @CurrentCustomer() customer: CustomerJwtPayload,
+    @Body() dto: UpdateNameDto,
+  ) {
+    return this.customers.updateName(customer.sub, dto.fullName);
   }
 
   @Post('complete-profile')

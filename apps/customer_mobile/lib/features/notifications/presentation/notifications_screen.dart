@@ -33,7 +33,7 @@ class NotificationsScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
                 FoodAppButton(
                   label: AppStrings.login,
-                  onPressed: () => context.push('/profile/login'),
+                  onPressed: () => context.push('/profile/register'),
                 ),
               ],
             ),
