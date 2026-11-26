@@ -7,6 +7,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/image_framing.dart';
 import '../../../core/utils/image_url.dart';
 import '../../../core/utils/restaurant_card_meta.dart';
 import '../../../core/utils/safe_area_padding.dart';
@@ -29,11 +30,17 @@ class _HubCategory {
     required this.key,
     required this.name,
     this.imageUrl,
+    this.imageScale,
+    this.imagePositionX,
+    this.imagePositionY,
   });
 
   final String key;
   final String name;
   final String? imageUrl;
+  final int? imageScale;
+  final int? imagePositionX;
+  final int? imagePositionY;
 }
 
 /// Flowers / cosmetics style hub: shops carousel + search + 3-col category grid.
@@ -244,6 +251,9 @@ class _StoreTypeHubScreenState extends ConsumerState<StoreTypeHubScreen> {
               _CategoryTile(
                 title: cat.name,
                 imageUrl: cat.imageUrl,
+                imageScale: cat.imageScale,
+                imagePositionX: cat.imagePositionX,
+                imagePositionY: cat.imagePositionY,
                 onTap: () => context.push(
                   AppRoutes.storesWithType(widget.typeSlug),
                 ),
@@ -268,6 +278,9 @@ class _StoreTypeHubScreenState extends ConsumerState<StoreTypeHubScreen> {
               key: key,
               name: name,
               imageUrl: cat.imageUrl,
+              imageScale: cat.imageScale,
+              imagePositionX: cat.imagePositionX,
+              imagePositionY: cat.imagePositionY,
             );
           })
           .whereType<_HubCategory>()
@@ -374,12 +387,18 @@ class _CategoryTile extends StatelessWidget {
     required this.title,
     required this.onTap,
     this.imageUrl,
+    this.imageScale,
+    this.imagePositionX,
+    this.imagePositionY,
     this.gradient = false,
   });
 
   final String title;
   final VoidCallback onTap;
   final String? imageUrl;
+  final int? imageScale;
+  final int? imagePositionX;
+  final int? imagePositionY;
   final bool gradient;
 
   @override
@@ -418,10 +437,16 @@ class _CategoryTile extends StatelessWidget {
                   bottom: -8,
                   width: 90,
                   height: 90,
-                  child: CachedNetworkImage(
-                    imageUrl: resolved,
+                  child: applyImageFraming(
+                    imageScale: imageScale,
+                    imagePositionX: imagePositionX,
+                    imagePositionY: imagePositionY,
                     fit: BoxFit.contain,
-                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                    child: CachedNetworkImage(
+                      imageUrl: resolved,
+                      fit: BoxFit.contain,
+                      errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                    ),
                   ),
                 ),
               Padding(

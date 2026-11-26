@@ -147,7 +147,12 @@ class StoreCategoriesScreen extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 6),
                             child: ControlListCard(
-                              leading: _Thumb(url: c.imageUrl),
+                              leading: _Thumb(
+                                url: c.imageUrl,
+                                imageScale: c.imageScale,
+                                imagePositionX: c.imagePositionX,
+                                imagePositionY: c.imagePositionY,
+                              ),
                               title: c.name,
                               subtitle: c.slug.isNotEmpty ? c.slug : null,
                               trailing: StatusChip(
@@ -307,7 +312,14 @@ class _AllCategoriesTileFormSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return DetailSheetFooter(
+      token: _busy,
+      footer: MutationButton(
+        label: AppStrings.save,
+        loading: _busy,
+        onPressed: _busy ? null : _save,
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
@@ -326,24 +338,33 @@ class _AllCategoriesTileFormSheetState
           framing: _framing,
           onFramingChanged: (v) => setState(() => _framing = v),
         ),
-        MutationButton(
-          label: AppStrings.save,
-          loading: _busy,
-          onPressed: _busy ? null : _save,
-        ),
       ],
+      ),
     );
   }
 }
 
 class _Thumb extends StatelessWidget {
-  const _Thumb({this.url});
+  const _Thumb({
+    this.url,
+    this.imageScale,
+    this.imagePositionX,
+    this.imagePositionY,
+  });
 
   final String? url;
+  final int? imageScale;
+  final int? imagePositionX;
+  final int? imagePositionY;
 
   @override
   Widget build(BuildContext context) {
     final trimmed = url?.trim() ?? '';
+    final scale = ((imageScale ?? 100).clamp(100, 200)) / 100.0;
+    final align = Alignment(
+      (((imagePositionX ?? 50).clamp(0, 100)) / 50) - 1,
+      (((imagePositionY ?? 50).clamp(0, 100)) / 50) - 1,
+    );
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: SizedBox(
@@ -354,12 +375,18 @@ class _Thumb extends StatelessWidget {
                 color: Color(0xFFE4E4E7),
                 child: Icon(Icons.category_outlined, size: 22),
               )
-            : Image.network(
-                trimmed,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const ColoredBox(
-                  color: Color(0xFFE4E4E7),
-                  child: Icon(Icons.broken_image_outlined, size: 20),
+            : ClipRect(
+                child: Transform.scale(
+                  scale: scale,
+                  alignment: align,
+                  child: Image.network(
+                    trimmed,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const ColoredBox(
+                      color: Color(0xFFE4E4E7),
+                      child: Icon(Icons.broken_image_outlined, size: 20),
+                    ),
+                  ),
                 ),
               ),
       ),
@@ -487,15 +514,34 @@ class _StoreCategoryFormSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return DetailSheetFooter(
+      token: '$_busy-${widget.category != null}',
+      footer: Row(
+        children: [
+          if (widget.category != null) ...[
+            Expanded(
+              child: MutationButton(
+                label: AppStrings.delete,
+                filled: false,
+                destructive: true,
+                loading: _busy,
+                onPressed: _busy ? null : _delete,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: MutationButton(
+              label: AppStrings.save,
+              loading: _busy,
+              onPressed: _busy ? null : _save,
+            ),
+          ),
+        ],
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          controller: _name,
-          enabled: !_busy,
-          decoration: const InputDecoration(labelText: AppStrings.categoryName),
-        ),
-        const SizedBox(height: 12),
         ImageUploadField(
           imageUrlController: _imageUrl,
           enabled: !_busy,
@@ -504,6 +550,12 @@ class _StoreCategoryFormSheetState
           framingPreviewKind: ImageFramingPreviewKind.storeCategoryTile,
           framing: _framing,
           onFramingChanged: (v) => setState(() => _framing = v),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _name,
+          enabled: !_busy,
+          decoration: const InputDecoration(labelText: AppStrings.categoryName),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -520,22 +572,8 @@ class _StoreCategoryFormSheetState
             value: _isActive,
             onChanged: _busy ? null : (v) => setState(() => _isActive = v),
           ),
-        MutationButton(
-          label: AppStrings.save,
-          loading: _busy,
-          onPressed: _busy ? null : _save,
-        ),
-        if (widget.category != null) ...[
-          const SizedBox(height: 8),
-          MutationButton(
-            label: AppStrings.delete,
-            filled: false,
-            destructive: true,
-            loading: _busy,
-            onPressed: _busy ? null : _delete,
-          ),
-        ],
       ],
+      ),
     );
   }
 }

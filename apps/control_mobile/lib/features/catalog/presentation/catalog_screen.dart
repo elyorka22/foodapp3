@@ -12,6 +12,7 @@ import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/control_list_card.dart';
 import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/header_action.dart';
+import '../../../shared/widgets/image_framing_controls.dart';
 import '../../../shared/widgets/image_upload_field.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
@@ -219,6 +220,11 @@ class _CategoryThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = category.imageUrl?.trim() ?? '';
+    final scale = category.framing.imageScale / 100.0;
+    final align = Alignment(
+      (category.framing.imagePositionX / 50) - 1,
+      (category.framing.imagePositionY / 50) - 1,
+    );
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
@@ -229,12 +235,18 @@ class _CategoryThumb extends StatelessWidget {
                 color: Color(0xFFE4E4E7),
                 child: Icon(Icons.category_outlined, size: 22),
               )
-            : Image.network(
-                url,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const ColoredBox(
-                  color: Color(0xFFE4E4E7),
-                  child: Icon(Icons.broken_image_outlined, size: 20),
+            : ClipRect(
+                child: Transform.scale(
+                  scale: scale,
+                  alignment: align,
+                  child: Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const ColoredBox(
+                      color: Color(0xFFE4E4E7),
+                      child: Icon(Icons.broken_image_outlined, size: 20),
+                    ),
+                  ),
                 ),
               ),
       ),
@@ -256,6 +268,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
   late final TextEditingController _description;
   late final TextEditingController _imageUrl;
   late final TextEditingController _sortOrder;
+  late ImageFramingValues _framing;
   bool _isActive = true;
   bool _busy = false;
 
@@ -267,6 +280,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
     _description = TextEditingController(text: c?.description ?? '');
     _imageUrl = TextEditingController(text: c?.imageUrl ?? '');
     _sortOrder = TextEditingController(text: '${c?.sortOrder ?? 0}');
+    _framing = c?.framing ?? const ImageFramingValues();
     _isActive = c?.isActive ?? true;
   }
 
@@ -296,6 +310,9 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
           name: name,
           description: desc.isEmpty ? null : desc,
           imageUrl: imageUrl.isEmpty ? null : imageUrl,
+          imageScale: _framing.imageScale,
+          imagePositionX: _framing.imagePositionX,
+          imagePositionY: _framing.imagePositionY,
           sortOrder: sortOrder,
           isActive: _isActive,
         );
@@ -305,6 +322,9 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
           name: name,
           description: desc,
           imageUrl: imageUrl,
+          imageScale: _framing.imageScale,
+          imagePositionX: _framing.imagePositionX,
+          imagePositionY: _framing.imagePositionY,
           sortOrder: sortOrder,
           isActive: _isActive,
         );
@@ -346,9 +366,44 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return DetailSheetFooter(
+      token: '$_busy-${widget.category != null}',
+      footer: Row(
+        children: [
+          if (widget.category != null) ...[
+            Expanded(
+              child: MutationButton(
+                label: AppStrings.delete,
+                filled: false,
+                destructive: true,
+                loading: _busy,
+                onPressed: _busy ? null : _delete,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: MutationButton(
+              label: AppStrings.save,
+              loading: _busy,
+              onPressed: _busy ? null : _save,
+            ),
+          ),
+        ],
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        ImageUploadField(
+          imageUrlController: _imageUrl,
+          enabled: !_busy,
+          refererPath: '/admin/restaurants',
+          enableFraming: true,
+          framingPreviewKind: ImageFramingPreviewKind.storeCategoryTile,
+          framing: _framing,
+          onFramingChanged: (v) => setState(() => _framing = v),
+        ),
+        const SizedBox(height: 12),
         TextField(
           controller: _name,
           enabled: !_busy,
@@ -361,12 +416,6 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
           maxLines: 2,
           decoration:
               const InputDecoration(labelText: AppStrings.bannerDescription),
-        ),
-        const SizedBox(height: 12),
-        ImageUploadField(
-          imageUrlController: _imageUrl,
-          enabled: !_busy,
-          refererPath: '/admin/restaurants',
         ),
         const SizedBox(height: 8),
         TextField(
@@ -382,22 +431,8 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
           value: _isActive,
           onChanged: _busy ? null : (v) => setState(() => _isActive = v),
         ),
-        MutationButton(
-          label: AppStrings.save,
-          loading: _busy,
-          onPressed: _busy ? null : _save,
-        ),
-        if (widget.category != null) ...[
-          const SizedBox(height: 8),
-          MutationButton(
-            label: AppStrings.delete,
-            filled: false,
-            destructive: true,
-            loading: _busy,
-            onPressed: _busy ? null : _delete,
-          ),
-        ],
       ],
+      ),
     );
   }
 }

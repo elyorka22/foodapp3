@@ -521,9 +521,43 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return DetailSheetFooter(
+      token: '$_busy-${widget.banner != null}',
+      footer: Row(
+        children: [
+          if (widget.banner != null) ...[
+            Expanded(
+              child: MutationButton(
+                label: AppStrings.delete,
+                filled: false,
+                destructive: true,
+                loading: _busy,
+                onPressed: _busy ? null : _delete,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: MutationButton(
+              label: AppStrings.save,
+              loading: _busy,
+              onPressed: _busy ? null : _save,
+            ),
+          ),
+        ],
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        ImageUploadField(
+          imageUrlController: _imageUrl,
+          enabled: !_busy,
+          refererPath: '/admin/banners',
+          enableFraming: true,
+          framing: _framing,
+          onFramingChanged: (v) => setState(() => _framing = v),
+        ),
+        const SizedBox(height: 12),
         TextField(
           controller: _title,
           enabled: !_busy,
@@ -536,15 +570,6 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
           maxLines: 2,
           decoration:
               const InputDecoration(labelText: AppStrings.bannerDescription),
-        ),
-        const SizedBox(height: 12),
-        ImageUploadField(
-          imageUrlController: _imageUrl,
-          enabled: !_busy,
-          refererPath: '/admin/banners',
-          enableFraming: true,
-          framing: _framing,
-          onFramingChanged: (v) => setState(() => _framing = v),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -569,22 +594,8 @@ class _BannerFormSheetState extends ConsumerState<_BannerFormSheet> {
           value: _isActive,
           onChanged: _busy ? null : (v) => setState(() => _isActive = v),
         ),
-        MutationButton(
-          label: AppStrings.save,
-          loading: _busy,
-          onPressed: _busy ? null : _save,
-        ),
-        if (widget.banner != null) ...[
-          const SizedBox(height: 8),
-          MutationButton(
-            label: AppStrings.delete,
-            filled: false,
-            destructive: true,
-            loading: _busy,
-            onPressed: _busy ? null : _delete,
-          ),
-        ],
       ],
+      ),
     );
   }
 }

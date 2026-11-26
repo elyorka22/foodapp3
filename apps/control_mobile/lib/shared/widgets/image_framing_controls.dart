@@ -64,7 +64,7 @@ class ImageFramingControls extends StatelessWidget {
   /// Matches web/mobile store category tile: `rounded-[20px] aspect-[1/1.05]`.
   static const double storeCategoryRadius = 20;
   static const double storeCategoryAspect = 1 / 1.05;
-  static const double storeCategoryPreviewWidth = 140;
+  static const double storeCategoryPreviewWidth = 96;
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +76,17 @@ class ImageFramingControls extends StatelessWidget {
     final isStoreTile =
         previewKind == ImageFramingPreviewKind.storeCategoryTile;
 
+    final preview = _PreviewBox(
+      hasImage: hasImage,
+      url: url,
+      scale: scale,
+      x: x,
+      y: y,
+      isStoreTile: isStoreTile,
+    );
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 4),
       decoration: BoxDecoration(
         color: AppColors.surfaceMuted,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
@@ -92,139 +101,134 @@ class ImageFramingControls extends StatelessWidget {
                 : AppStrings.bannerImageFraming,
             style: AppTypography.subtitle,
           ),
-          const SizedBox(height: 4),
-          Text(
-            isStoreTile
-                ? AppStrings.storeCategoryImagePreviewSizeHint
-                : AppStrings.bannerImagePreviewSizeHint,
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final double previewWidth;
-              final double previewHeight;
-              final double radius;
-
-              if (isStoreTile) {
-                previewWidth = storeCategoryPreviewWidth
-                    .clamp(0, constraints.maxWidth)
-                    .toDouble();
-                previewHeight = previewWidth / storeCategoryAspect;
-                radius = storeCategoryRadius;
-              } else {
-                previewWidth = constraints.maxWidth;
-                previewHeight = previewWidth * 2 / 7;
-                radius = homeBannerRadius;
-              }
-
-              return Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  width: previewWidth,
-                  height: previewHeight,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE4E4E7),
-                    borderRadius: BorderRadius.circular(radius),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x140F172A),
-                        blurRadius: 24,
-                        offset: Offset(0, 8),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              preview,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  children: [
+                    _SliderRow(
+                      label: AppStrings.bannerImageScale,
+                      valueLabel: '$scale%',
+                      value: scale.toDouble(),
+                      min: 100,
+                      max: 200,
+                      enabled: enabled,
+                      onChanged: (v) => onChanged(
+                        values.copyWith(imageScale: v.round()),
                       ),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  // Free pan: left/top move the image so part can leave the
-                  // frame (clipped). Scale is only from the Masshtab slider.
-                  child: hasImage
-                      ? LayoutBuilder(
-                          builder: (context, box) {
-                            final bw = box.maxWidth;
-                            final bh = box.maxHeight;
-                            final s = scale / 100.0;
-                            final w = bw * s;
-                            final h = bh * s;
-                            final left = bw * x / 100 - w / 2;
-                            final top = bh * y / 100 - h / 2;
-                            return Stack(
-                              clipBehavior: Clip.hardEdge,
-                              children: [
-                                Positioned(
-                                  left: left,
-                                  top: top,
-                                  width: w,
-                                  height: h,
-                                  child: Image.network(
-                                    url,
-                                    fit: BoxFit.cover,
-                                    width: w,
-                                    height: h,
-                                    errorBuilder: (_, __, ___) => const Center(
-                                      child: Icon(Icons.broken_image_outlined),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        )
-                      : Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              isStoreTile
-                                  ? AppStrings.storeCategoryImagePreviewHint
-                                  : AppStrings.bannerImagePreviewHint,
-                              style: AppTypography.bodySmall.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
+                    ),
+                    _SliderRow(
+                      label: AppStrings.bannerImagePosX,
+                      valueLabel: '$x%',
+                      value: x.toDouble(),
+                      min: 0,
+                      max: 100,
+                      enabled: enabled,
+                      onChanged: (v) => onChanged(
+                        values.copyWith(imagePositionX: v.round()),
+                      ),
+                    ),
+                    _SliderRow(
+                      label: AppStrings.bannerImagePosY,
+                      valueLabel: '$y%',
+                      value: y.toDouble(),
+                      min: 0,
+                      max: 100,
+                      enabled: enabled,
+                      onChanged: (v) => onChanged(
+                        values.copyWith(imagePositionY: v.round()),
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          _SliderRow(
-            label: AppStrings.bannerImageScale,
-            valueLabel: '$scale%',
-            value: scale.toDouble(),
-            min: 100,
-            max: 200,
-            enabled: enabled,
-            onChanged: (v) => onChanged(
-              values.copyWith(imageScale: v.round()),
-            ),
-          ),
-          _SliderRow(
-            label: AppStrings.bannerImagePosX,
-            valueLabel: '$x%',
-            value: x.toDouble(),
-            min: 0,
-            max: 100,
-            enabled: enabled,
-            onChanged: (v) => onChanged(
-              values.copyWith(imagePositionX: v.round()),
-            ),
-          ),
-          _SliderRow(
-            label: AppStrings.bannerImagePosY,
-            valueLabel: '$y%',
-            value: y.toDouble(),
-            min: 0,
-            max: 100,
-            enabled: enabled,
-            onChanged: (v) => onChanged(
-              values.copyWith(imagePositionY: v.round()),
-            ),
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PreviewBox extends StatelessWidget {
+  const _PreviewBox({
+    required this.hasImage,
+    required this.url,
+    required this.scale,
+    required this.x,
+    required this.y,
+    required this.isStoreTile,
+  });
+
+  final bool hasImage;
+  final String? url;
+  final int scale;
+  final int x;
+  final int y;
+  final bool isStoreTile;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = isStoreTile
+        ? ImageFramingControls.storeCategoryPreviewWidth
+        : 132.0;
+    final height = isStoreTile
+        ? width / ImageFramingControls.storeCategoryAspect
+        : width * 2 / 7;
+    final radius = isStoreTile
+        ? ImageFramingControls.storeCategoryRadius
+        : ImageFramingControls.homeBannerRadius;
+
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE4E4E7),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: hasImage
+          ? LayoutBuilder(
+              builder: (context, box) {
+                final bw = box.maxWidth;
+                final bh = box.maxHeight;
+                final s = scale / 100.0;
+                final w = bw * s;
+                final h = bh * s;
+                final left = bw * x / 100 - w / 2;
+                final top = bh * y / 100 - h / 2;
+                return Stack(
+                  clipBehavior: Clip.hardEdge,
+                  children: [
+                    Positioned(
+                      left: left,
+                      top: top,
+                      width: w,
+                      height: h,
+                      child: Image.network(
+                        url!,
+                        fit: BoxFit.cover,
+                        width: w,
+                        height: h,
+                        errorBuilder: (_, __, ___) => const Center(
+                          child: Icon(Icons.broken_image_outlined),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            )
+          : const Center(
+              child: Icon(
+                Icons.image_outlined,
+                color: AppColors.textMuted,
+              ),
+            ),
     );
   }
 }
@@ -259,12 +263,19 @@ class _SliderRow extends StatelessWidget {
             Text(valueLabel, style: AppTypography.bodySmall),
           ],
         ),
-        Slider(
-          value: value.clamp(min, max),
-          min: min,
-          max: max,
-          divisions: (max - min).round(),
-          onChanged: enabled ? onChanged : null,
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 3,
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+          ),
+          child: Slider(
+            value: value.clamp(min, max),
+            min: min,
+            max: max,
+            divisions: (max - min).round(),
+            onChanged: enabled ? onChanged : null,
+          ),
         ),
       ],
     );
