@@ -88,7 +88,7 @@ class TokenStorage {
     // One-time migration from older builds that stored user JSON in prefs.
     if ((_cachedUserJson == null || _cachedUserJson!.isEmpty) && _prefs != null) {
       try {
-        final legacy = _prefs!.getString(_legacyUserPrefsKey);
+        final legacy = _prefs.getString(_legacyUserPrefsKey);
         if (legacy != null && legacy.isNotEmpty) {
           _cachedUserJson = legacy;
           try {

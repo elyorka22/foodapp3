@@ -8,7 +8,6 @@ import 'package:control_mobile/core/layout/breakpoints.dart';
 import 'package:control_mobile/core/network/api_exception.dart';
 import 'package:control_mobile/core/router/app_router.dart';
 import 'package:control_mobile/core/router/routes.dart';
-import 'package:control_mobile/core/theme/app_theme.dart';
 import 'package:control_mobile/features/auth/data/auth_repository.dart';
 import 'package:control_mobile/features/auth/presentation/login_screen.dart';
 import 'package:control_mobile/features/dashboard/data/dashboard_model.dart';

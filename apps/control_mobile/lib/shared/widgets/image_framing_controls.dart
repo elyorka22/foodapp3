@@ -158,7 +158,7 @@ class ImageFramingControls extends StatelessWidget {
                                   width: w,
                                   height: h,
                                   child: Image.network(
-                                    url!,
+                                    url,
                                     fit: BoxFit.cover,
                                     width: w,
                                     height: h,
