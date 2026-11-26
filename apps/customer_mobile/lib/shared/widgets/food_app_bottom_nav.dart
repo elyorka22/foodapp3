@@ -3,7 +3,7 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import 'lucide_nav_icons.dart';
 
-/// Bottom bar matching web `bottom-nav.tsx`: icons + labels, brand purple active.
+/// Bottom bar matching web `bottom-nav.tsx`: black icons, green active label.
 class FoodAppBottomNav extends StatelessWidget {
   const FoodAppBottomNav({
     super.key,
@@ -59,7 +59,7 @@ class FoodAppBottomNav extends StatelessWidget {
                             clipBehavior: Clip.none,
                             alignment: Alignment.center,
                             children: [
-                              _navIcon(index: index, active: active),
+                              _navIcon(index),
                               if (index == 1 && cartCount > 0)
                                 Positioned(
                                   right: -4,
@@ -119,8 +119,8 @@ class FoodAppBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _navIcon({required int index, required bool active}) {
-    final color = active ? AppColors.brand : AppColors.textMuted;
+  Widget _navIcon(int index) {
+    const color = Color(0xFF18181B);
     switch (index) {
       case 0:
         return LucideHomeNavIcon(

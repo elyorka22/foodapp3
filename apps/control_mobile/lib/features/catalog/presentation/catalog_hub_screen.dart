@@ -21,6 +21,10 @@ class CatalogHubScreen extends ConsumerWidget {
       return const StoreCategoriesScreen(embedded: true);
     }
 
+    if (scope.isRestaurant) {
+      return const CatalogScreen(showProducts: false);
+    }
+
     if (intent == CatalogNavIntent.products &&
         scope.isScoped &&
         !scope.isRestaurant &&

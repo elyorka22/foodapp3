@@ -118,11 +118,10 @@ function RestaurantFormFields({
           checked={form.isActive ?? true}
           onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
         />
-        Active (show on customer site when approved)
+        Active (show on the customer site)
       </label>
       <p className="text-xs text-amber-700 dark:text-amber-400">
-        New restaurants are published automatically if Active is checked. Existing pending
-        restaurants need Approve in the list.
+        A new restaurant appears on the site when Active is checked.
       </p>
       {showOwnerFields ? (
         <MerchantOwnerAccountFields
@@ -156,7 +155,7 @@ export default function AdminRestaurantsPage() {
 
   const isActiveFilter = status === '' ? undefined : status === 'active';
 
-  const { list, create, update, remove, updateApproval } = useAdminRestaurants({
+  const { list, create, update, remove } = useAdminRestaurants({
     page,
     limit: 20,
     search: search || undefined,
@@ -231,7 +230,7 @@ export default function AdminRestaurantsPage() {
       if (created?.approvalStatus === 'APPROVED' && created?.isActive) {
         toast.success('Restaurant created and visible on the homepage');
       } else {
-        toast.success('Restaurant created — click Approve to show on the site');
+        toast.success('Restaurant created — turn it on to show on the site');
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to create');
@@ -471,14 +470,6 @@ export default function AdminRestaurantsPage() {
                       <Button type="button" variant="secondary" onClick={() => toggleActive(r)}>
                         {r.isActive ? 'Deactivate' : 'Activate'}
                       </Button>
-                      {r.approvalStatus === 'PENDING' && (
-                        <Button
-                          type="button"
-                          onClick={() => updateApproval.mutateAsync({ id: r.id, status: 'APPROVED' })}
-                        >
-                          Approve
-                        </Button>
-                      )}
                       <Button type="button" variant="secondary" onClick={() => openEdit(r)}>
                         Edit
                       </Button>

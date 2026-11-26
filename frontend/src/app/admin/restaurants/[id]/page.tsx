@@ -7,8 +7,7 @@ import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useAdminAccess } from '@/hooks/use-admin-access';
 import { adminI18n as t } from '@/lib/admin-i18n';
-import { toast } from 'sonner';
-import { useAdminRestaurant, useAdminRestaurants } from '@/hooks/use-admin-restaurants';
+import { useAdminRestaurant } from '@/hooks/use-admin-restaurants';
 import { Button } from '@/components/ui/button';
 import { CategoryPanel } from '@/components/admin/category-panel';
 import { ActiveBadge } from '@/components/admin/active-badge';
@@ -21,7 +20,6 @@ export default function AdminRestaurantDetailPage() {
   const { ready, authorized, isSuperAdmin } = useAdminAccess({ permission: 'restaurants' });
   const token = getToken();
   const { detail, stats } = useAdminRestaurant(id);
-  const { updateApproval } = useAdminRestaurants({ page: 1, limit: 1 });
 
   const menuProducts = useQuery({
     queryKey: ['admin-menu-preview', id],
@@ -71,44 +69,6 @@ export default function AdminRestaurantDetailPage() {
           <Link href={`/admin/restaurants/${id}/finance`}>
             <Button type="button" variant="secondary">Finance</Button>
           </Link>
-          {r.approvalStatus === 'PENDING' && (
-            <>
-              <Button
-                type="button"
-                onClick={async () => {
-                  await updateApproval.mutateAsync({ id, status: 'APPROVED' });
-                  toast.success('Restaurant approved');
-                  detail.refetch();
-                }}
-              >
-                Approve
-              </Button>
-              <Button
-                type="button"
-                variant="danger"
-                onClick={async () => {
-                  await updateApproval.mutateAsync({ id, status: 'REJECTED', note: 'Rejected by admin' });
-                  toast.success('Restaurant rejected');
-                  detail.refetch();
-                }}
-              >
-                Reject
-              </Button>
-            </>
-          )}
-          {r.approvalStatus === 'APPROVED' && (
-            <Button
-              type="button"
-              variant="danger"
-              onClick={async () => {
-                await updateApproval.mutateAsync({ id, status: 'SUSPENDED', note: 'Suspended by admin' });
-                toast.success('Restaurant suspended');
-                detail.refetch();
-              }}
-            >
-              Suspend
-            </Button>
-          )}
         </div>
       </div>
 

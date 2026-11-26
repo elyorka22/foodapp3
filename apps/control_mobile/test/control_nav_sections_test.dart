@@ -57,6 +57,12 @@ void main() {
       menuMode: 'SHARED_CATALOG',
     )), isTrue);
 
+    final restaurants = sections.firstWhere((s) => s.label == 'Restoranlar');
+    expect(
+      restaurants.entries.map((e) => e.catalogIntent).toList(),
+      [null, CatalogNavIntent.dishCategories, null, null],
+    );
+
     final flowers = sections.firstWhere((s) => s.label == 'Gullar');
     expect(flowers.entries.length, 5);
     expect(flowers.entries.first.scope.slug, 'flowers');

@@ -6,18 +6,14 @@ import { clsx } from 'clsx';
 import { useCartStore } from '@/store/cart';
 import { uz } from '@/lib/uz';
 
-type TabIconProps = {
-  active: boolean;
-};
-
-/** Active tab fill. Idle icons stay gray. */
+/** Active label and cart badge. Icons themselves are black. */
 const BRAND = '#16A34A';
-const IDLE = '#A1A1AA';
+const ICON = '#18181B';
 /** One box for every tab so home, cart, and profile read the same size. */
 const NAV_ICON = 30;
 
-function HomeIcon({ active }: TabIconProps) {
-  const color = active ? BRAND : IDLE;
+function HomeIcon() {
+  const color = ICON;
   // Wing outline, same box as cart and profile. Inner cutouts stay open.
   return (
     <span
@@ -41,8 +37,8 @@ function HomeIcon({ active }: TabIconProps) {
   );
 }
 
-function CartIcon({ active }: TabIconProps) {
-  const color = active ? BRAND : IDLE;
+function CartIcon() {
+  const color = ICON;
   return (
     <svg width={NAV_ICON} height={NAV_ICON} viewBox="0 0 24 24" fill={color} aria-hidden>
       <g transform="translate(12 12) scale(1.18) translate(-12 -13)">
@@ -57,8 +53,8 @@ function CartIcon({ active }: TabIconProps) {
   );
 }
 
-function ProfileIcon({ active }: TabIconProps) {
-  const color = active ? BRAND : IDLE;
+function ProfileIcon() {
+  const color = ICON;
   return (
     <svg width={NAV_ICON} height={NAV_ICON} viewBox="0 0 24 24" fill={color} aria-hidden>
       <circle cx="12" cy="8" r="3.5" />
@@ -135,7 +131,7 @@ export function BottomNav() {
                 className="mx-auto flex max-w-[5.5rem] flex-col items-center gap-0.5 px-2 py-0.5 transition active:scale-95"
               >
                 <span className="relative flex h-9 w-9 items-center justify-center">
-                  <Icon active={active} />
+                  <Icon />
                   {showBadge && (
                     <span
                       className="absolute -right-1 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"

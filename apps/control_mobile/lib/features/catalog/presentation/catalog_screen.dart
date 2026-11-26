@@ -42,9 +42,12 @@ final _productBusinessesProvider =
 });
 
 class CatalogScreen extends StatefulWidget {
-  const CatalogScreen({super.key, this.initialTab = 0});
+  const CatalogScreen({super.key, this.initialTab = 0, this.showProducts = true});
 
   final int initialTab;
+
+  /// Restaurants only manage dish categories here. Store catalogs keep products.
+  final bool showProducts;
 
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
@@ -52,37 +55,46 @@ class CatalogScreen extends StatefulWidget {
 
 class _CatalogScreenState extends State<CatalogScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs;
+  TabController? _tabs;
 
   @override
   void initState() {
     super.initState();
-    final tab = widget.initialTab.clamp(0, 1);
-    _tabs = TabController(length: 2, vsync: this, initialIndex: tab);
-    _tabs.addListener(() {
-      if (!_tabs.indexIsChanging) setState(() {});
-    });
+    _ensureTabs();
   }
 
   @override
   void didUpdateWidget(covariant CatalogScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialTab != widget.initialTab) {
+    if (oldWidget.showProducts != widget.showProducts) {
+      _tabs?.dispose();
+      _tabs = null;
+      _ensureTabs();
+    } else if (widget.showProducts && oldWidget.initialTab != widget.initialTab) {
       final tab = widget.initialTab.clamp(0, 1);
-      if (_tabs.index != tab) {
-        _tabs.animateTo(tab);
+      if (_tabs != null && _tabs!.index != tab) {
+        _tabs!.animateTo(tab);
       }
     }
   }
 
+  void _ensureTabs() {
+    if (!widget.showProducts) return;
+    final tab = widget.initialTab.clamp(0, 1);
+    _tabs = TabController(length: 2, vsync: this, initialIndex: tab);
+    _tabs!.addListener(() {
+      if (!_tabs!.indexIsChanging) setState(() {});
+    });
+  }
+
   @override
   void dispose() {
-    _tabs.dispose();
+    _tabs?.dispose();
     super.dispose();
   }
 
   void _onAdd() {
-    final isProducts = _tabs.index == 1;
+    final isProducts = widget.showProducts && _tabs?.index == 1;
     showDetailSheet(
       context: context,
       title: isProducts ? AppStrings.addProduct : AppStrings.addCategory,
@@ -105,33 +117,37 @@ class _CatalogScreenState extends State<CatalogScreen>
             onPressed: _onAdd,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: AppColors.borderLight),
+        if (!widget.showProducts)
+          const Expanded(child: _CategoriesTab())
+        else ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppColors.borderLight),
+                ),
+              ),
+              child: TabBar(
+                controller: _tabs,
+                tabs: const [
+                  Tab(text: AppStrings.categoriesSection),
+                  Tab(text: AppStrings.productsSection),
+                ],
               ),
             ),
-            child: TabBar(
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: TabBarView(
               controller: _tabs,
-              tabs: const [
-                Tab(text: AppStrings.categoriesSection),
-                Tab(text: AppStrings.productsSection),
+              children: const [
+                _CategoriesTab(),
+                _ProductsTab(),
               ],
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Expanded(
-          child: TabBarView(
-            controller: _tabs,
-            children: const [
-              _CategoriesTab(),
-              _ProductsTab(),
-            ],
-          ),
-        ),
+        ],
       ],
     );
   }

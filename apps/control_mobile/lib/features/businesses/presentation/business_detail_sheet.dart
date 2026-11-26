@@ -6,7 +6,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format_uz.dart';
 import '../../../shared/widgets/action_feedback.dart';
-import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../catalog/data/catalog_repository.dart';
@@ -88,52 +87,6 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
             isActive: active,
           );
       if (mounted) setState(() => _restaurant = updated);
-    });
-  }
-
-  Future<void> _approve(String status) async {
-    if (status == 'REJECTED') {
-      final ok = await showConfirmDialog(
-        context,
-        title: AppStrings.reject,
-        message: AppStrings.confirmRejectBusiness,
-        destructive: true,
-      );
-      if (!ok) return;
-    }
-    await _run(() async {
-      await ref.read(businessesRepositoryProvider).updateApproval(
-            _restaurant.id,
-            status: status,
-          );
-      if (mounted) {
-        setState(() {
-          _restaurant = ControlRestaurant(
-            id: _restaurant.id,
-            name: _restaurant.name,
-            slug: _restaurant.slug,
-            isActive: _restaurant.isActive,
-            approvalStatus: status,
-            description: _restaurant.description,
-            logoUrl: _restaurant.logoUrl,
-            coverUrl: _restaurant.coverUrl,
-            phone: _restaurant.phone,
-            commissionRate: _restaurant.commissionRate,
-            ordersCount: _restaurant.ordersCount,
-            revenue: _restaurant.revenue,
-            productsCount: _restaurant.productsCount,
-            branchAddress: _restaurant.branchAddress,
-            latitude: _restaurant.latitude,
-            longitude: _restaurant.longitude,
-            cityId: _restaurant.cityId,
-            cityName: _restaurant.cityName,
-            businessTypeId: _restaurant.businessTypeId,
-            businessTypeName: _restaurant.businessTypeName,
-            businessTypeMenuMode: _restaurant.businessTypeMenuMode,
-            createdAt: _restaurant.createdAt,
-          );
-        });
-      }
     });
   }
 
@@ -254,33 +207,6 @@ class _BusinessDetailSheetState extends ConsumerState<BusinessDetailSheet> {
           ),
         ],
         const SizedBox(height: 16),
-        Text(AppStrings.approvalStatus, style: AppTypography.subtitle),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            MutationButton(
-              label: AppStrings.approve,
-              loading: _busy,
-              onPressed: () => _approve('APPROVED'),
-            ),
-            MutationButton(
-              label: AppStrings.reject,
-              filled: false,
-              destructive: true,
-              loading: _busy,
-              onPressed: () => _approve('REJECTED'),
-            ),
-            MutationButton(
-              label: AppStrings.suspend,
-              filled: false,
-              loading: _busy,
-              onPressed: () => _approve('SUSPENDED'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,

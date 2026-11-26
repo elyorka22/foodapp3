@@ -78,7 +78,7 @@ export function AdminStoresPage({ typeSlug, typeName }: Props) {
   );
   const sharedCatalogType = lockedType?.menuMode === 'SHARED_CATALOG';
 
-  const { list, create, update, remove, updateApproval } = useAdminRestaurants({
+  const { list, create, update, remove } = useAdminRestaurants({
     page,
     limit: 50,
     search: search || undefined,
@@ -372,20 +372,6 @@ export function AdminStoresPage({ typeSlug, typeName }: Props) {
                     ) : null}
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
-                        {r.approvalStatus === 'PENDING' && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() =>
-                              updateApproval.mutateAsync({
-                                id: String(r.id),
-                                status: 'APPROVED',
-                              })
-                            }
-                          >
-                            Tasdiqlash
-                          </Button>
-                        )}
                         {typeSlug && sharedCatalogType ? (
                           <Link
                             href={`/admin/stores/type/${encodeURIComponent(typeSlug)}/offers?businessId=${encodeURIComponent(String(r.id))}`}

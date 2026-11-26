@@ -133,18 +133,17 @@ List<ControlNavEntry> _verticalEntries({
           ? CatalogNavIntent.dishCategories
           : CatalogNavIntent.storeCategories,
     ),
-    _entry(
-      id: '$prefix-products',
-      label: restaurant
-          ? AppStrings.navRestaurantMenu
-          : sharedCatalog
-              ? AppStrings.sharedCatalogTitle
-              : AppStrings.navStoreProducts,
-      icon: Icons.inventory_2_outlined,
-      branch: ControlBranches.catalog,
-      scope: scope,
-      catalogIntent: CatalogNavIntent.products,
-    ),
+    if (!restaurant)
+      _entry(
+        id: '$prefix-products',
+        label: sharedCatalog
+            ? AppStrings.sharedCatalogTitle
+            : AppStrings.navStoreProducts,
+        icon: Icons.inventory_2_outlined,
+        branch: ControlBranches.catalog,
+        scope: scope,
+        catalogIntent: CatalogNavIntent.products,
+      ),
     _entry(
       id: '$prefix-banners',
       label: AppStrings.navBanners,
