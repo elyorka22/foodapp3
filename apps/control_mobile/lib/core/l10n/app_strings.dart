@@ -48,6 +48,7 @@ abstract final class AppStrings {
   static const employeesTitle = 'Xodimlar';
   static const businessesTitle = 'Restoran va do‘konlar';
   static const ordersTitle = 'Buyurtmalar';
+  static const orderNoCourier = 'Kuryer biriktirilmagan';
   static const catalogTitle = 'Taom kategoriyalari';
   static const promotionsTitle = 'Maxsus takliflar';
   static const settingsTitle = 'Ilova sozlamalari';

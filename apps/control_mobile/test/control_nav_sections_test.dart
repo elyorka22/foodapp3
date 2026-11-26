@@ -60,11 +60,11 @@ void main() {
     final restaurants = sections.firstWhere((s) => s.label == 'Restoranlar');
     expect(
       restaurants.entries.map((e) => e.catalogIntent).toList(),
-      [null, CatalogNavIntent.dishCategories, null],
+      [null, CatalogNavIntent.dishCategories],
     );
 
     final flowers = sections.firstWhere((s) => s.label == 'Gullar');
-    expect(flowers.entries.length, 4);
+    expect(flowers.entries.length, 2);
     expect(flowers.entries.first.scope.slug, 'flowers');
     expect(flowers.entries.first.scope.id, '2');
     expect(
@@ -75,7 +75,7 @@ void main() {
       flowers.entries
           .where((e) => e.branchIndex == ControlBranches.catalog)
           .length,
-      2,
+      1,
     );
   });
 }

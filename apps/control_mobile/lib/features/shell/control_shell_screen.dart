@@ -245,7 +245,7 @@ class _ControlSidebar extends StatelessWidget {
   }
 }
 
-class _NavPanel extends StatelessWidget {
+class _NavPanel extends StatefulWidget {
   const _NavPanel({
     required this.sections,
     required this.selectedEntryId,
@@ -264,9 +264,47 @@ class _NavPanel extends StatelessWidget {
   final VoidCallback onLogout;
   final bool showBrandMark;
 
+  @override
+  State<_NavPanel> createState() => _NavPanelState();
+}
+
+class _NavPanelState extends State<_NavPanel> {
+  final Set<String> _open = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _openSelected();
+  }
+
+  @override
+  void didUpdateWidget(_NavPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _openSelected();
+  }
+
   bool _isSelected(ControlNavEntry entry) {
-    if (selectedEntryId != null) return entry.id == selectedEntryId;
-    return entry.branchIndex == selectedBranch;
+    if (widget.selectedEntryId != null) {
+      return entry.id == widget.selectedEntryId;
+    }
+    return entry.branchIndex == widget.selectedBranch;
+  }
+
+  void _openSelected() {
+    for (final group in widget.sections) {
+      if (group.entries.length < 2) continue;
+      if (group.entries.any(_isSelected)) _open.add(group.label);
+    }
+  }
+
+  void _toggle(String label) {
+    setState(() {
+      if (_open.contains(label)) {
+        _open.remove(label);
+      } else {
+        _open.add(label);
+      }
+    });
   }
 
   @override
@@ -277,7 +315,7 @@ class _NavPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (showBrandMark)
+            if (widget.showBrandMark)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
@@ -329,21 +367,31 @@ class _NavPanel extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
                 children: [
-                  for (final group in sections) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 12, 8, 6),
-                      child: Text(
-                        group.label.toUpperCase(),
-                        style: AppTypography.overline,
+                  for (final group in widget.sections)
+                    if (group.entries.length < 2)
+                      for (final entry in group.entries)
+                        _NavTile(
+                          item: entry,
+                          selected: _isSelected(entry),
+                          onTap: () => widget.onSelect(entry),
+                        )
+                    else ...[
+                      _MainNavRow(
+                        label: group.label,
+                        icon: group.icon,
+                        open: _open.contains(group.label),
+                        selected: group.entries.any(_isSelected),
+                        onToggle: () => _toggle(group.label),
                       ),
-                    ),
-                    for (final entry in group.entries)
-                      _NavTile(
-                        item: entry,
-                        selected: _isSelected(entry),
-                        onTap: () => onSelect(entry),
-                      ),
-                  ],
+                      if (_open.contains(group.label))
+                        for (final entry in group.entries)
+                          _NavTile(
+                            item: entry,
+                            nested: true,
+                            selected: _isSelected(entry),
+                            onTap: () => widget.onSelect(entry),
+                          ),
+                    ],
                 ],
               ),
             ),
@@ -356,7 +404,9 @@ class _NavPanel extends StatelessWidget {
                     radius: 15,
                     backgroundColor: AppColors.sidebarMuted,
                     child: Text(
-                      userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
+                      widget.userName.isNotEmpty
+                          ? widget.userName[0].toUpperCase()
+                          : 'A',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.onSidebar,
                         fontWeight: FontWeight.w700,
@@ -366,7 +416,7 @@ class _NavPanel extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      userName,
+                      widget.userName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.bodySmall.copyWith(
@@ -377,7 +427,7 @@ class _NavPanel extends StatelessWidget {
                   ),
                   IconButton(
                     tooltip: AppStrings.logout,
-                    onPressed: onLogout,
+                    onPressed: widget.onLogout,
                     visualDensity: VisualDensity.compact,
                     icon: const Icon(
                       Icons.logout_rounded,
@@ -395,21 +445,78 @@ class _NavPanel extends StatelessWidget {
   }
 }
 
-class _NavTile extends StatelessWidget {
-  const _NavTile({
-    required this.item,
+class _MainNavRow extends StatelessWidget {
+  const _MainNavRow({
+    required this.label,
+    required this.icon,
+    required this.open,
     required this.selected,
-    required this.onTap,
+    required this.onToggle,
   });
 
-  final ControlNavEntry item;
+  final String label;
+  final IconData icon;
+  final bool open;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
+      child: Material(
+        color: selected && !open ? AppColors.sidebarHover : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 10, 4, 10),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: AppColors.onSidebar),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: AppTypography.body.copyWith(
+                      fontSize: 14,
+                      color: AppColors.onSidebar,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Icon(
+                  open ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: AppColors.onSidebarMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavTile extends StatelessWidget {
+  const _NavTile({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+    this.nested = false,
+  });
+
+  final ControlNavEntry item;
+  final bool selected;
+  final VoidCallback onTap;
+  final bool nested;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: nested ? 14 : 0, bottom: 2),
       child: Material(
         color: selected ? AppColors.sidebarHover : Colors.transparent,
         borderRadius: BorderRadius.circular(6),
@@ -417,12 +524,21 @@ class _NavTile extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(6),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            padding: EdgeInsets.fromLTRB(nested ? 8 : 10, 8, 10, 8),
             child: Row(
               children: [
+                if (nested)
+                  Container(
+                    width: 2,
+                    height: 16,
+                    margin: const EdgeInsets.only(right: 8),
+                    color: selected
+                        ? AppColors.sidebarAccent
+                        : AppColors.sidebarMuted,
+                  ),
                 Icon(
                   item.icon,
-                  size: 18,
+                  size: nested ? 16 : 20,
                   color: selected
                       ? AppColors.onSidebar
                       : AppColors.onSidebarMuted,
@@ -432,24 +548,18 @@ class _NavTile extends StatelessWidget {
                   child: Text(
                     item.label,
                     style: AppTypography.body.copyWith(
-                      fontSize: 13,
+                      fontSize: nested ? 12 : 14,
                       color: selected
                           ? AppColors.onSidebar
-                          : AppColors.onSidebarMuted,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w400,
+                          : (nested
+                              ? AppColors.onSidebarMuted
+                              : AppColors.onSidebar),
+                      fontWeight: nested
+                          ? (selected ? FontWeight.w600 : FontWeight.w400)
+                          : FontWeight.w700,
                     ),
                   ),
                 ),
-                if (selected)
-                  Container(
-                    width: 4,
-                    height: 4,
-                    decoration: const BoxDecoration(
-                      color: AppColors.sidebarAccent,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
               ],
             ),
           ),

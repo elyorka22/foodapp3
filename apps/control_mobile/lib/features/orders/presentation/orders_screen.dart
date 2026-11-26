@@ -12,7 +12,6 @@ import '../../../shared/widgets/detail_sheet.dart';
 import '../../../shared/widgets/mutation_button.dart';
 import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_chip.dart';
-import '../../shell/control_vertical_scope.dart';
 import '../data/order_model.dart';
 import '../data/orders_repository.dart';
 import 'order_detail_sheet.dart';
@@ -76,12 +75,8 @@ class OrdersPagedNotifier
     extends AutoDisposeAsyncNotifier<OrdersPagedState> {
   static const _limit = 20;
 
-  Map<String, dynamic> _queryFrom(
-    OrdersFilter f,
-    ControlVerticalScope scope,
-  ) {
+  Map<String, dynamic> _queryFrom(OrdersFilter f) {
     return {
-      ...scope.ordersQuery(),
       if (f.status != null && f.status!.isNotEmpty) 'status': f.status,
       if (f.dateFrom != null)
         'dateFrom': DateTime(
@@ -106,11 +101,10 @@ class OrdersPagedNotifier
   @override
   Future<OrdersPagedState> build() async {
     final filter = ref.watch(ordersFilterProvider);
-    final scope = ref.watch(controlVerticalScopeProvider);
     final page = await ref.read(ordersRepositoryProvider).fetchOrders(
           page: 1,
           limit: _limit,
-          query: _queryFrom(filter, scope),
+          query: _queryFrom(filter),
         );
     return OrdersPagedState(
       items: page.data,
@@ -134,12 +128,11 @@ class OrdersPagedNotifier
 
     try {
       final filter = ref.read(ordersFilterProvider);
-      final scope = ref.read(controlVerticalScopeProvider);
       final nextPage = current.page + 1;
       final page = await ref.read(ordersRepositoryProvider).fetchOrders(
             page: nextPage,
             limit: _limit,
-            query: _queryFrom(filter, scope),
+            query: _queryFrom(filter),
           );
       state = AsyncData(
         OrdersPagedState(
@@ -215,14 +208,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   Widget build(BuildContext context) {
     final filter = ref.watch(ordersFilterProvider);
     final async = ref.watch(ordersPagedProvider);
-    final scope = ref.watch(controlVerticalScopeProvider);
     final hasFilters = filter.status != null ||
         filter.dateFrom != null ||
         filter.dateTo != null ||
         filter.search.isNotEmpty;
-    final title = scope.isScoped && (scope.name?.isNotEmpty ?? false)
-        ? '${scope.name} · ${AppStrings.ordersTitle}'
-        : AppStrings.ordersTitle;
+    final title = AppStrings.ordersTitle;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -326,17 +316,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                   ref.read(ordersPagedProvider.notifier).refresh(),
             ),
             data: (state) {
-              final items = scope.isScoped && !scope.isRestaurant
-                  ? state.items
-                      .where(
-                        (o) => scope.matchesBusinessType(
-                          businessTypeId: o.businessTypeId,
-                          businessTypeSlug: o.businessTypeSlug,
-                          businessTypeName: o.businessTypeName,
-                        ),
-                      )
-                      .toList()
-                  : state.items;
+              final items = state.items;
               if (items.isEmpty) {
                 return RefreshIndicator(
                   onRefresh: () =>
@@ -381,12 +361,26 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                     final o = items[index];
                     return ControlListCard(
                       title: o.orderNumber.isNotEmpty ? o.orderNumber : o.id,
+                      subtitleMaxLines: 4,
                       subtitle: [
-                        if (o.businessName != null) o.businessName!,
-                        formatMoney(o.total),
-                        if (o.customerPhone != null) o.customerPhone!,
-                        if (o.createdAt != null) formatDateTime(o.createdAt),
-                      ].join(' · '),
+                        [
+                          if ((o.businessTypeName ?? '').isNotEmpty)
+                            o.businessTypeName!,
+                          if ((o.businessName ?? '').isNotEmpty)
+                            o.businessName!,
+                        ].join(' · '),
+                        [
+                          if ((o.customerPhone ?? '').isNotEmpty)
+                            o.customerPhone!,
+                          (o.courierName ?? '').trim().isNotEmpty
+                              ? o.courierName!
+                              : AppStrings.orderNoCourier,
+                        ].join(' · '),
+                        [
+                          formatMoney(o.total),
+                          if (o.createdAt != null) formatDateTime(o.createdAt),
+                        ].join(' · '),
+                      ].where((line) => line.trim().isNotEmpty).join('\n'),
                       trailing: StatusChip(status: o.status),
                       onTap: () => showDetailSheet(
                         context: context,

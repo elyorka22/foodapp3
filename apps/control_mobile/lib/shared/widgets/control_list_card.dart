@@ -9,6 +9,7 @@ class ControlListCard extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.subtitleMaxLines = 2,
     this.trailing,
     this.leading,
     this.onTap,
@@ -16,6 +17,7 @@ class ControlListCard extends StatelessWidget {
 
   final String title;
   final String? subtitle;
+  final int subtitleMaxLines;
   final Widget? trailing;
   final Widget? leading;
   final VoidCallback? onTap;
@@ -55,7 +57,7 @@ class ControlListCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        maxLines: 2,
+                        maxLines: subtitleMaxLines,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.bodySmall,
                       ),

@@ -48,9 +48,11 @@ class ControlNavSection {
   const ControlNavSection({
     required this.label,
     required this.entries,
+    this.icon = Icons.folder_outlined,
   });
 
   final String label;
+  final IconData icon;
   final List<ControlNavEntry> entries;
 }
 
@@ -112,6 +114,7 @@ List<ControlNavEntry> _verticalEntries({
   required ControlVerticalScope scope,
   required bool restaurant,
   bool sharedCatalog = false,
+  bool showProducts = true,
 }) {
   return [
     _entry(
@@ -133,7 +136,7 @@ List<ControlNavEntry> _verticalEntries({
           ? CatalogNavIntent.dishCategories
           : CatalogNavIntent.storeCategories,
     ),
-    if (!restaurant)
+    if (!restaurant && showProducts)
       _entry(
         id: '$prefix-products',
         label: sharedCatalog
@@ -144,13 +147,6 @@ List<ControlNavEntry> _verticalEntries({
         scope: scope,
         catalogIntent: CatalogNavIntent.products,
       ),
-    _entry(
-      id: '$prefix-orders',
-      label: AppStrings.navOrders,
-      icon: Icons.receipt_long_outlined,
-      branch: ControlBranches.orders,
-      scope: scope,
-    ),
   ];
 }
 
@@ -180,6 +176,7 @@ List<ControlNavSection> buildControlNavSections(
     ),
     ControlNavSection(
       label: AppStrings.navGroupRestaurants,
+      icon: Icons.restaurant_outlined,
       entries: _verticalEntries(
         prefix: 'restaurant',
         scope: ControlVerticalScope.restaurant,
@@ -189,11 +186,13 @@ List<ControlNavSection> buildControlNavSections(
     for (final type in marketplace)
       ControlNavSection(
         label: type.name,
+        icon: Icons.storefront_outlined,
         entries: _verticalEntries(
           prefix: 'type-${type.slug ?? type.id}',
           scope: ControlVerticalScope.marketplace(type),
           restaurant: false,
           sharedCatalog: type.menuMode == 'SHARED_CATALOG',
+          showProducts: (type.slug ?? '').toLowerCase() != 'flowers',
         ),
       ),
     ControlNavSection(
@@ -210,6 +209,7 @@ List<ControlNavSection> buildControlNavSections(
     ),
     ControlNavSection(
       label: AppStrings.navGroupOps,
+      icon: Icons.hub_outlined,
       entries: [
         _entry(
           id: 'couriers',
@@ -239,6 +239,7 @@ List<ControlNavSection> buildControlNavSections(
     ),
     ControlNavSection(
       label: AppStrings.navGroupGrowth,
+      icon: Icons.campaign_outlined,
       entries: [
         _entry(
           id: 'banners',
@@ -262,6 +263,7 @@ List<ControlNavSection> buildControlNavSections(
     ),
     ControlNavSection(
       label: AppStrings.navGroupPlatform,
+      icon: Icons.apartment_outlined,
       entries: [
         _entry(
           id: 'cities',
@@ -285,6 +287,7 @@ List<ControlNavSection> buildControlNavSections(
     ),
     ControlNavSection(
       label: AppStrings.navGroupSystem,
+      icon: Icons.settings_outlined,
       entries: [
         _entry(
           id: 'settings',
