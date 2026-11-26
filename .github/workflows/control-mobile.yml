@@ -72,6 +72,11 @@ jobs:
         # Flutter 3.50: material.dart → material_ui deprecation infos
         run: flutter analyze --no-fatal-infos
 
+      # flutter_secure_storage's Linux plugin will not compile without this,
+      # so any test that opens login or diagnostics fails while loading.
+      - name: Install Linux libraries for plugin tests
+        run: sudo apt-get update && sudo apt-get install -y libsecret-1-dev libjsoncpp-dev
+
       - name: Test
         run: flutter test
 
